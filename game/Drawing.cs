@@ -32,6 +32,7 @@ public static class Drawing
     static List<DrawMesh> meshes = new List<DrawMesh>();
     static DrawMesh recording;
     static DrawPart part;
+    static List<DrawVertex> projected = new List<DrawVertex>();
 
     static float[] Identity() { return new float[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 }; }
     static float[] Copy(float[] src)
@@ -104,10 +105,13 @@ public static class Drawing
     {
         foreach (var p in meshes[index].parts)
         {
-            var transformed = new DrawPart { mode = p.mode };
-            foreach (var v in p.vertices) transformed.vertices.Add(Transform(v));
-            if (recording != null) recording.parts.Add(transformed);
-            else Emit(transformed);
+            if (recording != null)
+            {
+                var transformed = new DrawPart { mode = p.mode };
+                foreach (var v in p.vertices) transformed.vertices.Add(Transform(v));
+                recording.parts.Add(transformed);
+            }
+            else Emit(p, true);
         }
     }
     public static void glBegin(int mode) { part = new DrawPart { mode = mode }; }
@@ -118,7 +122,7 @@ public static class Drawing
     public static void glEnd()
     {
         if (recording != null) recording.parts.Add(part);
-        else Emit(part);
+        else Emit(part, false);
         part = null;
     }
     public static void glEnable(int state) { Set(state, true); }
@@ -130,11 +134,20 @@ public static class Drawing
         if (state == GL_CULL_FACE) cull = enabled;
     }
     public static void glLineWidth(float width) { lineWidth = width; }
-    static DrawVertex Project(DrawVertex v)
+    static void Project(DrawVertex v, DrawVertex result, bool transform)
     {
-        if (ortho) return new DrawVertex { x = v.x / 320 - 1, y = 1 - v.y / 240, z = (1 - v.z) / 2, r = v.r, g = v.g, b = v.b, a = v.a };
-        return new DrawVertex { x = v.x, y = v.y * (4f / 3), z = -v.z * (1000f / 999.9f) - 100f / 999.9f,
-            w = -v.z, r = v.r, g = v.g, b = v.b, a = v.a };
+        float x = v.x, y = v.y, z = v.z;
+        if (transform)
+        {
+            x = matrix[0]*v.x + matrix[4]*v.y + matrix[8]*v.z + matrix[12];
+            y = matrix[1]*v.x + matrix[5]*v.y + matrix[9]*v.z + matrix[13];
+            z = matrix[2]*v.x + matrix[6]*v.y + matrix[10]*v.z + matrix[14];
+        }
+        result.x = ortho ? x / 320 - 1 : x;
+        result.y = ortho ? 1 - y / 240 : y * (4f / 3);
+        result.z = ortho ? (1 - z) / 2 : -z * (1000f / 999.9f) - 100f / 999.9f;
+        result.w = ortho ? 1 : -z;
+        result.r = v.r; result.g = v.g; result.b = v.b; result.a = v.a;
     }
     static List<float> Batch(bool useCull)
     {
@@ -163,20 +176,20 @@ public static class Drawing
         if (length == 0) return;
         float ox = -dy / length * lineWidth / 640, oy = dx / length * lineWidth / 480;
         var dst = Batch(false);
-        var a1 = Offset(a, ox, oy); var a2 = Offset(a, -ox, -oy);
-        var b1 = Offset(b, ox, oy); var b2 = Offset(b, -ox, -oy);
-        Vertex(dst, a1); Vertex(dst, a2); Vertex(dst, b1);
-        Vertex(dst, b1); Vertex(dst, a2); Vertex(dst, b2);
+        Offset(dst, a, ox, oy); Offset(dst, a, -ox, -oy); Offset(dst, b, ox, oy);
+        Offset(dst, b, ox, oy); Offset(dst, a, -ox, -oy); Offset(dst, b, -ox, -oy);
     }
-    static DrawVertex Offset(DrawVertex v, float x, float y)
+    static void Offset(List<float> buffer, DrawVertex v, float x, float y)
     {
-        return new DrawVertex { x = v.x + x * v.w, y = v.y + y * v.w, z = v.z, w = v.w, r = v.r, g = v.g, b = v.b, a = v.a };
+        buffer.Add(v.x + x * v.w); buffer.Add(v.y + y * v.w); buffer.Add(v.z); buffer.Add(v.w);
+        buffer.Add(v.r); buffer.Add(v.g); buffer.Add(v.b); buffer.Add(v.a);
     }
-    static void Emit(DrawPart p)
+    static void Emit(DrawPart p, bool transform)
     {
-        var vertices = new List<DrawVertex>();
-        foreach (var v in p.vertices) vertices.Add(Project(v));
-        int n = vertices.Count;
+        int n = p.vertices.Count;
+        while (projected.Count < n) projected.Add(new DrawVertex());
+        for (int i = 0; i < n; i++) Project(p.vertices[i], projected[i], transform);
+        var vertices = projected;
         if (p.mode == GL_QUADS)
             for (int i = 0; i + 3 < n; i += 4) { Triangle(vertices[i], vertices[i+1], vertices[i+2]); Triangle(vertices[i], vertices[i+2], vertices[i+3]); }
         else if (p.mode == GL_TRIANGLES)
