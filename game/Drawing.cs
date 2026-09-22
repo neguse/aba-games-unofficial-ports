@@ -4,16 +4,25 @@ using System.Collections.Generic;
 public class DrawVertex
 {
     public float x, y, z, w = 1, r, g, b, a;
+    public bool inheritedColor;
 }
 public class DrawPart
 {
     public int mode;
+    public bool savedBlend, useSavedBlend;
     public List<DrawVertex> vertices = new List<DrawVertex>();
 }
-public class DrawMesh { public List<DrawPart> parts = new List<DrawPart>(); }
+public class DrawMesh
+{
+    public List<DrawPart> parts = new List<DrawPart>();
+    public bool changesColor;
+    public bool changesBlend, finalBlend;
+    public float r, g, b, a;
+}
 public class DrawBatch
 {
     public bool depth, blend, cull;
+    public bool alphaBlend;
     public List<float> vertices = new List<float>();
 }
 
@@ -21,12 +30,18 @@ public static class Drawing
 {
     public const int GL_QUADS = 0, GL_TRIANGLES = 1, GL_TRIANGLE_STRIP = 2, GL_LINES = 3, GL_LINE_STRIP = 4;
     public const int GL_DEPTH_TEST = 5, GL_BLEND = 6, GL_CULL_FACE = 7, GL_COMPILE = 8;
+    public const int GL_TRIANGLE_FAN = 9, GL_LINE_LOOP = 10, GL_SRC_ALPHA = 11, GL_ONE = 12, GL_ONE_MINUS_SRC_ALPHA = 13;
     public static List<DrawBatch> batches = new List<DrawBatch>();
     public static float[] clearColor = new float[] { 0, 0, 0, 1 };
     public static bool ortho;
+    public static bool recordBlend;
+    public static bool premultiplyAdditive;
+    static bool alphaBlend;
     static bool depth = true, blend, cull = true;
     static float lineWidth = 1;
     static float red = 1, green = 1, blue = 1, alpha = 1;
+    static float savedRed, savedGreen, savedBlue, savedAlpha;
+    static bool savedBlend;
     static float[] matrix;
     static List<float[]> stack = new List<float[]>();
     static List<DrawMesh> meshes = new List<DrawMesh>();
@@ -77,7 +92,15 @@ public static class Drawing
             t*x*y-s*z, t*y*y+c, t*y*z+s*x, 0,
             t*x*z+s*y, t*y*z-s*x, t*z*z+c, 0, 0,0,0,1 });
     }
-    public static void Color(float r, float g, float b, float a) { red = r; green = g; blue = b; alpha = a; }
+    public static void Color(float r, float g, float b, float a)
+    {
+        red = r; green = g; blue = b; alpha = a;
+        if (recording != null && recordBlend)
+        {
+            recording.changesColor = true;
+            recording.r = r; recording.g = g; recording.b = b; recording.a = a;
+        }
+    }
     public static int glGenLists(int count)
     {
         int start = meshes.Count;
@@ -87,8 +110,16 @@ public static class Drawing
     public static void glNewList(int index, int mode)
     {
         recording = meshes[index]; recording.parts.Clear(); glPushMatrix(); LoadIdentity();
+        recording.changesColor = false;
+        recording.changesBlend = false;
+        savedBlend = blend;
+        savedRed = red; savedGreen = green; savedBlue = blue; savedAlpha = alpha;
     }
-    public static void glEndList() { recording = null; glPopMatrix(); }
+    public static void glEndList()
+    {
+        recording = null; glPopMatrix();
+        if (recordBlend) { Color(savedRed, savedGreen, savedBlue, savedAlpha); blend = savedBlend; }
+    }
     public static void glDeleteLists(int first, int count)
     {
         for (int i = first; i < first + count; i++) meshes[i].parts.Clear();
@@ -99,7 +130,7 @@ public static class Drawing
             x = matrix[0]*v.x + matrix[4]*v.y + matrix[8]*v.z + matrix[12],
             y = matrix[1]*v.x + matrix[5]*v.y + matrix[9]*v.z + matrix[13],
             z = matrix[2]*v.x + matrix[6]*v.y + matrix[10]*v.z + matrix[14],
-            r = v.r, g = v.g, b = v.b, a = v.a };
+            r = v.r, g = v.g, b = v.b, a = v.a, inheritedColor = v.inheritedColor };
     }
     public static void glCallList(int index)
     {
@@ -113,12 +144,19 @@ public static class Drawing
             }
             else Emit(p, true);
         }
+        var mesh = meshes[index];
+        if (recordBlend && mesh.changesColor) Color(mesh.r, mesh.g, mesh.b, mesh.a);
+        if (recordBlend && mesh.changesBlend) glEnableBlend(mesh.finalBlend);
     }
-    public static void glBegin(int mode) { part = new DrawPart { mode = mode }; }
+    public static void glBegin(int mode) { part = new DrawPart { mode = mode, savedBlend = blend,
+        useSavedBlend = recording != null && recordBlend && recording.changesBlend }; }
+    public static void glBlendFunc(int source, int destination) { alphaBlend = destination == GL_ONE_MINUS_SRC_ALPHA; }
     public static void glVertex3f(float x, float y, float z)
     {
-        part.vertices.Add(Transform(new DrawVertex { x = x, y = y, z = z, r = red, g = green, b = blue, a = alpha }));
+        part.vertices.Add(Transform(new DrawVertex { x = x, y = y, z = z, r = red, g = green, b = blue, a = alpha,
+            inheritedColor = recordBlend && recording != null && !recording.changesColor }));
     }
+    public static void glVertex2f(float x, float y) { glVertex3f(x, y, 0); }
     public static void glEnd()
     {
         if (recording != null) recording.parts.Add(part);
@@ -130,8 +168,13 @@ public static class Drawing
     static void Set(int state, bool enabled)
     {
         if (state == GL_DEPTH_TEST) depth = enabled;
-        if (state == GL_BLEND) blend = enabled;
+        if (state == GL_BLEND) glEnableBlend(enabled);
         if (state == GL_CULL_FACE) cull = enabled;
+    }
+    static void glEnableBlend(bool enabled)
+    {
+        blend = enabled;
+        if (recording != null && recordBlend) { recording.changesBlend = true; recording.finalBlend = enabled; }
     }
     public static void glLineWidth(float width) { lineWidth = width; }
     static void Project(DrawVertex v, DrawVertex result, bool transform)
@@ -147,21 +190,23 @@ public static class Drawing
         result.y = ortho ? 1 - y / 240 : y * (4f / 3);
         result.z = ortho ? (1 - z) / 2 : -z * (1000f / 999.9f) - 100f / 999.9f;
         result.w = ortho ? 1 : -z;
-        result.r = v.r; result.g = v.g; result.b = v.b; result.a = v.a;
+        result.r = v.inheritedColor ? red : v.r; result.g = v.inheritedColor ? green : v.g;
+        result.b = v.inheritedColor ? blue : v.b; result.a = v.inheritedColor ? alpha : v.a;
     }
     static List<float> Batch(bool useCull)
     {
         DrawBatch batch = batches.Count == 0 ? null : batches[batches.Count - 1];
-        if (batch == null || batch.depth != depth || batch.blend != blend || batch.cull != useCull)
+        if (batch == null || batch.depth != depth || batch.blend != blend || batch.cull != useCull || batch.alphaBlend != alphaBlend)
         {
-            batch = new DrawBatch { depth = depth, blend = blend, cull = useCull }; batches.Add(batch);
+            batch = new DrawBatch { depth = depth, blend = blend, cull = useCull, alphaBlend = alphaBlend }; batches.Add(batch);
         }
         return batch.vertices;
     }
     static void Vertex(List<float> buffer, DrawVertex v)
     {
         buffer.Add(v.x); buffer.Add(v.y); buffer.Add(v.z); buffer.Add(v.w);
-        buffer.Add(v.r); buffer.Add(v.g); buffer.Add(v.b); buffer.Add(v.a);
+        float opacity = premultiplyAdditive && blend && !alphaBlend ? v.a : 1;
+        buffer.Add(v.r * opacity); buffer.Add(v.g * opacity); buffer.Add(v.b * opacity); buffer.Add(v.a);
     }
     static void Triangle(DrawVertex a, DrawVertex b, DrawVertex c)
     {
@@ -182,10 +227,13 @@ public static class Drawing
     static void Offset(List<float> buffer, DrawVertex v, float x, float y)
     {
         buffer.Add(v.x + x * v.w); buffer.Add(v.y + y * v.w); buffer.Add(v.z); buffer.Add(v.w);
-        buffer.Add(v.r); buffer.Add(v.g); buffer.Add(v.b); buffer.Add(v.a);
+        float opacity = premultiplyAdditive && blend && !alphaBlend ? v.a : 1;
+        buffer.Add(v.r * opacity); buffer.Add(v.g * opacity); buffer.Add(v.b * opacity); buffer.Add(v.a);
     }
     static void Emit(DrawPart p, bool transform)
     {
+        bool previousBlend = blend;
+        if (p.useSavedBlend) blend = p.savedBlend;
         int n = p.vertices.Count;
         while (projected.Count < n) projected.Add(new DrawVertex());
         for (int i = 0; i < n; i++) Project(p.vertices[i], projected[i], transform);
@@ -200,6 +248,11 @@ public static class Drawing
             for (int i = 0; i + 1 < n; i += 2) Line(vertices[i], vertices[i+1]);
         else if (p.mode == GL_LINE_STRIP)
             for (int i = 0; i + 1 < n; i++) Line(vertices[i], vertices[i+1]);
+        else if (p.mode == GL_LINE_LOOP && n > 1)
+            for (int i = 0; i < n; i++) Line(vertices[i], vertices[(i+1)%n]);
+        else if (p.mode == GL_TRIANGLE_FAN)
+            for (int i = 1; i + 1 < n; i++) Triangle(vertices[0], vertices[i], vertices[i+1]);
+        blend = previousBlend;
     }
 }
 

@@ -1,4 +1,46 @@
-# TUMIKI Fighters ブラウザ移植方針
+# ABA Games Windows作品のブラウザ移植方針
+
+## コレクションの範囲
+
+[公式Windows一覧](https://www.asahi-net.or.jp/~cs8k-cyu/windows.html)を対象に、
+TUMIKI Fightersと次の12作品を同じ非公開リポジトリで管理する。
+リポジトリ名の変更は別途行う。
+
+| 順序 | 作品 | 移植で扱う主な違い |
+| --- | --- | --- |
+| 1 | PARSEC47 | D、BulletMLとBulletsmorph、ROLL/LOCKの両モード |
+| 2 | Gunroar | D、通常・ツインスティック・ダブルプレイ・マウス操作 |
+| 3 | Titanion | D、CLASSIC/BASIC/MODERNの各ルール |
+| 4 | A7Xpg | D、加速・金塊回収・無敵状態 |
+| 5 | Torus Trooper | D、BulletML、立体コースと時間制 |
+| 6 | rRootage | C、BulletMLとBulletsmorph、各モード |
+| 7 | Noiz2sa | C、BulletML、SDLの2D描画 |
+| 8 | Wok | C、画像描画と相対マウス入力 |
+| 9 | Mazer Mayhem | C#/XNA、描画・音源・物理処理 |
+| 10 | GearToyGear | C#/XNA、3D描画・シェーダー・音源 |
+| 11 | Mu-cade | D、ODEによる連結体の物理演算 |
+| 12 | まさしくんハイ！ | Pascal、各競技とマウス操作 |
+
+硯は配布アーカイブにソースがなく、移植に使えるソースの確認まで保留する。
+
+ゲーム本体はlub上のTinyC#で実装し、原作のデータ・音・ゲームルールを維持する。
+BulletMLがある作品ではビルド時にTCSへ変換し、小さな実行処理と組み合わせる。
+作品ごとに必要な処理を移植し、共通化は実際に共有する変換・実行処理に限る。
+Mu-cadeの物理演算は原作との比較で方式を決め、別の物理エンジンへの置換だけで
+同じ挙動を保てるとは扱わない。
+
+PCのWebGPU対応ブラウザで原作のキーボード・マウス操作に対応する。
+各作品の全モードとゲーム進行、得点・難易度、音、ブラウザ内への保存を検証する。
+弾幕・乱数・物理などの変換箇所は、同じ入力で原作との時刻・状態・軌道を比較する。
+ビルドと自動検証を通した作品単位のPRを人間がマージした後、Cloudflare Workersの
+Static Assetsへ公開し、公開URLで操作・描画・音・保存を再検証する。
+不具合時は前の配布バージョンへ戻し、初回公開なら取り下げる。
+
+作品ごとのライセンスと著作権表示を配布物に含める。
+まさしくんハイ！はGPL-2.0-or-laterに従い、対応する移植ソースとビルド手順も
+配布先から入手できるようにする。GitHubリポジトリ自体は非公開に保つ。
+
+## TUMIKI Fighters
 
 ## 目的と範囲
 
