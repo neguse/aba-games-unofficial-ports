@@ -41,6 +41,7 @@ public static class Drawing
     static bool alphaBlend;
     static bool depth = true, blend, cull = true;
     static float lineWidth = 1;
+    public static float viewportWidth = 640, viewportHeight = 480;
     static float red = 1, green = 1, blue = 1, alpha = 1;
     static float savedRed, savedGreen, savedBlue, savedAlpha;
     static bool savedBlend, savedAlphaBlend;
@@ -226,10 +227,10 @@ public static class Drawing
     static void Line(DrawVertex a, DrawVertex b)
     {
         if (a.w <= 0 || b.w <= 0) return;
-        float dx = (b.x / b.w - a.x / a.w) * 320, dy = (b.y / b.w - a.y / a.w) * 240;
+        float dx = (b.x / b.w - a.x / a.w) * viewportWidth / 2, dy = (b.y / b.w - a.y / a.w) * viewportHeight / 2;
         float length = (float)Math.Sqrt(dx * dx + dy * dy);
         if (length == 0) return;
-        float ox = -dy / length * lineWidth / 640, oy = dx / length * lineWidth / 480;
+        float ox = -dy / length * lineWidth / viewportWidth, oy = dx / length * lineWidth / viewportHeight;
         var dst = Batch(false);
         Offset(dst, a, ox, oy); Offset(dst, a, -ox, -oy); Offset(dst, b, ox, oy);
         Offset(dst, b, ox, oy); Offset(dst, a, -ox, -oy); Offset(dst, b, -ox, -oy);

@@ -98,4 +98,21 @@ for directory in ['chunks', 'musics']:
     for audio in (ttn / 'sounds' / directory).iterdir():
         shutil.copy2(audio, target / 'audio' / audio.name)
 (target / 'LICENSE.txt').write_text((ttn / 'readme_e.txt').read_text() + '\n\n' + licenses)
+archive = Path('.cache/a7xpg0_11.zip')
+if not archive.exists():
+    urllib.request.urlretrieve('https://abagames.sakura.ne.jp/windows/a7xpg0_11.zip', archive)
+if hashlib.sha256(archive.read_bytes()).hexdigest() != '128c0485794732262e1685e2afaf7521f2dd9468ac8587f0afb166b4e5cf4b12':
+    raise ValueError('A7Xpg archive checksum mismatch')
+with zipfile.ZipFile(archive) as source:
+    source.extractall('.cache/original')
+a7x = Path('.cache/original/a7xpg')
+target = dist / 'a7xpg'
+target.mkdir(exist_ok=True)
+subprocess.run([sys.executable, 'tools/compile_a7xpg.py', str(a7x)], check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'a7xpg',
+                '--output', str(target / 'game.lua')], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/a7xpg/game'], check=True)
+shutil.copy2('games/a7xpg/index.html', target / 'index.html')
+shutil.copytree(a7x / 'sounds', target / 'audio', dirs_exist_ok=True)
+(target / 'LICENSE.txt').write_text((a7x / 'readme_e.txt').read_text() + '\n\n' + Path('games/a7xpg/PHOBOS-LICENSE.txt').read_text() + '\n\n' + licenses)
 print('Built dist/')

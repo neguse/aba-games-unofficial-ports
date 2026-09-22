@@ -10,6 +10,7 @@ ABA GamesのWindows作品をlubとTinyC#でブラウザへ移植する。
 | PARSEC47 | `/parsec47/` | `games/parsec47/` |
 | Gunroar | `/gunroar/` | `games/gunroar/` |
 | Titanion | `/titanion/` | `games/titanion/` |
+| A7Xpg | `/a7xpg/` | `games/a7xpg/` |
 
 ## TUMIKI Fighters
 
@@ -75,6 +76,14 @@ MODERNはXだけで挑発し、Z＋Xでは低速移動と集中ショットに�
 モード別ランキングと直前のリプレイを保存し、タイトルでリプレイを再生する。
 原作の通常描画と固定ステージ構成を使用し、任意の残像表示・ランダム化・ゲームパッドは対象外。
 
+## A7Xpg
+
+[A7Xpg 0.11](https://www.asahi-net.or.jp/~cs8k-cyu/windows/a7xpg_e.html)の
+全30ステージと周回、6種類の敵、ブースト・金塊回収・無敵状態を再現する。
+矢印・テンキーで移動、Z・X・Ctrl・Altで開始とブースト、Pでポーズ。
+金塊を高速で回収してゲージを満たし、無敵中の体当たりで連続ボーナスを狙う。
+原作の標準発光処理と15音源を使い、ハイスコアはブラウザ内に保存する。
+
 ## ビルド
 
 Linux、Git、Python 3.12以降、.NET SDK 10、Node.js 26、C/C++コンパイラ、
@@ -108,6 +117,7 @@ python3 tests/check_patterns.py --patterns .cache/original/p47 --expected-cases 
 python3 tests/check_game.py --lub .cache/lub --game parsec47
 python3 tests/check_game.py --lub .cache/lub --game gunroar
 python3 tests/check_game.py --lub .cache/lub --game titanion
+python3 tests/check_game.py --lub .cache/lub --game a7xpg
 ```
 
 弾幕の検証はlibBulletML 0.0.6を比較用に取得し、SHA-256を照合する。
@@ -124,6 +134,7 @@ node tests/browser.mjs
 node tests/parsec47/browser.mjs
 node tests/gunroar/browser.mjs
 node tests/titanion/browser.mjs
+node tests/a7xpg/browser.mjs
 ```
 
 開始・移動・収納・ポーズ、各面の描画、音源のデコードと再生、ランキングの再読込を確認する。
@@ -136,6 +147,8 @@ Gunroarは4モードのボス出現、MT19937の参照値と値域、リプレ�
 Titanionは3モードの通常進行とPHASE 12までの遷移、捕獲・挑発・接触時の挙動、
 連鎖による弾消去と得点、リプレイ再現、
 ブラウザ操作、12音源、ランキングとリプレイの再読込を検証する。
+A7Xpgは全30面から2周目への遷移、加速・無敵・時間切れ・コンティニュー、
+Phobos乱数の参照値、D1で実行した原作の移動軌道、発光描画、15音源と保存を検証する。
 画面は`build/screenshots/`へ出力する。公開先も同じ検証を実行できる。
 
 ```sh
@@ -168,3 +181,4 @@ npx wrangler@4.135.0 deployments list
 PARSEC47の原作ライセンスも`parsec47/LICENSE.txt`に収録する。
 Gunroarの原作ライセンスは`gunroar/LICENSE.txt`に収録する。
 Titanionの原作ライセンスは`titanion/LICENSE.txt`に収録する。
+A7XpgとPhobos乱数のライセンスは`a7xpg/LICENSE.txt`に収録する。
