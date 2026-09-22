@@ -78,4 +78,24 @@ for directory in ['chunks', 'musics']:
     for audio in (gr / 'sounds' / directory).iterdir():
         shutil.copy2(audio, target / 'audio' / audio.name)
 (target / 'LICENSE.txt').write_text((gr / 'readme_e.txt').read_text() + '\n\n' + licenses)
+archive = Path('.cache/ttn0_3.zip')
+if not archive.exists():
+    urllib.request.urlretrieve('https://abagames.sakura.ne.jp/windows/ttn0_3.zip', archive)
+if hashlib.sha256(archive.read_bytes()).hexdigest() != '7d1d1cb9f8ba754f3df303fc28697fbf16df409ccc98cc65619dd03462da8df3':
+    raise ValueError('Titanion archive checksum mismatch')
+with zipfile.ZipFile(archive) as source:
+    source.extractall('.cache/original')
+ttn = Path('.cache/original/ttn')
+target = dist / 'titanion'
+target.mkdir(exist_ok=True)
+subprocess.run([sys.executable, 'tools/compile_titanion.py', str(ttn)], check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'titanion',
+                '--output', str(target / 'game.lua')], check=True)
+shutil.copy2('games/titanion/index.html', target / 'index.html')
+shutil.copy2(dist / 'shaders.json', target / 'shaders.json')
+(target / 'audio').mkdir(exist_ok=True)
+for directory in ['chunks', 'musics']:
+    for audio in (ttn / 'sounds' / directory).iterdir():
+        shutil.copy2(audio, target / 'audio' / audio.name)
+(target / 'LICENSE.txt').write_text((ttn / 'readme_e.txt').read_text() + '\n\n' + licenses)
 print('Built dist/')

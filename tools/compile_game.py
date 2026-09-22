@@ -7,7 +7,7 @@ import subprocess
 parser = argparse.ArgumentParser()
 parser.add_argument('--lub', type=Path, required=True)
 parser.add_argument('--entry', default='Game')
-parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar'], default='tumiki')
+parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanion'], default='tumiki')
 parser.add_argument('--test', type=Path)
 parser.add_argument('--output', type=Path, default=Path('build/game.lua'))
 args = parser.parse_args()
@@ -25,6 +25,12 @@ if args.game == 'gunroar':
     sources = [Path('games/gunroar') / name for name in names] + [Path('game/Drawing.cs')]
     sources += [p for p in sorted(Path('games/gunroar').glob('*.cs')) if p.name not in names]
     sources += sorted(Path('build/gunroar').glob('*.cs'))
+if args.game == 'titanion':
+    names = ['GameMath.cs', 'Rand.cs', 'Vector.cs', 'Actor.cs', 'Input.cs', 'DisplayList.cs', 'Token.cs']
+    sources = [Path('games/titanion') / name for name in names]
+    sources.append(Path('game/Drawing.cs'))
+    sources += [f for f in sorted(Path('games/titanion').glob('*.cs')) if f.name not in names]
+    sources += sorted(Path('build/titanion').glob('*.cs'))
 shader_source = 'public static class GameShaders {\n'
 for name, stage in [('vertex', 'vs'), ('fragment', 'fs')]:
     shader_source += f'public static string {name} = {json.dumps(Path(f"shaders/game.{stage}.slang").read_text())};\n'
