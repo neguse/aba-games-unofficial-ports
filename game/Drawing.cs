@@ -10,6 +10,7 @@ public class DrawPart
 {
     public int mode;
     public bool savedBlend, useSavedBlend;
+    public bool savedAlphaBlend, useSavedAlphaBlend;
     public List<DrawVertex> vertices = new List<DrawVertex>();
 }
 public class DrawMesh
@@ -17,6 +18,7 @@ public class DrawMesh
     public List<DrawPart> parts = new List<DrawPart>();
     public bool changesColor;
     public bool changesBlend, finalBlend;
+    public bool changesAlphaBlend, finalAlphaBlend;
     public float r, g, b, a;
 }
 public class DrawBatch
@@ -41,7 +43,7 @@ public static class Drawing
     static float lineWidth = 1;
     static float red = 1, green = 1, blue = 1, alpha = 1;
     static float savedRed, savedGreen, savedBlue, savedAlpha;
-    static bool savedBlend;
+    static bool savedBlend, savedAlphaBlend;
     static float[] matrix;
     static List<float[]> stack = new List<float[]>();
     static List<DrawMesh> meshes = new List<DrawMesh>();
@@ -112,13 +114,15 @@ public static class Drawing
         recording = meshes[index]; recording.parts.Clear(); glPushMatrix(); LoadIdentity();
         recording.changesColor = false;
         recording.changesBlend = false;
+        recording.changesAlphaBlend = false;
+        savedAlphaBlend = alphaBlend;
         savedBlend = blend;
         savedRed = red; savedGreen = green; savedBlue = blue; savedAlpha = alpha;
     }
     public static void glEndList()
     {
         recording = null; glPopMatrix();
-        if (recordBlend) { Color(savedRed, savedGreen, savedBlue, savedAlpha); blend = savedBlend; }
+        if (recordBlend) { Color(savedRed, savedGreen, savedBlue, savedAlpha); blend = savedBlend; alphaBlend = savedAlphaBlend; }
     }
     public static void glDeleteLists(int first, int count)
     {
@@ -138,7 +142,7 @@ public static class Drawing
         {
             if (recording != null)
             {
-                var transformed = new DrawPart { mode = p.mode };
+                var transformed = new DrawPart { mode = p.mode, savedAlphaBlend = p.savedAlphaBlend, useSavedAlphaBlend = p.useSavedAlphaBlend };
                 foreach (var v in p.vertices) transformed.vertices.Add(Transform(v));
                 recording.parts.Add(transformed);
             }
@@ -147,10 +151,16 @@ public static class Drawing
         var mesh = meshes[index];
         if (recordBlend && mesh.changesColor) Color(mesh.r, mesh.g, mesh.b, mesh.a);
         if (recordBlend && mesh.changesBlend) glEnableBlend(mesh.finalBlend);
+        if (recordBlend && mesh.changesAlphaBlend) glBlendFunc(GL_SRC_ALPHA, mesh.finalAlphaBlend ? GL_ONE_MINUS_SRC_ALPHA : GL_ONE);
     }
-    public static void glBegin(int mode) { part = new DrawPart { mode = mode, savedBlend = blend,
+    public static void glBegin(int mode) { part = new DrawPart { mode = mode, savedBlend = blend, savedAlphaBlend = alphaBlend,
+        useSavedAlphaBlend = recording != null && recordBlend && recording.changesAlphaBlend,
         useSavedBlend = recording != null && recordBlend && recording.changesBlend }; }
-    public static void glBlendFunc(int source, int destination) { alphaBlend = destination == GL_ONE_MINUS_SRC_ALPHA; }
+    public static void glBlendFunc(int source, int destination)
+    {
+        alphaBlend = destination == GL_ONE_MINUS_SRC_ALPHA;
+        if (recording != null && recordBlend) { recording.changesAlphaBlend = true; recording.finalAlphaBlend = alphaBlend; }
+    }
     public static void glVertex3f(float x, float y, float z)
     {
         part.vertices.Add(Transform(new DrawVertex { x = x, y = y, z = z, r = red, g = green, b = blue, a = alpha,
@@ -232,7 +242,8 @@ public static class Drawing
     }
     static void Emit(DrawPart p, bool transform)
     {
-        bool previousBlend = blend;
+        bool previousBlend = blend, previousAlphaBlend = alphaBlend;
+        if (p.useSavedAlphaBlend) alphaBlend = p.savedAlphaBlend;
         if (p.useSavedBlend) blend = p.savedBlend;
         int n = p.vertices.Count;
         while (projected.Count < n) projected.Add(new DrawVertex());
@@ -252,7 +263,7 @@ public static class Drawing
             for (int i = 0; i < n; i++) Line(vertices[i], vertices[(i+1)%n]);
         else if (p.mode == GL_TRIANGLE_FAN)
             for (int i = 1; i + 1 < n; i++) Triangle(vertices[0], vertices[i], vertices[i+1]);
-        blend = previousBlend;
+        blend = previousBlend; alphaBlend = previousAlphaBlend;
     }
 }
 
