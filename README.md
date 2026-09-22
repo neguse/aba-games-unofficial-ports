@@ -8,6 +8,7 @@ ABA GamesのWindows作品をlubとTinyC#でブラウザへ移植する。
 | --- | --- | --- |
 | TUMIKI Fighters | `/` | `game/` |
 | PARSEC47 | `/parsec47/` | `games/parsec47/` |
+| Gunroar | `/gunroar/` | `games/gunroar/` |
 
 ## TUMIKI Fighters
 
@@ -44,6 +45,24 @@ ROLLはXを離すと発射、LOCKは押している間に正面の敵を狙う�
 弾数・速度に応じた原作の意図的な処理落ちを再現する。
 通常描画を使用し、原作のオプションで有効にする発光処理は対象外。
 
+## Gunroar
+
+[Gunroar 0.15](https://www.asahi-net.or.jp/~cs8k-cyu/windows/gr_e.html)の
+NORMAL／TWIN STICK／DOUBLE PLAY／MOUSEに対応する。
+タイトルの上下・Xでモードを選び、Zで開始する。Pでポーズ、Escでタイトルへ戻る。
+
+| モード | 操作 |
+| --- | --- |
+| NORMAL | 矢印・WASDで移動、Zで砲撃・向き固定、Xでランス |
+| TWIN STICK | WASDで移動、IJKLで照準・砲撃 |
+| DOUBLE PLAY | WASDとIJKLで2隻を操作 |
+| MOUSE | 矢印・WASDで移動、マウスで照準、左ボタンで集中砲撃、右ボタンで拡散砲撃 |
+
+前進速度による難易度と得点倍率の上昇、砲台の破壊、ボス出現を原作の処理で行う。
+各モードの最高得点と選択モード、ゲームオーバー後の直前のリプレイを
+ブラウザに保存する。リプレイはタイトルのデモとREPLAYで再生する。
+通常描画を使用し、原作の任意の発光処理とゲームパッドは対象外。
+
 ## ビルド
 
 Linux、Git、Python 3.12以降、.NET SDK 10、Node.js 26、C/C++コンパイラ、
@@ -57,7 +76,8 @@ python3 -m http.server 8765 --directory dist --bind 127.0.0.1
 ```
 
 `http://127.0.0.1:8765`を開く。WebGPUにはlocalhostまたはHTTPSが必要。
-PARSEC47は`http://127.0.0.1:8765/parsec47/`を開く。同じビルドで両作品を生成する。
+PARSEC47は`http://127.0.0.1:8765/parsec47/`、Gunroarは`http://127.0.0.1:8765/gunroar/`を開く。
+同じビルドで3作品を生成する。
 依存物と原作アーカイブは`.cache/`、生成コードは`build/`、配布物は`dist/`に置く。
 原作アーカイブのSHA-256はビルド時に照合する。
 展開済みの原作を使う場合は`--original /path/to/tf`を指定する。
@@ -74,6 +94,7 @@ python3 tests/check_game.py --lub .cache/lub
 node tests/audio.test.mjs
 python3 tests/check_patterns.py --patterns .cache/original/p47 --expected-cases 425
 python3 tests/check_game.py --lub .cache/lub --game parsec47
+python3 tests/check_game.py --lub .cache/lub --game gunroar
 ```
 
 弾幕の検証はlibBulletML 0.0.6を比較用に取得し、SHA-256を照合する。
@@ -88,6 +109,7 @@ npm install --prefix .cache/browser --no-save playwright@1.60.0
 .cache/browser/node_modules/.bin/playwright install chromium
 node tests/browser.mjs
 node tests/parsec47/browser.mjs
+node tests/gunroar/browser.mjs
 ```
 
 開始・移動・収納・ポーズ、各面の描画、音源のデコードと再生、ランキングの再読込を確認する。
@@ -95,11 +117,14 @@ node tests/parsec47/browser.mjs
 PARSEC47はROLL／LOCKの操作・進行・描画、15音源とモード別保存を検証する。
 ゲーム進行テストは両モード×4難易度でボスを経てPARSEC 12まで進め、
 特殊攻撃・得点・被弾・ポーズ・意図的な処理落ちも確認する。
+Gunroarは4モードのボス出現、MT19937の参照値と値域、リプレイによる位置・難易度・得点・弾の一致、
+ブラウザのキー・マウス操作、14音源、スコアとリプレイの再読込を検証する。
 画面は`build/screenshots/`へ出力する。公開先も同じ検証を実行できる。
 
 ```sh
 node tests/browser.mjs https://公開先のホスト名
 node tests/parsec47/browser.mjs https://公開先のホスト名/parsec47/
+node tests/gunroar/browser.mjs https://公開先のホスト名/gunroar/
 ```
 
 ## 公開と取り消し
@@ -123,3 +148,4 @@ npx wrangler@4.135.0 deployments list
 [LICENSE](LICENSE)に原作および乱数生成器のライセンスを収録する。
 配布物の`LICENSE.txt`にはlubと依存ライブラリのライセンスも含む。
 PARSEC47の原作ライセンスも`parsec47/LICENSE.txt`に収録する。
+Gunroarの原作ライセンスは`gunroar/LICENSE.txt`に収録する。

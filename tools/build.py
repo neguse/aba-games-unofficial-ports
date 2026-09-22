@@ -58,4 +58,24 @@ shutil.copy2('games/parsec47/index.html', target / 'index.html')
 shutil.copy2(dist / 'shaders.json', target / 'shaders.json')
 shutil.copytree(p47 / 'sounds', target / 'audio', dirs_exist_ok=True)
 (target / 'LICENSE.txt').write_text((p47 / 'readme_e.txt').read_text() + '\n\n' + licenses)
+archive = Path('.cache/gr0_15.zip')
+if not archive.exists():
+    urllib.request.urlretrieve('https://abagames.sakura.ne.jp/windows/gr0_15.zip', archive)
+if hashlib.sha256(archive.read_bytes()).hexdigest() != '6ec5cf6f0a28cba738f51020629b2e1c4b6a7298712caa1764f0189c2dec508f':
+    raise ValueError('Gunroar archive checksum mismatch')
+with zipfile.ZipFile(archive) as source:
+    source.extractall('.cache/original')
+gr = Path('.cache/original/gr')
+target = dist / 'gunroar'
+target.mkdir(exist_ok=True)
+subprocess.run([sys.executable, 'tools/compile_gunroar.py', str(gr)], check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'gunroar',
+                '--output', str(target / 'game.lua')], check=True)
+shutil.copy2('games/gunroar/index.html', target / 'index.html')
+shutil.copy2(dist / 'shaders.json', target / 'shaders.json')
+(target / 'audio').mkdir(exist_ok=True)
+for directory in ['chunks', 'musics']:
+    for audio in (gr / 'sounds' / directory).iterdir():
+        shutil.copy2(audio, target / 'audio' / audio.name)
+(target / 'LICENSE.txt').write_text((gr / 'readme_e.txt').read_text() + '\n\n' + licenses)
 print('Built dist/')

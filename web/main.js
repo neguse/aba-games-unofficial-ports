@@ -52,6 +52,21 @@ window.addEventListener('keyup', event => {
 });
 window.addEventListener('blur', () => { pressed.clear(); input(); });
 canvas.addEventListener('pointerdown', () => { unlockAudio(); canvas.focus(); });
+if (config.pointer) {
+    let pointer = [320, 240, 0];
+    function point(event) {
+        const rect = canvas.getBoundingClientRect();
+        pointer = [Math.round(Math.max(0, Math.min(640, (event.clientX - rect.left) * 640 / rect.width))),
+            Math.round(Math.max(0, Math.min(480, (event.clientY - rect.top) * 480 / rect.height))), event.buttons & 3];
+        send('pointer', pointer.join(','));
+    }
+    canvas.addEventListener('pointerdown', event => { canvas.setPointerCapture(event.pointerId); point(event); });
+    canvas.addEventListener('pointermove', point);
+    canvas.addEventListener('pointerup', point);
+    canvas.addEventListener('pointercancel', () => { pointer[2] = 0; send('pointer', pointer.join(',')); });
+    canvas.addEventListener('contextmenu', event => event.preventDefault());
+    window.addEventListener('blur', () => { pointer[2] = 0; send('pointer', pointer.join(',')); });
+}
 document.querySelector('#fullscreen').onclick = async () => { await canvas.requestFullscreen(); canvas.focus(); };
 document.querySelector('#sound').onclick = event => {
     unlockAudio(); muted = !muted;
@@ -109,12 +124,21 @@ async function playSound(index) {
 function fail(error) { status.hidden = false; status.textContent = String(error?.message || error); console.error(error); }
 window.lubHost = { queue, onMessage(topic, bytes) {
     const text = decoder.decode(bytes);
-    if (topic === 'ready') { status.hidden = true; canvas.focus(); }
+    if (topic === 'ready') {
+        status.hidden = true; canvas.focus();
+        if (config.seed) send('seed', String(crypto.getRandomValues(new Uint32Array(1))[0] & 0x7fffffff));
+    }
     if (topic === 'scores.load') {
         try { send('scores', localStorage.getItem(config.scores || 'tumiki-scores-v1') || ''); } catch { send('scores', ''); }
     }
     if (topic === 'scores.save') {
         try { localStorage.setItem(config.scores || 'tumiki-scores-v1', text); } catch { }
+    }
+    if (topic === 'replay.load' && config.replay) {
+        try { send('replay', localStorage.getItem(config.replay) || ''); } catch { send('replay', ''); }
+    }
+    if (topic === 'replay.save' && config.replay) {
+        try { localStorage.setItem(config.replay, text); } catch { }
     }
     if (topic === 'music.loop' || topic === 'music.once') playMusic(Number(text), topic === 'music.loop').catch(fail);
     if (topic === 'music.stop') stopMusic();
