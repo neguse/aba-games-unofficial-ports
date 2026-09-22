@@ -40,4 +40,22 @@ for name in ['lub.js', 'lub.wasm', 'lub.data']:
 licenses = Path('LICENSE').read_text() + '\n\nlub\n---\n' + (args.lub / 'LICENSE').read_text()
 licenses += '\n\n' + (args.lub / 'THIRD_PARTY_LICENSES.md').read_text()
 (dist / 'LICENSE.txt').write_text(licenses)
+archive = Path('.cache/p47_0_21.zip')
+if not archive.exists():
+    archive.parent.mkdir(exist_ok=True)
+    urllib.request.urlretrieve('https://abagames.sakura.ne.jp/windows/p47_0_21.zip', archive)
+if hashlib.sha256(archive.read_bytes()).hexdigest() != '408926dfb368fe87f655a123798fcaf5c9c1956aeb63f3d59d0aede2c52635cb':
+    raise ValueError('PARSEC47 archive checksum mismatch')
+with zipfile.ZipFile(archive) as source:
+    source.extractall('.cache/original')
+p47 = Path('.cache/original/p47')
+target = dist / 'parsec47'
+target.mkdir(exist_ok=True)
+subprocess.run([sys.executable, 'tools/compile_parsec47.py', str(p47)], check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'parsec47',
+                '--output', str(target / 'game.lua')], check=True)
+shutil.copy2('games/parsec47/index.html', target / 'index.html')
+shutil.copy2(dist / 'shaders.json', target / 'shaders.json')
+shutil.copytree(p47 / 'sounds', target / 'audio', dirs_exist_ok=True)
+(target / 'LICENSE.txt').write_text((p47 / 'readme_e.txt').read_text() + '\n\n' + licenses)
 print('Built dist/')

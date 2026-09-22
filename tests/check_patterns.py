@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tarfile
 import urllib.request
+import xml.etree.ElementTree as ET
 
 
 def run(command, **kwargs):
@@ -22,7 +23,10 @@ parser.add_argument("--original", type=Path, default=Path('.cache/original/tf'))
 parser.add_argument("--library", type=Path)
 parser.add_argument("--tcs", type=Path, default=Path('.cache/lub/third_party/tcs'))
 parser.add_argument("--turns", type=int, default=1200)
+parser.add_argument("--patterns", type=Path)
+parser.add_argument("--expected-cases", type=int, default=345)
 args = parser.parse_args()
+patterns = args.patterns or args.original / "barrage"
 if args.library is None:
     cache = Path('.cache')
     cache.mkdir(exist_ok=True)
@@ -40,7 +44,7 @@ source = args.library / "src"
 sources = [source / (s + ".cpp") for s in ["bulletmlparser-tinyxml", "bulletmlparser", "bulletmltree", "calc", "formula-variables", "bulletmlrunner", "bulletmlrunnerimpl"]]
 sources += sorted((source / "tinyxml").glob("tinyxml*.cpp"))
 run(["g++", "-std=gnu++11", "-O2", "-w", "-include", "cstring", "-include", "cstdlib", "-include", "cstdio", "-I" + str(source), "tests/pattern_oracle.cpp", *map(str, sources), "-o", str(build / "oracle")])
-run([sys.executable, "tools/compile_barrage.py", str(args.original / "barrage"), str(build / "BarrageCode.cs")])
+run([sys.executable, "tools/compile_barrage.py", str(patterns), str(build / "BarrageCode.cs")])
 compiler = args.tcs / "Transpiler/bin/Release/net10.0/Transpiler.dll"
 result = run(["dotnet", str(compiler), "game/Pattern.cs", "game/PatternNumber.cs", str(build / "BarrageCode.cs"), "tests/PatternTrace.cs", "--entry", "PatternTrace", "--no-naming-check", "-o", str(build / "trace.lua")])
 if result.strip(): print(result)
@@ -48,9 +52,11 @@ if result.strip(): print(result)
 failures = []
 cases = 0
 maximum = 0.0
-for path in sorted((args.original / "barrage").rglob("*.xml")):
+for path in sorted(patterns.rglob("*.xml")):
+    if ET.parse(path).getroot().tag.split("}")[-1] != "bulletml":
+        continue
     for rank in ["0", "0.25", "0.5", "0.9", "1"]:
-        name = path.relative_to(args.original / "barrage").as_posix()
+        name = path.relative_to(patterns).as_posix()
         env = dict(os.environ, PATTERN_NAME=name, PATTERN_RANK=rank, PATTERN_TURNS=str(args.turns))
         expected = run([str(build / "oracle"), str(path), rank, str(args.turns)]).splitlines()
         actual = run([str(args.tcs / "deps/lua/lua32"), str(build / "run.lua"), str(build / "trace.lua")], env=env).splitlines()
@@ -76,4 +82,4 @@ for path in sorted((args.original / "barrage").rglob("*.xml")):
             failures.append(f"{name} rank={rank}: {error}")
             print(failures[-1], flush=True)
 print(f"{cases} cases, {len(failures)} failures, largest numeric difference {maximum:g}")
-sys.exit(bool(failures) or cases != 345)
+sys.exit(bool(failures) or cases != args.expected_cases)

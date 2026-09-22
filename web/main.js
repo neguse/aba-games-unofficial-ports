@@ -1,9 +1,10 @@
+const config = JSON.parse(document.querySelector("#game-config")?.textContent || "{}");
 const canvas = document.querySelector('#canvas');
 const status = document.querySelector('#status');
 const decoder = new TextDecoder();
 const queue = [];
 const pressed = new Set();
-const controls = new Map([
+const controls = new Map(config.controls || [
     ['ArrowUp', 1], ['KeyW', 1], ['ArrowDown', 2], ['KeyS', 2],
     ['ArrowLeft', 4], ['KeyA', 4], ['ArrowRight', 8], ['KeyD', 8],
     ['KeyZ', 16], ['ControlLeft', 16], ['Period', 16],
@@ -19,9 +20,9 @@ let muted = false;
 const buffers = new Map();
 const channels = new Map();
 const soundVersions = new Map();
-const musicNames = ['we_are_tumiki_fighters', 'just_over_the_horizon', 'panic_on_meadow', 'here_comes_a_gigantic_toy', 'battle_over_the_junk_city', 'return_to_home'];
-const soundNames = ['ship_shot', 'stuck', 'stuck_bonus', 'stuck_destroyed', 'ship_destroyed', 'enemy_damaged', 'small_enemy_destroyed', 'enemy_destroyed', 'boss_destroyed', 'extend', 'warning', 'propeller', 'stuck_bonus_pushin'];
-const soundChannels = [0, 1, 2, 3, 2, 4, 5, 6, 6, 7, 7, 7, 2];
+const musicNames = config.music || ['we_are_tumiki_fighters', 'just_over_the_horizon', 'panic_on_meadow', 'here_comes_a_gigantic_toy', 'battle_over_the_junk_city', 'return_to_home'];
+const soundNames = config.sounds || ['ship_shot', 'stuck', 'stuck_bonus', 'stuck_destroyed', 'ship_destroyed', 'enemy_damaged', 'small_enemy_destroyed', 'enemy_destroyed', 'boss_destroyed', 'extend', 'warning', 'propeller', 'stuck_bonus_pushin'];
+const soundChannels = config.channels || [0, 1, 2, 3, 2, 4, 5, 6, 6, 7, 7, 7, 2];
 
 function send(topic, payload) { queue.push({ topic, payload }); }
 function input() {
@@ -110,10 +111,10 @@ window.lubHost = { queue, onMessage(topic, bytes) {
     const text = decoder.decode(bytes);
     if (topic === 'ready') { status.hidden = true; canvas.focus(); }
     if (topic === 'scores.load') {
-        try { send('scores', localStorage.getItem('tumiki-scores-v1') || ''); } catch { send('scores', ''); }
+        try { send('scores', localStorage.getItem(config.scores || 'tumiki-scores-v1') || ''); } catch { send('scores', ''); }
     }
     if (topic === 'scores.save') {
-        try { localStorage.setItem('tumiki-scores-v1', text); } catch { }
+        try { localStorage.setItem(config.scores || 'tumiki-scores-v1', text); } catch { }
     }
     if (topic === 'music.loop' || topic === 'music.once') playMusic(Number(text), topic === 'music.loop').catch(fail);
     if (topic === 'music.stop') stopMusic();
@@ -138,7 +139,7 @@ async function boot() {
     window._canvasWidth = 640; window._canvasHeight = 480;
     const module = {
         canvas, preinitializedWebGPUDevice: device, webgpuAdapter: adapter,
-        locateFile: path => `wasm/${path}`,
+        locateFile: path => `${config.wasm || "wasm/"}${path}`,
         arguments: ['game.lua'],
         print: text => console.log(text),
         printErr: text => /error|failed|abort/i.test(text) ? fail(new Error(text)) : console.info(text),
@@ -156,7 +157,7 @@ async function boot() {
         }],
     };
     window.Module = module;
-    const script = document.createElement('script'); script.src = 'wasm/lub.js';
+    const script = document.createElement('script'); script.src = `${config.wasm || 'wasm/'}lub.js`;
     script.onerror = () => fail(new Error('実行環境を読み込めませんでした。'));
     document.body.append(script);
 }

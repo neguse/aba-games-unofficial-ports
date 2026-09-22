@@ -6,10 +6,13 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--lub', type=Path, required=True)
+parser.add_argument('--game', choices=['tumiki', 'parsec47'], default='tumiki')
 args = parser.parse_args()
-output = Path('build/tests/game.lua')
+output = Path(f'build/tests/{args.game}.lua')
+entry = 'GameVerification' if args.game == 'tumiki' else 'P47Verification'
+test = 'tests/GameVerification.cs' if args.game == 'tumiki' else 'tests/parsec47/GameVerification.cs'
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub),
-                '--entry', 'GameVerification', '--test', 'tests/GameVerification.cs',
+                '--game', args.game, '--entry', entry, '--test', test,
                 '--output', str(output)], check=True)
 runner = output.with_name('run-game.lua')
 runner.write_text('lub = {host = {available = function() return false end}}\nlocal game = dofile(arg[1]); game.main()\n')

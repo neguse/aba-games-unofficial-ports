@@ -141,7 +141,7 @@ class Program:
         for i, action in enumerate(self.actions):
             if i:
                 self.state([f"s.Pc = {len(self.states) + 1};", "s.Resume = w.Turn + 1;", "return;"], gated=False)
-            self.compile_node(action, ["s.Args[0]", "s.Args[1]"], [])
+            self.compile_node(action, [f"s.Args[{i}]" for i in range(self.compiler.parameter_count)], [])
         self.state(["s.Pc = -1;", "return;"], gated=False)
 
     def emit(self, index):
@@ -162,6 +162,7 @@ class Compiler:
         self.labels = {}
         self.registered = {}
         self.patterns = []
+        self.parameter_count = 0
 
     def program(self, actions):
         key = tuple(id(a) for a in actions)
@@ -175,8 +176,12 @@ class Compiler:
         return index
 
     def load(self, root):
+        self.parameter_count = max((int(p) for path in root.rglob("*.xml")
+                                    for p in re.findall(r"\$(\d+)", path.read_text())), default=0)
         for path in sorted(root.rglob("*.xml")):
             tree = ET.parse(path).getroot()
+            if tree.tag.split("}")[-1] != "bulletml":
+                continue
             for element in tree.iter():
                 element.tag = element.tag.split("}")[-1]
             if tree.get("type", "vertical") != "vertical":
