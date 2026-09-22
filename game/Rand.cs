@@ -41,7 +41,8 @@ public class Rand
     public float nextFloat(float n)
     {
         int bits = nextBits();
-        float value = ((bits >> 1) & 2147483647) * 2f + (bits & 1);
+        float value = ((bits >> 1) & 2147483647) / 1f;
+        value = value * 2 + (bits & 1);
         return value / 4294967295f * n;
     }
     public float nextSignedFloat(float n) { return nextFloat(n * 2) - n; }

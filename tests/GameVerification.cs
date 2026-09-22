@@ -110,6 +110,15 @@ public static class GameVerification
         random.setSeed(5489);
         Check(random.nextBits() == -795755684, "MT first output");
         Check(random.nextBits() == 581869302, "MT second output");
+        random.setSeed(5489);
+        Check(Math.Abs(random.nextFloat(1) - 0.8147237f) < 0.000001f, "MT unsigned real output");
+        bool inRange = true;
+        for (int i = 0; i < 10000; i++)
+        {
+            float value = random.nextFloat(1);
+            if (value < 0 || value > 1) inRange = false;
+        }
+        Check(inRange, "MT real range");
         var game = new GameManager();
         game.init(); game.start(); game.draw();
         Check(GameData.stage.Length == 5 && GameData.enemy.Length == 33 && GameData.tumiki.Length == 99, "original data");
