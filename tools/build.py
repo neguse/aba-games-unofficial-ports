@@ -152,4 +152,21 @@ subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target /
 shutil.copy2('games/rrootage/index.html', target / 'index.html')
 shutil.copytree(rr / 'sounds', target / 'audio', dirs_exist_ok=True)
 (target / 'LICENSE.txt').write_text((rr / 'LICENSE.txt').read_text() + '\n\n' + licenses)
+archive = Path('.cache/noiz2sa0_52.zip')
+if not archive.exists():
+    urllib.request.urlretrieve('https://abagames.sakura.ne.jp/windows/noiz2sa0_52.zip', archive)
+if hashlib.sha256(archive.read_bytes()).hexdigest() != '959759140a80b3cc718946a118b6825fd5218f3186138a51a7819c5fb938dffc':
+    raise ValueError('Noiz2sa archive checksum mismatch')
+with zipfile.ZipFile(archive) as source:
+    source.extractall('.cache/original')
+nr = Path('.cache/original/noiz2sa')
+target = dist / 'noiz2sa'
+target.mkdir(exist_ok=True)
+subprocess.run([sys.executable, 'tools/compile_noiz2sa.py', str(nr)], check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'noiz2sa',
+                '--output', str(target / 'game.lua')], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/noiz2sa/game'], check=True)
+shutil.copy2('games/noiz2sa/index.html', target / 'index.html')
+shutil.copytree(nr / 'sounds', target / 'audio', dirs_exist_ok=True)
+(target / 'LICENSE.txt').write_text((nr / 'readme_e.txt').read_text() + '\n\n' + licenses)
 print('Built dist/')
