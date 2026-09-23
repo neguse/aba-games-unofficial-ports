@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wok</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../style.css">
+<style>#canvas { cursor: none; }</style>
+<main>
+  <canvas id="canvas" width="640" height="480" tabindex="0" aria-label="Wok ゲーム画面"></canvas>
+  <p id="status" role="status">読み込み中…</p>
+  <p>マウスでSTARTをクリック。鍋で球を受け止め、右へ投げます。連続して投げるほど高得点。1個でも下へ落とすと終了です。</p>
+  <p>プレイ中はマウスの移動で鍋を操作します。Escでマウスを解放してタイトルへ戻ります。</p>
+  <nav><button id="sound" type="button" aria-pressed="false">音：オン</button><button id="fullscreen" type="button">全画面</button><a href="https://www.asahi-net.or.jp/~cs8k-cyu/linux/wok_e.html">原作：Kenta Cho / ABA Games</a><a href="LICENSE.txt">ライセンス</a><a href="../">TUMIKI Fighters</a></nav>
+</main>
+<script id="game-config" type="application/json">{"wasm":"../wasm/","scores":"wok-scores-v1","seed":true,"musicExtension":"wav","music":["wok1","wok2"],"sounds":["gen","score","miss"],"channels":[0,1,2],"controls":[["Escape",128]]}</script>
+<script type="module">
+import '../main.js';
+const canvas = document.querySelector('#canvas');
+let x=320,y=240,buttons=0,state=0;
+const send = () => lubHost.queue.push({topic:'pointer',payload:[Math.trunc(x),Math.trunc(y),buttons].join(',')});
+function point(event) {
+  const rect=canvas.getBoundingClientRect();
+  if(document.pointerLockElement===canvas){x+=event.movementX*3;y+=event.movementY*3;}
+  else {x=(event.clientX-rect.left)*640/rect.width;y=(event.clientY-rect.top)*480/rect.height;}
+  x=Math.max(0,Math.min(639,x));y=Math.max(0,Math.min(479,y));buttons=event.buttons&3;send();
+}
+canvas.addEventListener('pointermove',point);
+canvas.addEventListener('pointerdown',event=>{
+  point(event);
+  if(state===0&&x>456&&x<586&&y>300&&y<332) canvas.requestPointerLock()?.catch(()=>{});
+});
+canvas.addEventListener('pointerup',point);
+canvas.addEventListener('contextmenu',event=>event.preventDefault());
+window.addEventListener('blur',()=>{buttons=0;send();});
+document.addEventListener('pointerlockchange',()=>{
+  if(document.pointerLockElement!==canvas&&state!==0)lubHost.queue.push({topic:'leave',payload:''});
+});
+const onMessage=lubHost.onMessage;
+lubHost.onMessage=(topic,bytes)=>{
+  if(topic==='state'){
+    const previous=state;state=Number(new TextDecoder().decode(bytes));
+    if(state===0&&previous!==0&&document.pointerLockElement===canvas)document.exitPointerLock();
+  } else if(topic==='quit')location.href='../';
+  else onMessage(topic,bytes);
+};
+</script>
+</html>

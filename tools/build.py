@@ -4,6 +4,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tarfile
 import urllib.request
 import zipfile
 
@@ -169,4 +170,26 @@ subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target /
 shutil.copy2('games/noiz2sa/index.html', target / 'index.html')
 shutil.copytree(nr / 'sounds', target / 'audio', dirs_exist_ok=True)
 (target / 'LICENSE.txt').write_text((nr / 'readme_e.txt').read_text() + '\n\n' + licenses)
+archive = Path('.cache/wok_src1_0.tar.gz')
+if not archive.exists():
+    urllib.request.urlretrieve('https://www.asahi-net.or.jp/~cs8k-cyu/linux/wok_src1_0.tar.gz', archive)
+if hashlib.sha256(archive.read_bytes()).hexdigest() != 'c8a7571c9d3e28dae691f8dc896fc6fed7c220b0d631ac766c46808a896aa60f':
+    raise ValueError('Wok archive checksum mismatch')
+with tarfile.open(archive) as source:
+    source.extractall('.cache/original', filter='data')
+wok = Path('.cache/original/wok')
+target = dist / 'wok'
+target.mkdir(exist_ok=True)
+subprocess.run([sys.executable, 'tools/compile_wok.py', str(wok)], check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'wok',
+                '--output', str(target / 'game.lua')], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/wok/game'], check=True)
+shutil.copy2('games/wok/index.html', target / 'index.html')
+(target / 'audio').mkdir(exist_ok=True)
+for path in (wok / 'sounds').glob('*.wav'):
+    shutil.copy2(path, target / 'audio' / path.name)
+for path in (wok / 'sounds').glob('*.ogg'):
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-c:a', 'libvorbis', '-i', str(path),
+                    '-c:a', 'pcm_s16le', str(target / 'audio' / (path.stem + '.wav'))], check=True)
+(target / 'LICENSE.txt').write_text(Path('games/wok/LICENSE.txt').read_text() + '\n\n' + licenses)
 print('Built dist/')

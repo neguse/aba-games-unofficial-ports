@@ -14,6 +14,7 @@ ABA GamesのWindows作品をlubとTinyC#でブラウザへ移植する。
 | Torus Trooper | `/torus-trooper/` | `games/torus-trooper/` |
 | rRootage | `/rrootage/` | `games/rrootage/` |
 | Noiz2sa | `/noiz2sa/` | `games/noiz2sa/` |
+| Wok | `/wok/` | `games/wok/` |
 
 ## TUMIKI Fighters
 
@@ -116,10 +117,20 @@ NORMALのボム、PSYのかすりと回転、IKAの属性吸収、GWの反射を
 ステージ別・シーン別の最高得点と選択ステージをブラウザへ保存する。
 原作のコマンドライン設定とゲームパッドは対象外。
 
+## Wok
+
+原作1.0の球の衝突・鍋の傾き・6種類の発生装置・連続得点を移植する。
+マウスでSTARTをクリックし、鍋で球を受け止めて右側へ投げる。
+プレイ中はポインターロックで相対移動を受け取り、原作の全画面時の感度を使う。
+Escでマウスを解放してタイトルへ戻る。球を1個でも下へ落とすと終了する。
+48画像をビルド時に変換し、2曲・3効果音とブラウザ内のハイスコア保存を使う。
+原作の古いVorbis音源は、ブラウザで再生できるPCMへビルド時に変換する。
+コマンドラインのマウス感度設定は対象外。
+
 ## ビルド
 
 Linux、Git、Python 3.12以降、.NET SDK 10、Node.js 26、C/C++コンパイラ、
-CMake、Ninja、curl、unzip、Emscripten SDK 5.0.2が必要。
+CMake、Ninja、curl、unzip、libvorbisデコーダー付きFFmpeg、Emscripten SDK 5.0.2が必要。
 emsdkの`emsdk_env.sh`を読み込み、リポジトリのルートで実行する。
 
 ```sh
@@ -130,7 +141,7 @@ python3 -m http.server 8765 --directory dist --bind 127.0.0.1
 
 `http://127.0.0.1:8765`を開く。WebGPUにはlocalhostまたはHTTPSが必要。
 PARSEC47は`http://127.0.0.1:8765/parsec47/`、Gunroarは`http://127.0.0.1:8765/gunroar/`を開く。
-Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで上記の8作品を生成する。
+Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで上記の9作品を生成する。
 依存物と原作アーカイブは`.cache/`、生成コードは`build/`、配布物は`dist/`に置く。
 原作アーカイブのSHA-256はビルド時に照合する。
 展開済みの原作を使う場合は`--original /path/to/tf`を指定する。
@@ -156,6 +167,7 @@ python3 tests/check_game.py --lub .cache/lub --game rrootage
 python3 tests/check_patterns.py --patterns .cache/original/rr --expected-cases 340
 python3 tests/check_game.py --lub .cache/lub --game noiz2sa
 python3 tests/check_patterns.py --patterns .cache/original/noiz2sa --expected-cases 365
+python3 tests/check_game.py --lub .cache/lub --game wok
 ```
 
 弾幕の検証はlibBulletML 0.0.6を比較用に取得し、SHA-256を照合する。
@@ -176,6 +188,7 @@ node tests/a7xpg/browser.mjs
 node tests/torus-trooper/browser.mjs
 node tests/rrootage/browser.mjs
 node tests/noiz2sa/browser.mjs
+node tests/wok/browser.mjs
 ```
 
 開始・移動・収納・ポーズ、各面の描画、音源のデコードと再生、ランキングの再読込を確認する。
@@ -196,6 +209,8 @@ rRootageは全160ステージの5体のボス進行、原作Cの自機軌道、�
 68弾幕×5難易度、19音源とスコア・クリア状況の再読込を検証する。
 Noiz2saは通常10面のボス・クリアと4種のエンドレス、原作Cの移動・描画・敵出現順、
 73弾幕×5難易度、ボーナス・残機、パレット、14音源とスコアの再読込を検証する。
+Wokは原作Cとの球・鍋の軌道と6種の発生装置の比較、連続得点・ミス・音楽切替、
+ポインターロック・再開、5音源とハイスコアの再読込を検証する。
 画面は`build/screenshots/`へ出力する。公開先も同じ検証を実行できる。
 
 ```sh
@@ -232,3 +247,4 @@ A7XpgとPhobos乱数のライセンスは`a7xpg/LICENSE.txt`に収録する。
 Torus Trooperの原作ライセンスは`torus-trooper/LICENSE.txt`に収録する。
 rRootageの原作ライセンスは`rrootage/LICENSE.txt`に収録する。
 Noiz2saの原作ライセンスは`noiz2sa/LICENSE.txt`に収録する。
+Wokの原作ライセンスは`wok/LICENSE.txt`に収録する。
