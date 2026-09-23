@@ -11,6 +11,7 @@ ABA GamesのWindows作品をlubとTinyC#でブラウザへ移植する。
 | Gunroar | `/gunroar/` | `games/gunroar/` |
 | Titanion | `/titanion/` | `games/titanion/` |
 | A7Xpg | `/a7xpg/` | `games/a7xpg/` |
+| Torus Trooper | `/torus-trooper/` | `games/torus-trooper/` |
 
 ## TUMIKI Fighters
 
@@ -84,6 +85,16 @@ MODERNはXだけで挑発し、Z＋Xでは低速移動と集中ショットに�
 金塊を高速で回収してゲージを満たし、無敵中の体当たりで連続ボーナスを狙う。
 原作の標準発光処理と15音源を使い、ハイスコアはブラウザ内に保存する。
 
+## Torus Trooper
+
+[Torus Trooper 0.22](https://www.asahi-net.or.jp/~cs8k-cyu/windows/tt_e.html)の3難易度と立体コース、
+加減速・チャージショット・弾消し・連続撃破倍率・時間制の進行を移植する。
+28本のBulletMLはビルド時に変換し、敵の弾幕変形もゲーム側で実行する。
+タイトルで左右が難易度、上下が開始レベル、Zが開始、Xが最終プレイのリプレイ。
+プレイ中は矢印／WASDで移動、Zで通常弾、Xを押してチャージし、離すと発射する。
+ハイスコア・到達レベル・リプレイをブラウザ内に保存する。
+描画は原作の既定設定を使用し、コマンドラインの発光・画面回転設定とジョイパッドは対象外。
+
 ## ビルド
 
 Linux、Git、Python 3.12以降、.NET SDK 10、Node.js 26、C/C++コンパイラ、
@@ -98,7 +109,7 @@ python3 -m http.server 8765 --directory dist --bind 127.0.0.1
 
 `http://127.0.0.1:8765`を開く。WebGPUにはlocalhostまたはHTTPSが必要。
 PARSEC47は`http://127.0.0.1:8765/parsec47/`、Gunroarは`http://127.0.0.1:8765/gunroar/`を開く。
-Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで4作品を生成する。
+Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで上記の6作品を生成する。
 依存物と原作アーカイブは`.cache/`、生成コードは`build/`、配布物は`dist/`に置く。
 原作アーカイブのSHA-256はビルド時に照合する。
 展開済みの原作を使う場合は`--original /path/to/tf`を指定する。
@@ -118,6 +129,8 @@ python3 tests/check_game.py --lub .cache/lub --game parsec47
 python3 tests/check_game.py --lub .cache/lub --game gunroar
 python3 tests/check_game.py --lub .cache/lub --game titanion
 python3 tests/check_game.py --lub .cache/lub --game a7xpg
+python3 tests/check_game.py --lub .cache/lub --game torus-trooper
+python3 tests/check_patterns.py --patterns .cache/original/tt/barrage --expected-cases 140
 ```
 
 弾幕の検証はlibBulletML 0.0.6を比較用に取得し、SHA-256を照合する。
@@ -135,6 +148,7 @@ node tests/parsec47/browser.mjs
 node tests/gunroar/browser.mjs
 node tests/titanion/browser.mjs
 node tests/a7xpg/browser.mjs
+node tests/torus-trooper/browser.mjs
 ```
 
 開始・移動・収納・ポーズ、各面の描画、音源のデコードと再生、ランキングの再読込を確認する。
@@ -149,6 +163,8 @@ Titanionは3モードの通常進行とPHASE 12までの遷移、捕獲・挑発
 ブラウザ操作、12音源、ランキングとリプレイの再読込を検証する。
 A7Xpgは全30面から2周目への遷移、加速・無敵・時間切れ・コンティニュー、
 Phobos乱数の参照値、D1で実行した原作の移動軌道、発光描画、15音源と保存を検証する。
+Torus Trooperは3難易度で12区間の進行、時間の加減算、チャージと倍率、
+600フレームのリプレイ一致、28弾幕×5難易度の原作比較、14音源と保存を検証する。
 画面は`build/screenshots/`へ出力する。公開先も同じ検証を実行できる。
 
 ```sh
@@ -182,3 +198,4 @@ PARSEC47の原作ライセンスも`parsec47/LICENSE.txt`に収録する。
 Gunroarの原作ライセンスは`gunroar/LICENSE.txt`に収録する。
 Titanionの原作ライセンスは`titanion/LICENSE.txt`に収録する。
 A7XpgとPhobos乱数のライセンスは`a7xpg/LICENSE.txt`に収録する。
+Torus Trooperの原作ライセンスは`torus-trooper/LICENSE.txt`に収録する。

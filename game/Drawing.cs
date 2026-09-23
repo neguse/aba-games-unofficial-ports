@@ -36,6 +36,7 @@ public static class Drawing
     public static List<DrawBatch> batches = new List<DrawBatch>();
     public static float[] clearColor = new float[] { 0, 0, 0, 1 };
     public static bool ortho;
+    public static float farPlane = 1000, projectionScale = 1, viewportRatio = 1;
     public static bool recordBlend;
     public static bool premultiplyAdditive;
     static bool alphaBlend;
@@ -68,6 +69,7 @@ public static class Drawing
                 for (int k = 0; k < 4; k++) result[column * 4 + row] += matrix[k * 4 + row] * right[column * 4 + k];
         matrix = result;
     }
+    public static void glMultMatrix(float[] values) { Multiply(values); }
     public static void BeginFrame()
     {
         batches.Clear(); matrix = Identity(); stack.Clear();
@@ -197,10 +199,11 @@ public static class Drawing
             y = matrix[1]*v.x + matrix[5]*v.y + matrix[9]*v.z + matrix[13];
             z = matrix[2]*v.x + matrix[6]*v.y + matrix[10]*v.z + matrix[14];
         }
-        result.x = ortho ? x / 320 - 1 : x;
-        result.y = ortho ? 1 - y / 240 : y * (4f / 3);
-        result.z = ortho ? (1 - z) / 2 : -z * (1000f / 999.9f) - 100f / 999.9f;
+        result.x = ortho ? x / 320 - 1 : x * projectionScale;
+        result.y = ortho ? 1 - y / 240 : y * (4f / 3) * projectionScale;
+        result.z = ortho ? (1 - z) / 2 : -z * (farPlane / (farPlane - 0.1f)) - (farPlane * 0.1f) / (farPlane - 0.1f);
         result.w = ortho ? 1 : -z;
+        result.x = result.x * viewportRatio + (viewportRatio - 1) * result.w;
         result.r = v.inheritedColor ? red : v.r; result.g = v.inheritedColor ? green : v.g;
         result.b = v.inheritedColor ? blue : v.b; result.a = v.inheritedColor ? alpha : v.a;
     }

@@ -115,4 +115,24 @@ subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target /
 shutil.copy2('games/a7xpg/index.html', target / 'index.html')
 shutil.copytree(a7x / 'sounds', target / 'audio', dirs_exist_ok=True)
 (target / 'LICENSE.txt').write_text((a7x / 'readme_e.txt').read_text() + '\n\n' + Path('games/a7xpg/PHOBOS-LICENSE.txt').read_text() + '\n\n' + licenses)
+archive = Path('.cache/tt0_22.zip')
+if not archive.exists():
+    urllib.request.urlretrieve('https://abagames.sakura.ne.jp/windows/tt0_22.zip', archive)
+if hashlib.sha256(archive.read_bytes()).hexdigest() != '6fcbb3de9ac5cfce38253f71257143631a978c625b041c8527d18ddb5c8813fa':
+    raise ValueError('Torus Trooper archive checksum mismatch')
+with zipfile.ZipFile(archive) as source:
+    source.extractall('.cache/original')
+tt = Path('.cache/original/tt')
+target = dist / 'torus-trooper'
+target.mkdir(exist_ok=True)
+subprocess.run([sys.executable, 'tools/compile_torus.py', str(tt)], check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'torus-trooper',
+                '--output', str(target / 'game.lua')], check=True)
+shutil.copy2('games/torus-trooper/index.html', target / 'index.html')
+shutil.copy2(dist / 'shaders.json', target / 'shaders.json')
+(target / 'audio').mkdir(exist_ok=True)
+for directory in ['chunks', 'musics']:
+    for audio in (tt / 'sounds' / directory).iterdir():
+        shutil.copy2(audio, target / 'audio' / audio.name)
+(target / 'LICENSE.txt').write_text((tt / 'readme_e.txt').read_text() + '\n\n' + licenses)
 print('Built dist/')
