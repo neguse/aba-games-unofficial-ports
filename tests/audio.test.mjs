@@ -76,3 +76,28 @@ test('mute affects fading music and effects through the same output', async () =
     button.onclick({ currentTarget: button });
     assert.equal(output.gain.value, 1);
 });
+
+
+test('game music volume changes preserve the effect and mute output levels', async () => {
+    const h = await harness();
+    const music = h.run('playMusic(0, true)');
+    h.requests.get('audio/we_are_tumiki_fighters.ogg')();
+    await music;
+    h.context.window.lubHost.onMessage('music.volume', new TextEncoder().encode('0.5'));
+    assert.equal(h.sources[0].target.gain.value, 0.5);
+    assert.equal(h.gains[0].gain.value, 1);
+    h.run('stopMusic()');
+    assert.equal(h.sources[0].stops, 1);
+});
+
+
+test('overlapping cues do not stop another instance of the same effect', async () => {
+    const h = await harness();
+    h.run('config.soundOverlap = true');
+    const first = h.run('playSound(0)');
+    const second = h.run('playSound(0)');
+    h.requests.get('audio/ship_shot.wav')();
+    await Promise.all([first, second]);
+    assert.equal(h.sources.length, 2);
+    assert.ok(h.sources.every(source => source.starts === 1 && source.stops === 0));
+});

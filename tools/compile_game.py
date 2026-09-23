@@ -7,7 +7,7 @@ import subprocess
 parser = argparse.ArgumentParser()
 parser.add_argument('--lub', type=Path, required=True)
 parser.add_argument('--entry', default='Game')
-parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanion', 'a7xpg', 'torus-trooper', 'rrootage', 'noiz2sa', 'wok'], default='tumiki')
+parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanion', 'a7xpg', 'torus-trooper', 'rrootage', 'noiz2sa', 'wok', 'mazer-mayhem'], default='tumiki')
 parser.add_argument('--test', type=Path)
 parser.add_argument('--output', type=Path, default=Path('build/game.lua'))
 args = parser.parse_args()
@@ -56,9 +56,14 @@ if args.game == 'wok':
     sources = [Path('games/wok') / name for name in names]
     sources += [p for p in sorted(Path('games/wok').glob('*.cs')) if p.name not in names]
     sources += sorted(Path('build/wok').glob('*.cs'))
+if args.game == 'mazer-mayhem':
+    names = ['Arrays.cs', 'Math.cs', 'GameMath.cs', 'Random.cs', 'Actor.cs', 'PhysicsActor.cs', 'PrimitiveShape.cs', 'Shape.cs']
+    sources = [Path('game/PatternNumber.cs')] + [Path('games/mazer-mayhem') / name for name in names]
+    sources += [p for p in sorted(Path('games/mazer-mayhem').glob('*.cs')) if p.name not in names]
+    sources += sorted(Path('build/mazer-mayhem').glob('*.cs'))
 shader_source = 'public static class GameShaders {\n'
 for name, stage in [('vertex', 'vs'), ('fragment', 'fs')]:
-    shader_source += f'public static string {name} = {json.dumps(Path(f"games/{args.game}/game.{stage}.slang" if args.game in ["a7xpg", "rrootage", "noiz2sa", "wok"] else f"shaders/game.{stage}.slang").read_text())};\n'
+    shader_source += f'public static string {name} = {json.dumps(Path(f"games/{args.game}/game.{stage}.slang" if args.game in ["a7xpg", "rrootage", "noiz2sa", "wok", "mazer-mayhem"] else f"shaders/game.{stage}.slang").read_text())};\n'
 shader_source += '}\n'
 Path('build/Shaders.cs').write_text(shader_source)
 sources.append(Path('build/Shaders.cs'))
