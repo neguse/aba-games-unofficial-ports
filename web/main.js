@@ -158,7 +158,8 @@ function fail(error) { status.hidden = false; status.textContent = String(error?
 window.lubHost = { queue, onMessage(topic, bytes) {
     const text = decoder.decode(bytes);
     if (topic === 'ready') {
-        status.hidden = true; canvas.focus();
+        status.hidden = true;
+        if (!document.activeElement?.closest('.game-selection')) canvas.focus();
         if (config.seed) send('seed', String(crypto.getRandomValues(new Uint32Array(1))[0] & 0x7fffffff));
     }
     if (topic === 'scores.load') {
@@ -188,6 +189,31 @@ window.lubHost = { queue, onMessage(topic, bytes) {
 } };
 
 async function boot() {
+    const games = [
+        ['/', 'TUMIKI Fighters'], ['/parsec47/', 'PARSEC47'], ['/gunroar/', 'Gunroar'],
+        ['/titanion/', 'Titanion'], ['/a7xpg/', 'A7Xpg'], ['/torus-trooper/', 'Torus Trooper'],
+        ['/rrootage/', 'rRootage'], ['/noiz2sa/', 'Noiz2sa'], ['/wok/', 'Wok'],
+        ['/mazer-mayhem/', 'Mazer Mayhem'], ['/gear-toy-gear/', 'GearToyGear'],
+        ['/mu-cade/', 'Mu-cade'], ['/masashikun-hi/', 'まさしくんハイ！'],
+    ];
+    const path = location.pathname.replace(/index\.html$/, '').replace(/\/?$/, '/');
+    const menu = document.createElement('details');
+    menu.className = 'game-selection';
+    const summary = document.createElement('summary');
+    summary.textContent = `ゲームを選ぶ · ${games.find(([href]) => href === path)?.[1] || document.title}`;
+    const links = document.createElement('nav');
+    links.setAttribute('aria-label', 'ゲーム選択');
+    for (const [href, name] of games) {
+        const link = document.createElement('a');
+        link.href = href;
+        link.textContent = name;
+        if (href === path) link.setAttribute('aria-current', 'page');
+        links.append(link);
+    }
+    menu.append(summary, links);
+    menu.addEventListener('keydown', event => event.stopPropagation());
+    menu.addEventListener('focusin', () => { pressed.clear(); input(); });
+    canvas.before(menu);
     if (!navigator.gpu) throw new Error('このゲームにはWebGPU対応ブラウザが必要です。');
     const adapter = await navigator.gpu.requestAdapter();
     if (!adapter) throw new Error('WebGPUを初期化できませんでした。');
