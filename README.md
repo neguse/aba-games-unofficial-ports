@@ -17,6 +17,7 @@ ABA GamesのWindows作品をlubとTinyC#でブラウザへ移植する。
 | Wok | `/wok/` | `games/wok/` |
 | Mazer Mayhem | `/mazer-mayhem/` | `games/mazer-mayhem/` |
 | GearToyGear | `/gear-toy-gear/` | `games/gear-toy-gear/` |
+| Mu-cade | `/mu-cade/` | `games/mu-cade/` |
 
 ## TUMIKI Fighters
 
@@ -150,6 +151,18 @@ Eでアクセル、Qでブレーキ、F1/Pでポーズ、Escでタイトルへ�
 ランキング10件をブラウザに保存し、直前のプレイをタイトルで再生する。
 ゲームパッドは対象外。
 
+## Mu-cade
+
+[Mu-cade 0.11](https://www.asahi-net.or.jp/~cs8k-cyu/windows/mcd_e.html)の
+移動は矢印・WASD、開始・ショットはZ・Ctrl、IJKLは照準とショット。
+ショット中は向きを固定する。X・Shift・Spaceで尾を切り、敵弾を消してショットを強化する。
+敵を場外へ押し出すと得点し、尾が長いほど倍率が上がる。Pでポーズ、Escでタイトルへ戻る。
+得点と経過時間のランキングを保存する。
+
+弾幕13種と文字・タイトル画像をビルド時に変換する。連結・衝突・反力は
+ODE 0.5.0（`7bac210f051b3ffcfaf9a168db3d7c302f7a49a4`）を倍精度で実行し、
+TinyC#との接続だけを`ode.cpp`に持つ。Mu-cade専用ランタイムは`mu-cade/wasm/`へ配置する。
+
 ## ビルド
 
 Linux、Git、Python 3.12以降、.NET SDK 10、Node.js 26、C/C++コンパイラ、
@@ -164,7 +177,7 @@ python3 -m http.server 8765 --directory dist --bind 127.0.0.1
 
 `http://127.0.0.1:8765`を開く。WebGPUにはlocalhostまたはHTTPSが必要。
 PARSEC47は`http://127.0.0.1:8765/parsec47/`、Gunroarは`http://127.0.0.1:8765/gunroar/`を開く。
-Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで上記の11作品を生成する。
+Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで上記の12作品を生成する。
 依存物と原作アーカイブは`.cache/`、生成コードは`build/`、配布物は`dist/`に置く。
 原作アーカイブのSHA-256はビルド時に照合する。
 展開済みの原作を使う場合は`--original /path/to/tf`を指定する。
@@ -193,6 +206,7 @@ python3 tests/check_patterns.py --patterns .cache/original/noiz2sa --expected-ca
 python3 tests/check_game.py --lub .cache/lub --game wok
 python3 tests/check_game.py --lub .cache/lub --game mazer-mayhem
 python3 tests/check_game.py --lub .cache/lub --game gear-toy-gear
+python3 tests/check_game.py --lub .cache/lub --game mu-cade
 ```
 
 弾幕の検証はlibBulletML 0.0.6を比較用に取得し、SHA-256を照合する。
@@ -216,6 +230,7 @@ node tests/noiz2sa/browser.mjs
 node tests/wok/browser.mjs
 node tests/mazer-mayhem/browser.mjs
 node tests/gear-toy-gear/browser.mjs
+node tests/mu-cade/browser.mjs
 ```
 
 開始・移動・収納・ポーズ、各面の描画、音源のデコードと再生、ランキングの再読込を確認する。
@@ -242,6 +257,8 @@ Mazer Mayhemは原作C#の3,000更新のゲーム進行と1,200更新の物理�
 ハイパー・ボス・リプレイ・ポーズ、14音源とランキングの再読込を検証する。
 GearToyGearは原作C#の3,000更新の進行、2回のボス区間・9種の障害物、
 加減速・リプレイ・ポーズ、位置音・11音源とランキングの再読込を検証する。
+Mu-cadeは移動・照準固定・尾の連結と切断、3種×3サイズの敵、残機と倍率、
+原作ODE DLLの衝突・反力・落下軌道、13音源とランキングの再読込を検証する。
 画面は`build/screenshots/`へ出力する。公開先も同じ検証を実行できる。
 
 ```sh
@@ -281,3 +298,4 @@ Noiz2saの原作ライセンスは`noiz2sa/LICENSE.txt`に収録する。
 Wokの原作ライセンスは`wok/LICENSE.txt`に収録する。
 Mazer Mayhemの原作ライセンスは`mazer-mayhem/LICENSE.txt`に収録する。
 GearToyGearの原作MITライセンスは`gear-toy-gear/LICENSE.txt`に収録する。
+Mu-cadeとODEのBSDライセンスは`mu-cade/LICENSE.txt`に収録する。

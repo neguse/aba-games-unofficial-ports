@@ -237,4 +237,28 @@ for path in (gtg / 'Content/Audio').glob('*.wav'):
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(path), '-af', f'volume={gain}',
                     '-c:a', 'pcm_s16le', str(target / 'audio' / path.name)], check=True)
 (target / 'LICENSE.txt').write_text(Path('games/gear-toy-gear/LICENSE.txt').read_text() + '\n\n' + licenses)
+archive = Path('.cache/mcd0_11.zip')
+if not archive.exists():
+    urllib.request.urlretrieve('https://abagames.sakura.ne.jp/windows/mcd0_11.zip', archive)
+if hashlib.sha256(archive.read_bytes()).hexdigest() != 'e5acd67e06d765c63ea7dc7df6488ca3edd3410a05bd995b3842fe8e3b78451e':
+    raise ValueError('Mu-cade archive checksum mismatch')
+with zipfile.ZipFile(archive) as source:
+    source.extractall('.cache/original')
+mcd = Path('.cache/original/mcd')
+target = dist / 'mu-cade'
+target.mkdir(exist_ok=True)
+subprocess.run([sys.executable, 'tools/build_mucade_runtime.py', '--lub', str(args.lub)], check=True)
+subprocess.run([sys.executable, 'tools/compile_mucade.py', str(mcd)], check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'mu-cade',
+                '--output', str(target / 'game.lua')], check=True)
+shutil.copy2('games/mu-cade/index.html', target / 'index.html')
+shutil.copy2(dist / 'shaders.json', target / 'shaders.json')
+(target / 'audio').mkdir(exist_ok=True)
+for path in (mcd / 'sounds').rglob('*'):
+    if path.is_file():
+        shutil.copy2(path, target / 'audio' / path.name)
+(target / 'wasm').mkdir(exist_ok=True)
+for name in ['lub.js', 'lub.wasm', 'lub.data']:
+    shutil.copy2(Path('.cache/mu-cade-lub/build/wasm') / name, target / 'wasm' / name)
+(target / 'LICENSE.txt').write_text(Path('games/mu-cade/LICENSE.txt').read_text() + '\n\n' + licenses)
 print('Built dist/')
