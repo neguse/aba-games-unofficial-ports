@@ -7,7 +7,7 @@ import subprocess
 parser = argparse.ArgumentParser()
 parser.add_argument('--lub', type=Path, required=True)
 parser.add_argument('--entry', default='Game')
-parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanion', 'a7xpg', 'torus-trooper', 'rrootage', 'noiz2sa', 'wok', 'mazer-mayhem', 'gear-toy-gear'], default='tumiki')
+parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanion', 'a7xpg', 'torus-trooper', 'rrootage', 'noiz2sa', 'wok', 'mazer-mayhem', 'gear-toy-gear', 'mu-cade'], default='tumiki')
 parser.add_argument('--test', type=Path)
 parser.add_argument('--output', type=Path, default=Path('build/game.lua'))
 args = parser.parse_args()
@@ -66,6 +66,11 @@ if args.game == 'gear-toy-gear':
     sources = [Path('game/PatternNumber.cs')] + [Path('games/gear-toy-gear') / name for name in names]
     sources += [p for p in sorted(Path('games/gear-toy-gear').glob('*.cs')) if p.name not in names]
     sources += sorted(Path('build/gear-toy-gear').glob('*.cs'))
+if args.game == 'mu-cade':
+    names = ['GameMath.cs', 'Rand.cs', 'Arrays.cs', 'Vector.cs', 'Actor.cs', 'OdeActor.cs', 'Shape.cs', 'Bullet.cs', 'Bulletimpl.cs', 'Spec.cs']
+    sources = [Path('game/PatternNumber.cs'), Path('game/Pattern.cs')] + [Path('games/mu-cade') / name for name in names]
+    sources += sorted(Path('build/mu-cade').glob('*.cs'))
+    sources += [p for p in sorted(Path('games/mu-cade').glob('*.cs')) if p.name not in names + ['OdeApi.cs']]
 shader_source = 'public static class GameShaders {\n'
 for name, stage in [('vertex', 'vs'), ('fragment', 'fs')]:
     shader_source += f'public static string {name} = {json.dumps(Path(f"games/{args.game}/game.{stage}.slang" if args.game in ["a7xpg", "rrootage", "noiz2sa", "wok", "mazer-mayhem", "gear-toy-gear"] else f"shaders/game.{stage}.slang").read_text())};\n'
@@ -76,6 +81,8 @@ if args.test:
     sources.append(args.test)
 compiler = args.lub / 'third_party/tcs/Transpiler/bin/Release/net10.0/Transpiler.dll'
 command = ['dotnet', str(compiler), *map(str, sources), '--ref', str(args.lub / 'cs-lib/lub_stub.cs'), '--no-naming-check']
+if args.game == 'mu-cade':
+    command += ['--ref', 'games/mu-cade/OdeApi.cs']
 subprocess.run(command[:2] + ['check'] + command[2:], check=True)
 args.output.parent.mkdir(parents=True, exist_ok=True)
 subprocess.run(command + ['--entry', args.entry, '-o', str(args.output)], check=True)
