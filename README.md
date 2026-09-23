@@ -15,6 +15,8 @@ ABA GamesのWindows作品をlubとTinyC#でブラウザへ移植する。
 | rRootage | `/rrootage/` | `games/rrootage/` |
 | Noiz2sa | `/noiz2sa/` | `games/noiz2sa/` |
 | Wok | `/wok/` | `games/wok/` |
+| Mazer Mayhem | `/mazer-mayhem/` | `games/mazer-mayhem/` |
+| GearToyGear | `/gear-toy-gear/` | `games/gear-toy-gear/` |
 
 ## TUMIKI Fighters
 
@@ -127,6 +129,27 @@ Escでマウスを解放してタイトルへ戻る。球を1個でも下へ落�
 原作の古いVorbis音源は、ブラウザで再生できるPCMへビルド時に変換する。
 コマンドラインのマウス感度設定は対象外。
 
+## Mazer Mayhem
+
+原作0.14の戦車・球の物理、迷路、ボス、ハイパーと得点倍率を移植する。
+矢印/WASDで移動、Xで開始・射撃、Z/Cで旋回する。
+Xを押すとダッシュとグレネード、ZとCを同時に押し続けると収集アイテムでハイパーを発動する。
+F1でポーズ、Escでタイトルへ戻る。
+44文字の形状と迷路XMLをビルド時に変換し、原作の立体・残像・反射と14音源を使う。
+ランキング10件をブラウザへ保存し、タイトルでは直前のプレイを再生する。
+ゲームパッドと右スティックによる視点変更は対象外。
+
+## GearToyGear
+
+原作0.1の筒状コース、加減速、自動ショットと誘導レーザー、ボスを移植する。
+矢印/WASDで移動、X/V/カンマ/スラッシュで開始・加速、Z/C/M/ピリオドで減速する。
+Eでアクセル、Qでブレーキ、F1/Pでポーズ、Escでタイトルへ戻る。
+加速するとゲーム速度と得点倍率が上がる。6区間ごとにボスが出現する。
+44文字の形状をビルド時に変換し、原作の立体・発光描画と11音源を使う。
+効果音は敵と自機の相対位置に応じて定位し、レーザー音は飛行中にループする。
+ランキング10件をブラウザに保存し、直前のプレイをタイトルで再生する。
+ゲームパッドは対象外。
+
 ## ビルド
 
 Linux、Git、Python 3.12以降、.NET SDK 10、Node.js 26、C/C++コンパイラ、
@@ -141,7 +164,7 @@ python3 -m http.server 8765 --directory dist --bind 127.0.0.1
 
 `http://127.0.0.1:8765`を開く。WebGPUにはlocalhostまたはHTTPSが必要。
 PARSEC47は`http://127.0.0.1:8765/parsec47/`、Gunroarは`http://127.0.0.1:8765/gunroar/`を開く。
-Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで上記の9作品を生成する。
+Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで上記の11作品を生成する。
 依存物と原作アーカイブは`.cache/`、生成コードは`build/`、配布物は`dist/`に置く。
 原作アーカイブのSHA-256はビルド時に照合する。
 展開済みの原作を使う場合は`--original /path/to/tf`を指定する。
@@ -168,6 +191,8 @@ python3 tests/check_patterns.py --patterns .cache/original/rr --expected-cases 3
 python3 tests/check_game.py --lub .cache/lub --game noiz2sa
 python3 tests/check_patterns.py --patterns .cache/original/noiz2sa --expected-cases 365
 python3 tests/check_game.py --lub .cache/lub --game wok
+python3 tests/check_game.py --lub .cache/lub --game mazer-mayhem
+python3 tests/check_game.py --lub .cache/lub --game gear-toy-gear
 ```
 
 弾幕の検証はlibBulletML 0.0.6を比較用に取得し、SHA-256を照合する。
@@ -189,6 +214,8 @@ node tests/torus-trooper/browser.mjs
 node tests/rrootage/browser.mjs
 node tests/noiz2sa/browser.mjs
 node tests/wok/browser.mjs
+node tests/mazer-mayhem/browser.mjs
+node tests/gear-toy-gear/browser.mjs
 ```
 
 開始・移動・収納・ポーズ、各面の描画、音源のデコードと再生、ランキングの再読込を確認する。
@@ -211,6 +238,10 @@ Noiz2saは通常10面のボス・クリアと4種のエンドレス、原作Cの
 73弾幕×5難易度、ボーナス・残機、パレット、14音源とスコアの再読込を検証する。
 Wokは原作Cとの球・鍋の軌道と6種の発生装置の比較、連続得点・ミス・音楽切替、
 ポインターロック・再開、5音源とハイスコアの再読込を検証する。
+Mazer Mayhemは原作C#の3,000更新のゲーム進行と1,200更新の物理、
+ハイパー・ボス・リプレイ・ポーズ、14音源とランキングの再読込を検証する。
+GearToyGearは原作C#の3,000更新の進行、2回のボス区間・9種の障害物、
+加減速・リプレイ・ポーズ、位置音・11音源とランキングの再読込を検証する。
 画面は`build/screenshots/`へ出力する。公開先も同じ検証を実行できる。
 
 ```sh
@@ -248,3 +279,5 @@ Torus Trooperの原作ライセンスは`torus-trooper/LICENSE.txt`に収録す�
 rRootageの原作ライセンスは`rrootage/LICENSE.txt`に収録する。
 Noiz2saの原作ライセンスは`noiz2sa/LICENSE.txt`に収録する。
 Wokの原作ライセンスは`wok/LICENSE.txt`に収録する。
+Mazer Mayhemの原作ライセンスは`mazer-mayhem/LICENSE.txt`に収録する。
+GearToyGearの原作MITライセンスは`gear-toy-gear/LICENSE.txt`に収録する。

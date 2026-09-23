@@ -19,6 +19,7 @@ let musicVersion = 0;
 let muted = false;
 const buffers = new Map();
 const channels = new Map();
+const spatialSounds = new Map();
 const soundVersions = new Map();
 const musicNames = config.music || ['we_are_tumiki_fighters', 'just_over_the_horizon', 'panic_on_meadow', 'here_comes_a_gigantic_toy', 'battle_over_the_junk_city', 'return_to_home'];
 const soundNames = config.sounds || ['ship_shot', 'stuck', 'stuck_bonus', 'stuck_destroyed', 'ship_destroyed', 'enemy_damaged', 'small_enemy_destroyed', 'enemy_destroyed', 'boss_destroyed', 'extend', 'warning', 'propeller', 'stuck_bonus_pushin'];
@@ -111,6 +112,12 @@ function stopSound(channel) {
     channels.delete(channel);
 }
 async function playSound(index) {
+    if (config.soundOverlap) {
+        const decoded = await buffer(soundNames[index], 'wav');
+        const source = audio.createBufferSource(); source.buffer = decoded;
+        source.connect(volume); source.start();
+        return;
+    }
     const channel = soundChannels[index];
     stopSound(channel);
     const version = soundVersions.get(channel);
@@ -120,6 +127,32 @@ async function playSound(index) {
     source.connect(volume);
     channels.set(channel, source); source.start();
     source.onended = () => { if (channels.get(channel) === source) channels.delete(channel); };
+}
+function positionSpatial(sound, position) {
+    sound.position = position;
+    if (!sound.source) return;
+    const [x, y, z] = position;
+    sound.panner.positionX.value = x; sound.panner.positionY.value = y; sound.panner.positionZ.value = z;
+}
+async function playSpatial(values) {
+    const [id, index, loop, ...position] = values;
+    stopSpatial(id);
+    const sound = { position };
+    spatialSounds.set(id, sound);
+    const decoded = await buffer(soundNames[index], 'wav');
+    if (spatialSounds.get(id) !== sound) return;
+    const source = audio.createBufferSource(), panner = audio.createPanner();
+    source.buffer = decoded; source.loop = Boolean(loop);
+    panner.panningModel = 'equalpower'; panner.distanceModel = 'inverse';
+    // Gtg.xap has no distance or pitch RPC; XACT's default volume curve is constant.
+    panner.refDistance = 1; panner.rolloffFactor = 0;
+    sound.source = source; sound.panner = panner; positionSpatial(sound, sound.position);
+    source.connect(panner).connect(volume); source.start();
+    source.onended = () => { if (spatialSounds.get(id) === sound) spatialSounds.delete(id); panner.disconnect(); };
+}
+function stopSpatial(id) {
+    spatialSounds.get(id)?.source?.stop();
+    spatialSounds.delete(id);
 }
 function fail(error) { status.hidden = false; status.textContent = String(error?.message || error); console.error(error); }
 window.lubHost = { queue, onMessage(topic, bytes) {
@@ -143,8 +176,15 @@ window.lubHost = { queue, onMessage(topic, bytes) {
     if (topic === 'music.loop' || topic === 'music.once') playMusic(Number(text), topic === 'music.loop').catch(fail);
     if (topic === 'music.stop') stopMusic();
     if (topic === 'music.fade') stopMusic(true);
+    if (topic === 'music.volume' && music) musicGain.gain.value = Math.max(0, Math.min(1, Number(text)));
     if (topic === 'sound.play') playSound(Number(text)).catch(fail);
     if (topic === 'sound.stop') stopSound(soundChannels[Number(text)]);
+    if (topic === 'spatial.play') playSpatial(text.split(',').map(Number)).catch(fail);
+    if (topic === 'spatial.stop') stopSpatial(Number(text));
+    if (topic === 'spatial.update') {
+        const [id, ...position] = text.split(',').map(Number), sound = spatialSounds.get(id);
+        if (sound) positionSpatial(sound, position);
+    }
 } };
 
 async function boot() {

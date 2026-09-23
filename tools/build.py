@@ -1,6 +1,7 @@
 import argparse
 import hashlib
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -192,4 +193,48 @@ for path in (wok / 'sounds').glob('*.ogg'):
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-c:a', 'libvorbis', '-i', str(path),
                     '-c:a', 'pcm_s16le', str(target / 'audio' / (path.stem + '.wav'))], check=True)
 (target / 'LICENSE.txt').write_text(Path('games/wok/LICENSE.txt').read_text() + '\n\n' + licenses)
+archive = Path('.cache/Mm0_14.zip')
+if not archive.exists():
+    urllib.request.urlretrieve('https://abagames.sakura.ne.jp/xna/mm/Mm0_14.zip', archive)
+if hashlib.sha256(archive.read_bytes()).hexdigest() != '286e6081a0d887c1f75069298174ab9bb43d43daa8d0f5288a744d9f9d58d533':
+    raise ValueError('Mazer Mayhem archive checksum mismatch')
+with zipfile.ZipFile(archive) as source:
+    source.extractall('.cache/original')
+mm = Path('.cache/original/Mm/Mm')
+target = dist / 'mazer-mayhem'
+target.mkdir(exist_ok=True)
+subprocess.run([sys.executable, 'tools/compile_mazer.py', str(mm)], check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'mazer-mayhem',
+                '--output', str(target / 'game.lua')], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/mazer-mayhem/game'], check=True)
+shutil.copy2('games/mazer-mayhem/index.html', target / 'index.html')
+(target / 'audio').mkdir(exist_ok=True)
+for path in (mm / 'Content/Audio').glob('*.wav'):
+    # Mm.xap: each cue is -12 dB, with +5 dB for the Music category.
+    gain = '-7dB' if path.stem in ['Mm1', 'Mm2', 'Mm3'] else '-12dB'
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(path), '-af', f'volume={gain}',
+                    '-c:a', 'pcm_s16le', str(target / 'audio' / path.name)], check=True)
+(target / 'LICENSE.txt').write_text(Path('games/mazer-mayhem/LICENSE.txt').read_text() + '\n\n' + licenses)
+archive = Path('.cache/GearToyGear0_1.zip')
+if not archive.exists():
+    urllib.request.urlretrieve('https://abagames.sakura.ne.jp/xna/gtg/GearToyGear0_1.zip', archive)
+if hashlib.sha256(archive.read_bytes()).hexdigest() != 'b068c6b1dd5a7bfcc65830ba6fe946dbc6182ac720c58d6b3518546b5f22f04a':
+    raise ValueError('GearToyGear archive checksum mismatch')
+with zipfile.ZipFile(archive) as source:
+    source.extractall('.cache/original')
+gtg = Path('.cache/original/GearToyGear/GearToyGear')
+target = dist / 'gear-toy-gear'
+target.mkdir(exist_ok=True)
+subprocess.run([sys.executable, 'tools/compile_gear.py', str(gtg)], check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'gear-toy-gear',
+                '--output', str(target / 'game.lua')], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/gear-toy-gear/game'], check=True)
+shutil.copy2('games/gear-toy-gear/index.html', target / 'index.html')
+(target / 'audio').mkdir(exist_ok=True)
+volumes = dict(re.findall(r'Sound\s*\{\s*Name = (\w+);\s*Volume = ([-\d]+)', (gtg / 'Content/Audio/Gtg.xap').read_text()))
+for path in (gtg / 'Content/Audio').glob('*.wav'):
+    gain = 0.5 * 10 ** (int(volumes[path.stem]) / 2000)
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(path), '-af', f'volume={gain}',
+                    '-c:a', 'pcm_s16le', str(target / 'audio' / path.name)], check=True)
+(target / 'LICENSE.txt').write_text(Path('games/gear-toy-gear/LICENSE.txt').read_text() + '\n\n' + licenses)
 print('Built dist/')

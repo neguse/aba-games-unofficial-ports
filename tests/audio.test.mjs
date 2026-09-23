@@ -22,6 +22,10 @@ async function harness() {
                     connect(target) { this.target = target; return target; } };
                 gains.push(gain); return gain;
             }
+            createPanner() {
+                return { positionX: {}, positionY: {}, positionZ: {},
+                    connect(target) { this.target = target; return target; }, disconnect() {} };
+            }
             createBufferSource() {
                 const source = { starts: 0, stops: 0, connect(target) { this.target = target; return target; },
                     start() { this.starts++; }, stop() { this.stops++; } };
@@ -75,4 +79,56 @@ test('mute affects fading music and effects through the same output', async () =
     assert.equal(h.sources[1].target, output);
     button.onclick({ currentTarget: button });
     assert.equal(output.gain.value, 1);
+});
+
+
+test('game music volume changes preserve the effect and mute output levels', async () => {
+    const h = await harness();
+    const music = h.run('playMusic(0, true)');
+    h.requests.get('audio/we_are_tumiki_fighters.ogg')();
+    await music;
+    h.context.window.lubHost.onMessage('music.volume', new TextEncoder().encode('0.5'));
+    assert.equal(h.sources[0].target.gain.value, 0.5);
+    assert.equal(h.gains[0].gain.value, 1);
+    h.run('stopMusic()');
+    assert.equal(h.sources[0].stops, 1);
+});
+
+
+test('overlapping cues do not stop another instance of the same effect', async () => {
+    const h = await harness();
+    h.run('config.soundOverlap = true');
+    const first = h.run('playSound(0)');
+    const second = h.run('playSound(0)');
+    h.requests.get('audio/ship_shot.wav')();
+    await Promise.all([first, second]);
+    assert.equal(h.sources.length, 2);
+    assert.ok(h.sources.every(source => source.starts === 1 && source.stops === 0));
+});
+
+
+test('a stopped spatial cue cannot start after its audio decode', async () => {
+    const h = await harness();
+    const pending = h.run('playSpatial([17, 0, 1, -20, 3, -80])');
+    h.run('stopSpatial(17)');
+    h.requests.get('audio/ship_shot.wav')();
+    await pending;
+    assert.equal(h.sources.length, 0);
+});
+
+test('spatial loops use the latest position and stop independently', async () => {
+    const h = await harness();
+    const pending = h.run('playSpatial([17, 0, 1, -20, 3, -80])');
+    h.context.window.lubHost.onMessage('spatial.update', new TextEncoder().encode('17,30,4,-10'));
+    h.requests.get('audio/ship_shot.wav')();
+    await pending;
+    const first = h.sources[0], panner = first.target;
+    assert.equal(first.loop, true);
+    assert.deepEqual([panner.positionX.value, panner.positionY.value, panner.positionZ.value], [30, 4, -10]);
+    assert.equal(panner.rolloffFactor, 0);
+    assert.equal(panner.target, h.gains[0]);
+    await h.run('playSpatial([18, 0, 0, 0, 0, 0])');
+    h.run('stopSpatial(17)');
+    assert.equal(first.stops, 1);
+    assert.equal(h.sources[1].stops, 0);
 });
