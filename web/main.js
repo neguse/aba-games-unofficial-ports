@@ -99,7 +99,7 @@ function stopMusic(fade = false) {
 async function playMusic(index, loop) {
     stopMusic();
     const version = musicVersion;
-    const decoded = await buffer(musicNames[index], 'ogg');
+    const decoded = await buffer(musicNames[index], config.musicExtension || 'ogg');
     if (version !== musicVersion) return;
     music = audio.createBufferSource(); music.buffer = decoded; music.loop = loop;
     musicGain = audio.createGain();
