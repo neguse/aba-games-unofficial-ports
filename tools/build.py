@@ -135,4 +135,21 @@ for directory in ['chunks', 'musics']:
     for audio in (tt / 'sounds' / directory).iterdir():
         shutil.copy2(audio, target / 'audio' / audio.name)
 (target / 'LICENSE.txt').write_text((tt / 'readme_e.txt').read_text() + '\n\n' + licenses)
+archive = Path('.cache/rr0_24.zip')
+if not archive.exists():
+    urllib.request.urlretrieve('https://abagames.sakura.ne.jp/windows/rr0_24.zip', archive)
+if hashlib.sha256(archive.read_bytes()).hexdigest() != 'd8bb5124d996fab4c56fa2784e660c4a2d642301658a4d55bcad0684deaf8ef8':
+    raise ValueError('rRootage archive checksum mismatch')
+with zipfile.ZipFile(archive) as source:
+    source.extractall('.cache/original')
+rr = Path('.cache/original/rr')
+target = dist / 'rrootage'
+target.mkdir(exist_ok=True)
+subprocess.run([sys.executable, 'tools/compile_rrootage.py', str(rr)], check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'rrootage',
+                '--output', str(target / 'game.lua')], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/rrootage/game'], check=True)
+shutil.copy2('games/rrootage/index.html', target / 'index.html')
+shutil.copytree(rr / 'sounds', target / 'audio', dirs_exist_ok=True)
+(target / 'LICENSE.txt').write_text((rr / 'LICENSE.txt').read_text() + '\n\n' + licenses)
 print('Built dist/')
