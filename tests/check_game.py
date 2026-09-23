@@ -6,10 +6,10 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--lub', type=Path, required=True)
-parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanion', 'a7xpg', 'torus-trooper', 'rrootage', 'noiz2sa', 'wok', 'mazer-mayhem', 'gear-toy-gear', 'mu-cade'], default='tumiki')
+parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanion', 'a7xpg', 'torus-trooper', 'rrootage', 'noiz2sa', 'wok', 'mazer-mayhem', 'gear-toy-gear', 'mu-cade', 'masashikun-hi'], default='tumiki')
 args = parser.parse_args()
 output = Path(f'build/tests/{args.game}.lua')
-if args.game in ['mazer-mayhem', 'gear-toy-gear', 'mu-cade']:
+if args.game in ['mazer-mayhem', 'gear-toy-gear', 'mu-cade', 'masashikun-hi']:
     subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub),
                     '--game', args.game, '--output', str(output)], check=True)
     runner = Path('build/mu-cade/lua-ode') if args.game == 'mu-cade' else args.lub / 'third_party/tcs/deps/lua/lua32'

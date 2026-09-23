@@ -18,6 +18,7 @@ ABA GamesのWindows作品をlubとTinyC#でブラウザへ移植する。
 | Mazer Mayhem | `/mazer-mayhem/` | `games/mazer-mayhem/` |
 | GearToyGear | `/gear-toy-gear/` | `games/gear-toy-gear/` |
 | Mu-cade | `/mu-cade/` | `games/mu-cade/` |
+| まさしくんハイ！ | `/masashikun-hi/` | `games/masashikun-hi/` |
 
 ## TUMIKI Fighters
 
@@ -162,6 +163,13 @@ Eでアクセル、Qでブレーキ、F1/Pでポーズ、Escでタイトルへ�
 弾幕13種と文字・タイトル画像をビルド時に変換する。連結・衝突・反力は
 ODE 0.5.0（`7bac210f051b3ffcfaf9a168db3d7c302f7a49a4`）を倍精度で実行し、
 TinyC#との接続だけを`ode.cpp`に持つ。Mu-cade専用ランタイムは`mu-cade/wasm/`へ配置する。
+
+## まさしくんハイ！
+
+5競技・競技ごとの説明・総合記録に対応する。F2で5種競技、F5〜F9で各競技を開始し、
+マウスを回して加速、クリックでアクション。F3でポーズ、ShiftとSpaceで代替操作。
+上位3件の記録と名前を競技別に保存する。
+GPLの対応ソースを配布物に含める。単体ビルドと検証は[手順](games/masashikun-hi/README.md)を参照。
 
 ## ビルド
 

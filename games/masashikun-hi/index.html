@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>まさしくんハイ！</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../style.css">
+<style>
+select,input,dialog button{font:inherit}dialog{color:#eef;background:#18183b;border:1px solid #99a;max-width:90vw}dialog::backdrop{background:#0009}td,th{padding:.5em;text-align:left}#events{display:flex;flex-wrap:wrap;gap:.5em}#help{max-width:640px}#sound{display:none}
+</style>
+<main>
+  <canvas id="canvas" width="640" height="480" tabindex="0" aria-label="まさしくんハイ！ ゲーム画面"></canvas>
+  <p id="status" role="status">読み込み中…</p>
+  <nav id="events"><button data-event="0" disabled>5種競技（F2）</button><button data-event="1" disabled>かけぬけろ（F5）</button><button data-event="2" disabled>跳び箱（F6）</button><button data-event="3" disabled>大岡裁き（F7）</button><button data-event="4" disabled>人投げ（F8）</button><button data-event="5" disabled>逆ファイアー（F9）</button></nav>
+  <p>マウスをぐりぐり動かして力をため、クリックでアクション。Spaceはクリック、Shiftを押すたびにマウス移動を補えます。F3でポーズ。Escでマウスを解放してポーズします。</p>
+  <p id="help">5種競技では競技ごとの説明を表示します。クリックで先へ進めます。</p>
+  <nav><button id="pause" disabled>ポーズ / 再開（F3）</button><button id="title" disabled>タイトルへ</button><button id="rank" disabled>ランキング</button><button id="sound" type="button" aria-pressed="false">音：オン</button><button id="fullscreen" type="button">全画面</button><a href="https://www.asahi-net.or.jp/~cs8k-cyu/free/mas.html">原作：Kenta Cho / ABA Games</a><a href="LICENSE.txt">GPL・ライセンス</a><a href="source.tar.gz">対応ソース</a><a href="../">ゲーム一覧</a></nav>
+  <dialog id="ranking"><h2 id="ranking-title"></h2><form method="dialog"><p id="category-row"><label>競技 <select id="category"><option>かけぬけろ</option><option>跳び箱</option><option>大岡裁き</option><option>人投げ</option><option>逆ファイアー</option><option>総合</option></select></label></p><table><thead><tr><th>順位</th><th>記録</th><th>名前</th></tr></thead><tbody id="records"></tbody></table><label id="name-row">名前 <input id="player-name" maxlength="40" autocomplete="nickname"></label><p><button id="close-rank">閉じる</button> <button type="button" id="clear-scores">全記録を消す</button></p></form></dialog>
+</main>
+<script id="game-config" type="application/json">{"wasm":"../wasm/","scores":"masashikun-hi-scores-v1","seed":true,"music":[],"sounds":[],"controls":[]}</script>
+<script type="module">
+import '../main.js';
+const canvas=document.querySelector('#canvas'),dialog=document.querySelector('#ranking'),help=document.querySelector('#help');
+const send=(topic,payload='')=>lubHost.queue.push({topic,payload:String(payload)});
+const descriptions=['5種競技では競技ごとの説明を表示します。クリックで先へ進めます。','マウスをぐりぐり回して加速。クリックでジャンプして坂を走り抜けます。','マウスで助走、矢印の位置でクリック。空中でマウスを回し、クリックで跳び箱の高さを決め、もう一度クリックして飛び越えます。','左側が自分です。マウスを回して力をため、クリックで中央の人を左の矢印まで引き寄せます。','マウスで人を回し、クリックを長押しして投げる角度を調整。ボタンを放して投げます。崖に落ちる前に！','マウスで加速して崖から飛び出します。トランポリンが伸び切る瞬間にクリック。上昇中にもマウスを回して、さらに高く跳びます。'];
+let ready=false,state=0,hidden=false,pendingRank=0,held=new Set(),mouseDown=false,keyboardDown=false;
+function lock(){canvas.focus();if(document.pointerLockElement!==canvas)canvas.requestPointerLock()?.catch(()=>{help.textContent='マウスを固定できませんでした。画面をクリックして再試行するか、ShiftとSpaceで操作できます。';});}
+function start(n){if(!ready||dialog.open)return;help.textContent=descriptions[n]||descriptions[0];send('start',n);lock();}
+function pause(){if(!ready||dialog.open)return;send('pause');if(state===-1)lock();}
+function button(){send('button',mouseDown||keyboardDown?1:0);}
+document.querySelectorAll('[data-event]').forEach(el=>el.onclick=()=>start(Number(el.dataset.event)));
+document.querySelector('#pause').onclick=pause;
+document.querySelector('#title').onclick=()=>send('start',6);
+document.querySelector('#rank').onclick=()=>{if(state>0)send('pause');send('rank',document.querySelector('#category').selectedIndex);};
+document.querySelector('#category').onchange=event=>send('rank',event.target.selectedIndex);
+document.querySelector('#clear-scores').onclick=()=>{if(confirm('6種目すべての記録を消しますか？')){send('clear');send('rank',document.querySelector('#category').selectedIndex);}};
+canvas.addEventListener('pointermove',event=>{if(hidden&&!dialog.open)send('move',`${Math.round(event.movementX)},${Math.round(event.movementY)}`);});
+canvas.addEventListener('pointerdown',event=>{if(!ready||dialog.open)return;event.preventDefault();if(state===-1){pause();return;}if(hidden)lock();mouseDown=true;button();});
+window.addEventListener('pointerup',()=>{mouseDown=false;button();});
+canvas.addEventListener('contextmenu',event=>event.preventDefault());
+window.addEventListener('keydown',event=>{
+ if(!ready||dialog.open)return;
+ if(!['F2','F3','F5','F6','F7','F8','F9','Space','ShiftLeft','ShiftRight'].includes(event.code))return;
+ event.preventDefault();if(held.has(event.code))return;held.add(event.code);
+ if(event.code==='F2')start(0);else if(event.code==='F3')pause();else if(/^F[5-9]$/.test(event.code))start(Number(event.code.slice(1))-4);
+ else if(event.code==='Space'){keyboardDown=true;button();}else send('shift');
+});
+window.addEventListener('keyup',event=>{held.delete(event.code);if(event.code==='Space'){keyboardDown=false;button();}});
+window.addEventListener('blur',()=>{held.clear();mouseDown=false;keyboardDown=false;button();send('blur');});
+document.addEventListener('pointerlockchange',()=>{if(document.pointerLockElement!==canvas&&state>0&&!dialog.open)send('blur');});
+dialog.addEventListener('close',()=>{if(pendingRank){send('name',document.querySelector('#player-name').value);pendingRank=0;}canvas.focus();});
+const onMessage=lubHost.onMessage;
+lubHost.onMessage=(topic,bytes)=>{
+ const text=new TextDecoder().decode(bytes);
+ if(topic==='state'){
+  [state,hidden]=text.split(',').map(Number);
+  if(!hidden&&document.pointerLockElement===canvas)document.exitPointerLock();
+ }else if(topic==='ranking'){
+  const rows=text.split('\n');pendingRank=Number(rows[1]);
+  document.querySelector('#ranking-title').textContent=rows[0];document.querySelector('#records').replaceChildren();
+  for(let i=0;i<3;i++){const fields=(rows[i+2]||'').split('\t'),tr=document.createElement('tr');for(const field of [String(i+1),...fields]){const td=document.createElement('td');td.textContent=field;tr.append(td);}document.querySelector('#records').append(tr);}
+  document.querySelector('#name-row').hidden=!pendingRank;document.querySelector('#category-row').hidden=!!pendingRank;document.querySelector('#clear-scores').hidden=!!pendingRank;
+  document.querySelector('#close-rank').textContent=pendingRank?'記録を保存':'閉じる';document.querySelector('#player-name').value='';
+  if(!dialog.open)dialog.showModal();if(document.pointerLockElement===canvas)document.exitPointerLock();if(pendingRank)document.querySelector('#player-name').focus();
+ }else{
+  onMessage(topic,bytes);
+  if(topic==='ready'){ready=true;document.querySelectorAll('button[disabled]').forEach(b=>b.disabled=false);}
+ }
+};
+</script>
+</html>

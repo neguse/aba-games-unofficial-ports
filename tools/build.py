@@ -261,4 +261,5 @@ for path in (mcd / 'sounds').rglob('*'):
 for name in ['lub.js', 'lub.wasm', 'lub.data']:
     shutil.copy2(Path('.cache/mu-cade-lub/build/wasm') / name, target / 'wasm' / name)
 (target / 'LICENSE.txt').write_text(Path('games/mu-cade/LICENSE.txt').read_text() + '\n\n' + licenses)
+subprocess.run([sys.executable, 'tools/build_masashikun.py', '--lub', str(args.lub)], check=True)
 print('Built dist/')
