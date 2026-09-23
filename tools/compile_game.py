@@ -7,7 +7,7 @@ import subprocess
 parser = argparse.ArgumentParser()
 parser.add_argument('--lub', type=Path, required=True)
 parser.add_argument('--entry', default='Game')
-parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanion', 'a7xpg'], default='tumiki')
+parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanion', 'a7xpg', 'torus-trooper'], default='tumiki')
 parser.add_argument('--test', type=Path)
 parser.add_argument('--output', type=Path, default=Path('build/game.lua'))
 args = parser.parse_args()
@@ -35,6 +35,11 @@ if args.game == 'a7xpg':
     sources = [Path('game/Core.cs'), Path('game/Drawing.cs'), Path('game/PatternNumber.cs')]
     sources += sorted(Path('games/a7xpg').glob('*.cs'))
     sources += sorted(Path('build/a7xpg').glob('*.cs'))
+if args.game == 'torus-trooper':
+    sources = [Path('games/torus-trooper') / name for name in ['GameMath.cs', 'Rand.cs', 'Vector.cs', 'Actor.cs']]
+    sources += [Path('game/Drawing.cs'), Path('game/PatternNumber.cs'), Path('game/Pattern.cs')]
+    sources += [p for p in sorted(Path('games/torus-trooper').glob('*.cs')) if p.name not in ['GameMath.cs', 'Rand.cs', 'Vector.cs', 'Actor.cs']]
+    sources += sorted(Path('build/torus-trooper').glob('*.cs'))
 shader_source = 'public static class GameShaders {\n'
 for name, stage in [('vertex', 'vs'), ('fragment', 'fs')]:
     shader_source += f'public static string {name} = {json.dumps(Path(f"games/a7xpg/game.{stage}.slang" if args.game == "a7xpg" else f"shaders/game.{stage}.slang").read_text())};\n'
