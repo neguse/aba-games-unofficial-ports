@@ -13,6 +13,7 @@ ABA GamesのWindows作品をlubとTinyC#でブラウザへ移植する。
 | A7Xpg | `/a7xpg/` | `games/a7xpg/` |
 | Torus Trooper | `/torus-trooper/` | `games/torus-trooper/` |
 | rRootage | `/rrootage/` | `games/rrootage/` |
+| Noiz2sa | `/noiz2sa/` | `games/noiz2sa/` |
 
 ## TUMIKI Fighters
 
@@ -106,6 +107,15 @@ NORMALのボム、PSYのかすりと回転、IKAの属性吸収、GWの反射を
 68弾幕と画像をビルド時に変換し、原作の19音源を使用する。
 原作のコマンドライン設定とゲームパッドは対象外。
 
+## Noiz2sa
+
+通常10ステージと4種類のエンドレスに対応する。上下でステージを選び、Zで開始する。
+矢印・WASD・テンキーで移動、Zでショット、Xで低速移動、Pでポーズ、Escでタイトルへ戻る。
+緑のボーナスを連続して拾うと得点が増え、取り逃すと半減する。
+73弾幕と色の合成表・タイトル画像をビルド時に変換し、原作の残像と14音源を使用する。
+ステージ別・シーン別の最高得点と選択ステージをブラウザへ保存する。
+原作のコマンドライン設定とゲームパッドは対象外。
+
 ## ビルド
 
 Linux、Git、Python 3.12以降、.NET SDK 10、Node.js 26、C/C++コンパイラ、
@@ -120,7 +130,7 @@ python3 -m http.server 8765 --directory dist --bind 127.0.0.1
 
 `http://127.0.0.1:8765`を開く。WebGPUにはlocalhostまたはHTTPSが必要。
 PARSEC47は`http://127.0.0.1:8765/parsec47/`、Gunroarは`http://127.0.0.1:8765/gunroar/`を開く。
-Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで上記の7作品を生成する。
+Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで上記の8作品を生成する。
 依存物と原作アーカイブは`.cache/`、生成コードは`build/`、配布物は`dist/`に置く。
 原作アーカイブのSHA-256はビルド時に照合する。
 展開済みの原作を使う場合は`--original /path/to/tf`を指定する。
@@ -144,6 +154,8 @@ python3 tests/check_game.py --lub .cache/lub --game torus-trooper
 python3 tests/check_patterns.py --patterns .cache/original/tt/barrage --expected-cases 140
 python3 tests/check_game.py --lub .cache/lub --game rrootage
 python3 tests/check_patterns.py --patterns .cache/original/rr --expected-cases 340
+python3 tests/check_game.py --lub .cache/lub --game noiz2sa
+python3 tests/check_patterns.py --patterns .cache/original/noiz2sa --expected-cases 365
 ```
 
 弾幕の検証はlibBulletML 0.0.6を比較用に取得し、SHA-256を照合する。
@@ -163,6 +175,7 @@ node tests/titanion/browser.mjs
 node tests/a7xpg/browser.mjs
 node tests/torus-trooper/browser.mjs
 node tests/rrootage/browser.mjs
+node tests/noiz2sa/browser.mjs
 ```
 
 開始・移動・収納・ポーズ、各面の描画、音源のデコードと再生、ランキングの再読込を確認する。
@@ -181,6 +194,8 @@ Torus Trooperは3難易度で12区間の進行、時間の加減算、チャー�
 600フレームのリプレイ一致、28弾幕×5難易度の原作比較、14音源と保存を検証する。
 rRootageは全160ステージの5体のボス進行、原作Cの自機軌道、各モードの防御、
 68弾幕×5難易度、19音源とスコア・クリア状況の再読込を検証する。
+Noiz2saは通常10面のボス・クリアと4種のエンドレス、原作Cの移動・描画・敵出現順、
+73弾幕×5難易度、ボーナス・残機、パレット、14音源とスコアの再読込を検証する。
 画面は`build/screenshots/`へ出力する。公開先も同じ検証を実行できる。
 
 ```sh
@@ -216,3 +231,4 @@ Titanionの原作ライセンスは`titanion/LICENSE.txt`に収録する。
 A7XpgとPhobos乱数のライセンスは`a7xpg/LICENSE.txt`に収録する。
 Torus Trooperの原作ライセンスは`torus-trooper/LICENSE.txt`に収録する。
 rRootageの原作ライセンスは`rrootage/LICENSE.txt`に収録する。
+Noiz2saの原作ライセンスは`noiz2sa/LICENSE.txt`に収録する。
