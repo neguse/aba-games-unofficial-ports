@@ -1,9 +1,11 @@
 import argparse
 import hashlib
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import urllib.request
 import zipfile
 
@@ -135,4 +137,129 @@ for directory in ['chunks', 'musics']:
     for audio in (tt / 'sounds' / directory).iterdir():
         shutil.copy2(audio, target / 'audio' / audio.name)
 (target / 'LICENSE.txt').write_text((tt / 'readme_e.txt').read_text() + '\n\n' + licenses)
+archive = Path('.cache/rr0_24.zip')
+if not archive.exists():
+    urllib.request.urlretrieve('https://abagames.sakura.ne.jp/windows/rr0_24.zip', archive)
+if hashlib.sha256(archive.read_bytes()).hexdigest() != 'd8bb5124d996fab4c56fa2784e660c4a2d642301658a4d55bcad0684deaf8ef8':
+    raise ValueError('rRootage archive checksum mismatch')
+with zipfile.ZipFile(archive) as source:
+    source.extractall('.cache/original')
+rr = Path('.cache/original/rr')
+target = dist / 'rrootage'
+target.mkdir(exist_ok=True)
+subprocess.run([sys.executable, 'tools/compile_rrootage.py', str(rr)], check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'rrootage',
+                '--output', str(target / 'game.lua')], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/rrootage/game'], check=True)
+shutil.copy2('games/rrootage/index.html', target / 'index.html')
+shutil.copytree(rr / 'sounds', target / 'audio', dirs_exist_ok=True)
+(target / 'LICENSE.txt').write_text((rr / 'LICENSE.txt').read_text() + '\n\n' + licenses)
+archive = Path('.cache/noiz2sa0_52.zip')
+if not archive.exists():
+    urllib.request.urlretrieve('https://abagames.sakura.ne.jp/windows/noiz2sa0_52.zip', archive)
+if hashlib.sha256(archive.read_bytes()).hexdigest() != '959759140a80b3cc718946a118b6825fd5218f3186138a51a7819c5fb938dffc':
+    raise ValueError('Noiz2sa archive checksum mismatch')
+with zipfile.ZipFile(archive) as source:
+    source.extractall('.cache/original')
+nr = Path('.cache/original/noiz2sa')
+target = dist / 'noiz2sa'
+target.mkdir(exist_ok=True)
+subprocess.run([sys.executable, 'tools/compile_noiz2sa.py', str(nr)], check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'noiz2sa',
+                '--output', str(target / 'game.lua')], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/noiz2sa/game'], check=True)
+shutil.copy2('games/noiz2sa/index.html', target / 'index.html')
+shutil.copytree(nr / 'sounds', target / 'audio', dirs_exist_ok=True)
+(target / 'LICENSE.txt').write_text((nr / 'readme_e.txt').read_text() + '\n\n' + licenses)
+archive = Path('.cache/wok_src1_0.tar.gz')
+if not archive.exists():
+    urllib.request.urlretrieve('https://www.asahi-net.or.jp/~cs8k-cyu/linux/wok_src1_0.tar.gz', archive)
+if hashlib.sha256(archive.read_bytes()).hexdigest() != 'c8a7571c9d3e28dae691f8dc896fc6fed7c220b0d631ac766c46808a896aa60f':
+    raise ValueError('Wok archive checksum mismatch')
+with tarfile.open(archive) as source:
+    source.extractall('.cache/original', filter='data')
+wok = Path('.cache/original/wok')
+target = dist / 'wok'
+target.mkdir(exist_ok=True)
+subprocess.run([sys.executable, 'tools/compile_wok.py', str(wok)], check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'wok',
+                '--output', str(target / 'game.lua')], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/wok/game'], check=True)
+shutil.copy2('games/wok/index.html', target / 'index.html')
+(target / 'audio').mkdir(exist_ok=True)
+for path in (wok / 'sounds').glob('*.wav'):
+    shutil.copy2(path, target / 'audio' / path.name)
+for path in (wok / 'sounds').glob('*.ogg'):
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-c:a', 'libvorbis', '-i', str(path),
+                    '-c:a', 'pcm_s16le', str(target / 'audio' / (path.stem + '.wav'))], check=True)
+(target / 'LICENSE.txt').write_text(Path('games/wok/LICENSE.txt').read_text() + '\n\n' + licenses)
+archive = Path('.cache/Mm0_14.zip')
+if not archive.exists():
+    urllib.request.urlretrieve('https://abagames.sakura.ne.jp/xna/mm/Mm0_14.zip', archive)
+if hashlib.sha256(archive.read_bytes()).hexdigest() != '286e6081a0d887c1f75069298174ab9bb43d43daa8d0f5288a744d9f9d58d533':
+    raise ValueError('Mazer Mayhem archive checksum mismatch')
+with zipfile.ZipFile(archive) as source:
+    source.extractall('.cache/original')
+mm = Path('.cache/original/Mm/Mm')
+target = dist / 'mazer-mayhem'
+target.mkdir(exist_ok=True)
+subprocess.run([sys.executable, 'tools/compile_mazer.py', str(mm)], check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'mazer-mayhem',
+                '--output', str(target / 'game.lua')], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/mazer-mayhem/game'], check=True)
+shutil.copy2('games/mazer-mayhem/index.html', target / 'index.html')
+(target / 'audio').mkdir(exist_ok=True)
+for path in (mm / 'Content/Audio').glob('*.wav'):
+    # Mm.xap: each cue is -12 dB, with +5 dB for the Music category.
+    gain = '-7dB' if path.stem in ['Mm1', 'Mm2', 'Mm3'] else '-12dB'
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(path), '-af', f'volume={gain}',
+                    '-c:a', 'pcm_s16le', str(target / 'audio' / path.name)], check=True)
+(target / 'LICENSE.txt').write_text(Path('games/mazer-mayhem/LICENSE.txt').read_text() + '\n\n' + licenses)
+archive = Path('.cache/GearToyGear0_1.zip')
+if not archive.exists():
+    urllib.request.urlretrieve('https://abagames.sakura.ne.jp/xna/gtg/GearToyGear0_1.zip', archive)
+if hashlib.sha256(archive.read_bytes()).hexdigest() != 'b068c6b1dd5a7bfcc65830ba6fe946dbc6182ac720c58d6b3518546b5f22f04a':
+    raise ValueError('GearToyGear archive checksum mismatch')
+with zipfile.ZipFile(archive) as source:
+    source.extractall('.cache/original')
+gtg = Path('.cache/original/GearToyGear/GearToyGear')
+target = dist / 'gear-toy-gear'
+target.mkdir(exist_ok=True)
+subprocess.run([sys.executable, 'tools/compile_gear.py', str(gtg)], check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'gear-toy-gear',
+                '--output', str(target / 'game.lua')], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/gear-toy-gear/game'], check=True)
+shutil.copy2('games/gear-toy-gear/index.html', target / 'index.html')
+(target / 'audio').mkdir(exist_ok=True)
+volumes = dict(re.findall(r'Sound\s*\{\s*Name = (\w+);\s*Volume = ([-\d]+)', (gtg / 'Content/Audio/Gtg.xap').read_text()))
+for path in (gtg / 'Content/Audio').glob('*.wav'):
+    gain = 0.5 * 10 ** (int(volumes[path.stem]) / 2000)
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(path), '-af', f'volume={gain}',
+                    '-c:a', 'pcm_s16le', str(target / 'audio' / path.name)], check=True)
+(target / 'LICENSE.txt').write_text(Path('games/gear-toy-gear/LICENSE.txt').read_text() + '\n\n' + licenses)
+archive = Path('.cache/mcd0_11.zip')
+if not archive.exists():
+    urllib.request.urlretrieve('https://abagames.sakura.ne.jp/windows/mcd0_11.zip', archive)
+if hashlib.sha256(archive.read_bytes()).hexdigest() != 'e5acd67e06d765c63ea7dc7df6488ca3edd3410a05bd995b3842fe8e3b78451e':
+    raise ValueError('Mu-cade archive checksum mismatch')
+with zipfile.ZipFile(archive) as source:
+    source.extractall('.cache/original')
+mcd = Path('.cache/original/mcd')
+target = dist / 'mu-cade'
+target.mkdir(exist_ok=True)
+subprocess.run([sys.executable, 'tools/build_mucade_runtime.py', '--lub', str(args.lub)], check=True)
+subprocess.run([sys.executable, 'tools/compile_mucade.py', str(mcd)], check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'mu-cade',
+                '--output', str(target / 'game.lua')], check=True)
+shutil.copy2('games/mu-cade/index.html', target / 'index.html')
+shutil.copy2(dist / 'shaders.json', target / 'shaders.json')
+(target / 'audio').mkdir(exist_ok=True)
+for path in (mcd / 'sounds').rglob('*'):
+    if path.is_file():
+        shutil.copy2(path, target / 'audio' / path.name)
+(target / 'wasm').mkdir(exist_ok=True)
+for name in ['lub.js', 'lub.wasm', 'lub.data']:
+    shutil.copy2(Path('.cache/mu-cade-lub/build/wasm') / name, target / 'wasm' / name)
+(target / 'LICENSE.txt').write_text(Path('games/mu-cade/LICENSE.txt').read_text() + '\n\n' + licenses)
+subprocess.run([sys.executable, 'tools/build_masashikun.py', '--lub', str(args.lub)], check=True)
 print('Built dist/')

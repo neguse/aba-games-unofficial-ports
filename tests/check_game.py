@@ -6,10 +6,17 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--lub', type=Path, required=True)
-parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanion', 'a7xpg', 'torus-trooper'], default='tumiki')
+parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanion', 'a7xpg', 'torus-trooper', 'rrootage', 'noiz2sa', 'wok', 'mazer-mayhem', 'gear-toy-gear', 'mu-cade', 'masashikun-hi'], default='tumiki')
 args = parser.parse_args()
 output = Path(f'build/tests/{args.game}.lua')
-entry = {'tumiki': 'GameVerification', 'parsec47': 'P47Verification', 'gunroar': 'GrVerification', 'titanion': 'TtnVerification', 'a7xpg': 'A7xVerification', 'torus-trooper': 'TtVerification'}[args.game]
+if args.game in ['mazer-mayhem', 'gear-toy-gear', 'mu-cade', 'masashikun-hi']:
+    subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub),
+                    '--game', args.game, '--output', str(output)], check=True)
+    runner = Path('build/mu-cade/lua-ode') if args.game == 'mu-cade' else args.lub / 'third_party/tcs/deps/lua/lua32'
+    subprocess.run([str(runner),
+                    f'tests/{args.game}/game.lua', str(output)], check=True)
+    sys.exit(0)
+entry = {'tumiki': 'GameVerification', 'parsec47': 'P47Verification', 'gunroar': 'GrVerification', 'titanion': 'TtnVerification', 'a7xpg': 'A7xVerification', 'torus-trooper': 'TtVerification', 'rrootage': 'RrVerification', 'noiz2sa': 'NrVerification', 'wok': 'WkVerification'}[args.game]
 test = 'tests/GameVerification.cs' if args.game == 'tumiki' else f'tests/{args.game}/GameVerification.cs'
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub),
                 '--game', args.game, '--entry', entry, '--test', test,

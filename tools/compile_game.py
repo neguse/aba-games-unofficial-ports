@@ -7,7 +7,7 @@ import subprocess
 parser = argparse.ArgumentParser()
 parser.add_argument('--lub', type=Path, required=True)
 parser.add_argument('--entry', default='Game')
-parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanion', 'a7xpg', 'torus-trooper'], default='tumiki')
+parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanion', 'a7xpg', 'torus-trooper', 'rrootage', 'noiz2sa', 'wok', 'mazer-mayhem', 'gear-toy-gear', 'mu-cade', 'masashikun-hi'], default='tumiki')
 parser.add_argument('--test', type=Path)
 parser.add_argument('--output', type=Path, default=Path('build/game.lua'))
 args = parser.parse_args()
@@ -40,9 +40,44 @@ if args.game == 'torus-trooper':
     sources += [Path('game/Drawing.cs'), Path('game/PatternNumber.cs'), Path('game/Pattern.cs')]
     sources += [p for p in sorted(Path('games/torus-trooper').glob('*.cs')) if p.name not in ['GameMath.cs', 'Rand.cs', 'Vector.cs', 'Actor.cs']]
     sources += sorted(Path('build/torus-trooper').glob('*.cs'))
+if args.game == 'rrootage':
+    sources = [Path('games/rrootage') / name for name in ['GameMath.cs', 'Rand.cs', 'Arrays.cs', 'Constants.cs', 'Models.cs']]
+    sources += [Path('game/Drawing.cs'), Path('game/PatternNumber.cs'), Path('game/Pattern.cs')]
+    sources += [p for p in sorted(Path('games/rrootage').glob('*.cs')) if p.name not in ['GameMath.cs', 'Rand.cs', 'Arrays.cs', 'Constants.cs', 'Models.cs']]
+    sources += sorted(Path('build/rrootage').glob('*.cs'))
+if args.game == 'noiz2sa':
+    names = ['GameMath.cs', 'Arrays.cs', 'Constants.cs', 'Models.cs', 'PixelLayer.cs']
+    sources = [Path('games/noiz2sa') / name for name in names]
+    sources += [Path('game/PatternNumber.cs'), Path('game/Pattern.cs')]
+    sources += [p for p in sorted(Path('games/noiz2sa').glob('*.cs')) if p.name not in names]
+    sources += sorted(Path('build/noiz2sa').glob('*.cs'))
+if args.game == 'wok':
+    names = ['GameMath.cs', 'Arrays.cs', 'Constants.cs', 'Models.cs']
+    sources = [Path('games/wok') / name for name in names]
+    sources += [p for p in sorted(Path('games/wok').glob('*.cs')) if p.name not in names]
+    sources += sorted(Path('build/wok').glob('*.cs'))
+if args.game == 'mazer-mayhem':
+    names = ['Arrays.cs', 'Math.cs', 'GameMath.cs', 'Random.cs', 'Actor.cs', 'PhysicsActor.cs', 'PrimitiveShape.cs', 'Shape.cs']
+    sources = [Path('game/PatternNumber.cs')] + [Path('games/mazer-mayhem') / name for name in names]
+    sources += [p for p in sorted(Path('games/mazer-mayhem').glob('*.cs')) if p.name not in names]
+    sources += sorted(Path('build/mazer-mayhem').glob('*.cs'))
+if args.game == 'gear-toy-gear':
+    names = ['Arrays.cs', 'Math.cs', 'GameMath.cs', 'Random.cs', 'Actor.cs', 'PrimitiveShape.cs']
+    sources = [Path('game/PatternNumber.cs')] + [Path('games/gear-toy-gear') / name for name in names]
+    sources += [p for p in sorted(Path('games/gear-toy-gear').glob('*.cs')) if p.name not in names]
+    sources += sorted(Path('build/gear-toy-gear').glob('*.cs'))
+if args.game == 'mu-cade':
+    names = ['GameMath.cs', 'Rand.cs', 'Arrays.cs', 'Vector.cs', 'Actor.cs', 'OdeActor.cs', 'Shape.cs', 'Bullet.cs', 'Bulletimpl.cs', 'Spec.cs']
+    sources = [Path('game/PatternNumber.cs'), Path('game/Pattern.cs')] + [Path('games/mu-cade') / name for name in names]
+    sources += sorted(Path('build/mu-cade').glob('*.cs'))
+    sources += [p for p in sorted(Path('games/mu-cade').glob('*.cs')) if p.name not in names + ['OdeApi.cs']]
+if args.game == 'masashikun-hi':
+    sources = [Path('games/masashikun-hi/Models.cs')]
+    sources += [p for p in sorted(Path('games/masashikun-hi').glob('*.cs')) if p.name != 'Models.cs']
+    sources += sorted(Path('build/masashikun-hi').glob('*.cs'))
 shader_source = 'public static class GameShaders {\n'
 for name, stage in [('vertex', 'vs'), ('fragment', 'fs')]:
-    shader_source += f'public static string {name} = {json.dumps(Path(f"games/a7xpg/game.{stage}.slang" if args.game == "a7xpg" else f"shaders/game.{stage}.slang").read_text())};\n'
+    shader_source += f'public static string {name} = {json.dumps(Path(f"games/{args.game}/game.{stage}.slang" if args.game in ["a7xpg", "rrootage", "noiz2sa", "wok", "mazer-mayhem", "gear-toy-gear", "masashikun-hi"] else f"shaders/game.{stage}.slang").read_text())};\n'
 shader_source += '}\n'
 Path('build/Shaders.cs').write_text(shader_source)
 sources.append(Path('build/Shaders.cs'))
@@ -50,6 +85,8 @@ if args.test:
     sources.append(args.test)
 compiler = args.lub / 'third_party/tcs/Transpiler/bin/Release/net10.0/Transpiler.dll'
 command = ['dotnet', str(compiler), *map(str, sources), '--ref', str(args.lub / 'cs-lib/lub_stub.cs'), '--no-naming-check']
+if args.game == 'mu-cade':
+    command += ['--ref', 'games/mu-cade/OdeApi.cs']
 subprocess.run(command[:2] + ['check'] + command[2:], check=True)
 args.output.parent.mkdir(parents=True, exist_ok=True)
 subprocess.run(command + ['--entry', args.entry, '-o', str(args.output)], check=True)
