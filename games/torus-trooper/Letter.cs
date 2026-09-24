@@ -2,11 +2,12 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Letter
 {
-    public static DisplayList displayList;
+    static int nextMesh;
+    public static Mesh[] meshes;
     public const float LETTER_WIDTH = 2.1f;
     public const float LETTER_HEIGHT = 3.0f;
     public const int COLOR_NUM = 4;
@@ -19,22 +20,23 @@ public class Letter
     public const int DISPLAY_LIST_NUM = LETTER_NUM * COLOR_NUM;
     public static void init_0()
     {
-        displayList = new DisplayList(DISPLAY_LIST_NUM);
-        displayList.resetList();
+        float[] model = Transform.Identity(); float[] tint = null; Mesh mesh = null; int meshIndex = 0;
+        meshes = new Mesh[DISPLAY_LIST_NUM];
+
         for (int j = 0; j < COLOR_NUM; j++)
         {
             for (int i = 0; i < LETTER_NUM; i++)
             {
-                displayList.newList();
-                drawLetter_2(i, j);
-                displayList.endList();
+                mesh = new Mesh("Letter-" + nextMesh.ToString()); nextMesh++; meshes[meshIndex] = mesh; model = Transform.Identity(); tint = null;
+                appendLetter(mesh, model, tint, i, j);
+                meshIndex++;
             }
         }
     }
 
     public static void close()
     {
-        displayList.close();
+        meshes = null;
     }
 
     public static float getWidth(int n, float s)
@@ -47,24 +49,26 @@ public class Letter
         return s * LETTER_HEIGHT;
     }
 
-    public static void drawLetter_6(int n, float x, float y, float s, float d, int c)
+    public static void drawLetter_6(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, int n, float x, float y, float s, float d, int c)
     {
-        glPushMatrix();
-        glTranslatef(x, y, 0);
-        glScalef(s, s, s);
-        glRotatef(d, 0, 0, 1);
-        displayList.call(n + c * LETTER_NUM);
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, x, y, 0);
+        model = Transform.Scale(model, s, s, s);
+        model = Transform.Rotate(model, d, 0, 0, 1);
+        { Mesh shape2 = meshes[n + c * LETTER_NUM]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
+        model = parent1;
     }
 
-    public static void drawLetterRev(int n, float x, float y, float s, float d, int c)
+    public static void drawLetterRev(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, int n, float x, float y, float s, float d, int c)
     {
-        glPushMatrix();
-        glTranslatef(x, y, 0);
-        glScalef(s, -s, s);
-        glRotatef(d, 0, 0, 1);
-        displayList.call(n + c * LETTER_NUM);
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, x, y, 0);
+        model = Transform.Scale(model, s, -s, s);
+        model = Transform.Rotate(model, d, 0, 0, 1);
+        { Mesh shape2 = meshes[n + c * LETTER_NUM]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
+        model = parent1;
     }
 
     public static int convertCharToInt(char c)
@@ -110,7 +114,7 @@ public class Letter
         return idx;
     }
 
-    public static void drawString(string str, float lx, float y, float s, int d = LetterDirection.TO_RIGHT, int cl = 0, bool rev = false, float od = 0)
+    public static void drawString(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, string str, float lx, float y, float s, int d = LetterDirection.TO_RIGHT, int cl = 0, bool rev = false, float od = 0)
     {
         lx = lx + (LETTER_WIDTH * s / 2);
         y = y + (LETTER_HEIGHT * s / 2);
@@ -140,9 +144,9 @@ public class Letter
             {
                 idx = convertCharToInt(c);
                 if (rev)
-                    drawLetterRev(idx, x, y, s, ld, cl);
+                    drawLetterRev(model, tint, blend, cull, lineWidth, idx, x, y, s, ld, cl);
                 else
-                    drawLetter_6(idx, x, y, s, ld, cl);
+                    drawLetter_6(model, tint, blend, cull, lineWidth, idx, x, y, s, ld, cl);
             }
 
             if (od == 0)
@@ -171,7 +175,7 @@ public class Letter
         }
     }
 
-    public static void drawNum(int num, float lx, float y, float s, int d = LetterDirection.TO_RIGHT, int cl = 0, int dg = 0)
+    public static void drawNum(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, int num, float lx, float y, float s, int d = LetterDirection.TO_RIGHT, int cl = 0, int dg = 0)
     {
         lx = lx + (LETTER_WIDTH * s / 2);
         y = y + (LETTER_HEIGHT * s / 2);
@@ -197,7 +201,7 @@ public class Letter
         int digit = dg;
         for (;;)
         {
-            drawLetter_6(n % 10, x, y, s, ld, cl);
+            drawLetter_6(model, tint, blend, cull, lineWidth, n % 10, x, y, s, ld, cl);
             switch (d)
             {
                 case LetterDirection.TO_RIGHT:
@@ -221,7 +225,7 @@ public class Letter
         }
     }
 
-    public static void drawNumSign(int num, float lx, float ly, float s, int cl)
+    public static void drawNumSign(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, int num, float lx, float ly, float s, int cl)
     {
         float dg = 0;
         if (num < 100)
@@ -237,7 +241,7 @@ public class Letter
         int n = num;
         for (;;)
         {
-            drawLetterRev(n % 10, x, y, s, 0, cl);
+            drawLetterRev(model, tint, blend, cull, lineWidth, n % 10, x, y, s, 0, cl);
             x = x - (s * LETTER_WIDTH);
             n = GameMath.integer(n / (10));
             if (n <= 0)
@@ -245,7 +249,7 @@ public class Letter
         }
     }
 
-    public static void drawTime(int time, float lx, float y, float s, int cl = 0)
+    public static void drawTime(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, int time, float lx, float y, float s, int cl = 0)
     {
         int n = time;
         if (n < 0)
@@ -255,12 +259,12 @@ public class Letter
         {
             if (i != 4)
             {
-                drawLetter_6(n % 10, x, y, s, LetterDirection.TO_RIGHT, cl);
+                drawLetter_6(model, tint, blend, cull, lineWidth, n % 10, x, y, s, LetterDirection.TO_RIGHT, cl);
                 n = GameMath.integer(n / (10));
             }
             else
             {
-                drawLetter_6(n % 6, x, y, s, LetterDirection.TO_RIGHT, cl);
+                drawLetter_6(model, tint, blend, cull, lineWidth, n % 6, x, y, s, LetterDirection.TO_RIGHT, cl);
                 n = GameMath.integer(n / (6));
             }
 
@@ -269,10 +273,10 @@ public class Letter
                 switch (i)
                 {
                     case 3:
-                        drawLetter_6(41, x + s * 1.16f, y, s, LetterDirection.TO_RIGHT, cl);
+                        drawLetter_6(model, tint, blend, cull, lineWidth, 41, x + s * 1.16f, y, s, LetterDirection.TO_RIGHT, cl);
                         break;
                     case 5:
-                        drawLetter_6(40, x + s * 1.16f, y, s, LetterDirection.TO_RIGHT, cl);
+                        drawLetter_6(model, tint, blend, cull, lineWidth, 40, x + s * 1.16f, y, s, LetterDirection.TO_RIGHT, cl);
                         break;
                     default:
                         break;
@@ -290,7 +294,7 @@ public class Letter
         }
     }
 
-    public static void drawLetter_2(int idx, int c)
+    public static void appendLetter(Mesh mesh, float[] model, float[] tint, int idx, int c)
     {
         float x = 0, y = 0, length = 0, size = 0, t = 0;
         float deg = 0;
@@ -310,60 +314,60 @@ public class Letter
             y = y;
             deg = deg % (180);
             if (c == 2)
-                drawBoxLine(x, y, size, length, deg);
+                appendBoxLine(mesh, model, tint, x, y, size, length, deg);
             else if (c == 3)
-                drawBoxPoly(x, y, size, length, deg);
+                appendBoxPoly(mesh, model, tint, x, y, size, length, deg);
             else
-                drawBox(x, y, size, length, deg, COLOR_RGB[c][0], COLOR_RGB[c][1], COLOR_RGB[c][2]);
+                appendBox(mesh, model, tint, x, y, size, length, deg, COLOR_RGB[c][0], COLOR_RGB[c][1], COLOR_RGB[c][2]);
         }
     }
 
-    public static void drawBox(float x, float y, float width, float height, float deg, float r, float g, float b)
+    public static void appendBox(Mesh mesh, float[] model, float[] tint, float x, float y, float width, float height, float deg, float r, float g, float b)
     {
-        glPushMatrix();
-        glTranslatef(x - width / 2, y - height / 2, 0);
-        glRotatef(deg, 0, 0, 1);
-        TtScreen.setColor(r, g, b, 0.5f);
-        glBegin(GL_TRIANGLE_FAN);
-        drawBoxPart(width, height);
-        glEnd();
-        TtScreen.setColor(r, g, b);
-        glBegin(GL_LINE_LOOP);
-        drawBoxPart(width, height);
-        glEnd();
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, x - width / 2, y - height / 2, 0);
+        model = Transform.Rotate(model, deg, 0, 0, 1);
+        tint = new float[] { r, g, b, 0.5f };
+        int part2 = mesh.vertexCount;
+        appendBoxPart(mesh, model, tint, width, height);
+        mesh.Fan(part2, mesh.vertexCount - part2);
+        tint = new float[] { r, g, b, 1 };
+        int part3 = mesh.vertexCount;
+        appendBoxPart(mesh, model, tint, width, height);
+        mesh.LineStrip(part3, mesh.vertexCount - part3, true);
+        model = parent1;
     }
 
-    public static void drawBoxLine(float x, float y, float width, float height, float deg)
+    public static void appendBoxLine(Mesh mesh, float[] model, float[] tint, float x, float y, float width, float height, float deg)
     {
-        glPushMatrix();
-        glTranslatef(x - width / 2, y - height / 2, 0);
-        glRotatef(deg, 0, 0, 1);
-        glBegin(GL_LINE_LOOP);
-        drawBoxPart(width, height);
-        glEnd();
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, x - width / 2, y - height / 2, 0);
+        model = Transform.Rotate(model, deg, 0, 0, 1);
+        int part2 = mesh.vertexCount;
+        appendBoxPart(mesh, model, tint, width, height);
+        mesh.LineStrip(part2, mesh.vertexCount - part2, true);
+        model = parent1;
     }
 
-    public static void drawBoxPoly(float x, float y, float width, float height, float deg)
+    public static void appendBoxPoly(Mesh mesh, float[] model, float[] tint, float x, float y, float width, float height, float deg)
     {
-        glPushMatrix();
-        glTranslatef(x - width / 2, y - height / 2, 0);
-        glRotatef(deg, 0, 0, 1);
-        glBegin(GL_TRIANGLE_FAN);
-        drawBoxPart(width, height);
-        glEnd();
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, x - width / 2, y - height / 2, 0);
+        model = Transform.Rotate(model, deg, 0, 0, 1);
+        int part2 = mesh.vertexCount;
+        appendBoxPart(mesh, model, tint, width, height);
+        mesh.Fan(part2, mesh.vertexCount - part2);
+        model = parent1;
     }
 
-    public static void drawBoxPart(float width, float height)
+    public static void appendBoxPart(Mesh mesh, float[] model, float[] tint, float width, float height)
     {
-        glVertex3f(-width / 2, 0, 0);
-        glVertex3f(-width / 3 * 1, -height / 2, 0);
-        glVertex3f(width / 3 * 1, -height / 2, 0);
-        glVertex3f(width / 2, 0, 0);
-        glVertex3f(width / 3 * 1, height / 2, 0);
-        glVertex3f(-width / 3 * 1, height / 2, 0);
+        mesh.Vertex(-width / 2, 0, 0, tint, model);
+        mesh.Vertex(-width / 3 * 1, -height / 2, 0, tint, model);
+        mesh.Vertex(width / 3 * 1, -height / 2, 0, tint, model);
+        mesh.Vertex(width / 2, 0, 0, tint, model);
+        mesh.Vertex(width / 3 * 1, height / 2, 0, tint, model);
+        mesh.Vertex(-width / 3 * 1, height / 2, 0, tint, model);
     }
 
     public static float[][][] spData = new float[][][]

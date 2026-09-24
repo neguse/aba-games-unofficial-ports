@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class BulletActor : Actor
 {
@@ -234,27 +234,27 @@ public class BulletActor : Actor
         }
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         if (!(isVisible))
             return;
         float d = (bullet.deg * bullet.xReverse + PI / 2) * bullet.yReverse - PI / 2;
         Vector3 sp = tunnel.getPos_1_Vector(bullet.pos);
-        glPushMatrix();
-        glTranslatef(sp.x, sp.y, sp.z);
-        glRotatef(d * 180 / PI, 0, 1, 0);
-        glRotatef(cnt * 6, 0, 0, 1);
+        float[] parent1 = model;
+        model = Transform.Translate(model, sp.x, sp.y, sp.z);
+        model = Transform.Rotate(model, d * 180 / PI, 0, 1, 0);
+        model = Transform.Rotate(model, cnt * 6, 0, 0, 1);
         if (disapCnt <= 0)
         {
-            bullet.shape.draw();
+            bullet.shape.draw(model, tint, blend, cull, lineWidth);
         }
         else
         {
             float s = 1 - (float)disapCnt / DISAPPEAR_FRAMES;
-            glScalef(s, s, s);
-            bullet.disapShape.draw();
+            model = Transform.Scale(model, s, s, s);
+            bullet.disapShape.draw(model, tint, blend, cull, lineWidth);
         }
 
-        glPopMatrix();
+        model = parent1;
     }
 }

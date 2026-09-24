@@ -1,18 +1,22 @@
 // Copyright 2004 Kenta Cho. Some rights reserved.
 using System;
+using static Lub;
 using System.Collections.Generic;
 
 public abstract class Actor
 {
+    static int nextMesh;
+    public string meshKey;
+    public Actor() { meshKey = nextMesh.ToString(); nextMesh++; }
     public bool exists;
     public abstract void init_1(List<object> args);
     public abstract void move();
-    public abstract void draw();
+    public abstract void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth);
 }
 
 public abstract class LuminousActor : Actor
 {
-    public abstract void drawLuminous();
+    public abstract void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth);
 }
 
 public class ActorPool<T>
@@ -81,11 +85,11 @@ public class ActorPool<T>
                 item.move();
     }
 
-    public virtual void draw()
+    public virtual void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         foreach (var item in actor)
             if (item.exists)
-                item.draw();
+                item.draw(model, tint, blend, cull, lineWidth);
     }
 
     public virtual void clear()
@@ -102,10 +106,10 @@ public class LuminousActorPool<T> : ActorPool<T> where T : LuminousActor
     {
     }
 
-    public void drawLuminous()
+    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         foreach (var a in actor)
             if (a.exists)
-                a.drawLuminous();
+                a.drawLuminous(model, tint, blend, cull, lineWidth);
     }
 }

@@ -131,7 +131,7 @@ subprocess.run([sys.executable, 'tools/compile_torus.py', str(tt)], check=True)
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'torus-trooper',
                 '--output', str(target / 'game.lua')], check=True)
 shutil.copy2('games/torus-trooper/index.html', target / 'index.html')
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/title'], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
 (target / 'audio').mkdir(exist_ok=True)
 for directory in ['chunks', 'musics']:
     for audio in (tt / 'sounds' / directory).iterdir():

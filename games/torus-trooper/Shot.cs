@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Shot : Actor
 {
@@ -223,15 +223,15 @@ public class Shot : Actor
         }
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         Vector3 sp = tunnel.getPos_1_Vector(pos);
-        glPushMatrix();
-        TtScreen.glTranslate(sp);
-        glRotatef(deg * 180 / PI, 0, 1, 10);
-        glRotatef(cnt * 7, 0, 0, 1);
-        shape.draw();
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, sp.x, sp.y, sp.z);
+        model = Transform.Rotate(model, deg * 180 / PI, 0, 1, 10);
+        model = Transform.Rotate(model, cnt * 7, 0, 0, 1);
+        shape.draw(model, tint, blend, cull, lineWidth);
+        model = parent1;
     }
 
     public int damage

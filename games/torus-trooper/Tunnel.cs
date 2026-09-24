@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Tunnel
 {
@@ -444,15 +444,15 @@ public class Tunnel
         return torus.sliceNum;
     }
 
-    public void draw()
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        blend = Gfx.Blend.Alpha;
         float lineBn = 0.4f, polyBn = 0, lightBn = 0.5f - Slice.darkLineRatio * 0.2f;
         slice[slice.Length - 1].setPointPos();
         for (int i = slice.Length - 1; i >= 1; i--)
         {
             slice[i - 1].setPointPos();
-            slice[i].draw(slice[i - 1], lineBn, polyBn, lightBn, this);
+            slice[i].draw(model, tint, blend, cull, lineWidth, slice[i - 1], lineBn, polyBn, lightBn, this);
             lineBn = lineBn * (1.02f);
             if (lineBn > 1)
                 lineBn = 1;
@@ -475,18 +475,18 @@ public class Tunnel
             }
         }
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        blend = Gfx.Blend.Additive;
     }
 
-    public void drawBackward()
+    public void drawBackward(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        blend = Gfx.Blend.Alpha;
         float lineBn = 0.4f, polyBn = 0, lightBn = 0.5f - Slice.darkLineRatio * 0.2f;
         sliceBackward[sliceBackward.Length - 1].setPointPos();
         for (int i = sliceBackward.Length - 1; i >= 1; i--)
         {
             sliceBackward[i - 1].setPointPos();
-            sliceBackward[i].draw(sliceBackward[i - 1], lineBn, polyBn, lightBn, this);
+            sliceBackward[i].draw(model, tint, blend, cull, lineWidth, sliceBackward[i - 1], lineBn, polyBn, lightBn, this);
             lineBn = lineBn * (1.02f);
             if (lineBn > 1)
                 lineBn = 1;
@@ -509,12 +509,14 @@ public class Tunnel
             }
         }
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        blend = Gfx.Blend.Additive;
     }
 }
 
 public class Slice
 {
+    static int nextMesh;
+    public string meshKey;
     public const float SLICE_DEPTH = 5;
     public static float lineR, lineG, lineB;
     public static float polyR, polyG, polyB;
@@ -531,6 +533,7 @@ public class Slice
     public float _depth;
     public Slice()
     {
+        meshKey = nextMesh.ToString(); nextMesh++;
         _state = new SliceState();
         _centerPos = new Vector3();
         pointPos = new Vector3[SliceState.MAX_POINT_NUM];
@@ -583,8 +586,9 @@ public class Slice
         _depth = dpt;
     }
 
-    public void draw(Slice prevSlice, float lineBn, float polyBn, float lightBn, Tunnel tunnel)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, Slice prevSlice, float lineBn, float polyBn, float lightBn, Tunnel tunnel)
     {
+        var mesh = new Mesh("Tunnel-draw" + "-" + meshKey);
         float pi = _pointFrom;
         float width = _state.courseWidth;
         float prevPi = 0;
@@ -599,28 +603,28 @@ public class Slice
             {
                 int psPi = GameMath.integer((pi * prevSlice.state.pointNum / _state.pointNum));
                 int psPrevPi = GameMath.integer((prevPi * prevSlice.state.pointNum / _state.pointNum));
-                TtScreen.setColor(lineR * lineBn, lineG * lineBn, lineB * lineBn);
-                glBegin(GL_LINE_STRIP);
-                TtScreen.glVertex(pointPos[GameMath.integer(pi)]);
-                TtScreen.glVertex(prevSlice.pointPos[psPi]);
-                TtScreen.glVertex(prevSlice.pointPos[psPrevPi]);
-                glEnd();
+                tint = new float[] { lineR * lineBn, lineG * lineBn, lineB * lineBn, 1 };
+                int part1 = mesh.vertexCount;
+                mesh.Vertex(pointPos[GameMath.integer(pi)].x, pointPos[GameMath.integer(pi)].y, pointPos[GameMath.integer(pi)].z, tint);
+                mesh.Vertex(prevSlice.pointPos[psPi].x, prevSlice.pointPos[psPi].y, prevSlice.pointPos[psPi].z, tint);
+                mesh.Vertex(prevSlice.pointPos[psPrevPi].x, prevSlice.pointPos[psPrevPi].y, prevSlice.pointPos[psPrevPi].z, tint);
+                mesh.LineStrip(part1, mesh.vertexCount - part1);
                 if (polyBn > 0)
                 {
                     if ((roundSlice) || (((!(polyFirst)) && (width > 0))))
                     {
-                        TtScreen.setColor(polyR, polyG, polyB, polyBn);
-                        glBegin(GL_TRIANGLE_FAN);
+                        tint = new float[] { polyR, polyG, polyB, polyBn };
+                        int part2 = mesh.vertexCount;
                         polyPoint.blend(pointPos[GameMath.integer(prevPi)], prevSlice.pointPos[psPi], 0.9f);
-                        TtScreen.glVertex(polyPoint);
+                        mesh.Vertex(polyPoint.x, polyPoint.y, polyPoint.z, tint);
                         polyPoint.blend(pointPos[GameMath.integer(pi)], prevSlice.pointPos[psPrevPi], 0.9f);
-                        TtScreen.glVertex(polyPoint);
-                        TtScreen.setColor(polyR, polyG, polyB, polyBn / 2);
+                        mesh.Vertex(polyPoint.x, polyPoint.y, polyPoint.z, tint);
+                        tint = new float[] { polyR, polyG, polyB, polyBn / 2 };
                         polyPoint.blend(pointPos[GameMath.integer(prevPi)], prevSlice.pointPos[psPi], 0.1f);
-                        TtScreen.glVertex(polyPoint);
+                        mesh.Vertex(polyPoint.x, polyPoint.y, polyPoint.z, tint);
                         polyPoint.blend(pointPos[GameMath.integer(pi)], prevSlice.pointPos[psPrevPi], 0.1f);
-                        TtScreen.glVertex(polyPoint);
-                        glEnd();
+                        mesh.Vertex(polyPoint.x, polyPoint.y, polyPoint.z, tint);
+                        mesh.Fan(part2, mesh.vertexCount - part2);
                     }
                     else
                     {
@@ -646,22 +650,24 @@ public class Slice
         {
             pi = _pointFrom;
             int psPi = GameMath.integer((pi * prevSlice.state.pointNum / _state.pointNum));
-            TtScreen.setColor(lineBn / 3 * 2, lineBn / 3 * 2, lineBn);
-            glBegin(GL_LINE_STRIP);
-            TtScreen.glVertex(pointPos[GameMath.integer(pi)]);
-            TtScreen.glVertex(prevSlice.pointPos[psPi]);
-            glEnd();
+            tint = new float[] { lineBn / 3 * 2, lineBn / 3 * 2, lineBn, 1 };
+            int part3 = mesh.vertexCount;
+            mesh.Vertex(pointPos[GameMath.integer(pi)].x, pointPos[GameMath.integer(pi)].y, pointPos[GameMath.integer(pi)].z, tint);
+            mesh.Vertex(prevSlice.pointPos[psPi].x, prevSlice.pointPos[psPi].y, prevSlice.pointPos[psPi].z, tint);
+            mesh.LineStrip(part3, mesh.vertexCount - part3);
         }
 
         if ((!(roundSlice)) && (lightBn > 0.2f))
         {
-            drawSideLight(getLeftEdgeDeg() - 0.07f, lightBn);
-            drawSideLight(getRightEdgeDeg() + 0.07f, lightBn);
+            appendSideLight(mesh, model, tint, getLeftEdgeDeg() - 0.07f, lightBn);
+            appendSideLight(mesh, model, tint, getRightEdgeDeg() + 0.07f, lightBn);
         }
 
+        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
         if ((_state.ring != null))
             if (lightBn > 0.2f)
-                _state.ring.draw(lightBn * 0.7f, tunnel);
+                _state.ring.draw(model, tint, blend, cull, lineWidth, lightBn * 0.7f, tunnel);
     }
 
     public void setPointPos()
@@ -682,7 +688,7 @@ public class Slice
         }
     }
 
-    public void drawSideLight(float deg, float lightBn)
+    public void appendSideLight(Mesh mesh, float[] model, float[] tint, float deg, float lightBn)
     {
         radOfs.x = 0;
         radOfs.y = _state.rad;
@@ -691,23 +697,23 @@ public class Slice
         radOfs.rollY(_d1);
         radOfs.rollX(_d2);
         radOfs.opAddAssign(_centerPos);
-        TtScreen.setColor(1 * lightBn, 1 * lightBn, 0.6f * lightBn);
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(radOfs.x - 0.5f, radOfs.y - 0.5f, radOfs.z);
-        glVertex3f(radOfs.x + 0.5f, radOfs.y - 0.5f, radOfs.z);
-        glVertex3f(radOfs.x + 0.5f, radOfs.y + 0.5f, radOfs.z);
-        glVertex3f(radOfs.x - 0.5f, radOfs.y + 0.5f, radOfs.z);
-        glEnd();
-        glBegin(GL_TRIANGLE_FAN);
-        TtScreen.setColor(0.5f * lightBn, 0.5f * lightBn, 0.3f * lightBn);
-        glVertex3f(radOfs.x, radOfs.y, radOfs.z);
-        TtScreen.setColor(0.9f * lightBn, 0.9f * lightBn, 0.6f * lightBn);
-        glVertex3f(radOfs.x - 0.5f, radOfs.y - 0.5f, radOfs.z);
-        glVertex3f(radOfs.x - 0.5f, radOfs.y + 0.5f, radOfs.z);
-        glVertex3f(radOfs.x + 0.5f, radOfs.y + 0.5f, radOfs.z);
-        glVertex3f(radOfs.x + 0.5f, radOfs.y - 0.5f, radOfs.z);
-        glVertex3f(radOfs.x - 0.5f, radOfs.y - 0.5f, radOfs.z);
-        glEnd();
+        tint = new float[] { 1 * lightBn, 1 * lightBn, 0.6f * lightBn, 1 };
+        int part1 = mesh.vertexCount;
+        mesh.Vertex(radOfs.x - 0.5f, radOfs.y - 0.5f, radOfs.z, tint);
+        mesh.Vertex(radOfs.x + 0.5f, radOfs.y - 0.5f, radOfs.z, tint);
+        mesh.Vertex(radOfs.x + 0.5f, radOfs.y + 0.5f, radOfs.z, tint);
+        mesh.Vertex(radOfs.x - 0.5f, radOfs.y + 0.5f, radOfs.z, tint);
+        mesh.LineStrip(part1, mesh.vertexCount - part1, true);
+        int part2 = mesh.vertexCount;
+        tint = new float[] { 0.5f * lightBn, 0.5f * lightBn, 0.3f * lightBn, 1 };
+        mesh.Vertex(radOfs.x, radOfs.y, radOfs.z, tint);
+        tint = new float[] { 0.9f * lightBn, 0.9f * lightBn, 0.6f * lightBn, 1 };
+        mesh.Vertex(radOfs.x - 0.5f, radOfs.y - 0.5f, radOfs.z, tint);
+        mesh.Vertex(radOfs.x - 0.5f, radOfs.y + 0.5f, radOfs.z, tint);
+        mesh.Vertex(radOfs.x + 0.5f, radOfs.y + 0.5f, radOfs.z, tint);
+        mesh.Vertex(radOfs.x + 0.5f, radOfs.y - 0.5f, radOfs.z, tint);
+        mesh.Vertex(radOfs.x - 0.5f, radOfs.y - 0.5f, radOfs.z, tint);
+        mesh.Fan(part2, mesh.vertexCount - part2);
     }
 
     public bool isNearlyRound()
@@ -1177,7 +1183,8 @@ public class Ring
         new float[] { 1, 0.9f, 0.5f }
     };
     public int _idx;
-    public DisplayList displayList;
+    static int nextMesh;
+    public Mesh[] meshes;
     public int cnt;
     public int clr;
     public int type;
@@ -1200,28 +1207,30 @@ public class Ring
 
     public void createNormalRing(float r)
     {
-        displayList = new DisplayList(1);
-        displayList.beginNewList();
-        drawRing(r, 1.2f, 1.4f, 16);
-        displayList.endNewList();
+        float[] model = Transform.Identity(); float[] tint = null; Mesh mesh = null; int meshIndex = 0;
+        meshes = new Mesh[1];
+        mesh = new Mesh("Ring-" + nextMesh.ToString()); nextMesh++; meshes[meshIndex] = mesh; model = Transform.Identity(); tint = null;
+        appendRing(mesh, model, tint, r, 1.2f, 1.4f, 16);
+
     }
 
     public void createFinalRing(float r)
     {
-        displayList = new DisplayList(2);
-        displayList.beginNewList();
-        drawRing(r, 1.2f, 1.5f, 14);
-        displayList.nextNewList();
-        drawRing(r, 1.6f, 1.9f, 14);
-        displayList.endNewList();
+        float[] model = Transform.Identity(); float[] tint = null; Mesh mesh = null; int meshIndex = 0;
+        meshes = new Mesh[2];
+        mesh = new Mesh("Ring-" + nextMesh.ToString()); nextMesh++; meshes[meshIndex] = mesh; model = Transform.Identity(); tint = null;
+        appendRing(mesh, model, tint, r, 1.2f, 1.5f, 14);
+        meshIndex++; mesh = new Mesh("Ring-" + nextMesh.ToString()); nextMesh++; meshes[meshIndex] = mesh; model = Transform.Identity(); tint = null;
+        appendRing(mesh, model, tint, r, 1.6f, 1.9f, 14);
+
     }
 
-    public void drawRing(float r, float rr1, float rr2, int num)
+    public void appendRing(Mesh mesh, float[] model, float[] tint, float r, float rr1, float rr2, int num)
     {
         float d = 0, md = 0.2f;
         for (int i = 0; i < num; i++)
         {
-            glBegin(GL_LINE_LOOP);
+            int part1 = mesh.vertexCount;
             Vector3 p1 = new Vector3(sin(d) * r * rr1, cos(d) * r * rr1, 0);
             Vector3 p2 = new Vector3(sin(d) * r * rr2, cos(d) * r * rr2, 0);
             Vector3 p3 = new Vector3(sin(d + md) * r * rr2, cos(d + md) * r * rr2, 0);
@@ -1240,18 +1249,18 @@ public class Ring
             np2.blend(p2, cp, 0.7f);
             np3.blend(p3, cp, 0.7f);
             np4.blend(p4, cp, 0.7f);
-            TtScreen.glVertex(np1);
-            TtScreen.glVertex(np2);
-            TtScreen.glVertex(np3);
-            TtScreen.glVertex(np4);
-            glEnd();
+            mesh.Vertex(np1.x, np1.y, np1.z, tint, model);
+            mesh.Vertex(np2.x, np2.y, np2.z, tint, model);
+            mesh.Vertex(np3.x, np3.y, np3.z, tint, model);
+            mesh.Vertex(np4.x, np4.y, np4.z, tint, model);
+            mesh.LineStrip(part1, mesh.vertexCount - part1, true);
             d = d + (md);
         }
     }
 
     public void close()
     {
-        displayList.close();
+        meshes = null;
     }
 
     public void move()
@@ -1259,34 +1268,36 @@ public class Ring
         cnt++;
     }
 
-    public void draw(float a, Tunnel tunnel)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, float a, Tunnel tunnel)
     {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        blend = Gfx.Blend.Additive;
         float d1 = 0, d2 = 0;
         Vector angles = new Vector();
         Vector3 p = tunnel.getCenterPos(_idx, angles);
         d1 = angles.x;
         d2 = angles.y;
-        TtScreen.setColor(COLOR_RGB[type][0] * a, COLOR_RGB[type][1] * a, COLOR_RGB[type][2] * a);
-        glPushMatrix();
-        glTranslatef(p.x, p.y, p.z);
-        glRotatef(cnt * 1.0f, 0, 0, 1);
-        glRotatef(d1, 0, 1, 0);
-        glRotatef(d2, 1, 0, 0);
-        displayList.call(0);
-        glPopMatrix();
+        tint = new float[] { COLOR_RGB[type][0] * a, COLOR_RGB[type][1] * a, COLOR_RGB[type][2] * a, 1 };
+        float[] parent1 = model;
+        model = Transform.Translate(model, p.x, p.y, p.z);
+        model = Transform.Rotate(model, cnt * 1.0f, 0, 0, 1);
+        model = Transform.Rotate(model, d1, 0, 1, 0);
+        model = Transform.Rotate(model, d2, 1, 0, 0);
+        { Mesh shape2 = meshes[0]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
+        model = parent1;
         if (type == 1)
         {
-            glPushMatrix();
-            glTranslatef(p.x, p.y, p.z);
-            glRotatef(cnt * -1.0f, 0, 0, 1);
-            glRotatef(d1, 0, 1, 0);
-            glRotatef(d2, 1, 0, 0);
-            displayList.call(1);
-            glPopMatrix();
+            float[] parent3 = model;
+            model = Transform.Translate(model, p.x, p.y, p.z);
+            model = Transform.Rotate(model, cnt * -1.0f, 0, 0, 1);
+            model = Transform.Rotate(model, d1, 0, 1, 0);
+            model = Transform.Rotate(model, d2, 1, 0, 0);
+            { Mesh shape4 = meshes[1]; if (shape4.count > 0) Gfx.Draw(shape4.count, shape4.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
+            model = parent3;
         }
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        blend = Gfx.Blend.Alpha;
     }
 
     public int idx

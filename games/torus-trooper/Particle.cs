@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Particle : LuminousActor
 {
@@ -161,97 +161,112 @@ public class Particle : LuminousActor
             inCourse = false;
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         switch (type)
         {
             case ParticlePType.SPARK:
             case ParticlePType.JET:
-                drawSpark();
+                drawSpark(model, tint, blend, cull, lineWidth);
                 break;
             case ParticlePType.STAR:
-                drawStar();
+                drawStar(model, tint, blend, cull, lineWidth);
                 break;
             case ParticlePType.FRAGMENT:
-                drawFragment();
+                drawFragment(model, tint, blend, cull, lineWidth);
                 break;
         }
     }
 
-    public void drawSpark()
+    public void drawSpark(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        glBegin(GL_TRIANGLE_FAN);
-        TtScreen.setColor(r, g, b, 0.5f);
-        TtScreen.glVertex(psp);
-        TtScreen.setColor(r, g, b, 0);
-        glVertex3f(sp.x - SIZE, sp.y - SIZE, sp.z);
-        glVertex3f(sp.x + SIZE, sp.y - SIZE, sp.z);
-        glVertex3f(sp.x + SIZE, sp.y + SIZE, sp.z);
-        glVertex3f(sp.x - SIZE, sp.y + SIZE, sp.z);
-        glVertex3f(sp.x - SIZE, sp.y - SIZE, sp.z);
-        glEnd();
+        var mesh = new Mesh("Particle-drawSpark" + "-" + meshKey);
+        int part1 = mesh.vertexCount;
+        tint = new float[] { r, g, b, 0.5f };
+        mesh.Vertex(psp.x, psp.y, psp.z, tint);
+        tint = new float[] { r, g, b, 0 };
+        mesh.Vertex(sp.x - SIZE, sp.y - SIZE, sp.z, tint);
+        mesh.Vertex(sp.x + SIZE, sp.y - SIZE, sp.z, tint);
+        mesh.Vertex(sp.x + SIZE, sp.y + SIZE, sp.z, tint);
+        mesh.Vertex(sp.x - SIZE, sp.y + SIZE, sp.z, tint);
+        mesh.Vertex(sp.x - SIZE, sp.y - SIZE, sp.z, tint);
+        mesh.Fan(part1, mesh.vertexCount - part1);
         if (inCourse)
         {
-            glBegin(GL_TRIANGLE_FAN);
-            TtScreen.setColor(r, g, b, 0.2f);
-            TtScreen.glVertex(rpsp);
-            TtScreen.setColor(r, g, b, 0);
-            glVertex3f(rsp.x - SIZE, rsp.y - SIZE, sp.z);
-            glVertex3f(rsp.x + SIZE, rsp.y - SIZE, sp.z);
-            glVertex3f(rsp.x + SIZE, rsp.y + SIZE, sp.z);
-            glVertex3f(rsp.x - SIZE, rsp.y + SIZE, sp.z);
-            glVertex3f(rsp.x - SIZE, rsp.y - SIZE, sp.z);
-            glEnd();
+            int part2 = mesh.vertexCount;
+            tint = new float[] { r, g, b, 0.2f };
+            mesh.Vertex(rpsp.x, rpsp.y, rpsp.z, tint);
+            tint = new float[] { r, g, b, 0 };
+            mesh.Vertex(rsp.x - SIZE, rsp.y - SIZE, sp.z, tint);
+            mesh.Vertex(rsp.x + SIZE, rsp.y - SIZE, sp.z, tint);
+            mesh.Vertex(rsp.x + SIZE, rsp.y + SIZE, sp.z, tint);
+            mesh.Vertex(rsp.x - SIZE, rsp.y + SIZE, sp.z, tint);
+            mesh.Vertex(rsp.x - SIZE, rsp.y - SIZE, sp.z, tint);
+            mesh.Fan(part2, mesh.vertexCount - part2);
         }
+
+        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
     }
 
-    public void drawStar()
+    public void drawStar(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        glBegin(GL_LINES);
-        TtScreen.setColor(r, g, b, 1);
-        TtScreen.glVertex(psp);
-        TtScreen.setColor(r, g, b, 0.2f);
-        TtScreen.glVertex(sp);
-        glEnd();
+        var mesh = new Mesh("Particle-drawStar" + "-" + meshKey);
+        int part1 = mesh.vertexCount;
+        tint = new float[] { r, g, b, 1 };
+        mesh.Vertex(psp.x, psp.y, psp.z, tint);
+        tint = new float[] { r, g, b, 0.2f };
+        mesh.Vertex(sp.x, sp.y, sp.z, tint);
+        for (int vi = part1; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1);
+
+        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
     }
 
-    public void drawFragment()
+    public void drawFragment(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        glPushMatrix();
-        glTranslatef(sp.x, sp.y, sp.z);
-        glRotatef(d1, 0, 0, 1);
-        glRotatef(d2, 0, 1, 0);
-        glBegin(GL_LINE_LOOP);
-        TtScreen.setColor(r, g, b, 0.5f);
-        glVertex3f(width, 0, height);
-        glVertex3f(-width, 0, height);
-        glVertex3f(-width, 0, -height);
-        glVertex3f(width, 0, -height);
-        glEnd();
-        glBegin(GL_TRIANGLE_FAN);
-        TtScreen.setColor(r, g, b, 0.2f);
-        glVertex3f(width, 0, height);
-        glVertex3f(-width, 0, height);
-        glVertex3f(-width, 0, -height);
-        glVertex3f(width, 0, -height);
-        glEnd();
-        glPopMatrix();
+        var mesh = new Mesh("Particle-drawFragment" + "-" + meshKey);
+        float[] parent1 = model;
+        model = Transform.Translate(model, sp.x, sp.y, sp.z);
+        model = Transform.Rotate(model, d1, 0, 0, 1);
+        model = Transform.Rotate(model, d2, 0, 1, 0);
+        int part2 = mesh.vertexCount;
+        tint = new float[] { r, g, b, 0.5f };
+        mesh.Vertex(width, 0, height, tint);
+        mesh.Vertex(-width, 0, height, tint);
+        mesh.Vertex(-width, 0, -height, tint);
+        mesh.Vertex(width, 0, -height, tint);
+        mesh.LineStrip(part2, mesh.vertexCount - part2, true);
+        int part3 = mesh.vertexCount;
+        tint = new float[] { r, g, b, 0.2f };
+        mesh.Vertex(width, 0, height, tint);
+        mesh.Vertex(-width, 0, height, tint);
+        mesh.Vertex(-width, 0, -height, tint);
+        mesh.Vertex(width, 0, -height, tint);
+        mesh.Fan(part3, mesh.vertexCount - part3);
+        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
+        model = parent1;
     }
 
-    public override void drawLuminous()
+    public override void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
+        var mesh = new Mesh("Particle-drawLuminous" + "-" + meshKey);
         if ((lumAlp < 0.2f) || (type != ParticlePType.SPARK))
             return;
-        glBegin(GL_TRIANGLE_FAN);
-        TtScreen.setColor(r, g, b, lumAlp * 0.6f);
-        TtScreen.glVertex(psp);
-        TtScreen.setColor(r, g, b, 0);
-        glVertex3f(sp.x - SIZE, sp.y - SIZE, sp.z);
-        glVertex3f(sp.x + SIZE, sp.y - SIZE, sp.z);
-        glVertex3f(sp.x + SIZE, sp.y + SIZE, sp.z);
-        glVertex3f(sp.x - SIZE, sp.y + SIZE, sp.z);
-        glVertex3f(sp.x - SIZE, sp.y - SIZE, sp.z);
-        glEnd();
+        int part1 = mesh.vertexCount;
+        tint = new float[] { r, g, b, lumAlp * 0.6f };
+        mesh.Vertex(psp.x, psp.y, psp.z, tint);
+        tint = new float[] { r, g, b, 0 };
+        mesh.Vertex(sp.x - SIZE, sp.y - SIZE, sp.z, tint);
+        mesh.Vertex(sp.x + SIZE, sp.y - SIZE, sp.z, tint);
+        mesh.Vertex(sp.x + SIZE, sp.y + SIZE, sp.z, tint);
+        mesh.Vertex(sp.x - SIZE, sp.y + SIZE, sp.z, tint);
+        mesh.Vertex(sp.x - SIZE, sp.y - SIZE, sp.z, tint);
+        mesh.Fan(part1, mesh.vertexCount - part1);
+
+        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
     }
 }
 

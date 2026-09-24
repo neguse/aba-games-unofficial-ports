@@ -2,11 +2,11 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public interface Drawable
 {
-    public void draw();
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth);
 }
 
 public interface Collidable
@@ -42,7 +42,8 @@ public class ShipShape : Collidable, Drawable
     public static Rand rand = new Rand();
     public List<Structure> structure = new List<Structure>();
     public Vector _collision;
-    public DisplayList displayList;
+    static int nextMesh;
+    public Mesh[] meshes;
     public List<float> rocketX = new List<float>();
     public Vector rocketPos, fragmentPos;
     public int color;
@@ -53,7 +54,7 @@ public class ShipShape : Collidable, Drawable
 
     public void close()
     {
-        displayList.close();
+        meshes = null;
     }
 
     public void setSeed(int n)
@@ -76,21 +77,22 @@ public class ShipShape : Collidable, Drawable
                 break;
         }
 
-        createDisplayList();
+        createMesh();
         rocketPos = new Vector();
         fragmentPos = new Vector();
     }
 
-    public void createDisplayList()
+    public void createMesh()
     {
-        displayList = new DisplayList(1);
-        displayList.beginNewList();
+        float[] model = Transform.Identity(); float[] tint = null; Mesh mesh = null; int meshIndex = 0;
+        meshes = new Mesh[1];
+        mesh = new Mesh("ShipShape-" + nextMesh.ToString()); nextMesh++; meshes[meshIndex] = mesh; model = Transform.Identity(); tint = null;
         foreach (Structure st in structure)
         {
-            st.createDisplayList();
+            st.appendStructure(mesh, model, tint);
         }
 
-        displayList.endNewList();
+
     }
 
     public void createSmallType(bool damaged = false)
@@ -340,9 +342,10 @@ public class ShipShape : Collidable, Drawable
         }
     }
 
-    public void draw()
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        displayList.call(0);
+        { Mesh shape1 = meshes[0]; if (shape1.count > 0) Gfx.Draw(shape1.count, shape1.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
     }
 
     public Vector collision() {
@@ -375,21 +378,21 @@ public class Structure
         pos = new Vector();
     }
 
-    public void createDisplayList()
+    public void appendStructure(Mesh mesh, float[] model, float[] tint)
     {
-        glPushMatrix();
-        glTranslatef(pos.x, pos.y, 0);
-        glRotatef(-d2, 1, 0, 0);
-        glRotatef(d1, 0, 0, 1);
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, 0);
+        model = Transform.Rotate(model, -d2, 1, 0, 0);
+        model = Transform.Rotate(model, d1, 0, 0, 1);
         if (shape == StructureShape.ROCKET)
-            glScalef(width, width, height);
+            model = Transform.Scale(model, width, width, height);
         else
-            glScalef(width, height, 1);
-        glScalef(shapeXReverse, 1, 1);
+            model = Transform.Scale(model, width, height, 1);
+        model = Transform.Scale(model, shapeXReverse, 1, 1);
         float alp = 0.5f;
         if (color == 0)
             alp = 1;
-        TtScreen.setColor(COLOR_RGB[color][0], COLOR_RGB[color][1], COLOR_RGB[color][2]);
+        tint = new float[] { COLOR_RGB[color][0], COLOR_RGB[color][1], COLOR_RGB[color][2], 1 };
         switch (shape)
         {
             case StructureShape.SQUARE:
@@ -399,25 +402,25 @@ public class Structure
                     float x12 = x11 + (1.0f / divNum) * 0.8f;
                     float x21 = -0.5f + (0.8f / divNum) * i;
                     float x22 = x21 + (0.8f / divNum) * 0.8f;
-                    glBegin(GL_LINE_LOOP);
-                    glVertex3f(x21, 0, -0.5f);
-                    glVertex3f(x22, 0, -0.5f);
-                    glVertex3f(x12, 0, 0.5f);
-                    glVertex3f(x11, 0, 0.5f);
-                    glEnd();
-                    glBegin(GL_LINE_LOOP);
-                    glVertex3f(x21, 0.1f, -0.5f);
-                    glVertex3f(x22, 0.1f, -0.5f);
-                    glVertex3f(x12, 0.1f, 0.5f);
-                    glVertex3f(x11, 0.1f, 0.5f);
-                    glEnd();
-                    TtScreen.setColor(COLOR_RGB[color][0], COLOR_RGB[color][1], COLOR_RGB[color][2], alp);
-                    glBegin(GL_TRIANGLE_FAN);
-                    glVertex3f(x21, 0, -0.5f);
-                    glVertex3f(x22, 0, -0.5f);
-                    glVertex3f(x12, 0, 0.5f);
-                    glVertex3f(x11, 0, 0.5f);
-                    glEnd();
+                    int part2 = mesh.vertexCount;
+                    mesh.Vertex(x21, 0, -0.5f, tint, model);
+                    mesh.Vertex(x22, 0, -0.5f, tint, model);
+                    mesh.Vertex(x12, 0, 0.5f, tint, model);
+                    mesh.Vertex(x11, 0, 0.5f, tint, model);
+                    mesh.LineStrip(part2, mesh.vertexCount - part2, true);
+                    int part3 = mesh.vertexCount;
+                    mesh.Vertex(x21, 0.1f, -0.5f, tint, model);
+                    mesh.Vertex(x22, 0.1f, -0.5f, tint, model);
+                    mesh.Vertex(x12, 0.1f, 0.5f, tint, model);
+                    mesh.Vertex(x11, 0.1f, 0.5f, tint, model);
+                    mesh.LineStrip(part3, mesh.vertexCount - part3, true);
+                    tint = new float[] { COLOR_RGB[color][0], COLOR_RGB[color][1], COLOR_RGB[color][2], alp };
+                    int part4 = mesh.vertexCount;
+                    mesh.Vertex(x21, 0, -0.5f, tint, model);
+                    mesh.Vertex(x22, 0, -0.5f, tint, model);
+                    mesh.Vertex(x12, 0, 0.5f, tint, model);
+                    mesh.Vertex(x11, 0, 0.5f, tint, model);
+                    mesh.Fan(part4, mesh.vertexCount - part4);
                 }
 
                 break;
@@ -428,25 +431,25 @@ public class Structure
                     float x2 = x1 + (1.0f / divNum) * 0.8f;
                     float y1 = x1;
                     float y2 = x2;
-                    glBegin(GL_LINE_LOOP);
-                    glVertex3f(x1, 0, y1);
-                    glVertex3f(x2, 0, y2);
-                    glVertex3f(x2, 0, 0.5f);
-                    glVertex3f(x1, 0, 0.5f);
-                    glEnd();
-                    glBegin(GL_LINE_LOOP);
-                    glVertex3f(x1, 0.1f, y1);
-                    glVertex3f(x2, 0.1f, y2);
-                    glVertex3f(x2, 0.1f, 0.5f);
-                    glVertex3f(x1, 0.1f, 0.5f);
-                    glEnd();
-                    TtScreen.setColor(COLOR_RGB[color][0], COLOR_RGB[color][1], COLOR_RGB[color][2], alp);
-                    glBegin(GL_TRIANGLE_FAN);
-                    glVertex3f(x1, 0, y1);
-                    glVertex3f(x2, 0, y2);
-                    glVertex3f(x2, 0, 0.5f);
-                    glVertex3f(x1, 0, 0.5f);
-                    glEnd();
+                    int part5 = mesh.vertexCount;
+                    mesh.Vertex(x1, 0, y1, tint, model);
+                    mesh.Vertex(x2, 0, y2, tint, model);
+                    mesh.Vertex(x2, 0, 0.5f, tint, model);
+                    mesh.Vertex(x1, 0, 0.5f, tint, model);
+                    mesh.LineStrip(part5, mesh.vertexCount - part5, true);
+                    int part6 = mesh.vertexCount;
+                    mesh.Vertex(x1, 0.1f, y1, tint, model);
+                    mesh.Vertex(x2, 0.1f, y2, tint, model);
+                    mesh.Vertex(x2, 0.1f, 0.5f, tint, model);
+                    mesh.Vertex(x1, 0.1f, 0.5f, tint, model);
+                    mesh.LineStrip(part6, mesh.vertexCount - part6, true);
+                    tint = new float[] { COLOR_RGB[color][0], COLOR_RGB[color][1], COLOR_RGB[color][2], alp };
+                    int part7 = mesh.vertexCount;
+                    mesh.Vertex(x1, 0, y1, tint, model);
+                    mesh.Vertex(x2, 0, y2, tint, model);
+                    mesh.Vertex(x2, 0, 0.5f, tint, model);
+                    mesh.Vertex(x1, 0, 0.5f, tint, model);
+                    mesh.Fan(part7, mesh.vertexCount - part7);
                 }
 
                 break;
@@ -457,25 +460,25 @@ public class Structure
                     float x2 = x1 + (1.0f / divNum) * 0.8f;
                     float y1 = -0.5f + (1.0f / divNum) * fabs(i - GameMath.integer(divNum / 2)) * 2;
                     float y2 = -0.5f + (1.0f / divNum) * fabs(i + 0.8f - GameMath.integer(divNum / 2)) * 2;
-                    glBegin(GL_LINE_LOOP);
-                    glVertex3f(x1, 0, y1);
-                    glVertex3f(x2, 0, y2);
-                    glVertex3f(x2, 0, 0.5f);
-                    glVertex3f(x1, 0, 0.5f);
-                    glEnd();
-                    glBegin(GL_LINE_LOOP);
-                    glVertex3f(x1, 0.1f, y1);
-                    glVertex3f(x2, 0.1f, y2);
-                    glVertex3f(x2, 0.1f, 0.5f);
-                    glVertex3f(x1, 0.1f, 0.5f);
-                    glEnd();
-                    TtScreen.setColor(COLOR_RGB[color][0], COLOR_RGB[color][1], COLOR_RGB[color][2], alp);
-                    glBegin(GL_TRIANGLE_FAN);
-                    glVertex3f(x1, 0, y1);
-                    glVertex3f(x2, 0, y2);
-                    glVertex3f(x2, 0, 0.5f);
-                    glVertex3f(x1, 0, 0.5f);
-                    glEnd();
+                    int part8 = mesh.vertexCount;
+                    mesh.Vertex(x1, 0, y1, tint, model);
+                    mesh.Vertex(x2, 0, y2, tint, model);
+                    mesh.Vertex(x2, 0, 0.5f, tint, model);
+                    mesh.Vertex(x1, 0, 0.5f, tint, model);
+                    mesh.LineStrip(part8, mesh.vertexCount - part8, true);
+                    int part9 = mesh.vertexCount;
+                    mesh.Vertex(x1, 0.1f, y1, tint, model);
+                    mesh.Vertex(x2, 0.1f, y2, tint, model);
+                    mesh.Vertex(x2, 0.1f, 0.5f, tint, model);
+                    mesh.Vertex(x1, 0.1f, 0.5f, tint, model);
+                    mesh.LineStrip(part9, mesh.vertexCount - part9, true);
+                    tint = new float[] { COLOR_RGB[color][0], COLOR_RGB[color][1], COLOR_RGB[color][2], alp };
+                    int part10 = mesh.vertexCount;
+                    mesh.Vertex(x1, 0, y1, tint, model);
+                    mesh.Vertex(x2, 0, y2, tint, model);
+                    mesh.Vertex(x2, 0, 0.5f, tint, model);
+                    mesh.Vertex(x1, 0, 0.5f, tint, model);
+                    mesh.Fan(part10, mesh.vertexCount - part10);
                 }
 
                 break;
@@ -483,81 +486,84 @@ public class Structure
                 for (int i = 0; i < 4; i++)
                 {
                     float d = i * PI / 2 + PI / 4;
-                    glBegin(GL_LINE_LOOP);
-                    glVertex3f(sin(d - 0.3f), cos(d - 0.3f), -0.5f);
-                    glVertex3f(sin(d + 0.3f), cos(d + 0.3f), -0.5f);
-                    glVertex3f(sin(d + 0.3f), cos(d + 0.3f), 0.5f);
-                    glVertex3f(sin(d - 0.3f), cos(d - 0.3f), 0.5f);
-                    glEnd();
-                    TtScreen.setColor(COLOR_RGB[color][0], COLOR_RGB[color][1], COLOR_RGB[color][2], alp);
-                    glBegin(GL_TRIANGLE_FAN);
-                    glVertex3f(sin(d - 0.3f), cos(d - 0.3f), -0.5f);
-                    glVertex3f(sin(d + 0.3f), cos(d + 0.3f), -0.5f);
-                    glVertex3f(sin(d + 0.3f), cos(d + 0.3f), 0.5f);
-                    glVertex3f(sin(d - 0.3f), cos(d - 0.3f), 0.5f);
-                    glEnd();
+                    int part11 = mesh.vertexCount;
+                    mesh.Vertex(sin(d - 0.3f), cos(d - 0.3f), -0.5f, tint, model);
+                    mesh.Vertex(sin(d + 0.3f), cos(d + 0.3f), -0.5f, tint, model);
+                    mesh.Vertex(sin(d + 0.3f), cos(d + 0.3f), 0.5f, tint, model);
+                    mesh.Vertex(sin(d - 0.3f), cos(d - 0.3f), 0.5f, tint, model);
+                    mesh.LineStrip(part11, mesh.vertexCount - part11, true);
+                    tint = new float[] { COLOR_RGB[color][0], COLOR_RGB[color][1], COLOR_RGB[color][2], alp };
+                    int part12 = mesh.vertexCount;
+                    mesh.Vertex(sin(d - 0.3f), cos(d - 0.3f), -0.5f, tint, model);
+                    mesh.Vertex(sin(d + 0.3f), cos(d + 0.3f), -0.5f, tint, model);
+                    mesh.Vertex(sin(d + 0.3f), cos(d + 0.3f), 0.5f, tint, model);
+                    mesh.Vertex(sin(d - 0.3f), cos(d - 0.3f), 0.5f, tint, model);
+                    mesh.Fan(part12, mesh.vertexCount - part12);
                 }
 
                 break;
         }
 
-        glPopMatrix();
+        model = parent1;
     }
 }
 
 public class BitShape : Drawable
 {
     public static float[] COLOR_RGB = new float[] { 1, 0.9f, 0.5f };
-    public DisplayList displayList;
+    static int nextMesh;
+    public Mesh[] meshes;
     public void create()
     {
-        displayList = new DisplayList(1);
-        displayList.beginNewList();
+        float[] model = Transform.Identity(); float[] tint = null; Mesh mesh = null; int meshIndex = 0;
+        meshes = new Mesh[1];
+        mesh = new Mesh("BitShape-" + nextMesh.ToString()); nextMesh++; meshes[meshIndex] = mesh; model = Transform.Identity(); tint = null;
         for (int i = 0; i < 4; i++)
         {
             float d = i * PI / 2 + PI / 4;
-            TtScreen.setColor(COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2]);
-            glBegin(GL_LINE_LOOP);
-            glVertex3f(sin(d - 0.3f), -0.8f, cos(d - 0.3f));
-            glVertex3f(sin(d + 0.3f), -0.8f, cos(d + 0.3f));
-            glVertex3f(sin(d + 0.3f), 0.8f, cos(d + 0.3f));
-            glVertex3f(sin(d - 0.3f), 0.8f, cos(d - 0.3f));
-            glEnd();
+            tint = new float[] { COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2], 1 };
+            int part1 = mesh.vertexCount;
+            mesh.Vertex(sin(d - 0.3f), -0.8f, cos(d - 0.3f), tint, model);
+            mesh.Vertex(sin(d + 0.3f), -0.8f, cos(d + 0.3f), tint, model);
+            mesh.Vertex(sin(d + 0.3f), 0.8f, cos(d + 0.3f), tint, model);
+            mesh.Vertex(sin(d - 0.3f), 0.8f, cos(d - 0.3f), tint, model);
+            mesh.LineStrip(part1, mesh.vertexCount - part1, true);
             d = d + (PI / 4);
-            glBegin(GL_LINE_LOOP);
-            glVertex3f(sin(d - 0.3f) * 2, -0.2f, cos(d - 0.3f) * 2);
-            glVertex3f(sin(d + 0.3f) * 2, -0.2f, cos(d + 0.3f) * 2);
-            glVertex3f(sin(d + 0.3f) * 2, 0.2f, cos(d + 0.3f) * 2);
-            glVertex3f(sin(d - 0.3f) * 2, 0.2f, cos(d - 0.3f) * 2);
-            glEnd();
+            int part2 = mesh.vertexCount;
+            mesh.Vertex(sin(d - 0.3f) * 2, -0.2f, cos(d - 0.3f) * 2, tint, model);
+            mesh.Vertex(sin(d + 0.3f) * 2, -0.2f, cos(d + 0.3f) * 2, tint, model);
+            mesh.Vertex(sin(d + 0.3f) * 2, 0.2f, cos(d + 0.3f) * 2, tint, model);
+            mesh.Vertex(sin(d - 0.3f) * 2, 0.2f, cos(d - 0.3f) * 2, tint, model);
+            mesh.LineStrip(part2, mesh.vertexCount - part2, true);
             d = d - (PI / 4);
-            TtScreen.setColor(COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2], 0.5f);
-            glBegin(GL_TRIANGLE_FAN);
-            glVertex3f(sin(d - 0.3f), -0.8f, cos(d - 0.3f));
-            glVertex3f(sin(d + 0.3f), -0.8f, cos(d + 0.3f));
-            glVertex3f(sin(d + 0.3f), 0.8f, cos(d + 0.3f));
-            glVertex3f(sin(d - 0.3f), 0.8f, cos(d - 0.3f));
-            glEnd();
+            tint = new float[] { COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2], 0.5f };
+            int part3 = mesh.vertexCount;
+            mesh.Vertex(sin(d - 0.3f), -0.8f, cos(d - 0.3f), tint, model);
+            mesh.Vertex(sin(d + 0.3f), -0.8f, cos(d + 0.3f), tint, model);
+            mesh.Vertex(sin(d + 0.3f), 0.8f, cos(d + 0.3f), tint, model);
+            mesh.Vertex(sin(d - 0.3f), 0.8f, cos(d - 0.3f), tint, model);
+            mesh.Fan(part3, mesh.vertexCount - part3);
             d = d + (PI / 4);
-            glBegin(GL_TRIANGLE_FAN);
-            glVertex3f(sin(d - 0.3f) * 2, -0.2f, cos(d - 0.3f) * 2);
-            glVertex3f(sin(d + 0.3f) * 2, -0.2f, cos(d + 0.3f) * 2);
-            glVertex3f(sin(d + 0.3f) * 2, 0.2f, cos(d + 0.3f) * 2);
-            glVertex3f(sin(d - 0.3f) * 2, 0.2f, cos(d - 0.3f) * 2);
-            glEnd();
+            int part4 = mesh.vertexCount;
+            mesh.Vertex(sin(d - 0.3f) * 2, -0.2f, cos(d - 0.3f) * 2, tint, model);
+            mesh.Vertex(sin(d + 0.3f) * 2, -0.2f, cos(d + 0.3f) * 2, tint, model);
+            mesh.Vertex(sin(d + 0.3f) * 2, 0.2f, cos(d + 0.3f) * 2, tint, model);
+            mesh.Vertex(sin(d - 0.3f) * 2, 0.2f, cos(d - 0.3f) * 2, tint, model);
+            mesh.Fan(part4, mesh.vertexCount - part4);
         }
 
-        displayList.endNewList();
+
     }
 
     public void close()
     {
-        displayList.close();
+        meshes = null;
     }
 
-    public void draw()
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        displayList.call(0);
+        { Mesh shape1 = meshes[0]; if (shape1.count > 0) Gfx.Draw(shape1.count, shape1.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
     }
 }
 
@@ -565,42 +571,44 @@ public class BulletShape : Drawable
 {
     public const int NUM = 6;
     public static float[] COLOR_RGB = new float[] { 1, 0.7f, 0.8f };
-    public DisplayList displayList;
+    static int nextMesh;
+    public Mesh[] meshes;
     public void create(int type)
     {
-        displayList = new DisplayList(1);
-        displayList.beginNewList();
+        float[] model = Transform.Identity(); float[] tint = null; Mesh mesh = null; int meshIndex = 0;
+        meshes = new Mesh[1];
+        mesh = new Mesh("BulletShape-" + nextMesh.ToString()); nextMesh++; meshes[meshIndex] = mesh; model = Transform.Identity(); tint = null;
         switch (type)
         {
             case 0:
-                createTriangleShape(false);
+                appendTriangleShape(mesh, model, tint, false);
                 break;
             case 1:
-                createTriangleShape(true);
+                appendTriangleShape(mesh, model, tint, true);
                 break;
             case 2:
-                createSquareShape(false);
+                appendSquareShape(mesh, model, tint, false);
                 break;
             case 3:
-                createSquareShape(true);
+                appendSquareShape(mesh, model, tint, true);
                 break;
             case 4:
-                createBarShape(false);
+                appendBarShape(mesh, model, tint, false);
                 break;
             case 5:
-                createBarShape(true);
+                appendBarShape(mesh, model, tint, true);
                 break;
         }
 
-        displayList.endNewList();
+
     }
 
     public void close()
     {
-        displayList.close();
+        meshes = null;
     }
 
-    public void createTriangleShape(bool wireShape)
+    public void appendTriangleShape(Mesh mesh, float[] model, float[] tint, bool wireShape)
     {
         Vector3 cp = new Vector3();
         Vector3 p1 = new Vector3();
@@ -638,28 +646,28 @@ public class BulletShape : Drawable
             np2.blend(p2, cp, 0.6f);
             np3.blend(p3, cp, 0.6f);
             if (!(wireShape))
-                TtScreen.setColor(COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2]);
+                tint = new float[] { COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2], 1 };
             else
-                TtScreen.setColor(COLOR_RGB[0] * 0.6f, COLOR_RGB[1], COLOR_RGB[2]);
-            glBegin(GL_LINE_LOOP);
-            TtScreen.glVertex(np1);
-            TtScreen.glVertex(np2);
-            TtScreen.glVertex(np3);
-            glEnd();
+                tint = new float[] { COLOR_RGB[0] * 0.6f, COLOR_RGB[1], COLOR_RGB[2], 1 };
+            int part1 = mesh.vertexCount;
+            mesh.Vertex(np1.x, np1.y, np1.z, tint, model);
+            mesh.Vertex(np2.x, np2.y, np2.z, tint, model);
+            mesh.Vertex(np3.x, np3.y, np3.z, tint, model);
+            mesh.LineStrip(part1, mesh.vertexCount - part1, true);
             if (!(wireShape))
             {
-                glBegin(GL_TRIANGLE_FAN);
-                TtScreen.setColor(COLOR_RGB[0] * 0.7f, COLOR_RGB[1] * 0.7f, COLOR_RGB[2] * 0.7f);
-                TtScreen.glVertex(np1);
-                TtScreen.setColor(COLOR_RGB[0] * 0.4f, COLOR_RGB[1] * 0.4f, COLOR_RGB[2] * 0.4f);
-                TtScreen.glVertex(np2);
-                TtScreen.glVertex(np3);
-                glEnd();
+                int part2 = mesh.vertexCount;
+                tint = new float[] { COLOR_RGB[0] * 0.7f, COLOR_RGB[1] * 0.7f, COLOR_RGB[2] * 0.7f, 1 };
+                mesh.Vertex(np1.x, np1.y, np1.z, tint, model);
+                tint = new float[] { COLOR_RGB[0] * 0.4f, COLOR_RGB[1] * 0.4f, COLOR_RGB[2] * 0.4f, 1 };
+                mesh.Vertex(np2.x, np2.y, np2.z, tint, model);
+                mesh.Vertex(np3.x, np3.y, np3.z, tint, model);
+                mesh.Fan(part2, mesh.vertexCount - part2);
             }
         }
     }
 
-    public void createSquareShape(bool wireShape)
+    public void appendSquareShape(Mesh mesh, float[] model, float[] tint, bool wireShape)
     {
         Vector3 cp = new Vector3();
         Vector3[] p = new Vector3[4];
@@ -733,25 +741,25 @@ public class BulletShape : Drawable
             for (int j = 0; j < 4; j++)
                 np[j].blend(p[j], cp, 0.6f);
             if (!(wireShape))
-                TtScreen.setColor(COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2]);
+                tint = new float[] { COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2], 1 };
             else
-                TtScreen.setColor(COLOR_RGB[0] * 0.6f, COLOR_RGB[1], COLOR_RGB[2]);
-            glBegin(GL_LINE_LOOP);
+                tint = new float[] { COLOR_RGB[0] * 0.6f, COLOR_RGB[1], COLOR_RGB[2], 1 };
+            int part1 = mesh.vertexCount;
             for (int j = 0; j < 4; j++)
-                TtScreen.glVertex(np[j]);
-            glEnd();
+                mesh.Vertex(np[j].x, np[j].y, np[j].z, tint, model);
+            mesh.LineStrip(part1, mesh.vertexCount - part1, true);
             if (!(wireShape))
             {
-                glBegin(GL_TRIANGLE_FAN);
-                TtScreen.setColor(COLOR_RGB[0] * 0.7f, COLOR_RGB[1] * 0.7f, COLOR_RGB[2] * 0.7f);
+                int part2 = mesh.vertexCount;
+                tint = new float[] { COLOR_RGB[0] * 0.7f, COLOR_RGB[1] * 0.7f, COLOR_RGB[2] * 0.7f, 1 };
                 for (int j = 0; j < 4; j++)
-                    TtScreen.glVertex(np[j]);
-                glEnd();
+                    mesh.Vertex(np[j].x, np[j].y, np[j].z, tint, model);
+                mesh.Fan(part2, mesh.vertexCount - part2);
             }
         }
     }
 
-    public void createBarShape(bool wireShape)
+    public void appendBarShape(Mesh mesh, float[] model, float[] tint, bool wireShape)
     {
         Vector3 cp = new Vector3();
         Vector3[] p = new Vector3[4];
@@ -818,27 +826,28 @@ public class BulletShape : Drawable
             for (int j = 0; j < 4; j++)
                 np[j].blend(p[j], cp, 0.6f);
             if (!(wireShape))
-                TtScreen.setColor(COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2]);
+                tint = new float[] { COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2], 1 };
             else
-                TtScreen.setColor(COLOR_RGB[0] * 0.6f, COLOR_RGB[1], COLOR_RGB[2]);
-            glBegin(GL_LINE_LOOP);
+                tint = new float[] { COLOR_RGB[0] * 0.6f, COLOR_RGB[1], COLOR_RGB[2], 1 };
+            int part1 = mesh.vertexCount;
             for (int j = 0; j < 4; j++)
-                TtScreen.glVertex(np[j]);
-            glEnd();
+                mesh.Vertex(np[j].x, np[j].y, np[j].z, tint, model);
+            mesh.LineStrip(part1, mesh.vertexCount - part1, true);
             if (!(wireShape))
             {
-                glBegin(GL_TRIANGLE_FAN);
-                TtScreen.setColor(COLOR_RGB[0] * 0.7f, COLOR_RGB[1] * 0.7f, COLOR_RGB[2] * 0.7f);
+                int part2 = mesh.vertexCount;
+                tint = new float[] { COLOR_RGB[0] * 0.7f, COLOR_RGB[1] * 0.7f, COLOR_RGB[2] * 0.7f, 1 };
                 for (int j = 0; j < 4; j++)
-                    TtScreen.glVertex(np[j]);
-                glEnd();
+                    mesh.Vertex(np[j].x, np[j].y, np[j].z, tint, model);
+                mesh.Fan(part2, mesh.vertexCount - part2);
             }
         }
     }
 
-    public void draw()
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        displayList.call(0);
+        { Mesh shape1 = meshes[0]; if (shape1.count > 0) Gfx.Draw(shape1.count, shape1.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
     }
 }
 
@@ -866,30 +875,32 @@ public class ShotShape : Collidable, Drawable
     }
 
     public static float[] COLOR_RGB = new float[] { 0.8f, 1, 0.7f };
-    public DisplayList displayList;
+    static int nextMesh;
+    public Mesh[] meshes;
     public Vector _collision;
     public void create(bool charge)
     {
-        displayList = new DisplayList(1);
-        displayList.beginNewList();
+        float[] model = Transform.Identity(); float[] tint = null; Mesh mesh = null; int meshIndex = 0;
+        meshes = new Mesh[1];
+        mesh = new Mesh("ShotShape-" + nextMesh.ToString()); nextMesh++; meshes[meshIndex] = mesh; model = Transform.Identity(); tint = null;
         if (charge)
         {
             for (int i = 0; i < 8; i++)
             {
                 float d = i * PI / 4;
-                glBegin(GL_TRIANGLES);
-                TtScreen.setColor(COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2]);
-                glVertex3f(sin(d) * 0.1f, cos(d) * 0.1f, 0.2f);
-                glVertex3f(sin(d) * 0.5f, cos(d) * 0.5f, 0.5f);
-                TtScreen.setColor(COLOR_RGB[0] * 0.2f, COLOR_RGB[1] * 0.2f, COLOR_RGB[2] * 0.2f);
-                glVertex3f(sin(d) * 1.0f, cos(d) * 1.0f, -0.7f);
-                glEnd();
-                TtScreen.setColor(COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2]);
-                glBegin(GL_LINE_LOOP);
-                glVertex3f(sin(d) * 0.1f, cos(d) * 0.1f, 0.2f);
-                glVertex3f(sin(d) * 0.5f, cos(d) * 0.5f, 0.5f);
-                glVertex3f(sin(d) * 1.0f, cos(d) * 1.0f, -0.7f);
-                glEnd();
+                int part1 = mesh.vertexCount;
+                tint = new float[] { COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2], 1 };
+                mesh.Vertex(sin(d) * 0.1f, cos(d) * 0.1f, 0.2f, tint, model);
+                mesh.Vertex(sin(d) * 0.5f, cos(d) * 0.5f, 0.5f, tint, model);
+                tint = new float[] { COLOR_RGB[0] * 0.2f, COLOR_RGB[1] * 0.2f, COLOR_RGB[2] * 0.2f, 1 };
+                mesh.Vertex(sin(d) * 1.0f, cos(d) * 1.0f, -0.7f, tint, model);
+                for (int vi = part1; vi + 2 < mesh.vertexCount; vi += 3) mesh.Triangle(vi, vi + 1, vi + 2);
+                tint = new float[] { COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2], 1 };
+                int part2 = mesh.vertexCount;
+                mesh.Vertex(sin(d) * 0.1f, cos(d) * 0.1f, 0.2f, tint, model);
+                mesh.Vertex(sin(d) * 0.5f, cos(d) * 0.5f, 0.5f, tint, model);
+                mesh.Vertex(sin(d) * 1.0f, cos(d) * 1.0f, -0.7f, tint, model);
+                mesh.LineStrip(part2, mesh.vertexCount - part2, true);
             }
         }
         else
@@ -897,34 +908,35 @@ public class ShotShape : Collidable, Drawable
             for (int i = 0; i < 4; i++)
             {
                 float d = i * PI / 2;
-                glBegin(GL_TRIANGLES);
-                TtScreen.setColor(COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2]);
-                glVertex3f(sin(d) * 0.1f, cos(d) * 0.1f, 0.4f);
-                glVertex3f(sin(d) * 0.3f, cos(d) * 0.3f, 1.0f);
-                TtScreen.setColor(COLOR_RGB[0] * 0.2f, COLOR_RGB[1] * 0.2f, COLOR_RGB[2] * 0.2f);
-                glVertex3f(sin(d) * 0.5f, cos(d) * 0.5f, -1.4f);
-                glEnd();
-                TtScreen.setColor(COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2]);
-                glBegin(GL_LINE_LOOP);
-                glVertex3f(sin(d) * 0.1f, cos(d) * 0.1f, 0.4f);
-                glVertex3f(sin(d) * 0.3f, cos(d) * 0.3f, 1.0f);
-                glVertex3f(sin(d) * 0.5f, cos(d) * 0.5f, -1.4f);
-                glEnd();
+                int part3 = mesh.vertexCount;
+                tint = new float[] { COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2], 1 };
+                mesh.Vertex(sin(d) * 0.1f, cos(d) * 0.1f, 0.4f, tint, model);
+                mesh.Vertex(sin(d) * 0.3f, cos(d) * 0.3f, 1.0f, tint, model);
+                tint = new float[] { COLOR_RGB[0] * 0.2f, COLOR_RGB[1] * 0.2f, COLOR_RGB[2] * 0.2f, 1 };
+                mesh.Vertex(sin(d) * 0.5f, cos(d) * 0.5f, -1.4f, tint, model);
+                for (int vi = part3; vi + 2 < mesh.vertexCount; vi += 3) mesh.Triangle(vi, vi + 1, vi + 2);
+                tint = new float[] { COLOR_RGB[0], COLOR_RGB[1], COLOR_RGB[2], 1 };
+                int part4 = mesh.vertexCount;
+                mesh.Vertex(sin(d) * 0.1f, cos(d) * 0.1f, 0.4f, tint, model);
+                mesh.Vertex(sin(d) * 0.3f, cos(d) * 0.3f, 1.0f, tint, model);
+                mesh.Vertex(sin(d) * 0.5f, cos(d) * 0.5f, -1.4f, tint, model);
+                mesh.LineStrip(part4, mesh.vertexCount - part4, true);
             }
         }
 
-        displayList.endNewList();
+
         _collision = new Vector(0.15f, 0.3f);
     }
 
     public void close()
     {
-        displayList.close();
+        meshes = null;
     }
 
-    public void draw()
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        displayList.call(0);
+        { Mesh shape1 = meshes[0]; if (shape1.count > 0) Gfx.Draw(shape1.count, shape1.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
     }
 
     public Vector collision() {
@@ -958,10 +970,10 @@ public class ResizableDrawable : Collidable, Drawable
     public Drawable _shape;
     public float _size;
     public Vector _collision;
-    public void draw()
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        glScalef(_size, _size, _size);
-        _shape.draw();
+        model = Transform.Scale(model, _size, _size, _size);
+        _shape.draw(model, tint, blend, cull, lineWidth);
     }
 
     public Drawable shape

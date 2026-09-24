@@ -24,10 +24,10 @@ local function quad(key,x,y,w,h,z,color)
  m:vertex(x+w,y+h,z,color);m:vertex(x,y+h,z,color);m:quads(0,4)
  return m
 end
-local function draw(mesh,model,color,width,blend,depth,image)
+local function draw(mesh,model,color,width,blend,depth,image,cull)
  if mesh:get_count()==0 then return end
  lub.gfx.draw(mesh:get_count(),mesh:bindings(model,color,width or 1,blend==lub.gfx.ADDITIVE,0,image),
-  {shader=Game.shader,depth=depth or false,cull=lub.gfx.NONE,blend=blend or lub.gfx.ADDITIVE})
+  {shader=Game.shader,depth=depth or false,cull=cull or lub.gfx.NONE,blend=blend or lub.gfx.ADDITIVE})
 end
 local uploads=0
 local upload=lub.gfx.use_buffer
@@ -57,6 +57,7 @@ Game.on_frame=function(dt)
  end
  line:line(0,1);line:line_strip(2,3);line:line_strip(5,3,true)
  draw(line,ortho,nil,4,lub.gfx.ADDITIVE)
+ draw(line,Transform.translate(ortho,0,120,0),nil,4,lub.gfx.ADDITIVE,false,nil,lub.gfx.FRONT)
  local fan=Mesh.new('test-fan')
  for _,p in ipairs({{210,30},{200,20},{220,20},{220,40},{200,40},{200,20}}) do fan:vertex(p[1],p[2],0,{1,1,0,1}) end
  fan:fan(0,6);draw(fan,ortho,nil,1,lub.gfx.ADDITIVE)
@@ -100,7 +101,9 @@ return Game`);
     await page.evaluate(code => Module.FS.writeFile('/samples/game/.lub/game.lua', code), reloadCode);
     await page.waitForFunction(() => window.renderFrame?.[1] === 2 && window.renderFrame[0] >= 100, null, { timeout: 45000 }).catch(async error => { throw new Error(`${await page.locator('#status').textContent()} ${errors.join('\n')} ${error.message}`); });
     const png = await page.locator('#canvas').screenshot({ path: 'build/screenshots/gunroar-direct-render-test.png' });
-    const points = [[40,30,[0,255,0]], [19,30,[0,0,0]], [25,30,[0,0,0]], [60,30,[0,255,0]], [70,30,[0,0,0]],
+    const points = [
+        [40,218,[0,255,0]], [110,220,[0,255,0]], [120,230,[0,255,0]],
+        [40,30,[0,255,0]], [19,30,[0,0,0]], [25,30,[0,0,0]], [60,30,[0,255,0]], [70,30,[0,0,0]],
         [210,30,[255,255,0]], [250,30,[128,0,0]], [270,50,[64,0,128]], [290,70,[0,0,128]],
         [40,98,[0,255,0]], [40,101,[0,255,0]], [40,97,[0,0,0]],
         [110,100,[0,255,0]], [120,110,[0,255,0]], [170,100,[0,255,0]], [180,110,[0,255,0]],
