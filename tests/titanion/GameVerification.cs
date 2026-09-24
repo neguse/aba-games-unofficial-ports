@@ -80,7 +80,10 @@ public static class TtnVerification
         Check(random.nextBits() == -795755684, "zero signed bound preserves RNG state");
         Drawing.BeginFrame(); Drawing.recordBlend = true; Drawing.premultiplyAdditive = true;
         var game = new Frame(); game.init_0(); game.start_0();
-        Draw(game); Check(Drawing.batches.Count > 0 && Drawing.batches[0].vertices.Count > 1000, "title geometry");
+        Draw(game); int titleImages = 0;
+        foreach (DrawBatch batch in Drawing.batches)
+            if (batch.image != null) { titleImages++; Check(batch.vertices.Count == 48, "title uses one textured quad"); }
+        Check(titleImages == 1, "title image survives drawing transforms");
         Drawing.BeginFrame(); new PlayerShape().draw_3(new Vector3(0, 0, -10), 0, 0);
         new TriangleParticleShape().draw_3(new Vector3(0, 0, -10), 0, 0);
         bool alpha = false, additive = false;

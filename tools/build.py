@@ -57,7 +57,7 @@ subprocess.run([sys.executable, 'tools/compile_parsec47.py', str(p47)], check=Tr
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'parsec47',
                 '--output', str(target / 'game.lua')], check=True)
 shutil.copy2('games/parsec47/index.html', target / 'index.html')
-shutil.copy2(dist / 'shaders.json', target / 'shaders.json')
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/title'], check=True)
 shutil.copytree(p47 / 'sounds', target / 'audio', dirs_exist_ok=True)
 (target / 'LICENSE.txt').write_text((p47 / 'readme_e.txt').read_text() + '\n\n' + licenses)
 archive = Path('.cache/gr0_15.zip')
@@ -74,7 +74,7 @@ subprocess.run([sys.executable, 'tools/compile_gunroar.py', str(gr)], check=True
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'gunroar',
                 '--output', str(target / 'game.lua')], check=True)
 shutil.copy2('games/gunroar/index.html', target / 'index.html')
-shutil.copy2(dist / 'shaders.json', target / 'shaders.json')
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/title'], check=True)
 (target / 'audio').mkdir(exist_ok=True)
 for directory in ['chunks', 'musics']:
     for audio in (gr / 'sounds' / directory).iterdir():
@@ -94,7 +94,7 @@ subprocess.run([sys.executable, 'tools/compile_titanion.py', str(ttn)], check=Tr
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'titanion',
                 '--output', str(target / 'game.lua')], check=True)
 shutil.copy2('games/titanion/index.html', target / 'index.html')
-shutil.copy2(dist / 'shaders.json', target / 'shaders.json')
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/title'], check=True)
 (target / 'audio').mkdir(exist_ok=True)
 for directory in ['chunks', 'musics']:
     for audio in (ttn / 'sounds' / directory).iterdir():
@@ -131,7 +131,7 @@ subprocess.run([sys.executable, 'tools/compile_torus.py', str(tt)], check=True)
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'torus-trooper',
                 '--output', str(target / 'game.lua')], check=True)
 shutil.copy2('games/torus-trooper/index.html', target / 'index.html')
-shutil.copy2(dist / 'shaders.json', target / 'shaders.json')
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/title'], check=True)
 (target / 'audio').mkdir(exist_ok=True)
 for directory in ['chunks', 'musics']:
     for audio in (tt / 'sounds' / directory).iterdir():
@@ -252,7 +252,7 @@ subprocess.run([sys.executable, 'tools/compile_mucade.py', str(mcd)], check=True
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'mu-cade',
                 '--output', str(target / 'game.lua')], check=True)
 shutil.copy2('games/mu-cade/index.html', target / 'index.html')
-shutil.copy2(dist / 'shaders.json', target / 'shaders.json')
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/title'], check=True)
 (target / 'audio').mkdir(exist_ok=True)
 for path in (mcd / 'sounds').rglob('*'):
     if path.is_file():

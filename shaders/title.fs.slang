@@ -19,13 +19,10 @@ float4 sampleTitle(float2 uv, float2 dx, float2 dy) {
     if (titleParameters[1].w > 0) color.rgb *= color.a;
     return color;
 }
-Texture2D<float4> glow;
-SamplerState glowSampler;
 struct Input { float4 position : SV_Position; float4 color : COLOR0; };
 [shader("fragment")]
 float4 fs_main(Input input) : SV_Target {
     float2 dx = ddx(input.color.xy), dy = ddy(input.color.xy);
     if (input.color.w < -1.5) return sampleTitle(input.color.xy, dx, dy);
-    if (input.color.w >= 0) return input.color;
-    return glow.SampleLevel(glowSampler, input.color.xy, 0) * float4(0.5, 0.4, 0.45, 0);
+    return input.color;
 }

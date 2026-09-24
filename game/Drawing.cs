@@ -8,6 +8,9 @@ public class DrawVertex
 }
 public class DrawPart
 {
+    public DrawImage image;
+    public bool multiply;
+    public float[] tint;
     public int mode;
     public bool savedBlend, useSavedBlend;
     public bool savedAlphaBlend, useSavedAlphaBlend;
@@ -23,6 +26,9 @@ public class DrawMesh
 }
 public class DrawBatch
 {
+    public DrawImage image;
+    public bool multiply;
+    public float[] tint;
     public bool depth, blend, cull;
     public bool alphaBlend;
     public List<float> vertices = new List<float>();
@@ -146,6 +152,7 @@ public static class Drawing
             if (recording != null)
             {
                 var transformed = new DrawPart { mode = p.mode, savedAlphaBlend = p.savedAlphaBlend, useSavedAlphaBlend = p.useSavedAlphaBlend };
+                transformed.image = p.image; transformed.multiply = p.multiply; transformed.tint = p.tint;
                 foreach (var v in p.vertices) transformed.vertices.Add(Transform(v));
                 recording.parts.Add(transformed);
             }
@@ -210,7 +217,7 @@ public static class Drawing
     static List<float> Batch(bool useCull)
     {
         DrawBatch batch = batches.Count == 0 ? null : batches[batches.Count - 1];
-        if (batch == null || batch.depth != depth || batch.blend != blend || batch.cull != useCull || batch.alphaBlend != alphaBlend)
+        if (batch == null || batch.image != null || batch.depth != depth || batch.blend != blend || batch.cull != useCull || batch.alphaBlend != alphaBlend)
         {
             batch = new DrawBatch { depth = depth, blend = blend, cull = useCull, alphaBlend = alphaBlend }; batches.Add(batch);
         }
@@ -244,8 +251,35 @@ public static class Drawing
         float opacity = premultiplyAdditive && blend && !alphaBlend ? v.a : 1;
         buffer.Add(v.r * opacity); buffer.Add(v.g * opacity); buffer.Add(v.b * opacity); buffer.Add(v.a);
     }
+    public static void Image(DrawImage image, float x, float y, float width, float height,
+        float r, float g, float b, float a, bool multiply = false)
+    {
+        glBegin(GL_QUADS);
+        part.image = image; part.multiply = multiply; part.tint = new float[] { r, g, b, a };
+        glVertex2f(x, y); glVertex2f(x + width, y);
+        glVertex2f(x + width, y + height); glVertex2f(x, y + height);
+        glEnd();
+    }
+    static void EmitImage(DrawPart p, bool transform)
+    {
+        var batch = new DrawBatch { image = p.image, tint = p.tint, multiply = p.multiply,
+            depth = depth, cull = cull, blend = p.useSavedBlend ? p.savedBlend : blend,
+            alphaBlend = p.useSavedAlphaBlend ? p.savedAlphaBlend : alphaBlend };
+        batches.Add(batch);
+        while (projected.Count < 4) projected.Add(new DrawVertex());
+        for (int i = 0; i < 4; i++) Project(p.vertices[i], projected[i], transform);
+        ImageVertex(batch.vertices, projected[0], 0, 0); ImageVertex(batch.vertices, projected[1], 1, 0);
+        ImageVertex(batch.vertices, projected[2], 1, 1); ImageVertex(batch.vertices, projected[0], 0, 0);
+        ImageVertex(batch.vertices, projected[2], 1, 1); ImageVertex(batch.vertices, projected[3], 0, 1);
+    }
+    static void ImageVertex(List<float> buffer, DrawVertex v, float u, float t)
+    {
+        buffer.Add(v.x); buffer.Add(v.y); buffer.Add(v.z); buffer.Add(v.w);
+        buffer.Add(u); buffer.Add(t); buffer.Add(0); buffer.Add(-2);
+    }
     static void Emit(DrawPart p, bool transform)
     {
+        if (p.image != null) { EmitImage(p, transform); return; }
         bool previousBlend = blend, previousAlphaBlend = alphaBlend;
         if (p.useSavedAlphaBlend) alphaBlend = p.savedAlphaBlend;
         if (p.useSavedBlend) blend = p.savedBlend;

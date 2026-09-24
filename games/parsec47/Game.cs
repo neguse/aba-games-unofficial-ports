@@ -58,10 +58,10 @@ public static class Game
             if (batch.vertices.Count == 0) continue;
             var buffer = Gfx.UseBuffer("geometry" + index.ToString(), Gfx.BufferType.Storage, batch.vertices, version);
             if (buffer != null)
-                Gfx.Draw(GameMath.integer(batch.vertices.Count / 8), new Dictionary<string, object> { ["verts"] = buffer }, new DrawOpts {
+                Gfx.Draw(GameMath.integer(batch.vertices.Count / 8), TextureDrawing.Bindings(buffer, batch, index, version), new DrawOpts {
                     Shader = shader, Depth = batch.depth, DepthWrite = batch.depth,
                     Cull = batch.cull ? Gfx.Cull.Front : Gfx.Cull.None,
-                    Blend = batch.blend ? (batch.alphaBlend ? Gfx.Blend.Alpha : Gfx.Blend.Additive) : Gfx.Blend.None });
+                    Blend = batch.multiply ? Gfx.Blend.Multiply : batch.blend ? (batch.alphaBlend ? Gfx.Blend.Alpha : Gfx.Blend.Additive) : Gfx.Blend.None });
             index++;
         }
         Gfx.EndPass();
