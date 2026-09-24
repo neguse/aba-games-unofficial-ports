@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
 
 public class ScoreReel
 {
@@ -40,12 +39,12 @@ public class ScoreReel
             numReel[i].move();
     }
 
-    public void draw(float x, float y, float s)
+    public void draw(float[] model, float x, float y, float s)
     {
         float lx = x, ly = y;
         for (int i = 0; i < digit; i++)
         {
-            numReel[i].draw(lx, ly, s);
+            numReel[i].draw(model, lx, ly, s);
             lx = lx - (s * 2);
         }
     }
@@ -133,8 +132,9 @@ public class NumReel
             deg = _targetDeg;
     }
 
-    public void draw(float x, float y, float s)
+    public void draw(float[] model, float x, float y, float s)
     {
+        float[] color = null;
         int n = GameMath.integer(((deg * 10 / 360 + 0.99f) + 1)) % 10;
         float d = deg % 360;
         float od = d - n * 360 / 10;
@@ -143,22 +143,22 @@ public class NumReel
         od = od * (1.5f);
         for (int i = 0; i < 3; i++)
         {
-            glPushMatrix();
+            float[] parent1 = model;
             if (ofs > 0.005f)
-                glTranslatef(x + rand.nextSignedFloat(1) * ofs, y + rand.nextSignedFloat(1) * ofs, 0);
+                model = Transform.Translate(model, x + rand.nextSignedFloat(1) * ofs, y + rand.nextSignedFloat(1) * ofs, 0);
             else
-                glTranslatef(x, y, 0);
-            glRotatef(od, 1, 0, 0);
-            glTranslatef(0, 0, s * 2.4f);
-            glScalef(s, -s, s);
+                model = Transform.Translate(model, x, y, 0);
+            model = Transform.Rotate(model, od, 1, 0, 0);
+            model = Transform.Translate(model, 0, 0, s * 2.4f);
+            model = Transform.Scale(model, s, -s, s);
             float a = 1 - fabs((od + 15) / (360 / 10 * 1.5f)) / 2;
             if (a < 0)
                 a = 0;
-            GrScreen.setColor(a, a, a);
-            Letter.drawLetter_2(n, 2);
-            GrScreen.setColor(a / 2, a / 2, a / 2);
-            Letter.drawLetter_2(n, 3);
-            glPopMatrix();
+            color = new float[] { a, a, a, 1 };
+            Letter.drawLetter_2(model, n, 2, color);
+            color = new float[] { a / 2, a / 2, a / 2, 1 };
+            Letter.drawLetter_2(model, n, 3, color);
+            model = parent1;
             n--;
             if (n < 0)
                 n = 9;
@@ -386,21 +386,22 @@ public class NumIndicator : Actor
             gotoNextTarget();
     }
 
-    public override void draw()
+    public override void draw(float[] model, Mesh particles = null)
     {
-        GrScreen.setColor(alpha, alpha, alpha);
+        float[] color = null;
+        color = new float[] { alpha, alpha, alpha, 1 };
         switch (type)
         {
             case NumIndicatorIndicatorType.SCORE:
             {
-                Letter.drawNumSign(n, pos.x, pos.y, size, Letter.LINE_COLOR);
+                Letter.drawNumSign(model, n, pos.x, pos.y, size, Letter.LINE_COLOR, -1, -1, color);
                 break;
             }
 
             case NumIndicatorIndicatorType.MULTIPLIER:
             {
-                GrScreen.setColor(alpha, alpha, alpha);
-                Letter.drawNumSign(n, pos.x, pos.y, size, Letter.LINE_COLOR, 33, 3);
+                color = new float[] { alpha, alpha, alpha, 1 };
+                Letter.drawNumSign(model, n, pos.x, pos.y, size, Letter.LINE_COLOR, 33, 3, color);
                 break;
             }
         }

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class PlatformPos
 {
@@ -438,32 +438,36 @@ public class Field
             time = time - (TIME_COLOR_INDEX);
     }
 
-    public void draw()
+    public void draw(float[] model)
     {
-        drawPanel();
+        drawPanel(model);
     }
 
-    public void drawSideWalls()
+    public void drawSideWalls(float[] model)
     {
-        glDisable(GL_BLEND);
-        GrScreen.setColor(0, 0, 0, 1);
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(SIDEWALL_X1, SIDEWALL_Y, 0);
-        glVertex3f(SIDEWALL_X2, SIDEWALL_Y, 0);
-        glVertex3f(SIDEWALL_X2, -SIDEWALL_Y, 0);
-        glVertex3f(SIDEWALL_X1, -SIDEWALL_Y, 0);
-        glEnd();
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(-SIDEWALL_X1, SIDEWALL_Y, 0);
-        glVertex3f(-SIDEWALL_X2, SIDEWALL_Y, 0);
-        glVertex3f(-SIDEWALL_X2, -SIDEWALL_Y, 0);
-        glVertex3f(-SIDEWALL_X1, -SIDEWALL_Y, 0);
-        glEnd();
-        glEnable(GL_BLEND);
+        float[] color = null;
+        color = new float[] { 0, 0, 0, 1 };
+        var geometry1 = new Mesh("Field-drawSideWalls-1");
+        int first1 = geometry1.vertexCount;
+        geometry1.Vertex(SIDEWALL_X1, SIDEWALL_Y, 0, color);
+        geometry1.Vertex(SIDEWALL_X2, SIDEWALL_Y, 0, color);
+        geometry1.Vertex(SIDEWALL_X2, -SIDEWALL_Y, 0, color);
+        geometry1.Vertex(SIDEWALL_X1, -SIDEWALL_Y, 0, color);
+        geometry1.Fan(first1, geometry1.vertexCount - first1);
+        Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, 1, false), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.None });
+        var geometry2 = new Mesh("Field-drawSideWalls-2");
+        int first2 = geometry2.vertexCount;
+        geometry2.Vertex(-SIDEWALL_X1, SIDEWALL_Y, 0, color);
+        geometry2.Vertex(-SIDEWALL_X2, SIDEWALL_Y, 0, color);
+        geometry2.Vertex(-SIDEWALL_X2, -SIDEWALL_Y, 0, color);
+        geometry2.Vertex(-SIDEWALL_X1, -SIDEWALL_Y, 0, color);
+        geometry2.Fan(first2, geometry2.vertexCount - first2);
+        Gfx.Draw(geometry2.count, geometry2.Bindings(model, null, 1, false), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.None });
     }
 
-    public void drawPanel()
+    public void drawPanel(float[] model)
     {
+        float[] color = null;
         int ci = GameMath.integer(time);
         int nci = ci + 1;
         if (nci >= TIME_COLOR_INDEX)
@@ -480,7 +484,8 @@ public class Field
         if (by < 0)
             by = by + (BLOCK_SIZE_Y);
         sy = sy + (BLOCK_WIDTH);
-        glBegin(GL_QUADS);
+        var geometry1 = new Mesh("Field-drawPanel-1");
+        int first1 = geometry1.vertexCount;
         for (int y = -1; y < SCREEN_BLOCK_SIZE_Y + NEXT_BLOCK_AREA_SIZE; y++)
         {
             if (by >= BLOCK_SIZE_Y)
@@ -489,16 +494,16 @@ public class Field
             for (int bx = 0; bx < SCREEN_BLOCK_SIZE_X; bx++)
             {
                 FieldPanel p = panel[bx][by];
-                GrScreen.setColor(baseColor[p.ci][0] * p.outlineR * 0.66f, baseColor[p.ci][1] * p.og * 0.66f, baseColor[p.ci][2] * p.ob * 0.66f);
-                glVertex3f(sx + p.x, sy - p.y, p.z);
-                glVertex3f(sx + p.x + PANEL_WIDTH, sy - p.y, p.z);
-                glVertex3f(sx + p.x + PANEL_WIDTH, sy - p.y - PANEL_WIDTH, p.z);
-                glVertex3f(sx + p.x, sy - p.y - PANEL_WIDTH, p.z);
-                GrScreen.setColor(baseColor[p.ci][0] * 0.33f, baseColor[p.ci][1] * 0.33f, baseColor[p.ci][2] * 0.33f);
-                glVertex2f(sx, sy);
-                glVertex2f(sx + BLOCK_WIDTH, sy);
-                glVertex2f(sx + BLOCK_WIDTH, sy - BLOCK_WIDTH);
-                glVertex2f(sx, sy - BLOCK_WIDTH);
+                color = new float[] { baseColor[p.ci][0] * p.outlineR * 0.66f, baseColor[p.ci][1] * p.og * 0.66f, baseColor[p.ci][2] * p.ob * 0.66f, 1 };
+                geometry1.Vertex(sx + p.x, sy - p.y, p.z, color);
+                geometry1.Vertex(sx + p.x + PANEL_WIDTH, sy - p.y, p.z, color);
+                geometry1.Vertex(sx + p.x + PANEL_WIDTH, sy - p.y - PANEL_WIDTH, p.z, color);
+                geometry1.Vertex(sx + p.x, sy - p.y - PANEL_WIDTH, p.z, color);
+                color = new float[] { baseColor[p.ci][0] * 0.33f, baseColor[p.ci][1] * 0.33f, baseColor[p.ci][2] * 0.33f, 1 };
+                geometry1.Vertex(sx, sy, 0, color);
+                geometry1.Vertex(sx + BLOCK_WIDTH, sy, 0, color);
+                geometry1.Vertex(sx + BLOCK_WIDTH, sy - BLOCK_WIDTH, 0, color);
+                geometry1.Vertex(sx, sy - BLOCK_WIDTH, 0, color);
                 sx = sx + (BLOCK_WIDTH);
             }
 
@@ -506,7 +511,8 @@ public class Field
             by++;
         }
 
-        glEnd();
+        geometry1.Quads(first1, geometry1.vertexCount - first1);
+        Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
     }
 
     public static int[][] degBlockOfs = new int[][]

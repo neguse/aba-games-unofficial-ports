@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
 
 public class Enemy : Actor
 {
@@ -72,9 +71,9 @@ public class Enemy : Actor
         exists = false;
     }
 
-    public override void draw()
+    public override void draw(float[] model, Mesh particles = null)
     {
-        spec.draw(_state);
+        spec.draw(model, _state);
     }
 
     public EnemyState state
@@ -195,12 +194,12 @@ public class EnemyState
         this.enemies = enemies;
         for (int index0 = 0; index0 < TURRET_GROUP_MAX; index0++)
         {
-            turretGroup[index0] = new TurretGroup(field, bullets, ship, sparks, smokes, fragments, enemy);
+            turretGroup[index0] = new TurretGroup(field, bullets, ship, sparks, smokes, fragments, enemy, "turret-" + enemy.poolIndex.ToString() + "-" + index0.ToString());
         }
 
         for (int index1 = 0; index1 < MOVING_TURRET_GROUP_MAX; index1++)
         {
-            movingTurretGroup[index1] = new MovingTurretGroup(field, bullets, ship, sparks, smokes, fragments, enemy);
+            movingTurretGroup[index1] = new MovingTurretGroup(field, bullets, ship, sparks, smokes, fragments, enemy, "moving-turret-" + enemy.poolIndex.ToString() + "-" + index1.ToString());
         }
     }
 
@@ -550,34 +549,34 @@ public class EnemyState
             movingTurretGroup[i].remove();
     }
 
-    public void draw()
+    public void draw(float[] model, float[] color = null)
     {
-        glPushMatrix();
+        float[] parent1 = model;
         if ((destroyedCnt < 0) && (damagedCnt > 0))
         {
             damagedPos.x = pos.x + rand.nextSignedFloat(damagedCnt * 0.01f);
             damagedPos.y = pos.y + rand.nextSignedFloat(damagedCnt * 0.01f);
-            GrScreen.glTranslate(damagedPos);
+            model = Transform.Translate(model, damagedPos.x, damagedPos.y, 0);
         }
         else
         {
-            GrScreen.glTranslate(pos);
+            model = Transform.Translate(model, pos.x, pos.y, 0);
         }
 
-        glRotatef(-deg * 180 / PI, 0, 0, 1);
+        model = Transform.Rotate(model, -deg * 180 / PI, 0, 0, 1);
         if (destroyedCnt >= 0)
-            spec.destroyedShape.draw();
+            spec.destroyedShape.draw(model, color);
         else if (!damaged)
-            spec.shape.draw();
+            spec.shape.draw(model);
         else
-            spec.damagedShape.draw();
+            spec.damagedShape.draw(model);
         if (destroyedCnt < 0)
-            spec.bridgeShape.draw();
-        glPopMatrix();
+            spec.bridgeShape.draw(Transform.Scale(model, spec.shape.size, spec.shape.size, spec.shape.size));
+        model = parent1;
         if (destroyedCnt >= 0)
             return;
         for (int i = 0; i < spec.turretGroupNum; i++)
-            turretGroup[i].draw();
+            turretGroup[i].draw(model);
         if (multiplier > 1)
         {
             float ox = 0, oy = 0;
@@ -592,7 +591,7 @@ public class EnemyState
                 oy = oy - (1.25f);
             }
 
-            Letter.drawNumSign(GameMath.integer((multiplier * 1000)), pos.x + ox, pos.y + oy, 0.33f, 1, 33, 3);
+            Letter.drawNumSign(model, GameMath.integer((multiplier * 1000)), pos.x + ox, pos.y + oy, 0.33f, 1, 33, 3);
         }
     }
 }
@@ -839,9 +838,9 @@ public abstract class EnemySpec
         return es.move();
     }
 
-    public virtual void draw(EnemyState es)
+    public virtual void draw(float[] model, EnemyState es, float[] color = null)
     {
-        es.draw();
+        es.draw(model, color);
     }
 
     public float size
@@ -1418,11 +1417,11 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
         return true;
     }
 
-    public override void draw(EnemyState es)
+    public override void draw(float[] model, EnemyState es, float[] color = null)
     {
         if (es.destroyedCnt >= 0)
-            GrScreen.setColor(EnemyShape.MIDDLE_COLOR_R * (1 - (float)es.destroyedCnt / SINK_INTERVAL) * 0.5f, EnemyShape.MIDDLE_COLOR_G * (1 - (float)es.destroyedCnt / SINK_INTERVAL) * 0.5f, EnemyShape.MIDDLE_COLOR_B * (1 - (float)es.destroyedCnt / SINK_INTERVAL) * 0.5f);
-        base.draw(es);
+            color = new float[] { EnemyShape.MIDDLE_COLOR_R * (1 - (float)es.destroyedCnt / SINK_INTERVAL) * 0.5f, EnemyShape.MIDDLE_COLOR_G * (1 - (float)es.destroyedCnt / SINK_INTERVAL) * 0.5f, EnemyShape.MIDDLE_COLOR_B * (1 - (float)es.destroyedCnt / SINK_INTERVAL) * 0.5f, 1 };
+        base.draw(model, es, color);
     }
 
     public override int score()

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Ship
 {
@@ -162,37 +162,40 @@ public class Ship
             boat[i].destroyedBoat();
     }
 
-    public void draw()
+    public void draw(float[] model)
     {
+        float[] color = null;
         for (int i = 0; i < boatNum; i++)
-            boat[i].draw();
+            boat[i].draw(model);
         if ((gameMode == InGameStateGameMode.DOUBLE_PLAY) && boat[0].hasCollision())
         {
-            GrScreen.setColor(0.5f, 0.5f, 0.9f, 0.8f);
-            glBegin(GL_LINE_STRIP);
-            glVertex2f(boat[0].pos.x, boat[0].pos.y);
-            GrScreen.setColor(0.5f, 0.5f, 0.9f, 0.3f);
-            glVertex2f(midstPos().x, midstPos().y);
-            GrScreen.setColor(0.5f, 0.5f, 0.9f, 0.8f);
-            glVertex2f(boat[1].pos.x, boat[1].pos.y);
-            glEnd();
-            glPushMatrix();
-            GrScreen.glTranslate(midstPos());
-            glRotatef(-degAmongBoats() * 180 / PI, 0, 0, 1);
-            bridgeShape.draw();
-            glPopMatrix();
+            color = new float[] { 0.5f, 0.5f, 0.9f, 0.8f };
+            var geometry1 = new Mesh("ship-link");
+            int first1 = geometry1.vertexCount;
+            geometry1.Vertex(boat[0].pos.x, boat[0].pos.y, 0, color);
+            color = new float[] { 0.5f, 0.5f, 0.9f, 0.3f };
+            geometry1.Vertex(midstPos().x, midstPos().y, 0, color);
+            color = new float[] { 0.5f, 0.5f, 0.9f, 0.8f };
+            geometry1.Vertex(boat[1].pos.x, boat[1].pos.y, 0, color);
+            geometry1.LineStrip(first1, geometry1.vertexCount - first1);
+            Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+            float[] parent1 = model;
+            model = Transform.Translate(model, midstPos().x, midstPos().y, 0);
+            model = Transform.Rotate(model, -degAmongBoats() * 180 / PI, 0, 0, 1);
+            bridgeShape.draw(model);
+            model = parent1;
         }
     }
 
-    public void drawFront()
+    public void drawFront(float[] model)
     {
         for (int i = 0; i < boatNum; i++)
-            boat[i].drawFront();
+            boat[i].drawFront(model);
     }
 
-    public void drawShape()
+    public void drawShape(float[] model)
     {
-        boat[0].drawShape();
+        boat[0].drawShape(model);
     }
 
     public float scrollSpeedBase
@@ -1241,84 +1244,93 @@ public class Boat
             return true;
     }
 
-    public void draw()
+    public void draw(float[] model)
     {
+        float[] color = null;
         if (cnt < -INVINCIBLE_CNT)
             return;
         if (fireDeg < 99999)
         {
-            GrScreen.setColor(0.5f, 0.9f, 0.7f, 0.4f);
-            glBegin(GL_LINE_STRIP);
-            glVertex2f(_pos.x, _pos.y);
-            GrScreen.setColor(0.5f, 0.9f, 0.7f, 0.8f);
-            glVertex2f(_pos.x + sin(fireDeg) * 20, _pos.y + cos(fireDeg) * 20);
-            glEnd();
+            color = new float[] { 0.5f, 0.9f, 0.7f, 0.4f };
+            var geometry1 = new Mesh("boat-aim-" + idx.ToString());
+            int first1 = geometry1.vertexCount;
+            geometry1.Vertex(_pos.x, _pos.y, 0, color);
+            color = new float[] { 0.5f, 0.9f, 0.7f, 0.8f };
+            geometry1.Vertex(_pos.x + sin(fireDeg) * 20, _pos.y + cos(fireDeg) * 20, 0, color);
+            geometry1.LineStrip(first1, geometry1.vertexCount - first1);
+            Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
         }
 
         if ((cnt < 0) && ((-cnt % 32) < 16))
             return;
-        glPushMatrix();
-        GrScreen.glTranslate(pos);
-        glRotatef(-deg * 180 / PI, 0, 0, 1);
-        _shape.draw();
-        bridgeShape.draw();
+        model = Transform.Translate(model, pos.x, pos.y, 0);
+        model = Transform.Rotate(model, -deg * 180 / PI, 0, 0, 1);
+        _shape.draw(model);
+        bridgeShape.draw(model);
         if (shieldCnt > 0)
         {
             float ss = 0.66f;
             if (shieldCnt < 120)
                 ss = ss * ((float)shieldCnt / 120);
-            glScalef(ss, ss, ss);
-            glRotatef(shieldCnt * 5, 0, 0, 1);
-            shieldShape.draw();
+            model = Transform.Scale(model, ss, ss, ss);
+            model = Transform.Rotate(model, shieldCnt * 5, 0, 0, 1);
+            shieldShape.draw(model);
         }
 
-        glPopMatrix();
     }
 
-    public void drawFront()
+    public void drawFront(float[] model)
     {
+        float[] color = null;
         if (cnt < -INVINCIBLE_CNT)
             return;
         if (gameMode == InGameStateGameMode.MOUSE)
         {
-            GrScreen.setColor(0.7f, 0.9f, 0.8f, 1.0f);
-            GrScreen.lineWidth(2);
-            drawSight(mouseInput.x, mouseInput.y, 0.3f);
+            color = new float[] { 0.7f, 0.9f, 0.8f, 1.0f };
+            float width = 2;
+            drawSight(model, mouseInput.x, mouseInput.y, 0.3f, color, width, "mouse-sight-inner");
             float ss = 0.9f - 0.8f * ((cnt + 1024) % 32) / 32;
-            GrScreen.setColor(0.5f, 0.9f, 0.7f, 0.8f);
-            drawSight(mouseInput.x, mouseInput.y, ss);
-            GrScreen.lineWidth(1);
+            color = new float[] { 0.5f, 0.9f, 0.7f, 0.8f };
+            drawSight(model, mouseInput.x, mouseInput.y, ss, color, width, "mouse-sight-outer");
         }
     }
 
-    public void drawSight(float x, float y, float size)
+    public void drawSight(float[] model, float x, float y, float size, float[] color, float width, string key)
     {
-        glBegin(GL_LINE_STRIP);
-        glVertex2f(x - size, y - size * 0.5f);
-        glVertex2f(x - size, y - size);
-        glVertex2f(x - size * 0.5f, y - size);
-        glEnd();
-        glBegin(GL_LINE_STRIP);
-        glVertex2f(x + size, y - size * 0.5f);
-        glVertex2f(x + size, y - size);
-        glVertex2f(x + size * 0.5f, y - size);
-        glEnd();
-        glBegin(GL_LINE_STRIP);
-        glVertex2f(x + size, y + size * 0.5f);
-        glVertex2f(x + size, y + size);
-        glVertex2f(x + size * 0.5f, y + size);
-        glEnd();
-        glBegin(GL_LINE_STRIP);
-        glVertex2f(x - size, y + size * 0.5f);
-        glVertex2f(x - size, y + size);
-        glVertex2f(x - size * 0.5f, y + size);
-        glEnd();
+        var geometry1 = new Mesh(key + "-1");
+        int first1 = geometry1.vertexCount;
+        geometry1.Vertex(x - size, y - size * 0.5f, 0, color);
+        geometry1.Vertex(x - size, y - size, 0, color);
+        geometry1.Vertex(x - size * 0.5f, y - size, 0, color);
+        geometry1.LineStrip(first1, geometry1.vertexCount - first1);
+        Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, width, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        var geometry2 = new Mesh(key + "-2");
+        int first2 = geometry2.vertexCount;
+        geometry2.Vertex(x + size, y - size * 0.5f, 0, color);
+        geometry2.Vertex(x + size, y - size, 0, color);
+        geometry2.Vertex(x + size * 0.5f, y - size, 0, color);
+        geometry2.LineStrip(first2, geometry2.vertexCount - first2);
+        Gfx.Draw(geometry2.count, geometry2.Bindings(model, null, width, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        var geometry3 = new Mesh(key + "-3");
+        int first3 = geometry3.vertexCount;
+        geometry3.Vertex(x + size, y + size * 0.5f, 0, color);
+        geometry3.Vertex(x + size, y + size, 0, color);
+        geometry3.Vertex(x + size * 0.5f, y + size, 0, color);
+        geometry3.LineStrip(first3, geometry3.vertexCount - first3);
+        Gfx.Draw(geometry3.count, geometry3.Bindings(model, null, width, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        var geometry4 = new Mesh(key + "-4");
+        int first4 = geometry4.vertexCount;
+        geometry4.Vertex(x - size, y + size * 0.5f, 0, color);
+        geometry4.Vertex(x - size, y + size, 0, color);
+        geometry4.Vertex(x - size * 0.5f, y + size, 0, color);
+        geometry4.LineStrip(first4, geometry4.vertexCount - first4);
+        Gfx.Draw(geometry4.count, geometry4.Bindings(model, null, width, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
     }
 
-    public void drawShape()
+    public void drawShape(float[] model)
     {
-        _shape.draw();
-        bridgeShape.draw();
+        _shape.draw(model);
+        bridgeShape.draw(model);
     }
 
     public void clearBullets()

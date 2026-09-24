@@ -74,7 +74,7 @@ subprocess.run([sys.executable, 'tools/compile_gunroar.py', str(gr)], check=True
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'gunroar',
                 '--output', str(target / 'game.lua')], check=True)
 shutil.copy2('games/gunroar/index.html', target / 'index.html')
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/title'], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/gunroar/game'], check=True)
 (target / 'audio').mkdir(exist_ok=True)
 for directory in ['chunks', 'musics']:
     for audio in (gr / 'sounds' / directory).iterdir():

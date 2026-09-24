@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Crystal : Actor
 {
@@ -65,7 +65,7 @@ public class Crystal : Actor
         pos.opAddAssign(vel);
     }
 
-    public override void draw()
+    public override void draw(float[] model, Mesh particles = null)
     {
         float r = 0.25f;
         float d = cnt * 0.1f;
@@ -73,10 +73,10 @@ public class Crystal : Actor
             r = r * (((float)(COUNT - cnt)) / (COUNT - PULLIN_COUNT));
         for (int i = 0; i < 4; i++)
         {
-            glPushMatrix();
-            glTranslatef(pos.x + sin(d) * r, pos.y + cos(d) * r, 0);
-            _shape.draw();
-            glPopMatrix();
+            float[] parent1 = model;
+            model = Transform.Translate(model, pos.x + sin(d) * r, pos.y + cos(d) * r, 0);
+            _shape.draw(model, null, Gfx.Blend.Alpha);
+            model = parent1;
             d = d + (PI / 2);
         }
     }

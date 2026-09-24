@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class TitleManager
 {
@@ -12,7 +12,7 @@ public class TitleManager
     public RecordableMouse mouse;
     public Field field;
     public GameManager gameManager;
-    public DisplayList displayList;
+    public Mesh logo, decoration;
     public int cnt;
     public ReplayData _replayData;
     public ReplayData replayData
@@ -37,42 +37,44 @@ public class TitleManager
 
     public void init()
     {
-        displayList = new DisplayList(1);
-        displayList.beginNewList();
-        GunroarTitleImage.draw();
-        GrScreen.lineWidth(3);
-        glBegin(GL_LINE_STRIP);
-        glVertex2f(-80, -7);
-        glVertex2f(-20, -7);
-        glVertex2f(10, -70);
-        glEnd();
-        glBegin(GL_LINE_STRIP);
-        glVertex2f(45, -2);
-        glVertex2f(-15, -2);
-        glVertex2f(-45, 61);
-        glEnd();
-        glBegin(GL_TRIANGLE_FAN);
-        GrScreen.setColor(1, 1, 1);
-        glVertex2f(-19, -6);
-        GrScreen.setColor(0, 0, 0);
-        glVertex2f(-79, -6);
-        glVertex2f(11, -69);
-        glEnd();
-        glBegin(GL_TRIANGLE_FAN);
-        GrScreen.setColor(1, 1, 1);
-        glVertex2f(-16, -3);
-        GrScreen.setColor(0, 0, 0);
-        glVertex2f(44, -3);
-        glVertex2f(-46, 60);
-        glEnd();
-        GrScreen.lineWidth(1);
-        displayList.endNewList();
+        logo = new Mesh("title-logo");
+        logo.Vertex(0, -63, 0, new float[] { 0, 0, 0, 1 });
+        logo.Vertex(255, -63, 0, new float[] { 1, 0, 0, 1 });
+        logo.Vertex(255, 0, 0, new float[] { 1, 1, 0, 1 });
+        logo.Vertex(0, 0, 0, new float[] { 0, 1, 0, 1 });
+        logo.Quads(0, 4);
+        decoration = new Mesh("title-decoration");
+        float[] color = new float[] { 1, 1, 1, 1 };
+        int first1 = decoration.vertexCount;
+        decoration.Vertex(-80, -7, 0, color);
+        decoration.Vertex(-20, -7, 0, color);
+        decoration.Vertex(10, -70, 0, color);
+        decoration.LineStrip(first1, decoration.vertexCount - first1);
+        int first2 = decoration.vertexCount;
+        decoration.Vertex(45, -2, 0, color);
+        decoration.Vertex(-15, -2, 0, color);
+        decoration.Vertex(-45, 61, 0, color);
+        decoration.LineStrip(first2, decoration.vertexCount - first2);
+        int first3 = decoration.vertexCount;
+        color = new float[] { 1, 1, 1, 1 };
+        decoration.Vertex(-19, -6, 0, color);
+        color = new float[] { 0, 0, 0, 1 };
+        decoration.Vertex(-79, -6, 0, color);
+        decoration.Vertex(11, -69, 0, color);
+        decoration.Fan(first3, decoration.vertexCount - first3);
+        int first4 = decoration.vertexCount;
+        color = new float[] { 1, 1, 1, 1 };
+        decoration.Vertex(-16, -3, 0, color);
+        color = new float[] { 0, 0, 0, 1 };
+        decoration.Vertex(44, -3, 0, color);
+        decoration.Vertex(-46, 60, 0, color);
+        decoration.Fan(first4, decoration.vertexCount - first4);
         gameMode = prefManager.prefData.gameMode;
     }
 
     public void close()
     {
-        displayList.close();
+        logo = null; decoration = null;
     }
 
     public void start()
@@ -130,11 +132,11 @@ public class TitleManager
         cnt++;
     }
 
-    public void draw()
+    public void draw(float[] model)
     {
         if (gameMode < 0)
         {
-            Letter.drawString("REPLAY", 3, 400, 5);
+            Letter.drawString(model, "REPLAY", 3, 400, 5);
             return;
         }
 
@@ -146,26 +148,28 @@ public class TitleManager
                 ts = 0.5f;
         }
 
-        glPushMatrix();
-        glTranslatef(80 * ts, 240, 0);
-        glScalef(ts, ts, 0);
-        displayList.call();
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, 80 * ts, 240, 0);
+        model = Transform.Scale(model, ts, ts, 0);
+        Gfx.Draw(logo.count, logo.Bindings(model, null, 1, true, 0, GunroarTitleImage.title),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        Gfx.Draw(decoration.count, decoration.Bindings(model, null, 3, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        model = parent1;
         if (cnt > 150)
         {
-            Letter.drawString("HIGH", 3, 305, 4, LetterDirection.TO_RIGHT, 1);
-            Letter.drawNum(prefManager.prefData.highScore(gameMode), 80, 320, 4, 0, 9);
+            Letter.drawString(model, "HIGH", 3, 305, 4, LetterDirection.TO_RIGHT, 1);
+            Letter.drawNum(model, prefManager.prefData.highScore(gameMode), 80, 320, 4, 0, 9);
         }
 
         if (cnt > 200)
         {
-            Letter.drawString("LAST", 3, 345, 4, LetterDirection.TO_RIGHT, 1);
+            Letter.drawString(model, "LAST", 3, 345, 4, LetterDirection.TO_RIGHT, 1);
             int ls = 0;
             if (_replayData != null)
                 ls = _replayData.score;
-            Letter.drawNum(ls, 80, 360, 4, 0, 9);
+            Letter.drawNum(model, ls, 80, 360, 4, 0, 9);
         }
 
-        Letter.drawString(InGameState.gameModeText[gameMode], 3, 400, 5);
+        Letter.drawString(model, InGameState.gameModeText[gameMode], 3, 400, 5);
     }
 }

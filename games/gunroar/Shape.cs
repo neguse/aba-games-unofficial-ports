@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
 
 public class BaseShape : DrawableShape
 {
@@ -33,27 +32,28 @@ public class BaseShape : DrawableShape
         initializeShape();
     }
 
-    public override void createDisplayList()
+    public override void createMesh()
     {
+        float[] color = null;
         float height = size * 0.5f;
         float z = 0;
         float sz = 1;
         if (type == BaseShapeShapeType.BRIDGE)
             z = z + (height);
         if (type != BaseShapeShapeType.SHIP_DESTROYED)
-            GrScreen.setColor(r, g, b);
-        glBegin(GL_LINE_LOOP);
+            color = new float[] { r, g, b, 1 };
+        int first1 = mesh.vertexCount;
         if (type != BaseShapeShapeType.BRIDGE)
-            createLoop(sz, z, false, true);
+            createLoop(color, sz, z, false, true);
         else
-            createSquareLoop(sz, z, false, 1);
-        glEnd();
+            createSquareLoop(color, sz, z, false, 1);
+        mesh.LineStrip(first1, mesh.vertexCount - first1, true);
         if ((((type != BaseShapeShapeType.SHIP_SHADOW) && (type != BaseShapeShapeType.SHIP_DESTROYED)) && (type != BaseShapeShapeType.PLATFORM_DESTROYED)) && (type != BaseShapeShapeType.TURRET_DESTROYED))
         {
-            GrScreen.setColor(r * 0.4f, g * 0.4f, b * 0.4f);
-            glBegin(GL_TRIANGLE_FAN);
-            createLoop(sz, z, true);
-            glEnd();
+            color = new float[] { r * 0.4f, g * 0.4f, b * 0.4f, 1 };
+            int first2 = mesh.vertexCount;
+            createLoop(color, sz, z, true);
+            mesh.Fan(first2, mesh.vertexCount - first2);
         }
 
         switch (type)
@@ -65,14 +65,14 @@ public class BaseShape : DrawableShape
             case BaseShapeShapeType.SHIP_DESTROYED:
             {
                 if (type != BaseShapeShapeType.SHIP_DESTROYED)
-                    GrScreen.setColor(r * 0.4f, g * 0.4f, b * 0.4f);
+                    color = new float[] { r * 0.4f, g * 0.4f, b * 0.4f, 1 };
                 for (int i = 0; i < 3; i++)
                 {
                     z = z - (height / 4);
                     sz = sz - (0.2f);
-                    glBegin(GL_LINE_LOOP);
-                    createLoop(sz, z);
-                    glEnd();
+                    int first3 = mesh.vertexCount;
+                    createLoop(color, sz, z);
+                    mesh.LineStrip(first3, mesh.vertexCount - first3, true);
                 }
 
                 break;
@@ -82,15 +82,15 @@ public class BaseShape : DrawableShape
             case BaseShapeShapeType.PLATFORM_DAMAGED:
             case BaseShapeShapeType.PLATFORM_DESTROYED:
             {
-                GrScreen.setColor(r * 0.4f, g * 0.4f, b * 0.4f);
+                color = new float[] { r * 0.4f, g * 0.4f, b * 0.4f, 1 };
                 for (int i = 0; i < 3; i++)
                 {
                     z = z - (height / 3);
                     foreach (Vector pp in pillarPos)
                     {
-                        glBegin(GL_LINE_LOOP);
-                        createPillar(pp, size * 0.2f, z);
-                        glEnd();
+                        int first4 = mesh.vertexCount;
+                        createPillar(color, pp, size * 0.2f, z);
+                        mesh.LineStrip(first4, mesh.vertexCount - first4, true);
                     }
                 }
 
@@ -101,22 +101,22 @@ public class BaseShape : DrawableShape
             case BaseShapeShapeType.TURRET:
             case BaseShapeShapeType.TURRET_DAMAGED:
             {
-                GrScreen.setColor(r * 0.6f, g * 0.6f, b * 0.6f);
+                color = new float[] { r * 0.6f, g * 0.6f, b * 0.6f, 1 };
                 z = z + (height);
                 sz = sz - (0.33f);
-                glBegin(GL_LINE_LOOP);
+                int first5 = mesh.vertexCount;
                 if (type == BaseShapeShapeType.BRIDGE)
-                    createSquareLoop(sz, z);
+                    createSquareLoop(color, sz, z);
                 else
-                    createSquareLoop(sz, z / 2, false, 3);
-                glEnd();
-                GrScreen.setColor(r * 0.25f, g * 0.25f, b * 0.25f);
-                glBegin(GL_TRIANGLE_FAN);
+                    createSquareLoop(color, sz, z / 2, false, 3);
+                mesh.LineStrip(first5, mesh.vertexCount - first5, true);
+                color = new float[] { r * 0.25f, g * 0.25f, b * 0.25f, 1 };
+                int first6 = mesh.vertexCount;
                 if (type == BaseShapeShapeType.BRIDGE)
-                    createSquareLoop(sz, z, true);
+                    createSquareLoop(color, sz, z, true);
                 else
-                    createSquareLoop(sz, z / 2, true, 3);
-                glEnd();
+                    createSquareLoop(color, sz, z / 2, true, 3);
+                mesh.Fan(first6, mesh.vertexCount - first6);
                 break;
             }
 
@@ -127,7 +127,7 @@ public class BaseShape : DrawableShape
         }
     }
 
-    public void createLoop(float s, float z, bool backToFirst = false, bool record = false)
+    public void createLoop(float[] color, float s, float z, bool backToFirst = false, bool record = false)
     {
         float d = 0;
         int pn = 0;
@@ -156,7 +156,7 @@ public class BaseShape : DrawableShape
             sy = sy * (size * s);
             float px = cx * (1 - spinyRatio) + sx * spinyRatio;
             float py = cy * (1 - spinyRatio) + sy * spinyRatio;
-            glVertex3f(px, py, z);
+            mesh.Vertex(px, py, z, color);
             if (backToFirst && firstPoint)
             {
                 fpx = px;
@@ -174,10 +174,10 @@ public class BaseShape : DrawableShape
         }
 
         if (backToFirst)
-            glVertex3f(fpx, fpy, z);
+            mesh.Vertex(fpx, fpy, z, color);
     }
 
-    public void createSquareLoop(float s, float z, bool backToFirst = false, float yRatio = 1)
+    public void createSquareLoop(float[] color, float s, float z, bool backToFirst = false, float yRatio = 1)
     {
         float d = 0;
         int pn = 0;
@@ -192,17 +192,17 @@ public class BaseShape : DrawableShape
             float py = cos(d) * size * s;
             if (py > 0)
                 py = py * (yRatio);
-            glVertex3f(px, py, z);
+            mesh.Vertex(px, py, z, color);
         }
     }
 
-    public void createPillar(Vector p, float s, float z)
+    public void createPillar(float[] color, Vector p, float s, float z)
     {
         float d = 0;
         for (int i = 0; i < PILLAR_POINT_NUM; i++)
         {
             d = PI * 2 * i / PILLAR_POINT_NUM;
-            glVertex3f(sin(d) * s + p.x, cos(d) * s + p.y, z);
+            mesh.Vertex(sin(d) * s + p.x, cos(d) * s + p.y, z, color);
         }
     }
 
@@ -418,30 +418,30 @@ public class NormalBulletShape : DrawableShape
         initializeShape();
     }
 
-    public override void createDisplayList()
+    public override void createMesh()
     {
-        glDisable(GL_BLEND);
-        GrScreen.setColor(1, 1, 0.3f);
-        glBegin(GL_LINE_STRIP);
-        glVertex3f(0.2f, -0.25f, 0.2f);
-        glVertex3f(0, 0.33f, 0);
-        glVertex3f(-0.2f, -0.25f, -0.2f);
-        glEnd();
-        glBegin(GL_LINE_STRIP);
-        glVertex3f(-0.2f, -0.25f, 0.2f);
-        glVertex3f(0, 0.33f, 0);
-        glVertex3f(0.2f, -0.25f, -0.2f);
-        glEnd();
-        glEnable(GL_BLEND);
-        GrScreen.setColor(0.5f, 0.2f, 0.1f);
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(0, 0.33f, 0);
-        glVertex3f(0.2f, -0.25f, 0.2f);
-        glVertex3f(-0.2f, -0.25f, 0.2f);
-        glVertex3f(-0.2f, -0.25f, -0.2f);
-        glVertex3f(0.2f, -0.25f, -0.2f);
-        glVertex3f(0.2f, -0.25f, 0.2f);
-        glEnd();
+        float[] color = null;
+        color = new float[] { 1, 1, 0.3f, 1 };
+        int first1 = mesh.vertexCount;
+        mesh.Vertex(0.2f, -0.25f, 0.2f, color);
+        mesh.Vertex(0, 0.33f, 0, color);
+        mesh.Vertex(-0.2f, -0.25f, -0.2f, color);
+        mesh.LineStrip(first1, mesh.vertexCount - first1);
+        int first2 = mesh.vertexCount;
+        mesh.Vertex(-0.2f, -0.25f, 0.2f, color);
+        mesh.Vertex(0, 0.33f, 0, color);
+        mesh.Vertex(0.2f, -0.25f, -0.2f, color);
+        mesh.LineStrip(first2, mesh.vertexCount - first2);
+        opaqueCount = mesh.count;
+        color = new float[] { 0.5f, 0.2f, 0.1f, 1 };
+        int first3 = mesh.vertexCount;
+        mesh.Vertex(0, 0.33f, 0, color);
+        mesh.Vertex(0.2f, -0.25f, 0.2f, color);
+        mesh.Vertex(-0.2f, -0.25f, 0.2f, color);
+        mesh.Vertex(-0.2f, -0.25f, -0.2f, color);
+        mesh.Vertex(0.2f, -0.25f, -0.2f, color);
+        mesh.Vertex(0.2f, -0.25f, 0.2f, color);
+        mesh.Fan(first3, mesh.vertexCount - first3);
     }
 }
 
@@ -452,30 +452,30 @@ public class SmallBulletShape : DrawableShape
         initializeShape();
     }
 
-    public override void createDisplayList()
+    public override void createMesh()
     {
-        glDisable(GL_BLEND);
-        GrScreen.setColor(0.6f, 0.9f, 0.3f);
-        glBegin(GL_LINE_STRIP);
-        glVertex3f(0.25f, -0.25f, 0.25f);
-        glVertex3f(0, 0.33f, 0);
-        glVertex3f(-0.25f, -0.25f, -0.25f);
-        glEnd();
-        glBegin(GL_LINE_STRIP);
-        glVertex3f(-0.25f, -0.25f, 0.25f);
-        glVertex3f(0, 0.33f, 0);
-        glVertex3f(0.25f, -0.25f, -0.25f);
-        glEnd();
-        glEnable(GL_BLEND);
-        GrScreen.setColor(0.2f, 0.4f, 0.1f);
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(0, 0.33f, 0);
-        glVertex3f(0.25f, -0.25f, 0.25f);
-        glVertex3f(-0.25f, -0.25f, 0.25f);
-        glVertex3f(-0.25f, -0.25f, -0.25f);
-        glVertex3f(0.25f, -0.25f, -0.25f);
-        glVertex3f(0.25f, -0.25f, 0.25f);
-        glEnd();
+        float[] color = null;
+        color = new float[] { 0.6f, 0.9f, 0.3f, 1 };
+        int first1 = mesh.vertexCount;
+        mesh.Vertex(0.25f, -0.25f, 0.25f, color);
+        mesh.Vertex(0, 0.33f, 0, color);
+        mesh.Vertex(-0.25f, -0.25f, -0.25f, color);
+        mesh.LineStrip(first1, mesh.vertexCount - first1);
+        int first2 = mesh.vertexCount;
+        mesh.Vertex(-0.25f, -0.25f, 0.25f, color);
+        mesh.Vertex(0, 0.33f, 0, color);
+        mesh.Vertex(0.25f, -0.25f, -0.25f, color);
+        mesh.LineStrip(first2, mesh.vertexCount - first2);
+        opaqueCount = mesh.count;
+        color = new float[] { 0.2f, 0.4f, 0.1f, 1 };
+        int first3 = mesh.vertexCount;
+        mesh.Vertex(0, 0.33f, 0, color);
+        mesh.Vertex(0.25f, -0.25f, 0.25f, color);
+        mesh.Vertex(-0.25f, -0.25f, 0.25f, color);
+        mesh.Vertex(-0.25f, -0.25f, -0.25f, color);
+        mesh.Vertex(0.25f, -0.25f, -0.25f, color);
+        mesh.Vertex(0.25f, -0.25f, 0.25f, color);
+        mesh.Fan(first3, mesh.vertexCount - first3);
     }
 }
 
@@ -486,30 +486,30 @@ public class MovingTurretBulletShape : DrawableShape
         initializeShape();
     }
 
-    public override void createDisplayList()
+    public override void createMesh()
     {
-        glDisable(GL_BLEND);
-        GrScreen.setColor(0.7f, 0.5f, 0.9f);
-        glBegin(GL_LINE_STRIP);
-        glVertex3f(0.25f, -0.25f, 0.25f);
-        glVertex3f(0, 0.33f, 0);
-        glVertex3f(-0.25f, -0.25f, -0.25f);
-        glEnd();
-        glBegin(GL_LINE_STRIP);
-        glVertex3f(-0.25f, -0.25f, 0.25f);
-        glVertex3f(0, 0.33f, 0);
-        glVertex3f(0.25f, -0.25f, -0.25f);
-        glEnd();
-        glEnable(GL_BLEND);
-        GrScreen.setColor(0.2f, 0.2f, 0.3f);
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(0, 0.33f, 0);
-        glVertex3f(0.25f, -0.25f, 0.25f);
-        glVertex3f(-0.25f, -0.25f, 0.25f);
-        glVertex3f(-0.25f, -0.25f, -0.25f);
-        glVertex3f(0.25f, -0.25f, -0.25f);
-        glVertex3f(0.25f, -0.25f, 0.25f);
-        glEnd();
+        float[] color = null;
+        color = new float[] { 0.7f, 0.5f, 0.9f, 1 };
+        int first1 = mesh.vertexCount;
+        mesh.Vertex(0.25f, -0.25f, 0.25f, color);
+        mesh.Vertex(0, 0.33f, 0, color);
+        mesh.Vertex(-0.25f, -0.25f, -0.25f, color);
+        mesh.LineStrip(first1, mesh.vertexCount - first1);
+        int first2 = mesh.vertexCount;
+        mesh.Vertex(-0.25f, -0.25f, 0.25f, color);
+        mesh.Vertex(0, 0.33f, 0, color);
+        mesh.Vertex(0.25f, -0.25f, -0.25f, color);
+        mesh.LineStrip(first2, mesh.vertexCount - first2);
+        opaqueCount = mesh.count;
+        color = new float[] { 0.2f, 0.2f, 0.3f, 1 };
+        int first3 = mesh.vertexCount;
+        mesh.Vertex(0, 0.33f, 0, color);
+        mesh.Vertex(0.25f, -0.25f, 0.25f, color);
+        mesh.Vertex(-0.25f, -0.25f, 0.25f, color);
+        mesh.Vertex(-0.25f, -0.25f, -0.25f, color);
+        mesh.Vertex(0.25f, -0.25f, -0.25f, color);
+        mesh.Vertex(0.25f, -0.25f, 0.25f, color);
+        mesh.Fan(first3, mesh.vertexCount - first3);
     }
 }
 
@@ -546,24 +546,24 @@ public class DestructiveBulletShape : DrawableShape, Collidable
     }
 
     public Vector _collision;
-    public override void createDisplayList()
+    public override void createMesh()
     {
-        glDisable(GL_BLEND);
-        GrScreen.setColor(0.9f, 0.9f, 0.6f);
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(0.2f, 0, 0);
-        glVertex3f(0, 0.4f, 0);
-        glVertex3f(-0.2f, 0, 0);
-        glVertex3f(0, -0.4f, 0);
-        glEnd();
-        glEnable(GL_BLEND);
-        GrScreen.setColor(0.7f, 0.5f, 0.4f);
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(0.2f, 0, 0);
-        glVertex3f(0, 0.4f, 0);
-        glVertex3f(-0.2f, 0, 0);
-        glVertex3f(0, -0.4f, 0);
-        glEnd();
+        float[] color = null;
+        color = new float[] { 0.9f, 0.9f, 0.6f, 1 };
+        int first1 = mesh.vertexCount;
+        mesh.Vertex(0.2f, 0, 0, color);
+        mesh.Vertex(0, 0.4f, 0, color);
+        mesh.Vertex(-0.2f, 0, 0, color);
+        mesh.Vertex(0, -0.4f, 0, color);
+        mesh.LineStrip(first1, mesh.vertexCount - first1, true);
+        opaqueCount = mesh.count;
+        color = new float[] { 0.7f, 0.5f, 0.4f, 1 };
+        int first2 = mesh.vertexCount;
+        mesh.Vertex(0.2f, 0, 0, color);
+        mesh.Vertex(0, 0.4f, 0, color);
+        mesh.Vertex(-0.2f, 0, 0, color);
+        mesh.Vertex(0, -0.4f, 0, color);
+        mesh.Fan(first2, mesh.vertexCount - first2);
         _collision = new Vector(0.4f, 0.4f);
     }
 
@@ -588,15 +588,16 @@ public class CrystalShape : DrawableShape
         initializeShape();
     }
 
-    public override void createDisplayList()
+    public override void createMesh()
     {
-        GrScreen.setColor(0.6f, 1, 0.7f);
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(-0.2f, 0.2f, 0);
-        glVertex3f(0.2f, 0.2f, 0);
-        glVertex3f(0.2f, -0.2f, 0);
-        glVertex3f(-0.2f, -0.2f, 0);
-        glEnd();
+        float[] color = null;
+        color = new float[] { 0.6f, 1, 0.7f, 1 };
+        int first1 = mesh.vertexCount;
+        mesh.Vertex(-0.2f, 0.2f, 0, color);
+        mesh.Vertex(0.2f, 0.2f, 0, color);
+        mesh.Vertex(0.2f, -0.2f, 0, color);
+        mesh.Vertex(-0.2f, -0.2f, 0, color);
+        mesh.LineStrip(first1, mesh.vertexCount - first1, true);
     }
 }
 
@@ -607,30 +608,31 @@ public class ShieldShape : DrawableShape
         initializeShape();
     }
 
-    public override void createDisplayList()
+    public override void createMesh()
     {
-        GrScreen.setColor(0.5f, 0.5f, 0.7f);
-        glBegin(GL_LINE_LOOP);
+        float[] color = null;
+        color = new float[] { 0.5f, 0.5f, 0.7f, 1 };
+        int first1 = mesh.vertexCount;
         float d = 0;
         for (int i = 0; i < 8; i++)
         {
-            glVertex3f(sin(d), cos(d), 0);
+            mesh.Vertex(sin(d), cos(d), 0, color);
             d = d + (PI / 4);
         }
 
-        glEnd();
-        glBegin(GL_TRIANGLE_FAN);
-        GrScreen.setColor(0, 0, 0);
-        glVertex3f(0, 0, 0);
+        mesh.LineStrip(first1, mesh.vertexCount - first1, true);
+        int first2 = mesh.vertexCount;
+        color = new float[] { 0, 0, 0, 1 };
+        mesh.Vertex(0, 0, 0, color);
         d = 0;
-        GrScreen.setColor(0.3f, 0.3f, 0.5f);
+        color = new float[] { 0.3f, 0.3f, 0.5f, 1 };
         for (int i = 0; i < 9; i++)
         {
-            glVertex3f(sin(d), cos(d), 0);
+            mesh.Vertex(sin(d), cos(d), 0, color);
             d = d + (PI / 4);
         }
 
-        glEnd();
+        mesh.Fan(first2, mesh.vertexCount - first2);
     }
 }
 
