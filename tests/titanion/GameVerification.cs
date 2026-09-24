@@ -20,7 +20,7 @@ public static class TtnVerification
         foreach (Bullet bullet in game.bullets.actors) if (bullet.exists) value += ";" + bullet.pos().x.ToString() + "," + bullet.pos().y.ToString();
         return value;
     }
-    static void Draw(Frame game) { Drawing.BeginFrame(); game.draw_0(); }
+    static void Draw(Frame game) { game.draw_0(); }
     static void Rules(Frame game, int mode)
     {
         game.startInGame(mode);
@@ -78,17 +78,11 @@ public static class TtnVerification
         Check(Math.Abs(random.nextFloat(1) - 0.8147237f) < 0.000001f, "unsigned MT real conversion");
         random.setSeed(5489); random.nextSignedInt(0);
         Check(random.nextBits() == -795755684, "zero signed bound preserves RNG state");
-        Drawing.BeginFrame(); Drawing.recordBlend = true; Drawing.premultiplyAdditive = true;
         var game = new Frame(); game.init_0(); game.start_0();
-        Draw(game); int titleImages = 0;
-        foreach (DrawBatch batch in Drawing.batches)
-            if (batch.image != null) { titleImages++; Check(batch.vertices.Count == 48, "title uses one textured quad"); }
-        Check(titleImages == 1, "title image survives drawing transforms");
-        Drawing.BeginFrame(); new PlayerShape().draw_3(new Vector3(0, 0, -10), 0, 0);
-        new TriangleParticleShape().draw_3(new Vector3(0, 0, -10), 0, 0);
-        bool alpha = false, additive = false;
-        foreach (DrawBatch batch in Drawing.batches) { if (batch.alphaBlend) alpha = true; else additive = true; }
-        Check(alpha && additive, "display list preserves blend functions");
+        Draw(game);
+        Check(game.title.logo.count == 6, "title uses one textured quad");
+        var playerShape = new PlayerShape();
+        Check(playerShape.mesh.ranges.Count > 0 && playerShape.mesh.ranges[0].material == (int)Lub.Gfx.Blend.Alpha, "player shape preserves alpha material");
         Vector3 circular = game.field.calcCircularPos_2(0, 36);
         Check(Math.Abs(circular.z - 51.2f) < 0.0001f && Math.Abs(circular.y - 24.8f) < 0.0001f, "circular field curve");
         Check(Math.Abs(game.field.normalizeX(game.field.circularDistance() + 3) - 3) < 0.0001f, "circular wrapping");

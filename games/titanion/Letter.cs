@@ -2,33 +2,31 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Letter
 {
-    public static DisplayList displayList;
+    public static Mesh[] meshes = new Mesh[DISPLAY_LIST_NUM];
     public const float LETTER_WIDTH = 2.1f;
     public const float LETTER_HEIGHT = 3.0f;
     public const int LETTER_NUM = 44;
     public const int DISPLAY_LIST_NUM = LETTER_NUM * 3;
     public static void init_0()
     {
-        displayList = new DisplayList(DISPLAY_LIST_NUM);
-        displayList.resetList();
         for (int j = 0; j < 3; j++)
         {
             for (int i = 0; i < LETTER_NUM; i++)
             {
-                displayList.newList();
-                setLetter(i, j);
-                displayList.endList();
+                var mesh = new Mesh("letter-" + (i + j * LETTER_NUM).ToString());
+                setLetter(mesh, Transform.Identity(), null, 0, i, j);
+                meshes[i + j * LETTER_NUM] = mesh;
             }
         }
     }
 
     public static void close()
     {
-        displayList.close();
+        meshes = new Mesh[DISPLAY_LIST_NUM];
     }
 
     public static float getWidth(int n, float s)
@@ -57,29 +55,35 @@ public class Letter
         return s * LETTER_HEIGHT;
     }
 
-    public static void drawLetter_1(int n)
+    public static void drawLetter_1(float[] model, float[] color, Gfx.Blend blend, int n)
     {
-        displayList.call(n);
+        Mesh mesh = meshes[n];
+        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public static void drawLetter_5(int n, float x, float y, float s, float d)
+    public static void drawLetter_5(float[] model, float[] color, Gfx.Blend blend, int n, float x, float y, float s, float d)
     {
-        glPushMatrix();
-        glTranslatef(x, y, 0);
-        glScalef(s, s, s);
-        glRotatef(d, 0, 0, 1);
-        displayList.call(n);
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, x, y, 0);
+        model = Transform.Scale(model, s, s, s);
+        model = Transform.Rotate(model, d, 0, 0, 1);
+        Mesh mesh = meshes[n];
+        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+        model = parent1;
     }
 
-    public static void drawLetterRev(int n, float x, float y, float s, float d)
+    public static void drawLetterRev(float[] model, float[] color, Gfx.Blend blend, int n, float x, float y, float s, float d)
     {
-        glPushMatrix();
-        glTranslatef(x, y, 0);
-        glScalef(s, -s, s);
-        glRotatef(d, 0, 0, 1);
-        displayList.call(n);
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, x, y, 0);
+        model = Transform.Scale(model, s, -s, s);
+        model = Transform.Rotate(model, d, 0, 0, 1);
+        Mesh mesh = meshes[n];
+        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+        model = parent1;
     }
 
     public static int convertCharToInt(string c)
@@ -87,7 +91,7 @@ public class Letter
         return "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ._-+  !/".IndexOf(c.ToUpper());
     }
 
-    public static void drawString(string str, float lx, float y, float s, int d = LetterDirection.TO_RIGHT, bool rev = false, float od = 0, float r = 1, float g = 1, float b = 1)
+    public static void drawString(float[] model, float[] color, Gfx.Blend blend, string str, float lx, float y, float s, int d = LetterDirection.TO_RIGHT, bool rev = false, float od = 0, float r = 1, float g = 1, float b = 1)
     {
         lx = lx + (LETTER_WIDTH * s / 2);
         y = y + (LETTER_HEIGHT * s / 2);
@@ -119,22 +123,22 @@ public class Letter
                 if (((((r == 1)) && ((g == 1)))) && ((b == 1)))
                 {
                     if (rev)
-                        drawLetterRev(idx, x, y, s, ld);
+                        drawLetterRev(model, color, blend, idx, x, y, s, ld);
                     else
-                        drawLetter_5(idx, x, y, s, ld);
+                        drawLetter_5(model, color, blend, idx, x, y, s, ld);
                 }
                 else
                 {
-                    TtnScreen.setColor(r, g, b, 0.5f);
+                    color = new float[] { r, g, b, 0.5f };
                     if (rev)
-                        drawLetterRev(idx + LETTER_NUM, x, y, s, ld);
+                        drawLetterRev(model, color, blend, idx + LETTER_NUM, x, y, s, ld);
                     else
-                        drawLetter_5(idx + LETTER_NUM, x, y, s, ld);
-                    TtnScreen.setColor(r, g, b);
+                        drawLetter_5(model, color, blend, idx + LETTER_NUM, x, y, s, ld);
+                    color = new float[] { r, g, b, 1 };
                     if (rev)
-                        drawLetterRev(idx + LETTER_NUM * 2, x, y, s, ld);
+                        drawLetterRev(model, color, blend, idx + LETTER_NUM * 2, x, y, s, ld);
                     else
-                        drawLetter_5(idx + LETTER_NUM * 2, x, y, s, ld);
+                        drawLetter_5(model, color, blend, idx + LETTER_NUM * 2, x, y, s, ld);
                 }
             }
 
@@ -164,7 +168,7 @@ public class Letter
         }
     }
 
-    public static void drawNum(int num, float lx, float y, float s, int dg = 0, int headChar = -1, int floatDigit = -1)
+    public static void drawNum(float[] model, float[] color, Gfx.Blend blend, int num, float lx, float y, float s, int dg = 0, int headChar = -1, int floatDigit = -1)
     {
         lx = lx + (LETTER_WIDTH * s / 2);
         y = y + (LETTER_HEIGHT * s / 2);
@@ -177,12 +181,12 @@ public class Letter
         {
             if (fd <= 0)
             {
-                drawLetter_5(n % 10, x, y, s, ld);
+                drawLetter_5(model, color, blend, n % 10, x, y, s, ld);
                 x = x - (s * LETTER_WIDTH);
             }
             else
             {
-                drawLetter_5(n % 10, x, y + s * LETTER_WIDTH * 0.25f, s * 0.5f, ld);
+                drawLetter_5(model, color, blend, n % 10, x, y + s * LETTER_WIDTH * 0.25f, s * 0.5f, ld);
                 x = x - (s * LETTER_WIDTH * 0.5f);
             }
 
@@ -193,16 +197,16 @@ public class Letter
                 break;
             if (fd == 0)
             {
-                drawLetter_5(36, x, y + s * LETTER_WIDTH * 0.25f, s * 0.5f, ld);
+                drawLetter_5(model, color, blend, 36, x, y + s * LETTER_WIDTH * 0.25f, s * 0.5f, ld);
                 x = x - (s * LETTER_WIDTH * 0.5f);
             }
         }
 
         if (headChar >= 0)
-            drawLetter_5(headChar, x + s * LETTER_WIDTH * 0.2f, y + s * LETTER_WIDTH * 0.2f, s * 0.6f, ld);
+            drawLetter_5(model, color, blend, headChar, x + s * LETTER_WIDTH * 0.2f, y + s * LETTER_WIDTH * 0.2f, s * 0.6f, ld);
     }
 
-    public static void drawNumSign(int num, float lx, float ly, float s, int headChar = -1, int floatDigit = -1, int type = 0)
+    public static void drawNumSign(float[] model, float[] color, Gfx.Blend blend, int num, float lx, float ly, float s, int headChar = -1, int floatDigit = -1, int type = 0)
     {
         float x = lx;
         float y = ly;
@@ -212,12 +216,12 @@ public class Letter
         {
             if (fd <= 0)
             {
-                drawLetterRev(n % 10 + type * LETTER_NUM, x, y, s, 0);
+                drawLetterRev(model, color, blend, n % 10 + type * LETTER_NUM, x, y, s, 0);
                 x = x - (s * LETTER_WIDTH);
             }
             else
             {
-                drawLetterRev(n % 10 + type * LETTER_NUM, x, y - s * LETTER_WIDTH * 0.25f, s * 0.5f, 0);
+                drawLetterRev(model, color, blend, n % 10 + type * LETTER_NUM, x, y - s * LETTER_WIDTH * 0.25f, s * 0.5f, 0);
                 x = x - (s * LETTER_WIDTH * 0.5f);
             }
 
@@ -227,16 +231,16 @@ public class Letter
             fd--;
             if (fd == 0)
             {
-                drawLetterRev(36 + type * LETTER_NUM, x, y - s * LETTER_WIDTH * 0.25f, s * 0.5f, 0);
+                drawLetterRev(model, color, blend, 36 + type * LETTER_NUM, x, y - s * LETTER_WIDTH * 0.25f, s * 0.5f, 0);
                 x = x - (s * LETTER_WIDTH * 0.5f);
             }
         }
 
         if (headChar >= 0)
-            drawLetterRev(headChar + type * LETTER_NUM, x + s * LETTER_WIDTH * 0.2f, y - s * LETTER_WIDTH * 0.2f, s * 0.6f, 0);
+            drawLetterRev(model, color, blend, headChar + type * LETTER_NUM, x + s * LETTER_WIDTH * 0.2f, y - s * LETTER_WIDTH * 0.2f, s * 0.6f, 0);
     }
 
-    public static void drawTime(int time, float lx, float y, float s)
+    public static void drawTime(float[] model, float[] color, Gfx.Blend blend, int time, float lx, float y, float s)
     {
         int n = time;
         if (n < 0)
@@ -246,12 +250,12 @@ public class Letter
         {
             if (i != 4)
             {
-                drawLetter_5(n % 10, x, y, s, LetterDirection.TO_RIGHT);
+                drawLetter_5(model, color, blend, n % 10, x, y, s, LetterDirection.TO_RIGHT);
                 n = GameMath.integer(n / (10));
             }
             else
             {
-                drawLetter_5(n % 6, x, y, s, LetterDirection.TO_RIGHT);
+                drawLetter_5(model, color, blend, n % 6, x, y, s, LetterDirection.TO_RIGHT);
                 n = GameMath.integer(n / (6));
             }
 
@@ -260,10 +264,10 @@ public class Letter
                 switch (i)
                 {
                     case 3:
-                        drawLetter_5(41, x + s * 1.16f, y, s, LetterDirection.TO_RIGHT);
+                        drawLetter_5(model, color, blend, 41, x + s * 1.16f, y, s, LetterDirection.TO_RIGHT);
                         break;
                     case 5:
-                        drawLetter_5(40, x + s * 1.16f, y, s, LetterDirection.TO_RIGHT);
+                        drawLetter_5(model, color, blend, 40, x + s * 1.16f, y, s, LetterDirection.TO_RIGHT);
                         break;
                     default:
                         break;
@@ -281,7 +285,7 @@ public class Letter
         }
     }
 
-    public static void setLetter(int idx, int type = LetterShape.NORMAL)
+    public static void setLetter(Mesh mesh, float[] model, float[] color, int material, int idx, int type = LetterShape.NORMAL)
     {
         float x = 0, y = 0, length = 0, size = 0, t = 0;
         float deg = 0;
@@ -303,64 +307,64 @@ public class Letter
             switch (type)
             {
                 case LetterShape.NORMAL:
-                    drawSegment(x, y, size, length, deg);
+                    appendSegment(mesh, model, color, material, x, y, size, length, deg);
                     break;
                 case LetterShape.POLYGON:
-                    drawSegmentPolygon(x, y, size, length, deg);
+                    appendSegmentPolygon(mesh, model, color, material, x, y, size, length, deg);
                     break;
                 case LetterShape.LINE:
-                    drawSegmentLine(x, y, size, length, deg);
+                    appendSegmentLine(mesh, model, color, material, x, y, size, length, deg);
                     break;
             }
         }
     }
 
-    public static void drawSegment(float x, float y, float width, float height, float deg)
+    public static void appendSegment(Mesh mesh, float[] model, float[] color, int material, float x, float y, float width, float height, float deg)
     {
-        glPushMatrix();
-        glTranslatef(x - width / 2, y, 0);
-        glRotatef(deg, 0, 0, 1);
-        TtnScreen.setColor(1, 1, 1, 0.5f);
-        glBegin(GL_TRIANGLE_FAN);
-        drawSegmentPart(width, height);
-        glEnd();
-        TtnScreen.setColor(1, 1, 1);
-        glBegin(GL_LINE_LOOP);
-        drawSegmentPart(width, height);
-        glEnd();
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, x - width / 2, y, 0);
+        model = Transform.Rotate(model, deg, 0, 0, 1);
+        color = new float[] { 1, 1, 1, 0.5f };
+        int part2 = mesh.vertexCount; int face2 = mesh.count;
+        appendSegmentPart(mesh, model, color, material, width, height);
+        mesh.Fan(part2, mesh.vertexCount - part2); mesh.AddRange(face2, material);
+        color = new float[] { 1, 1, 1, 1 };
+        int part3 = mesh.vertexCount; int face3 = mesh.count;
+        appendSegmentPart(mesh, model, color, material, width, height);
+        mesh.LineStrip(part3, mesh.vertexCount - part3, true); mesh.AddRange(face3, material);
+        model = parent1;
     }
 
-    public static void drawSegmentPolygon(float x, float y, float width, float height, float deg)
+    public static void appendSegmentPolygon(Mesh mesh, float[] model, float[] color, int material, float x, float y, float width, float height, float deg)
     {
-        glPushMatrix();
-        glTranslatef(x - width / 2, y, 0);
-        glRotatef(deg, 0, 0, 1);
-        glBegin(GL_TRIANGLE_FAN);
-        drawSegmentPart(width, height);
-        glEnd();
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, x - width / 2, y, 0);
+        model = Transform.Rotate(model, deg, 0, 0, 1);
+        int part2 = mesh.vertexCount; int face2 = mesh.count;
+        appendSegmentPart(mesh, model, color, material, width, height);
+        mesh.Fan(part2, mesh.vertexCount - part2); mesh.AddRange(face2, material);
+        model = parent1;
     }
 
-    public static void drawSegmentLine(float x, float y, float width, float height, float deg)
+    public static void appendSegmentLine(Mesh mesh, float[] model, float[] color, int material, float x, float y, float width, float height, float deg)
     {
-        glPushMatrix();
-        glTranslatef(x - width / 2, y, 0);
-        glRotatef(deg, 0, 0, 1);
-        glBegin(GL_LINE_LOOP);
-        drawSegmentPart(width, height);
-        glEnd();
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, x - width / 2, y, 0);
+        model = Transform.Rotate(model, deg, 0, 0, 1);
+        int part2 = mesh.vertexCount; int face2 = mesh.count;
+        appendSegmentPart(mesh, model, color, material, width, height);
+        mesh.LineStrip(part2, mesh.vertexCount - part2, true); mesh.AddRange(face2, material);
+        model = parent1;
     }
 
-    public static void drawSegmentPart(float width, float height)
+    public static void appendSegmentPart(Mesh mesh, float[] model, float[] color, int material, float width, float height)
     {
-        glVertex3f(-width / 2, 0, 0);
-        glVertex3f(-width / 3 * 1, -height / 2, 0);
-        glVertex3f(width / 3 * 1, -height / 2, 0);
-        glVertex3f(width / 2, 0, 0);
-        glVertex3f(width / 3 * 1, height / 2, 0);
-        glVertex3f(-width / 3 * 1, height / 2, 0);
+        mesh.Vertex(-width / 2, 0, 0, color, model);
+        mesh.Vertex(-width / 3 * 1, -height / 2, 0, color, model);
+        mesh.Vertex(width / 3 * 1, -height / 2, 0, color, model);
+        mesh.Vertex(width / 2, 0, 0, color, model);
+        mesh.Vertex(width / 3 * 1, height / 2, 0, color, model);
+        mesh.Vertex(-width / 3 * 1, height / 2, 0, color, model);
     }
 
     public static float[][][] spData = new float[][][] { 

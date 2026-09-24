@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public abstract class Token<ST, SP> : Actor where ST : TokenState where SP : TokenSpec<ST>
 {
@@ -43,9 +43,9 @@ public abstract class Token<ST, SP> : Actor where ST : TokenState where SP : Tok
         spec.removed(state);
     }
 
-    public override void draw_0()
+    public override void draw_0(float[] model, float[] color, Gfx.Blend blend)
     {
-        spec.draw_1(state);
+        spec.draw_1(model, color, blend, state);
     }
 
     public virtual Vector pos()
@@ -56,12 +56,15 @@ public abstract class Token<ST, SP> : Actor where ST : TokenState where SP : Tok
 
 public class TokenState
 {
+    static int nextMesh;
+    public string meshKey;
     public bool isInitialized = false;
     public Vector pos;
     public float deg;
     public float speed;
     public TokenState()
     {
+        meshKey = nextMesh.ToString(); nextMesh++;
         pos = new Vector();
     }
 
@@ -102,12 +105,12 @@ public class TokenSpec<T>
         return true;
     }
 
-    public virtual void draw_1(T state)
+    public virtual void draw_1(float[] model, float[] color, Gfx.Blend blend, T state)
     {
         {
             Vector3 p = field.calcCircularPos_1(state.pos);
             float cd = field.calcCircularDeg(state.pos.x);
-            shape.draw_3(p, cd, state.deg);
+            shape.draw_3(model, color, blend, p, cd, state.deg);
         }
     }
 }

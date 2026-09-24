@@ -2,13 +2,12 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Frame
 {
     public const string LAST_REPLAY_FILE_NAME = "last.rpl";
     public Pad pad;
-    public TtnScreen screen;
     public Field field;
     public Player player;
     public PlayerSpec playerSpec;
@@ -28,8 +27,7 @@ public class Frame
         preference = new Preference();
         Letter.init_0();
         pad = new RecordablePad();
-        screen = new TtnScreen();
-        field = new Field(this, screen);
+        field = new Field(this);
         enemies = new EnemyPool(128);
         enemies.field(field);
         bullets = new BulletPool(1024);
@@ -170,36 +168,37 @@ public class Frame
 
     public virtual void draw_0()
     {
-        field.setLookAt();
+        float[] model = field.setLookAt();
+        float[] color = null; Gfx.Blend blend = Gfx.Blend.Additive;
         if ((((gameState.isInGame())) || (((replayData) != null))))
         {
-            pillars.drawOutside();
-            field.drawBack();
-            enemies.drawPillarBack();
-            pillars.drawCenter();
-            enemies.drawBack();
-            field.drawFront();
-            particles.draw_0();
-            bonusParticles.draw_0();
-            enemies.drawFront();
-            player.draw_0();
-            bullets.draw_0();
-            field.beginDrawingFront();
-            gameState.draw_0();
+            pillars.drawOutside(model, color, blend);
+            field.drawBack(model, color, blend);
+            enemies.drawPillarBack(model, color, blend);
+            pillars.drawCenter(model, color, blend);
+            enemies.drawBack(model, color, blend);
+            field.drawFront(model, color, blend);
+            particles.draw_0(model, color, blend);
+            bonusParticles.draw_0(model, color, blend);
+            enemies.drawFront(model, color, blend);
+            player.draw_0(model, color, blend);
+            bullets.draw_0(model, color, blend);
+            model = field.beginDrawingFront();
+            gameState.draw_0(model, color, blend);
             if (gameState.isTitle())
-                title.draw_0();
-            player.drawState_0();
-            field.resetLookAt();
-            gameState.drawLeft();
+                title.draw_0(model, color, blend);
+            player.drawState_0(model, color, blend);
+            model = field.resetLookAt();
+            gameState.drawLeft(model, color, blend);
         }
         else
         {
-            pillars.drawOutside();
-            field.drawBack();
-            field.drawFront();
-            field.beginDrawingFront();
+            pillars.drawOutside(model, color, blend);
+            field.drawBack(model, color, blend);
+            field.drawFront(model, color, blend);
+            model = field.beginDrawingFront();
             if (gameState.isTitle())
-                title.draw_0();
+                title.draw_0(model, color, blend);
         }
     }
 
@@ -524,52 +523,52 @@ public class GameState
         stage.countShotHit();
     }
 
-    public virtual void draw_0()
+    public virtual void draw_0(float[] model, float[] color, Gfx.Blend blend)
     {
-        Letter.drawNum(score, 132, 5, 7);
-        Letter.drawNum(nextExtendScore, 134, 25, 5);
+        Letter.drawNum(model, color, blend, score, 132, 5, 7);
+        Letter.drawNum(model, color, blend, nextExtendScore, 134, 25, 5);
         if (_lastGameScore >= 0)
         {
-            Letter.drawNum(_lastGameScore, 360, 5, 7);
+            Letter.drawNum(model, color, blend, _lastGameScore, 360, 5, 7);
         }
 
-        Letter.drawNum(GameMath.integer((_multiplier * 100)), 626, 4, 9, 3, 33, 2);
+        Letter.drawNum(model, color, blend, GameMath.integer((_multiplier * 100)), 626, 4, 9, 3, 33, 2);
         if (pmDispCnt > 0)
-            Letter.drawNum(proximityMultiplier, 626, 30, 7, 0, 33);
-        stage.drawPhaseNum();
+            Letter.drawNum(model, color, blend, proximityMultiplier, 626, 30, 7, 0, 33);
+        stage.drawPhaseNum(model, color, blend);
         if (isInGame())
         {
             if (!((_isGameOver)))
-                stage.draw_0();
+                stage.draw_0(model, color, blend);
             if (_isGameOver)
             {
                 if (gameOverCnt > 60)
                 {
-                    Letter.drawString("GAME OVER", 214, 200, 12);
-                    stage.drawGameover();
+                    Letter.drawString(model, color, blend, "GAME OVER", 214, 200, 12);
+                    stage.drawGameover(model, color, blend);
                 }
             }
             else if (_paused)
             {
                 if (pauseCnt % 120 < 60)
-                    Letter.drawString("PAUSE", 290, 420, 7);
+                    Letter.drawString(model, color, blend, "PAUSE", 290, 420, 7);
             }
 
-            Letter.drawString(GameState.MODE_NAME[mode_0()], 540, 400, 5);
+            Letter.drawString(model, color, blend, GameState.MODE_NAME[mode_0()], 540, 400, 5);
         }
     }
 
-    public virtual void drawLeft()
+    public virtual void drawLeft(float[] model, float[] color, Gfx.Blend blend)
     {
         for (int i = 0; i < left; i++)
         {
-            glPushMatrix();
-            glTranslatef(-10.2f + i, -7.5f, -10);
-            glScalef(0.6f, 0.6f, 0.6f);
-            playerShape.draw_0();
-            TtnScreen.setColor(0, 0, 0);
-            playerLineShape.draw_0();
-            glPopMatrix();
+            float[] parent1 = model;
+            model = Transform.Translate(model, -10.2f + i, -7.5f, -10);
+            model = Transform.Scale(model, 0.6f, 0.6f, 0.6f);
+            playerShape.draw_0(model, color, blend);
+            color = new float[] { 0, 0, 0, 1 };
+            playerLineShape.draw_0(model, color, blend);
+            model = parent1;
         }
     }
 

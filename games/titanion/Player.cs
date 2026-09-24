@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Player : Token<PlayerState, PlayerSpec>
 {
@@ -87,10 +87,10 @@ public class Player : Token<PlayerState, PlayerSpec>
         spec.destroyed_1(state);
     }
 
-    public virtual void drawState_0()
+    public virtual void drawState_0(float[] model, float[] color, Gfx.Blend blend)
     {
         if ((spec.gameState.mode_0() == GameStateMode.CLASSIC))
-            spec.drawState_1(state);
+            spec.drawState_1(model, color, blend, state);
     }
 
     public virtual void destroyCapturedEnemies(int idx)
@@ -788,40 +788,41 @@ public class PlayerSpec : TokenSpec<PlayerState>
         return gameState.multiplier();
     }
 
-    public override void draw_1(PlayerState ps)
+    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, PlayerState ps)
     {
         {
-            shots.draw_0();
-            capturedEnemiesShots.draw_0();
-            tractorBeam.draw_0();
+            shots.draw_0(model, color, blend);
+            capturedEnemiesShots.draw_0(model, color, blend);
+            tractorBeam.draw_0(model, color, blend);
             if ((!((ps.isActive()))))
                 return;
             Vector3 p = field.calcCircularPos_1(ps.pos);
             float cd = field.calcCircularDeg(ps.pos.x);
             if (ps.hasShape())
-                shape.draw_3(p, cd, ps.deg);
+                shape.draw_3(model, color, blend, p, cd, ps.deg);
             int c = ps.colorCnt % 60;
             float a = 0;
             if (c < 30)
                 a = (float)c / 30;
             else
                 a = 1 - (float)(c - 30) / 30;
-            TtnScreen.setColor(a, a, a);
-            lineShape.draw_3(p, cd, ps.deg);
+            color = new float[] { a, a, a, 1 };
+            lineShape.draw_3(model, color, blend, p, cd, ps.deg);
         }
     }
 
-    public virtual void drawState_1(PlayerState ps)
+    public virtual void drawState_1(float[] model, float[] color, Gfx.Blend blend, PlayerState ps)
     {
         {
-            TtnScreen.setColor(1, 1, 1, 0.5f);
-            glBegin(GL_TRIANGLE_FAN);
-            glVertex3f(15, 400, 0);
-            glVertex3f(15 + ps.captureBeamEnergy * 100, 400, 0);
-            glVertex3f(25 + ps.captureBeamEnergy * 100, 420, 0);
-            glVertex3f(25, 420, 0);
-            glEnd();
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            color = new float[] { 1, 1, 1, 0.5f };
+            var part1 = new Mesh("Player-drawState_1-1");
+            part1.Vertex(15, 400, 0, color);
+            part1.Vertex(15 + ps.captureBeamEnergy * 100, 400, 0, color);
+            part1.Vertex(25 + ps.captureBeamEnergy * 100, 420, 0, color);
+            part1.Vertex(25, 420, 0, color);
+            part1.Fan(0, part1.vertexCount);
+            Gfx.Draw(part1.count, part1.Bindings(model, null, 1, blend == Gfx.Blend.Additive), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+            blend = Gfx.Blend.Alpha;
             float a = 0;
             if (ps.captureBeamEnergy < 1)
             {
@@ -836,16 +837,17 @@ public class PlayerSpec : TokenSpec<PlayerState>
                     a = 1 - (float)(c - 30) / 30;
             }
 
-            TtnScreen.setColor(1, 1, 1, a);
-            glBegin(GL_LINE_LOOP);
-            glVertex3f(15, 400, 0);
-            glVertex3f(115, 400, 0);
-            glVertex3f(125, 420, 0);
-            glVertex3f(25, 420, 0);
-            glEnd();
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+            color = new float[] { 1, 1, 1, a };
+            var part2 = new Mesh("Player-drawState_1-2");
+            part2.Vertex(15, 400, 0, color);
+            part2.Vertex(115, 400, 0, color);
+            part2.Vertex(125, 420, 0, color);
+            part2.Vertex(25, 420, 0, color);
+            part2.LineStrip(0, part2.vertexCount, true);
+            Gfx.Draw(part2.count, part2.Bindings(model, null, 1, blend == Gfx.Blend.Additive), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+            blend = Gfx.Blend.Additive;
             if (ps.captureBeamEnergy >= 1)
-                Letter.drawString("READY", 50, 390, 4);
+                Letter.drawString(model, color, blend, "READY", 50, 390, 4);
         }
     }
 }
@@ -1040,7 +1042,7 @@ public class TractorBeam
         return (((((((p.x > playerState.pos.x - WIDTH / 2)) && ((p.x < playerState.pos.x + WIDTH / 2)))) && ((p.y > playerState.pos.y)))) && ((p.y < playerState.pos.y + length + WIDTH)));
     }
 
-    public virtual void draw_0()
+    public virtual void draw_0(float[] model, float[] color, Gfx.Blend blend)
     {
         if (length <= 0)
             return;
@@ -1050,29 +1052,29 @@ public class TractorBeam
         {
             if (y > length)
                 break;
-            glPushMatrix();
+            float[] parent1 = model;
             Vector3 p = field.calcCircularPos_2(playerState.pos.x, playerState.pos.y + y);
-            TtnScreen.glTranslate(p);
+            model = Transform.Translate(model, p.x, p.y, p.z);
             float s = y;
             if (s > 1)
                 s = 1;
-            glScalef(s, s, s);
+            model = Transform.Scale(model, s, s, s);
             switch (gameState.mode_0())
             {
                 case GameStateMode.CLASSIC:
                 case GameStateMode.BASIC:
-                    shapes[c % 3].draw_0();
+                    shapes[c % 3].draw_0(model, color, blend);
                     break;
                 case GameStateMode.MODERN:
                     if (playerState.midEnemyProvacated)
-                        shapes[c % 3].draw_0();
+                        shapes[c % 3].draw_0(model, color, blend);
                     else
-                        shapes[c % 3 + 3].draw_0();
+                        shapes[c % 3 + 3].draw_0(model, color, blend);
                     break;
             }
 
             c++;
-            glPopMatrix();
+            model = parent1;
             y = y + (SHAPE_INTERVAL_LENGTH);
         }
     }

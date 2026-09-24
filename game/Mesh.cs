@@ -9,11 +9,17 @@ public class DrawImage
     public TextureRef texture;
 }
 
+public class MeshRange
+{
+    public int first, count, material;
+}
+
 public class Mesh
 {
-    static DrawImage white = new DrawImage { key = "gunroar-white", width = 1, height = 1, atlasHeight = 1, levels = 1, pixels = new List<int> { 255, 255, 255, 255 } };
+    static DrawImage white = new DrawImage { key = "mesh-white", width = 1, height = 1, atlasHeight = 1, levels = 1, pixels = new List<int> { 255, 255, 255, 255 } };
     public List<float> vertices = new List<float>();
     public List<float> faces = new List<float>();
+    public List<MeshRange> ranges = new List<MeshRange>();
     public string key;
     BufferRef vertexBuffer, faceBuffer;
     public Mesh(string key) { this.key = key; }
@@ -28,7 +34,7 @@ public class Mesh
             y = transform[1] * px + transform[5] * py + transform[9] * pz + transform[13];
             z = transform[2] * px + transform[6] * py + transform[10] * pz + transform[14];
         }
-        vertices.Add(x); vertices.Add(y); vertices.Add(z); vertices.Add(0);
+        vertices.Add(x); vertices.Add(y); vertices.Add(z); vertices.Add(color == null ? 1 : 0);
         for (int i = 0; i < 4; i++) vertices.Add(color == null ? 1 : color[i]);
         vertexBuffer = null;
     }
@@ -58,6 +64,13 @@ public class Mesh
     {
         for (int i = 0; i < count - 1; i++) Line(first + i, first + i + 1);
         if (loop && count > 1) Line(first + count - 1, first);
+    }
+    public void AddRange(int first, int material)
+    {
+        if (count == first) return;
+        if (ranges.Count > 0 && ranges[ranges.Count - 1].material == material)
+            ranges[ranges.Count - 1].count += count - first;
+        else ranges.Add(new MeshRange { first = first, count = count - first, material = material });
     }
     public Dictionary<string, object> Bindings(float[] model, float[] color = null, float width = 1, bool additive = true, int first = 0, DrawImage image = null)
     {

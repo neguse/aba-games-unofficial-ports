@@ -2,265 +2,263 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public interface Shape
 {
-    public void draw_3(Vector3 pos, float cd, float deg);
+    public void draw_3(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg);
 }
 
-public abstract class DisplayListShape : Shape
+public abstract class MeshShape : Shape
 {
-    public DisplayList displayList;
+    static int nextMesh;
+    public Mesh mesh;
     public virtual void initializeShape()
     {
-        displayList = new DisplayList(1);
-        displayList.beginNewList();
-        drawList();
-        displayList.endNewList();
+        mesh = new Mesh("shape-" + nextMesh.ToString()); nextMesh++;
+        createMesh();
     }
-
-    public abstract void drawList();
-    public virtual void draw_0()
+    public abstract void createMesh();
+    public virtual void draw_0(float[] model, float[] color, Gfx.Blend blend)
     {
-        drawList();
+        foreach (MeshRange range in mesh.ranges)
+        {
+            Gfx.Blend material = range.material == 0 ? blend : (Gfx.Blend)range.material;
+            Gfx.Draw(range.count, mesh.Bindings(model, color, 1, material == Gfx.Blend.Additive, range.first / 3),
+                new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = material });
+        }
     }
-
-    public virtual void draw_3(Vector3 pos, float cd, float deg)
+    public virtual void draw_3(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg)
     {
-        glPushMatrix();
-        TtnScreen.glTranslate(pos);
-        glRotatef(cd * 180 / PI, 0, 1, 0);
-        TtnScreen.glRotate(deg);
-        displayList.call();
-        glPopMatrix();
+        float[] parent1 = model; model = Transform.Translate(model, pos.x, pos.y, pos.z);
+        model = Transform.Rotate(model, cd * 180 / PI, 0, 1, 0); model = Transform.Rotate(model, deg * 180 / PI, 0, 0, 1);
+        draw_0(model, color, blend); model = parent1;
     }
-
-    public virtual void close()
-    {
-        displayList.close();
-    }
+    public virtual void close() { mesh = null; }
 }
 
 public class PyramidShape
 {
-    public static void draw_0()
+    public static void append(Mesh mesh, float[] model, float[] color, int material)
     {
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(0, 0, 0);
-        glVertex3f(1, 1, 1);
-        glVertex3f(1, 1, -1);
-        glVertex3f(-1, 1, -1);
-        glVertex3f(-1, 1, 1);
-        glVertex3f(1, 1, 1);
-        glEnd();
-        TtnScreen.setColor(0.1f, 0.1f, 0.1f, 0.5f);
-        glBegin(GL_LINE_STRIP);
-        glVertex3f(0, 0, 0);
-        glVertex3f(1, 1, 1);
-        glVertex3f(1, 1, -1);
-        glVertex3f(0, 0, 0);
-        glVertex3f(-1, 1, -1);
-        glVertex3f(-1, 1, 1);
-        glVertex3f(0, 0, 0);
-        glEnd();
-        glBegin(GL_LINES);
-        glVertex3f(1, 1, 1);
-        glVertex3f(-1, 1, 1);
-        glVertex3f(1, 1, -1);
-        glVertex3f(-1, 1, -1);
-        glEnd();
+        int part1 = mesh.vertexCount; int face1 = mesh.count;
+        mesh.Vertex(0, 0, 0, color, model);
+        mesh.Vertex(1, 1, 1, color, model);
+        mesh.Vertex(1, 1, -1, color, model);
+        mesh.Vertex(-1, 1, -1, color, model);
+        mesh.Vertex(-1, 1, 1, color, model);
+        mesh.Vertex(1, 1, 1, color, model);
+        mesh.Fan(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
+        color = new float[] { 0.1f, 0.1f, 0.1f, 0.5f };
+        int part2 = mesh.vertexCount; int face2 = mesh.count;
+        mesh.Vertex(0, 0, 0, color, model);
+        mesh.Vertex(1, 1, 1, color, model);
+        mesh.Vertex(1, 1, -1, color, model);
+        mesh.Vertex(0, 0, 0, color, model);
+        mesh.Vertex(-1, 1, -1, color, model);
+        mesh.Vertex(-1, 1, 1, color, model);
+        mesh.Vertex(0, 0, 0, color, model);
+        mesh.LineStrip(part2, mesh.vertexCount - part2); mesh.AddRange(face2, material);
+        int part3 = mesh.vertexCount; int face3 = mesh.count;
+        mesh.Vertex(1, 1, 1, color, model);
+        mesh.Vertex(-1, 1, 1, color, model);
+        mesh.Vertex(1, 1, -1, color, model);
+        mesh.Vertex(-1, 1, -1, color, model);
+        for (int vi = part3; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1); mesh.AddRange(face3, material);
     }
 
-    public static void drawShadow(float r, float g, float b, bool noAlpha = false)
+    public static void appendShadow(Mesh mesh, float[] model, float[] color, int material, float r, float g, float b, bool noAlpha = false)
     {
-        glBegin(GL_TRIANGLE_FAN);
-        TtnScreen.setColor(r, g, b);
-        glVertex3f(0, 0, 0);
+        int part1 = mesh.vertexCount; int face1 = mesh.count;
+        color = new float[] { r, g, b, 1 };
+        mesh.Vertex(0, 0, 0, color, model);
         if (!((noAlpha)))
-            TtnScreen.setColor(r * 0.75f, g * 0.75f, b * 0.75f, 0.33f);
+            color = new float[] { r * 0.75f, g * 0.75f, b * 0.75f, 0.33f };
         else
-            TtnScreen.setColor(r * 0.75f, g * 0.75f, b * 0.75f, 0.75f);
-        glVertex3f(1, 1, 1);
-        glVertex3f(1, 1, -1);
-        glVertex3f(-1, 1, -1);
-        glVertex3f(-1, 1, 1);
-        glVertex3f(1, 1, 1);
-        glEnd();
+            color = new float[] { r * 0.75f, g * 0.75f, b * 0.75f, 0.75f };
+        mesh.Vertex(1, 1, 1, color, model);
+        mesh.Vertex(1, 1, -1, color, model);
+        mesh.Vertex(-1, 1, -1, color, model);
+        mesh.Vertex(-1, 1, 1, color, model);
+        mesh.Vertex(1, 1, 1, color, model);
+        mesh.Fan(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
     }
 
-    public static void drawPolygonShape()
+    public static void appendPolygonShape(Mesh mesh, float[] model, float[] color, int material)
     {
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(0, 0, 0);
-        glVertex3f(1, 1, 1);
-        glVertex3f(1, 1, -1);
-        glVertex3f(-1, 1, -1);
-        glVertex3f(-1, 1, 1);
-        glVertex3f(1, 1, 1);
-        glEnd();
+        int part1 = mesh.vertexCount; int face1 = mesh.count;
+        mesh.Vertex(0, 0, 0, color, model);
+        mesh.Vertex(1, 1, 1, color, model);
+        mesh.Vertex(1, 1, -1, color, model);
+        mesh.Vertex(-1, 1, -1, color, model);
+        mesh.Vertex(-1, 1, 1, color, model);
+        mesh.Vertex(1, 1, 1, color, model);
+        mesh.Fan(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
     }
 
-    public static void drawLineShape()
+    public static void appendLineShape(Mesh mesh, float[] model, float[] color, int material)
     {
-        glBegin(GL_LINE_STRIP);
-        glVertex3f(0, 0, 0);
-        glVertex3f(1, 1, 1);
-        glVertex3f(1, 1, -1);
-        glVertex3f(0, 0, 0);
-        glVertex3f(-1, 1, -1);
-        glVertex3f(-1, 1, 1);
-        glVertex3f(0, 0, 0);
-        glEnd();
-        glBegin(GL_LINES);
-        glVertex3f(1, 1, 1);
-        glVertex3f(-1, 1, 1);
-        glVertex3f(1, 1, -1);
-        glVertex3f(-1, 1, -1);
-        glEnd();
+        int part1 = mesh.vertexCount; int face1 = mesh.count;
+        mesh.Vertex(0, 0, 0, color, model);
+        mesh.Vertex(1, 1, 1, color, model);
+        mesh.Vertex(1, 1, -1, color, model);
+        mesh.Vertex(0, 0, 0, color, model);
+        mesh.Vertex(-1, 1, -1, color, model);
+        mesh.Vertex(-1, 1, 1, color, model);
+        mesh.Vertex(0, 0, 0, color, model);
+        mesh.LineStrip(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
+        int part2 = mesh.vertexCount; int face2 = mesh.count;
+        mesh.Vertex(1, 1, 1, color, model);
+        mesh.Vertex(-1, 1, 1, color, model);
+        mesh.Vertex(1, 1, -1, color, model);
+        mesh.Vertex(-1, 1, -1, color, model);
+        for (int vi = part2; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1); mesh.AddRange(face2, material);
     }
 }
 
-public class PlayerShape : DisplayListShape
+public class PlayerShape : MeshShape
 {
     public PlayerShape()
     {
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glPushMatrix();
-        glRotatef(180, 0, 0, 1);
-        glTranslatef(0, -0.6f, 0);
-        glScalef(0.4f, 1.3f, 0.4f);
-        PyramidShape.drawShadow(1, 0.5f, 0.5f, true);
-        glPopMatrix();
-        glPushMatrix();
-        glRotatef(180, 0, 0, 1);
-        glTranslatef(0.5f, -0.2f, 0);
-        glScalef(0.3f, 0.9f, 0.3f);
-        PyramidShape.drawShadow(1, 1, 1, true);
-        glPopMatrix();
-        glPushMatrix();
-        glRotatef(180, 0, 0, 1);
-        glTranslatef(-0.5f, -0.2f, 0);
-        glScalef(0.3f, 0.9f, 0.3f);
-        PyramidShape.drawShadow(1, 1, 1, true);
-        glPopMatrix();
-        TtnScreen.setColor(1, 0.5f, 0.5f);
-        glPushMatrix();
-        glRotatef(180, 0, 0, 1);
-        glTranslatef(0, -0.6f, 0);
-        glScalef(0.3f, 1.2f, 0.3f);
-        PyramidShape.drawPolygonShape();
-        glPopMatrix();
-        TtnScreen.setColor(1, 1, 1);
-        glPushMatrix();
-        glRotatef(180, 0, 0, 1);
-        glTranslatef(0.5f, -0.2f, 0);
-        glScalef(0.2f, 0.8f, 0.2f);
-        PyramidShape.drawPolygonShape();
-        glPopMatrix();
-        TtnScreen.setColor(1, 1, 1);
-        glPushMatrix();
-        glRotatef(180, 0, 0, 1);
-        glTranslatef(-0.5f, -0.2f, 0);
-        glScalef(0.2f, 0.8f, 0.2f);
-        PyramidShape.drawPolygonShape();
-        glPopMatrix();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        material = (int)Gfx.Blend.Alpha;
+        float[] parent1 = model;
+        model = Transform.Rotate(model, 180, 0, 0, 1);
+        model = Transform.Translate(model, 0, -0.6f, 0);
+        model = Transform.Scale(model, 0.4f, 1.3f, 0.4f);
+        PyramidShape.appendShadow(mesh, model, color, material, 1, 0.5f, 0.5f, true);
+        model = parent1;
+        float[] parent2 = model;
+        model = Transform.Rotate(model, 180, 0, 0, 1);
+        model = Transform.Translate(model, 0.5f, -0.2f, 0);
+        model = Transform.Scale(model, 0.3f, 0.9f, 0.3f);
+        PyramidShape.appendShadow(mesh, model, color, material, 1, 1, 1, true);
+        model = parent2;
+        float[] parent3 = model;
+        model = Transform.Rotate(model, 180, 0, 0, 1);
+        model = Transform.Translate(model, -0.5f, -0.2f, 0);
+        model = Transform.Scale(model, 0.3f, 0.9f, 0.3f);
+        PyramidShape.appendShadow(mesh, model, color, material, 1, 1, 1, true);
+        model = parent3;
+        color = new float[] { 1, 0.5f, 0.5f, 1 };
+        float[] parent4 = model;
+        model = Transform.Rotate(model, 180, 0, 0, 1);
+        model = Transform.Translate(model, 0, -0.6f, 0);
+        model = Transform.Scale(model, 0.3f, 1.2f, 0.3f);
+        PyramidShape.appendPolygonShape(mesh, model, color, material);
+        model = parent4;
+        color = new float[] { 1, 1, 1, 1 };
+        float[] parent5 = model;
+        model = Transform.Rotate(model, 180, 0, 0, 1);
+        model = Transform.Translate(model, 0.5f, -0.2f, 0);
+        model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
+        PyramidShape.appendPolygonShape(mesh, model, color, material);
+        model = parent5;
+        color = new float[] { 1, 1, 1, 1 };
+        float[] parent6 = model;
+        model = Transform.Rotate(model, 180, 0, 0, 1);
+        model = Transform.Translate(model, -0.5f, -0.2f, 0);
+        model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
+        PyramidShape.appendPolygonShape(mesh, model, color, material);
+        model = parent6;
+        material = (int)Gfx.Blend.Additive;
     }
 }
 
-public class PlayerLineShape : DisplayListShape
+public class PlayerLineShape : MeshShape
 {
     public PlayerLineShape()
     {
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glPushMatrix();
-        glRotatef(180, 0, 0, 1);
-        glTranslatef(0, -0.6f, 0);
-        glScalef(0.3f, 1.2f, 0.3f);
-        PyramidShape.drawLineShape();
-        glPopMatrix();
-        glPushMatrix();
-        glRotatef(180, 0, 0, 1);
-        glTranslatef(0.5f, -0.2f, 0);
-        glScalef(0.2f, 0.8f, 0.2f);
-        PyramidShape.drawLineShape();
-        glPopMatrix();
-        glPushMatrix();
-        glRotatef(180, 0, 0, 1);
-        glTranslatef(-0.5f, -0.2f, 0);
-        glScalef(0.2f, 0.8f, 0.2f);
-        PyramidShape.drawLineShape();
-        glPopMatrix();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        material = (int)Gfx.Blend.Alpha;
+        float[] parent1 = model;
+        model = Transform.Rotate(model, 180, 0, 0, 1);
+        model = Transform.Translate(model, 0, -0.6f, 0);
+        model = Transform.Scale(model, 0.3f, 1.2f, 0.3f);
+        PyramidShape.appendLineShape(mesh, model, color, material);
+        model = parent1;
+        float[] parent2 = model;
+        model = Transform.Rotate(model, 180, 0, 0, 1);
+        model = Transform.Translate(model, 0.5f, -0.2f, 0);
+        model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
+        PyramidShape.appendLineShape(mesh, model, color, material);
+        model = parent2;
+        float[] parent3 = model;
+        model = Transform.Rotate(model, 180, 0, 0, 1);
+        model = Transform.Translate(model, -0.5f, -0.2f, 0);
+        model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
+        PyramidShape.appendLineShape(mesh, model, color, material);
+        model = parent3;
+        material = (int)Gfx.Blend.Additive;
     }
 }
 
-public class ShotShape : DisplayListShape
+public class ShotShape : MeshShape
 {
     public ShotShape()
     {
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glPushMatrix();
-        glRotatef(180, 0, 0, 1);
-        glTranslatef(0.5f, -0.5f, 0);
-        glScalef(0.1f, 1.0f, 0.1f);
-        TtnScreen.setColor(0.4f, 0.2f, 0.8f);
-        PyramidShape.drawLineShape();
-        glPopMatrix();
-        glPushMatrix();
-        glRotatef(180, 0, 0, 1);
-        glTranslatef(-0.5f, -0.5f, 0);
-        glScalef(0.1f, 1.0f, 0.1f);
-        TtnScreen.setColor(0.4f, 0.2f, 0.8f);
-        PyramidShape.drawLineShape();
-        glPopMatrix();
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        float[] parent1 = model;
+        model = Transform.Rotate(model, 180, 0, 0, 1);
+        model = Transform.Translate(model, 0.5f, -0.5f, 0);
+        model = Transform.Scale(model, 0.1f, 1.0f, 0.1f);
+        color = new float[] { 0.4f, 0.2f, 0.8f, 1 };
+        PyramidShape.appendLineShape(mesh, model, color, material);
+        model = parent1;
+        float[] parent2 = model;
+        model = Transform.Rotate(model, 180, 0, 0, 1);
+        model = Transform.Translate(model, -0.5f, -0.5f, 0);
+        model = Transform.Scale(model, 0.1f, 1.0f, 0.1f);
+        color = new float[] { 0.4f, 0.2f, 0.8f, 1 };
+        PyramidShape.appendLineShape(mesh, model, color, material);
+        model = parent2;
     }
 }
 
-public abstract class TractorBeamShape : DisplayListShape
+public abstract class TractorBeamShape : MeshShape
 {
-    public virtual void drawTractorBeam(float r, float g, float b)
+    public virtual void appendTractorBeam(Mesh mesh, float[] model, float[] color, int material, float r, float g, float b)
     {
-        TtnScreen.setColor(r, g, b, 0.5f);
-        glBegin(GL_QUADS);
-        glVertex3f(-1, 0, -1);
-        glVertex3f(1, 0, -1);
-        glVertex3f(1, 0, 1);
-        glVertex3f(-1, 0, 1);
-        glEnd();
-        TtnScreen.setColor(r, g, b);
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(-1, 0, -1);
-        glVertex3f(1, 0, -1);
-        glVertex3f(1, 0, 1);
-        glVertex3f(-1, 0, 1);
-        glEnd();
+        color = new float[] { r, g, b, 0.5f };
+        int part1 = mesh.vertexCount; int face1 = mesh.count;
+        mesh.Vertex(-1, 0, -1, color, model);
+        mesh.Vertex(1, 0, -1, color, model);
+        mesh.Vertex(1, 0, 1, color, model);
+        mesh.Vertex(-1, 0, 1, color, model);
+        mesh.Quads(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
+        color = new float[] { r, g, b, 1 };
+        int part2 = mesh.vertexCount; int face2 = mesh.count;
+        mesh.Vertex(-1, 0, -1, color, model);
+        mesh.Vertex(1, 0, -1, color, model);
+        mesh.Vertex(1, 0, 1, color, model);
+        mesh.Vertex(-1, 0, 1, color, model);
+        mesh.LineStrip(part2, mesh.vertexCount - part2, true); mesh.AddRange(face2, material);
     }
 
-    public virtual void drawTractorBeamLine(float r, float g, float b)
+    public virtual void appendTractorBeamLine(Mesh mesh, float[] model, float[] color, int material, float r, float g, float b)
     {
-        TtnScreen.setColor(r, g, b);
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(-1, 0, -1);
-        glVertex3f(1, 0, -1);
-        glVertex3f(1, 0, 1);
-        glVertex3f(-1, 0, 1);
-        glEnd();
+        color = new float[] { r, g, b, 1 };
+        int part1 = mesh.vertexCount; int face1 = mesh.count;
+        mesh.Vertex(-1, 0, -1, color, model);
+        mesh.Vertex(1, 0, -1, color, model);
+        mesh.Vertex(1, 0, 1, color, model);
+        mesh.Vertex(-1, 0, 1, color, model);
+        mesh.LineStrip(part1, mesh.vertexCount - part1, true); mesh.AddRange(face1, material);
     }
 }
 
@@ -271,9 +269,10 @@ public class TractorBeamShapeRed : TractorBeamShape
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        drawTractorBeam(0.5f, 0.2f, 0.2f);
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        appendTractorBeam(mesh, model, color, material, 0.5f, 0.2f, 0.2f);
     }
 }
 
@@ -284,9 +283,10 @@ public class TractorBeamShapeBlue : TractorBeamShape
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        drawTractorBeam(0.2f, 0.2f, 0.5f);
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        appendTractorBeam(mesh, model, color, material, 0.2f, 0.2f, 0.5f);
     }
 }
 
@@ -297,9 +297,10 @@ public class TractorBeamShapePurple : TractorBeamShape
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        drawTractorBeam(0.5f, 0.2f, 0.5f);
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        appendTractorBeam(mesh, model, color, material, 0.5f, 0.2f, 0.5f);
     }
 }
 
@@ -310,9 +311,10 @@ public class TractorBeamShapeDarkRed : TractorBeamShape
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        drawTractorBeamLine(0.4f, 0.1f, 0.1f);
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        appendTractorBeamLine(mesh, model, color, material, 0.4f, 0.1f, 0.1f);
     }
 }
 
@@ -323,9 +325,10 @@ public class TractorBeamShapeDarkBlue : TractorBeamShape
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        drawTractorBeamLine(0.1f, 0.1f, 0.4f);
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        appendTractorBeamLine(mesh, model, color, material, 0.1f, 0.1f, 0.4f);
     }
 }
 
@@ -336,23 +339,24 @@ public class TractorBeamShapeDarkPurple : TractorBeamShape
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        drawTractorBeamLine(0.4f, 0.1f, 0.4f);
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        appendTractorBeamLine(mesh, model, color, material, 0.4f, 0.1f, 0.4f);
     }
 }
 
-public abstract class BulletShapeBase : DisplayListShape
+public abstract class BulletShapeBase : MeshShape
 {
-    public virtual void draw_4(Vector3 pos, float cd, float deg, float rd)
+    public virtual void draw_4(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg, float rd)
     {
-        glPushMatrix();
-        TtnScreen.glTranslate(pos);
-        glRotatef(cd * 180 / PI, 0, 1, 0);
-        TtnScreen.glRotate(deg);
-        glRotatef(rd, 0, 1, 0);
-        displayList.call();
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, pos.z);
+        model = Transform.Rotate(model, cd * 180 / PI, 0, 1, 0);
+        model = Transform.Rotate(model, deg * 180 / PI, 0, 0, 1);
+        model = Transform.Rotate(model, rd, 0, 1, 0);
+        draw_0(model, color, blend);
+        model = parent1;
     }
 }
 
@@ -363,37 +367,38 @@ public class BulletShape : BulletShapeBase
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        TtnScreen.setColor(0, 0, 0);
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(0, 0.5f, 0);
-        glVertex3f(-0.34f, -0.3f, -0.2f);
-        glVertex3f(0.34f, -0.3f, -0.2f);
-        glVertex3f(0, -0.3f, 0.4f);
-        glVertex3f(-0.34f, -0.3f, -0.2f);
-        glEnd();
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(-0.34f, -0.3f, -0.2f);
-        glVertex3f(0.34f, -0.3f, -0.2f);
-        glVertex3f(0, -0.3f, 0.4f);
-        glEnd();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        glScalef(1.2f, 1.2f, 1.2f);
-        TtnScreen.setColor(0.1f, 0.3f, 0.3f);
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(0, 0.5f, 0);
-        glVertex3f(-0.34f, -0.3f, -0.2f);
-        glVertex3f(0.34f, -0.3f, -0.2f);
-        glVertex3f(0, -0.3f, 0.4f);
-        glVertex3f(-0.34f, -0.3f, -0.2f);
-        glEnd();
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(-0.34f, -0.3f, -0.2f);
-        glVertex3f(0.34f, -0.3f, -0.2f);
-        glVertex3f(0, -0.3f, 0.4f);
-        glEnd();
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        material = (int)Gfx.Blend.Alpha;
+        color = new float[] { 0, 0, 0, 1 };
+        int part1 = mesh.vertexCount; int face1 = mesh.count;
+        mesh.Vertex(0, 0.5f, 0, color, model);
+        mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0, -0.3f, 0.4f, color, model);
+        mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
+        mesh.Fan(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
+        int part2 = mesh.vertexCount; int face2 = mesh.count;
+        mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0, -0.3f, 0.4f, color, model);
+        mesh.Fan(part2, mesh.vertexCount - part2); mesh.AddRange(face2, material);
+        material = (int)Gfx.Blend.Additive;
+        model = Transform.Scale(model, 1.2f, 1.2f, 1.2f);
+        color = new float[] { 0.1f, 0.3f, 0.3f, 1 };
+        int part3 = mesh.vertexCount; int face3 = mesh.count;
+        mesh.Vertex(0, 0.5f, 0, color, model);
+        mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0, -0.3f, 0.4f, color, model);
+        mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
+        mesh.Fan(part3, mesh.vertexCount - part3); mesh.AddRange(face3, material);
+        int part4 = mesh.vertexCount; int face4 = mesh.count;
+        mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0, -0.3f, 0.4f, color, model);
+        mesh.Fan(part4, mesh.vertexCount - part4); mesh.AddRange(face4, material);
     }
 }
 
@@ -404,22 +409,23 @@ public class BulletLineShape : BulletShapeBase
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glScalef(1.2f, 1.2f, 1.2f);
-        glBegin(GL_LINES);
-        glVertex3f(0, 0.5f, 0);
-        glVertex3f(-0.34f, -0.3f, -0.2f);
-        glVertex3f(0, 0.5f, 0);
-        glVertex3f(0.34f, -0.3f, -0.2f);
-        glVertex3f(0, 0.5f, 0);
-        glVertex3f(0, -0.3f, 0.4f);
-        glEnd();
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(-0.34f, -0.3f, -0.2f);
-        glVertex3f(0.34f, -0.3f, -0.2f);
-        glVertex3f(0, -0.3f, 0.4f);
-        glEnd();
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        model = Transform.Scale(model, 1.2f, 1.2f, 1.2f);
+        int part1 = mesh.vertexCount; int face1 = mesh.count;
+        mesh.Vertex(0, 0.5f, 0, color, model);
+        mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0, 0.5f, 0, color, model);
+        mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0, 0.5f, 0, color, model);
+        mesh.Vertex(0, -0.3f, 0.4f, color, model);
+        for (int vi = part1; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1); mesh.AddRange(face1, material);
+        int part2 = mesh.vertexCount; int face2 = mesh.count;
+        mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0, -0.3f, 0.4f, color, model);
+        mesh.LineStrip(part2, mesh.vertexCount - part2, true); mesh.AddRange(face2, material);
     }
 }
 
@@ -430,58 +436,59 @@ public class MiddleBulletShape : BulletShapeBase
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glScalef(1.1f, 1.0f, 1.1f);
-        TtnScreen.setColor(0, 0, 0);
-        glBegin(GL_QUADS);
-        glVertex3f(-0.17f, 0.3f, -0.1f);
-        glVertex3f(-0.34f, -0.3f, -0.2f);
-        glVertex3f(0.34f, -0.3f, -0.2f);
-        glVertex3f(0.17f, 0.3f, -0.1f);
-        glVertex3f(0.17f, 0.3f, -0.1f);
-        glVertex3f(0.34f, -0.3f, -0.2f);
-        glVertex3f(0, -0.3f, 0.4f);
-        glVertex3f(0, 0.3f, 0.2f);
-        glVertex3f(0, 0.3f, 0.2f);
-        glVertex3f(0, -0.3f, 0.4f);
-        glVertex3f(-0.34f, -0.3f, -0.2f);
-        glVertex3f(-0.17f, 0.3f, -0.1f);
-        glEnd();
-        glBegin(GL_TRIANGLES);
-        glVertex3f(-0.17f, -0.3f, -0.1f);
-        glVertex3f(0.17f, -0.3f, -0.1f);
-        glVertex3f(0, -0.3f, 0.2f);
-        glVertex3f(-0.34f, -0.3f, -0.2f);
-        glVertex3f(0.34f, -0.3f, -0.2f);
-        glVertex3f(0, -0.3f, 0.4f);
-        glEnd();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        glScalef(1.4f, 1.3f, 1.4f);
-        TtnScreen.setColor(0.1f, 0.2f, 0.3f);
-        glBegin(GL_QUADS);
-        glVertex3f(-0.17f, 0.3f, -0.1f);
-        glVertex3f(-0.34f, -0.3f, -0.2f);
-        glVertex3f(0.34f, -0.3f, -0.2f);
-        glVertex3f(0.17f, 0.3f, -0.1f);
-        glVertex3f(0.17f, 0.3f, -0.1f);
-        glVertex3f(0.34f, -0.3f, -0.2f);
-        glVertex3f(0, -0.3f, 0.4f);
-        glVertex3f(0, 0.3f, 0.2f);
-        glVertex3f(0, 0.3f, 0.2f);
-        glVertex3f(0, -0.3f, 0.4f);
-        glVertex3f(-0.34f, -0.3f, -0.2f);
-        glVertex3f(-0.17f, 0.3f, -0.1f);
-        glEnd();
-        glBegin(GL_TRIANGLES);
-        glVertex3f(-0.17f, 0.3f, -0.1f);
-        glVertex3f(0.17f, 0.3f, -0.1f);
-        glVertex3f(0, 0.3f, 0.2f);
-        glVertex3f(-0.34f, -0.3f, -0.2f);
-        glVertex3f(0.34f, -0.3f, -0.2f);
-        glVertex3f(0, -0.3f, 0.4f);
-        glEnd();
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        material = (int)Gfx.Blend.Alpha;
+        model = Transform.Scale(model, 1.1f, 1.0f, 1.1f);
+        color = new float[] { 0, 0, 0, 1 };
+        int part1 = mesh.vertexCount; int face1 = mesh.count;
+        mesh.Vertex(-0.17f, 0.3f, -0.1f, color, model);
+        mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0.17f, 0.3f, -0.1f, color, model);
+        mesh.Vertex(0.17f, 0.3f, -0.1f, color, model);
+        mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0, -0.3f, 0.4f, color, model);
+        mesh.Vertex(0, 0.3f, 0.2f, color, model);
+        mesh.Vertex(0, 0.3f, 0.2f, color, model);
+        mesh.Vertex(0, -0.3f, 0.4f, color, model);
+        mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(-0.17f, 0.3f, -0.1f, color, model);
+        mesh.Quads(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
+        int part2 = mesh.vertexCount; int face2 = mesh.count;
+        mesh.Vertex(-0.17f, -0.3f, -0.1f, color, model);
+        mesh.Vertex(0.17f, -0.3f, -0.1f, color, model);
+        mesh.Vertex(0, -0.3f, 0.2f, color, model);
+        mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0, -0.3f, 0.4f, color, model);
+        for (int vi = part2; vi + 2 < mesh.vertexCount; vi += 3) mesh.Triangle(vi, vi + 1, vi + 2); mesh.AddRange(face2, material);
+        material = (int)Gfx.Blend.Additive;
+        model = Transform.Scale(model, 1.4f, 1.3f, 1.4f);
+        color = new float[] { 0.1f, 0.2f, 0.3f, 1 };
+        int part3 = mesh.vertexCount; int face3 = mesh.count;
+        mesh.Vertex(-0.17f, 0.3f, -0.1f, color, model);
+        mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0.17f, 0.3f, -0.1f, color, model);
+        mesh.Vertex(0.17f, 0.3f, -0.1f, color, model);
+        mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0, -0.3f, 0.4f, color, model);
+        mesh.Vertex(0, 0.3f, 0.2f, color, model);
+        mesh.Vertex(0, 0.3f, 0.2f, color, model);
+        mesh.Vertex(0, -0.3f, 0.4f, color, model);
+        mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(-0.17f, 0.3f, -0.1f, color, model);
+        mesh.Quads(part3, mesh.vertexCount - part3); mesh.AddRange(face3, material);
+        int part4 = mesh.vertexCount; int face4 = mesh.count;
+        mesh.Vertex(-0.17f, 0.3f, -0.1f, color, model);
+        mesh.Vertex(0.17f, 0.3f, -0.1f, color, model);
+        mesh.Vertex(0, 0.3f, 0.2f, color, model);
+        mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0, -0.3f, 0.4f, color, model);
+        for (int vi = part4; vi + 2 < mesh.vertexCount; vi += 3) mesh.Triangle(vi, vi + 1, vi + 2); mesh.AddRange(face4, material);
     }
 }
 
@@ -492,40 +499,41 @@ public class MiddleBulletLineShape : BulletShapeBase
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glScalef(1.4f, 1.3f, 1.4f);
-        glBegin(GL_LINES);
-        glVertex3f(-0.17f, 0.3f, -0.1f);
-        glVertex3f(-0.34f, -0.3f, -0.2f);
-        glVertex3f(0.17f, 0.3f, -0.1f);
-        glVertex3f(0.34f, -0.3f, -0.2f);
-        glVertex3f(0, 0.3f, 0.2f);
-        glVertex3f(0, -0.3f, 0.4f);
-        glEnd();
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(-0.17f, 0.3f, -0.1f);
-        glVertex3f(0.17f, 0.3f, -0.1f);
-        glVertex3f(0, 0.3f, 0.2f);
-        glEnd();
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(-0.34f, -0.3f, -0.2f);
-        glVertex3f(0.34f, -0.3f, -0.2f);
-        glVertex3f(0, -0.3f, 0.4f);
-        glEnd();
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        model = Transform.Scale(model, 1.4f, 1.3f, 1.4f);
+        int part1 = mesh.vertexCount; int face1 = mesh.count;
+        mesh.Vertex(-0.17f, 0.3f, -0.1f, color, model);
+        mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0.17f, 0.3f, -0.1f, color, model);
+        mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0, 0.3f, 0.2f, color, model);
+        mesh.Vertex(0, -0.3f, 0.4f, color, model);
+        for (int vi = part1; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1); mesh.AddRange(face1, material);
+        int part2 = mesh.vertexCount; int face2 = mesh.count;
+        mesh.Vertex(-0.17f, 0.3f, -0.1f, color, model);
+        mesh.Vertex(0.17f, 0.3f, -0.1f, color, model);
+        mesh.Vertex(0, 0.3f, 0.2f, color, model);
+        mesh.LineStrip(part2, mesh.vertexCount - part2, true); mesh.AddRange(face2, material);
+        int part3 = mesh.vertexCount; int face3 = mesh.count;
+        mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
+        mesh.Vertex(0, -0.3f, 0.4f, color, model);
+        mesh.LineStrip(part3, mesh.vertexCount - part3, true); mesh.AddRange(face3, material);
     }
 }
 
 public abstract class RollBulletShapeBase : BulletShapeBase
 {
-    public override void draw_4(Vector3 pos, float cd, float deg, float rd)
+    public override void draw_4(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg, float rd)
     {
-        glPushMatrix();
-        TtnScreen.glTranslate(pos);
-        glRotatef(cd * 180 / PI, 0, 1, 0);
-        glRotatef(rd, 0, 0, 1);
-        displayList.call();
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, pos.z);
+        model = Transform.Rotate(model, cd * 180 / PI, 0, 1, 0);
+        model = Transform.Rotate(model, rd, 0, 0, 1);
+        draw_0(model, color, blend);
+        model = parent1;
     }
 }
 
@@ -536,29 +544,30 @@ public class CounterBulletShape : RollBulletShapeBase
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        TtnScreen.setColor(0, 0, 0);
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(0, 0, 0.5f);
-        glVertex3f(0.5f, 0, 0);
-        glVertex3f(0, 0.5f, 0);
-        glVertex3f(-0.5f, 0, 0);
-        glVertex3f(0, -0.5f, 0);
-        glVertex3f(0.5f, 0, 0);
-        glEnd();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        glScalef(1.2f, 1.2f, 1.2f);
-        TtnScreen.setColor(0.5f, 0.5f, 0.5f);
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(0, 0, 0.5f);
-        glVertex3f(0.5f, 0, 0);
-        glVertex3f(0, 0.5f, 0);
-        glVertex3f(-0.5f, 0, 0);
-        glVertex3f(0, -0.5f, 0);
-        glVertex3f(0.5f, 0, 0);
-        glEnd();
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        material = (int)Gfx.Blend.Alpha;
+        color = new float[] { 0, 0, 0, 1 };
+        int part1 = mesh.vertexCount; int face1 = mesh.count;
+        mesh.Vertex(0, 0, 0.5f, color, model);
+        mesh.Vertex(0.5f, 0, 0, color, model);
+        mesh.Vertex(0, 0.5f, 0, color, model);
+        mesh.Vertex(-0.5f, 0, 0, color, model);
+        mesh.Vertex(0, -0.5f, 0, color, model);
+        mesh.Vertex(0.5f, 0, 0, color, model);
+        mesh.Fan(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
+        material = (int)Gfx.Blend.Additive;
+        model = Transform.Scale(model, 1.2f, 1.2f, 1.2f);
+        color = new float[] { 0.5f, 0.5f, 0.5f, 1 };
+        int part2 = mesh.vertexCount; int face2 = mesh.count;
+        mesh.Vertex(0, 0, 0.5f, color, model);
+        mesh.Vertex(0.5f, 0, 0, color, model);
+        mesh.Vertex(0, 0.5f, 0, color, model);
+        mesh.Vertex(-0.5f, 0, 0, color, model);
+        mesh.Vertex(0, -0.5f, 0, color, model);
+        mesh.Vertex(0.5f, 0, 0, color, model);
+        mesh.Fan(part2, mesh.vertexCount - part2); mesh.AddRange(face2, material);
     }
 }
 
@@ -569,45 +578,46 @@ public class CounterBulletLineShape : RollBulletShapeBase
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glScalef(1.2f, 1.2f, 1.2f);
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(0.5f, 0, 0);
-        glVertex3f(0, 0.5f, 0);
-        glVertex3f(-0.5f, 0, 0);
-        glVertex3f(0, -0.5f, 0);
-        glEnd();
-        glBegin(GL_LINES);
-        glVertex3f(0, 0, 0.5f);
-        glVertex3f(0.5f, 0, 0);
-        glVertex3f(0, 0, 0.5f);
-        glVertex3f(0, 0.5f, 0);
-        glVertex3f(0, 0, 0.5f);
-        glVertex3f(-0.5f, 0, 0);
-        glVertex3f(0, 0, 0.5f);
-        glVertex3f(0, -0.5f, 0);
-        glEnd();
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        model = Transform.Scale(model, 1.2f, 1.2f, 1.2f);
+        int part1 = mesh.vertexCount; int face1 = mesh.count;
+        mesh.Vertex(0.5f, 0, 0, color, model);
+        mesh.Vertex(0, 0.5f, 0, color, model);
+        mesh.Vertex(-0.5f, 0, 0, color, model);
+        mesh.Vertex(0, -0.5f, 0, color, model);
+        mesh.LineStrip(part1, mesh.vertexCount - part1, true); mesh.AddRange(face1, material);
+        int part2 = mesh.vertexCount; int face2 = mesh.count;
+        mesh.Vertex(0, 0, 0.5f, color, model);
+        mesh.Vertex(0.5f, 0, 0, color, model);
+        mesh.Vertex(0, 0, 0.5f, color, model);
+        mesh.Vertex(0, 0.5f, 0, color, model);
+        mesh.Vertex(0, 0, 0.5f, color, model);
+        mesh.Vertex(-0.5f, 0, 0, color, model);
+        mesh.Vertex(0, 0, 0.5f, color, model);
+        mesh.Vertex(0, -0.5f, 0, color, model);
+        for (int vi = part2; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1); mesh.AddRange(face2, material);
     }
 }
 
-public abstract class EnemyShape : DisplayListShape
+public abstract class EnemyShape : MeshShape
 {
-    public virtual void draw_5(Vector3 pos, float cd, float deg, float cnt, Vector size)
+    public virtual void draw_5(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg, float cnt, Vector size)
     {
-        draw_6(pos, cd, deg, cnt, size.x, size.y);
+        draw_6(model, color, blend, pos, cd, deg, cnt, size.x, size.y);
     }
 
-    public virtual void draw_6(Vector3 pos, float cd, float deg, float cnt, float sx, float sy)
+    public virtual void draw_6(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg, float cnt, float sx, float sy)
     {
-        glPushMatrix();
-        TtnScreen.glTranslate(pos);
-        glRotatef(cd * 180 / PI, 0, 1, 0);
-        TtnScreen.glRotate(deg);
-        glScalef(sx, sy, 1);
-        glRotatef(cnt * 3.0f, 0, 1, 0);
-        displayList.call();
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, pos.z);
+        model = Transform.Rotate(model, cd * 180 / PI, 0, 1, 0);
+        model = Transform.Rotate(model, deg * 180 / PI, 0, 0, 1);
+        model = Transform.Scale(model, sx, sy, 1);
+        model = Transform.Rotate(model, cnt * 3.0f, 0, 1, 0);
+        draw_0(model, color, blend);
+        model = parent1;
     }
 }
 
@@ -618,48 +628,49 @@ public class Enemy1Shape : EnemyShape
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glPushMatrix();
-        glTranslatef(0, -0.6f, 0);
-        glScalef(0.5f, 1.4f, 0.5f);
-        PyramidShape.drawShadow(0.5f, 0.5f, 0.3f);
-        glPopMatrix();
-        glPushMatrix();
-        glRotatef(120, 0, 0, 1);
-        glTranslatef(0.5f, -0.2f, 0);
-        glScalef(0.4f, 1.0f, 0.4f);
-        PyramidShape.drawShadow(0.2f, 0.2f, 0.5f);
-        glPopMatrix();
-        TtnScreen.setColor(0.2f, 0.2f, 0.5f);
-        glPushMatrix();
-        glRotatef(240, 0, 0, 1);
-        glTranslatef(-0.5f, -0.2f, 0);
-        glScalef(0.4f, 1.0f, 0.4f);
-        PyramidShape.drawShadow(0.2f, 0.2f, 0.5f);
-        glPopMatrix();
-        TtnScreen.setColor(1, 1, 0.6f);
-        glPushMatrix();
-        glTranslatef(0, -0.6f, 0);
-        glScalef(0.3f, 1.2f, 0.3f);
-        PyramidShape.draw_0();
-        glPopMatrix();
-        TtnScreen.setColor(0.5f, 0.5f, 1);
-        glPushMatrix();
-        glRotatef(120, 0, 0, 1);
-        glTranslatef(0.5f, -0.2f, 0);
-        glScalef(0.2f, 0.8f, 0.2f);
-        PyramidShape.draw_0();
-        glPopMatrix();
-        TtnScreen.setColor(0.5f, 0.5f, 1);
-        glPushMatrix();
-        glRotatef(240, 0, 0, 1);
-        glTranslatef(-0.5f, -0.2f, 0);
-        glScalef(0.2f, 0.8f, 0.2f);
-        PyramidShape.draw_0();
-        glPopMatrix();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        material = (int)Gfx.Blend.Alpha;
+        float[] parent1 = model;
+        model = Transform.Translate(model, 0, -0.6f, 0);
+        model = Transform.Scale(model, 0.5f, 1.4f, 0.5f);
+        PyramidShape.appendShadow(mesh, model, color, material, 0.5f, 0.5f, 0.3f);
+        model = parent1;
+        float[] parent2 = model;
+        model = Transform.Rotate(model, 120, 0, 0, 1);
+        model = Transform.Translate(model, 0.5f, -0.2f, 0);
+        model = Transform.Scale(model, 0.4f, 1.0f, 0.4f);
+        PyramidShape.appendShadow(mesh, model, color, material, 0.2f, 0.2f, 0.5f);
+        model = parent2;
+        color = new float[] { 0.2f, 0.2f, 0.5f, 1 };
+        float[] parent3 = model;
+        model = Transform.Rotate(model, 240, 0, 0, 1);
+        model = Transform.Translate(model, -0.5f, -0.2f, 0);
+        model = Transform.Scale(model, 0.4f, 1.0f, 0.4f);
+        PyramidShape.appendShadow(mesh, model, color, material, 0.2f, 0.2f, 0.5f);
+        model = parent3;
+        color = new float[] { 1, 1, 0.6f, 1 };
+        float[] parent4 = model;
+        model = Transform.Translate(model, 0, -0.6f, 0);
+        model = Transform.Scale(model, 0.3f, 1.2f, 0.3f);
+        PyramidShape.append(mesh, model, color, material);
+        model = parent4;
+        color = new float[] { 0.5f, 0.5f, 1, 1 };
+        float[] parent5 = model;
+        model = Transform.Rotate(model, 120, 0, 0, 1);
+        model = Transform.Translate(model, 0.5f, -0.2f, 0);
+        model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
+        PyramidShape.append(mesh, model, color, material);
+        model = parent5;
+        color = new float[] { 0.5f, 0.5f, 1, 1 };
+        float[] parent6 = model;
+        model = Transform.Rotate(model, 240, 0, 0, 1);
+        model = Transform.Translate(model, -0.5f, -0.2f, 0);
+        model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
+        PyramidShape.append(mesh, model, color, material);
+        model = parent6;
+        material = (int)Gfx.Blend.Additive;
     }
 }
 
@@ -670,25 +681,26 @@ public class Enemy1TrailShape : EnemyShape
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glPushMatrix();
-        glTranslatef(0, -0.6f, 0);
-        glScalef(0.3f, 1.2f, 0.3f);
-        PyramidShape.drawLineShape();
-        glPopMatrix();
-        glPushMatrix();
-        glRotatef(120, 0, 0, 1);
-        glTranslatef(0.5f, -0.2f, 0);
-        glScalef(0.2f, 0.8f, 0.2f);
-        PyramidShape.drawLineShape();
-        glPopMatrix();
-        glPushMatrix();
-        glRotatef(240, 0, 0, 1);
-        glTranslatef(-0.5f, -0.2f, 0);
-        glScalef(0.2f, 0.8f, 0.2f);
-        PyramidShape.drawLineShape();
-        glPopMatrix();
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        float[] parent1 = model;
+        model = Transform.Translate(model, 0, -0.6f, 0);
+        model = Transform.Scale(model, 0.3f, 1.2f, 0.3f);
+        PyramidShape.appendLineShape(mesh, model, color, material);
+        model = parent1;
+        float[] parent2 = model;
+        model = Transform.Rotate(model, 120, 0, 0, 1);
+        model = Transform.Translate(model, 0.5f, -0.2f, 0);
+        model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
+        PyramidShape.appendLineShape(mesh, model, color, material);
+        model = parent2;
+        float[] parent3 = model;
+        model = Transform.Rotate(model, 240, 0, 0, 1);
+        model = Transform.Translate(model, -0.5f, -0.2f, 0);
+        model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
+        PyramidShape.appendLineShape(mesh, model, color, material);
+        model = parent3;
     }
 }
 
@@ -699,47 +711,48 @@ public class Enemy2Shape : EnemyShape
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glPushMatrix();
-        glTranslatef(0, -0.5f, 0);
-        glScalef(0.5f, 1.2f, 0.5f);
-        PyramidShape.drawShadow(0.5f, 0.4f, 0.5f);
-        glPopMatrix();
-        glPushMatrix();
-        glRotatef(60, 0, 0, 1);
-        glTranslatef(0.6f, -0.7f, 0);
-        glScalef(0.4f, 1.4f, 0.4f);
-        PyramidShape.drawShadow(0.9f, 0.6f, 0.5f);
-        glPopMatrix();
-        glPushMatrix();
-        glRotatef(300, 0, 0, 1);
-        glTranslatef(-0.6f, -0.7f, 0);
-        glScalef(0.4f, 1.4f, 0.4f);
-        PyramidShape.drawShadow(0.9f, 0.6f, 0.5f);
-        glPopMatrix();
-        TtnScreen.setColor(1, 0.9f, 1.0f);
-        glPushMatrix();
-        glTranslatef(0, -0.5f, 0);
-        glScalef(0.3f, 1.0f, 0.3f);
-        PyramidShape.draw_0();
-        glPopMatrix();
-        TtnScreen.setColor(0.9f, 0.6f, 0.5f);
-        glPushMatrix();
-        glRotatef(60, 0, 0, 1);
-        glTranslatef(0.6f, -0.7f, 0);
-        glScalef(0.2f, 1.2f, 0.2f);
-        PyramidShape.draw_0();
-        glPopMatrix();
-        TtnScreen.setColor(0.9f, 0.6f, 0.5f);
-        glPushMatrix();
-        glRotatef(300, 0, 0, 1);
-        glTranslatef(-0.6f, -0.7f, 0);
-        glScalef(0.2f, 1.2f, 0.2f);
-        PyramidShape.draw_0();
-        glPopMatrix();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        material = (int)Gfx.Blend.Alpha;
+        float[] parent1 = model;
+        model = Transform.Translate(model, 0, -0.5f, 0);
+        model = Transform.Scale(model, 0.5f, 1.2f, 0.5f);
+        PyramidShape.appendShadow(mesh, model, color, material, 0.5f, 0.4f, 0.5f);
+        model = parent1;
+        float[] parent2 = model;
+        model = Transform.Rotate(model, 60, 0, 0, 1);
+        model = Transform.Translate(model, 0.6f, -0.7f, 0);
+        model = Transform.Scale(model, 0.4f, 1.4f, 0.4f);
+        PyramidShape.appendShadow(mesh, model, color, material, 0.9f, 0.6f, 0.5f);
+        model = parent2;
+        float[] parent3 = model;
+        model = Transform.Rotate(model, 300, 0, 0, 1);
+        model = Transform.Translate(model, -0.6f, -0.7f, 0);
+        model = Transform.Scale(model, 0.4f, 1.4f, 0.4f);
+        PyramidShape.appendShadow(mesh, model, color, material, 0.9f, 0.6f, 0.5f);
+        model = parent3;
+        color = new float[] { 1, 0.9f, 1.0f, 1 };
+        float[] parent4 = model;
+        model = Transform.Translate(model, 0, -0.5f, 0);
+        model = Transform.Scale(model, 0.3f, 1.0f, 0.3f);
+        PyramidShape.append(mesh, model, color, material);
+        model = parent4;
+        color = new float[] { 0.9f, 0.6f, 0.5f, 1 };
+        float[] parent5 = model;
+        model = Transform.Rotate(model, 60, 0, 0, 1);
+        model = Transform.Translate(model, 0.6f, -0.7f, 0);
+        model = Transform.Scale(model, 0.2f, 1.2f, 0.2f);
+        PyramidShape.append(mesh, model, color, material);
+        model = parent5;
+        color = new float[] { 0.9f, 0.6f, 0.5f, 1 };
+        float[] parent6 = model;
+        model = Transform.Rotate(model, 300, 0, 0, 1);
+        model = Transform.Translate(model, -0.6f, -0.7f, 0);
+        model = Transform.Scale(model, 0.2f, 1.2f, 0.2f);
+        PyramidShape.append(mesh, model, color, material);
+        model = parent6;
+        material = (int)Gfx.Blend.Additive;
     }
 }
 
@@ -750,25 +763,26 @@ public class Enemy2TrailShape : EnemyShape
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glPushMatrix();
-        glTranslatef(0, -0.5f, 0);
-        glScalef(0.3f, 1.0f, 0.3f);
-        PyramidShape.drawLineShape();
-        glPopMatrix();
-        glPushMatrix();
-        glRotatef(60, 0, 0, 1);
-        glTranslatef(0.6f, -0.7f, 0);
-        glScalef(0.2f, 1.2f, 0.2f);
-        PyramidShape.drawLineShape();
-        glPopMatrix();
-        glPushMatrix();
-        glRotatef(300, 0, 0, 1);
-        glTranslatef(-0.6f, -0.7f, 0);
-        glScalef(0.2f, 1.2f, 0.2f);
-        PyramidShape.drawLineShape();
-        glPopMatrix();
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        float[] parent1 = model;
+        model = Transform.Translate(model, 0, -0.5f, 0);
+        model = Transform.Scale(model, 0.3f, 1.0f, 0.3f);
+        PyramidShape.appendLineShape(mesh, model, color, material);
+        model = parent1;
+        float[] parent2 = model;
+        model = Transform.Rotate(model, 60, 0, 0, 1);
+        model = Transform.Translate(model, 0.6f, -0.7f, 0);
+        model = Transform.Scale(model, 0.2f, 1.2f, 0.2f);
+        PyramidShape.appendLineShape(mesh, model, color, material);
+        model = parent2;
+        float[] parent3 = model;
+        model = Transform.Rotate(model, 300, 0, 0, 1);
+        model = Transform.Translate(model, -0.6f, -0.7f, 0);
+        model = Transform.Scale(model, 0.2f, 1.2f, 0.2f);
+        PyramidShape.appendLineShape(mesh, model, color, material);
+        model = parent3;
     }
 }
 
@@ -779,48 +793,49 @@ public class Enemy3Shape : EnemyShape
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glPushMatrix();
-        glTranslatef(0, -0.4f, 0);
-        glScalef(0.5f, 1.4f, 0.5f);
-        PyramidShape.drawShadow(0.5f, 0.5f, 0.3f);
-        glPopMatrix();
-        glPushMatrix();
-        glRotatef(150, 0, 0, 1);
-        glTranslatef(0.5f, 0.2f, 0);
-        glScalef(0.4f, 1.0f, 0.4f);
-        PyramidShape.drawShadow(0.2f, 0.2f, 0.5f);
-        glPopMatrix();
-        TtnScreen.setColor(0.2f, 0.2f, 0.5f);
-        glPushMatrix();
-        glRotatef(210, 0, 0, 1);
-        glTranslatef(-0.5f, 0.2f, 0);
-        glScalef(0.4f, 1.0f, 0.4f);
-        PyramidShape.drawShadow(0.2f, 0.2f, 0.5f);
-        glPopMatrix();
-        TtnScreen.setColor(1, 0.6f, 0.9f);
-        glPushMatrix();
-        glTranslatef(0, -0.4f, 0);
-        glScalef(0.3f, 1.2f, 0.3f);
-        PyramidShape.draw_0();
-        glPopMatrix();
-        TtnScreen.setColor(0.3f, 0.5f, 1);
-        glPushMatrix();
-        glRotatef(150, 0, 0, 1);
-        glTranslatef(0.5f, 0.2f, 0);
-        glScalef(0.2f, 0.8f, 0.2f);
-        PyramidShape.draw_0();
-        glPopMatrix();
-        TtnScreen.setColor(0.3f, 0.5f, 1);
-        glPushMatrix();
-        glRotatef(210, 0, 0, 1);
-        glTranslatef(-0.5f, 0.2f, 0);
-        glScalef(0.2f, 0.8f, 0.2f);
-        PyramidShape.draw_0();
-        glPopMatrix();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        material = (int)Gfx.Blend.Alpha;
+        float[] parent1 = model;
+        model = Transform.Translate(model, 0, -0.4f, 0);
+        model = Transform.Scale(model, 0.5f, 1.4f, 0.5f);
+        PyramidShape.appendShadow(mesh, model, color, material, 0.5f, 0.5f, 0.3f);
+        model = parent1;
+        float[] parent2 = model;
+        model = Transform.Rotate(model, 150, 0, 0, 1);
+        model = Transform.Translate(model, 0.5f, 0.2f, 0);
+        model = Transform.Scale(model, 0.4f, 1.0f, 0.4f);
+        PyramidShape.appendShadow(mesh, model, color, material, 0.2f, 0.2f, 0.5f);
+        model = parent2;
+        color = new float[] { 0.2f, 0.2f, 0.5f, 1 };
+        float[] parent3 = model;
+        model = Transform.Rotate(model, 210, 0, 0, 1);
+        model = Transform.Translate(model, -0.5f, 0.2f, 0);
+        model = Transform.Scale(model, 0.4f, 1.0f, 0.4f);
+        PyramidShape.appendShadow(mesh, model, color, material, 0.2f, 0.2f, 0.5f);
+        model = parent3;
+        color = new float[] { 1, 0.6f, 0.9f, 1 };
+        float[] parent4 = model;
+        model = Transform.Translate(model, 0, -0.4f, 0);
+        model = Transform.Scale(model, 0.3f, 1.2f, 0.3f);
+        PyramidShape.append(mesh, model, color, material);
+        model = parent4;
+        color = new float[] { 0.3f, 0.5f, 1, 1 };
+        float[] parent5 = model;
+        model = Transform.Rotate(model, 150, 0, 0, 1);
+        model = Transform.Translate(model, 0.5f, 0.2f, 0);
+        model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
+        PyramidShape.append(mesh, model, color, material);
+        model = parent5;
+        color = new float[] { 0.3f, 0.5f, 1, 1 };
+        float[] parent6 = model;
+        model = Transform.Rotate(model, 210, 0, 0, 1);
+        model = Transform.Translate(model, -0.5f, 0.2f, 0);
+        model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
+        PyramidShape.append(mesh, model, color, material);
+        model = parent6;
+        material = (int)Gfx.Blend.Additive;
     }
 }
 
@@ -831,111 +846,113 @@ public class Enemy3TrailShape : EnemyShape
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glPushMatrix();
-        glTranslatef(0, -0.4f, 0);
-        glScalef(0.3f, 1.2f, 0.3f);
-        PyramidShape.drawLineShape();
-        glPopMatrix();
-        glPushMatrix();
-        glRotatef(150, 0, 0, 1);
-        glTranslatef(0.5f, 0.2f, 0);
-        glScalef(0.2f, 0.8f, 0.2f);
-        PyramidShape.drawLineShape();
-        glPopMatrix();
-        glPushMatrix();
-        glRotatef(210, 0, 0, 1);
-        glTranslatef(-0.5f, 0.2f, 0);
-        glScalef(0.2f, 0.8f, 0.2f);
-        PyramidShape.drawLineShape();
-        glPopMatrix();
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        float[] parent1 = model;
+        model = Transform.Translate(model, 0, -0.4f, 0);
+        model = Transform.Scale(model, 0.3f, 1.2f, 0.3f);
+        PyramidShape.appendLineShape(mesh, model, color, material);
+        model = parent1;
+        float[] parent2 = model;
+        model = Transform.Rotate(model, 150, 0, 0, 1);
+        model = Transform.Translate(model, 0.5f, 0.2f, 0);
+        model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
+        PyramidShape.appendLineShape(mesh, model, color, material);
+        model = parent2;
+        float[] parent3 = model;
+        model = Transform.Rotate(model, 210, 0, 0, 1);
+        model = Transform.Translate(model, -0.5f, 0.2f, 0);
+        model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
+        PyramidShape.appendLineShape(mesh, model, color, material);
+        model = parent3;
     }
 }
 
-public class TriangleParticleShape : DisplayListShape
+public class TriangleParticleShape : MeshShape
 {
     public TriangleParticleShape()
     {
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(0, 0.5f, 0);
-        glVertex3f(0.4f, -0.3f, 0);
-        glVertex3f(-0.4f, -0.3f, 0);
-        glEnd();
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        int part1 = mesh.vertexCount; int face1 = mesh.count;
+        mesh.Vertex(0, 0.5f, 0, color, model);
+        mesh.Vertex(0.4f, -0.3f, 0, color, model);
+        mesh.Vertex(-0.4f, -0.3f, 0, color, model);
+        mesh.LineStrip(part1, mesh.vertexCount - part1, true); mesh.AddRange(face1, material);
     }
 }
 
-public abstract class PillarShape : DisplayListShape
+public abstract class PillarShape : MeshShape
 {
     public const float TICKNESS = 4.0f;
     public const float RADIUS_RATIO = 0.3f;
-    public virtual void drawPillar(float r, float g, float b, bool outside = false)
+    public virtual void appendPillar(Mesh mesh, float[] model, float[] color, int material, float r, float g, float b, bool outside = false)
     {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBegin(GL_QUADS);
-        TtnScreen.setColor(r, g, b);
+        material = (int)Gfx.Blend.Alpha;
+        int part1 = mesh.vertexCount; int face1 = mesh.count;
+        color = new float[] { r, g, b, 1 };
         for (int i = 0; i < 8; i++)
         {
             float d = PI * 2 * i / 8;
-            glVertex3f(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO);
+            mesh.Vertex(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, color, model);
             d = d + (PI * 2 / 8);
-            glVertex3f(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO);
-            glVertex3f(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, -TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO);
+            mesh.Vertex(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, color, model);
+            mesh.Vertex(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, -TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, color, model);
             d = d - (PI * 2 / 8);
-            glVertex3f(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, -TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO);
+            mesh.Vertex(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, -TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, color, model);
         }
 
-        glEnd();
+        mesh.Quads(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
         if (!((outside)))
         {
-            TtnScreen.setColor(r, g, b);
-            glBegin(GL_TRIANGLES);
+            color = new float[] { r, g, b, 1 };
+            int part2 = mesh.vertexCount; int face2 = mesh.count;
             for (int i = 0; i < 8; i++)
             {
                 float d = PI * 2 * i / 8;
-                glVertex3f(0, TICKNESS, 0);
-                glVertex3f(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO);
+                mesh.Vertex(0, TICKNESS, 0, color, model);
+                mesh.Vertex(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, color, model);
                 d = d + (PI * 2 / 8);
-                glVertex3f(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO);
+                mesh.Vertex(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, color, model);
                 d = d - (PI * 2 / 8);
-                glVertex3f(0, -TICKNESS, 0);
-                glVertex3f(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, -TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO);
+                mesh.Vertex(0, -TICKNESS, 0, color, model);
+                mesh.Vertex(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, -TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, color, model);
                 d = d + (PI * 2 / 8);
-                glVertex3f(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, -TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO);
+                mesh.Vertex(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, -TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, color, model);
             }
 
-            glEnd();
+            for (int vi = part2; vi + 2 < mesh.vertexCount; vi += 3) mesh.Triangle(vi, vi + 1, vi + 2); mesh.AddRange(face2, material);
         }
 
-        TtnScreen.setColor(0.1f, 0.1f, 0.1f);
+        color = new float[] { 0.1f, 0.1f, 0.1f, 1 };
         for (int i = 0; i < 8; i++)
         {
             float d = PI * 2 * i / 8;
-            glBegin(GL_LINE_STRIP);
-            glVertex3f(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO);
+            int part3 = mesh.vertexCount; int face3 = mesh.count;
+            mesh.Vertex(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, color, model);
             d = d + (PI * 2 / 8);
-            glVertex3f(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO);
-            glVertex3f(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, -TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO);
+            mesh.Vertex(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, color, model);
+            mesh.Vertex(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, -TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, color, model);
             d = d - (PI * 2 / 8);
-            glVertex3f(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, -TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO);
-            glEnd();
+            mesh.Vertex(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, -TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, color, model);
+            mesh.LineStrip(part3, mesh.vertexCount - part3); mesh.AddRange(face3, material);
         }
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        material = (int)Gfx.Blend.Additive;
     }
 
-    public virtual void draw_2(float y, float deg)
+    public virtual void draw_2(float[] model, float[] color, Gfx.Blend blend, float y, float deg)
     {
-        glPushMatrix();
-        glTranslatef(0, y, 0);
-        glRotatef(deg * 180 / PI, 0, 1, 0);
-        displayList.call();
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, 0, y, 0);
+        model = Transform.Rotate(model, deg * 180 / PI, 0, 1, 0);
+        draw_0(model, color, blend);
+        model = parent1;
     }
 }
 
@@ -946,10 +963,11 @@ public class Pillar1Shape : PillarShape
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glScalef(0.6f, 1.0f, 0.6f);
-        drawPillar(0.5f, 0.4f, 0.4f);
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        model = Transform.Scale(model, 0.6f, 1.0f, 0.6f);
+        appendPillar(mesh, model, color, material, 0.5f, 0.4f, 0.4f);
     }
 }
 
@@ -960,10 +978,11 @@ public class Pillar2Shape : PillarShape
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glScalef(0.8f, 1.0f, 0.8f);
-        drawPillar(0.6f, 0.3f, 0.3f);
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        model = Transform.Scale(model, 0.8f, 1.0f, 0.8f);
+        appendPillar(mesh, model, color, material, 0.6f, 0.3f, 0.3f);
     }
 }
 
@@ -974,9 +993,10 @@ public class Pillar3Shape : PillarShape
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        drawPillar(0.5f, 0.5f, 0.4f);
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        appendPillar(mesh, model, color, material, 0.5f, 0.5f, 0.4f);
     }
 }
 
@@ -987,10 +1007,11 @@ public class Pillar4Shape : PillarShape
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glScalef(1.1f, 1.0f, 1.1f);
-        drawPillar(0.5f, 0.4f, 0.5f);
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        model = Transform.Scale(model, 1.1f, 1.0f, 1.1f);
+        appendPillar(mesh, model, color, material, 0.5f, 0.4f, 0.5f);
     }
 }
 
@@ -1001,9 +1022,10 @@ public class OutsidePillarShape : PillarShape
         initializeShape();
     }
 
-    public override void drawList()
+    public override void createMesh()
     {
-        glScalef(7.0f, 3.0f, 7.0f);
-        drawPillar(0.2f, 0.2f, 0.3f, true);
+        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        model = Transform.Scale(model, 7.0f, 3.0f, 7.0f);
+        appendPillar(mesh, model, color, material, 0.2f, 0.2f, 0.3f, true);
     }
 }

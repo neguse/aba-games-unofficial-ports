@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class ParticlePool : ActorPool<Particle>
 {
@@ -244,13 +244,13 @@ public class TriangleParticleSpec : ParticleSpec
         }
     }
 
-    public override void draw_1(ParticleState ps)
+    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps)
     {
         {
             Vector3 p = field.calcCircularPos_1(ps.pos);
             float aa = ps.a * calcNearPlayerAlpha(ps.pos);
-            TtnScreen.setColor(ps.r, ps.g, ps.b, aa);
-            particleShape.draw_3(p, ps.d1, ps.d2);
+            color = new float[] { ps.r, ps.g, ps.b, aa };
+            particleShape.draw_3(model, color, blend, p, ps.d1, ps.d2);
         }
     }
 }
@@ -293,18 +293,19 @@ public class LineParticleSpec : ParticleSpec
         }
     }
 
-    public override void draw_1(ParticleState ps)
+    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps)
     {
         {
             Vector3 p = null;
-            glBegin(GL_LINES);
+            var part1 = new Mesh("Particle-draw_1-1" + "-" + ps.meshKey);
             float aa = ps.a;
-            TtnScreen.setColor(ps.r, ps.g, ps.b, aa);
+            color = new float[] { ps.r, ps.g, ps.b, aa };
             p = field.calcCircularPos_1(ps.pos);
-            TtnScreen.glVertex(p);
+            part1.Vertex(p.x, p.y, p.z, color);
             p = field.calcCircularPos_1(ps.tailPos);
-            TtnScreen.glVertex(p);
-            glEnd();
+            part1.Vertex(p.x, p.y, p.z, color);
+            for (int vi = 0; vi + 1 < part1.vertexCount; vi += 2) part1.Line(vi, vi + 1);
+            Gfx.Draw(part1.count, part1.Bindings(model, null, 1, blend == Gfx.Blend.Additive), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
         }
     }
 }
@@ -341,36 +342,38 @@ public class QuadParticleSpec : ParticleSpec
         }
     }
 
-    public override void draw_1(ParticleState ps)
+    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps)
     {
         {
             Vector3 p = null;
             float sz = ps.size * 0.5f;
             float aa = ps.a * calcNearPlayerAlpha(ps.pos);
-            TtnScreen.setColor(ps.r, ps.g, ps.b, aa);
-            glBegin(GL_QUADS);
+            color = new float[] { ps.r, ps.g, ps.b, aa };
+            var part1 = new Mesh("Particle-draw_1-1" + "-" + ps.meshKey);
             p = field.calcCircularPos_2(ps.pos.x - sz, ps.pos.y - sz);
-            TtnScreen.glVertex(p);
+            part1.Vertex(p.x, p.y, p.z, color);
             p = field.calcCircularPos_2(ps.pos.x + sz, ps.pos.y - sz);
-            TtnScreen.glVertex(p);
+            part1.Vertex(p.x, p.y, p.z, color);
             p = field.calcCircularPos_2(ps.pos.x + sz, ps.pos.y + sz);
-            TtnScreen.glVertex(p);
+            part1.Vertex(p.x, p.y, p.z, color);
             p = field.calcCircularPos_2(ps.pos.x - sz, ps.pos.y + sz);
-            TtnScreen.glVertex(p);
-            glEnd();
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            TtnScreen.setColor(0, 0, 0, aa * 0.66f);
-            glBegin(GL_LINE_LOOP);
+            part1.Vertex(p.x, p.y, p.z, color);
+            part1.Quads(0, part1.vertexCount);
+            Gfx.Draw(part1.count, part1.Bindings(model, null, 1, blend == Gfx.Blend.Additive), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+            blend = Gfx.Blend.Alpha;
+            color = new float[] { 0, 0, 0, aa * 0.66f };
+            var part2 = new Mesh("Particle-draw_1-2" + "-" + ps.meshKey);
             p = field.calcCircularPos_2(ps.pos.x - sz, ps.pos.y - sz);
-            TtnScreen.glVertex(p);
+            part2.Vertex(p.x, p.y, p.z, color);
             p = field.calcCircularPos_2(ps.pos.x + sz, ps.pos.y - sz);
-            TtnScreen.glVertex(p);
+            part2.Vertex(p.x, p.y, p.z, color);
             p = field.calcCircularPos_2(ps.pos.x + sz, ps.pos.y + sz);
-            TtnScreen.glVertex(p);
+            part2.Vertex(p.x, p.y, p.z, color);
             p = field.calcCircularPos_2(ps.pos.x - sz, ps.pos.y + sz);
-            TtnScreen.glVertex(p);
-            glEnd();
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+            part2.Vertex(p.x, p.y, p.z, color);
+            part2.LineStrip(0, part2.vertexCount, true);
+            Gfx.Draw(part2.count, part2.Bindings(model, null, 1, blend == Gfx.Blend.Additive), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+            blend = Gfx.Blend.Additive;
         }
     }
 }
@@ -419,22 +422,22 @@ public class BonusParticleSpec : ParticleSpec
         }
     }
 
-    public override void draw_1(ParticleState ps)
+    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps)
     {
         {
             if (ps.waitCnt > 0)
                 return;
-            glPushMatrix();
+            float[] parent1 = model;
             Vector3 p = field.calcCircularPos_1(ps.pos);
             float aa = ps.a * calcNearPlayerAlpha(ps.pos);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            TtnScreen.setColor(1, 1, 1, aa * 0.5f);
-            TtnScreen.glTranslate(p);
-            Letter.drawNumSign(GameMath.integer(ps.num), 0, 0, ps.size, 33, 0, 1);
-            TtnScreen.setColor(1, 1, 1, aa);
-            Letter.drawNumSign(GameMath.integer(ps.num), 0, 0, ps.size, 33, 0, 2);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-            glPopMatrix();
+            blend = Gfx.Blend.Alpha;
+            color = new float[] { 1, 1, 1, aa * 0.5f };
+            model = Transform.Translate(model, p.x, p.y, p.z);
+            Letter.drawNumSign(model, color, blend, GameMath.integer(ps.num), 0, 0, ps.size, 33, 0, 1);
+            color = new float[] { 1, 1, 1, aa };
+            Letter.drawNumSign(model, color, blend, GameMath.integer(ps.num), 0, 0, ps.size, 33, 0, 2);
+            blend = Gfx.Blend.Additive;
+            model = parent1;
         }
     }
 }

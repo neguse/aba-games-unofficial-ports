@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class PillarPool : ActorPool<Pillar>
 {
@@ -17,7 +17,7 @@ public class PillarPool : ActorPool<Pillar>
                 a.setEnd();
     }
 
-    public virtual void drawCenter()
+    public virtual void drawCenter(float[] model, float[] color, Gfx.Blend blend)
     {
         for (int i = 1; i < actors.Length; i++)
         {
@@ -35,14 +35,14 @@ public class PillarPool : ActorPool<Pillar>
         Pillar[] sas = actors;
         foreach (Pillar a in sas)
             if (((a.exists)) && ((!((a.state.isOutside)))))
-                a.draw_0();
+                a.draw_0(model, color, blend);
     }
 
-    public virtual void drawOutside()
+    public virtual void drawOutside(float[] model, float[] color, Gfx.Blend blend)
     {
         foreach (Pillar a in actors)
             if (((a.exists)) && ((a.state.isOutside)))
-                a.draw_0();
+                a.draw_0(model, color, blend);
     }
 }
 
@@ -145,8 +145,8 @@ public class PillarSpec : TokenSpec<PillarState>
         }
     }
 
-    public override void draw_1(PillarState ps)
+    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, PillarState ps)
     {
-        ps.pshape.draw_2(ps.pos.y, ps.deg);
+        ps.pshape.draw_2(model, color, blend, ps.pos.y, ps.deg);
     }
 }
