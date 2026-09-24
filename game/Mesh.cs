@@ -38,6 +38,21 @@ public class Mesh
         for (int i = 0; i < 4; i++) vertices.Add(color == null ? 1 : color[i]);
         vertexBuffer = null;
     }
+    public void Append(Mesh source, float[] model)
+    {
+        int baseVertex = vertexCount, baseFace = count;
+        for (int i = 0; i < source.vertices.Count; i += 8)
+            Vertex(source.vertices[i], source.vertices[i + 1], source.vertices[i + 2],
+                source.vertices[i + 3] > 0 ? null : new float[] { source.vertices[i + 4], source.vertices[i + 5], source.vertices[i + 6], source.vertices[i + 7] }, model);
+        for (int i = 0; i < source.faces.Count; i += 4)
+        {
+            faces.Add(source.faces[i] + baseVertex); faces.Add(source.faces[i + 1] + baseVertex);
+            faces.Add(source.faces[i + 2] + (source.faces[i + 3] == 1 ? 0 : baseVertex)); faces.Add(source.faces[i + 3]);
+        }
+        foreach (MeshRange range in source.ranges)
+            ranges.Add(new MeshRange { first = baseFace + range.first, count = range.count, material = range.material });
+        faceBuffer = null;
+    }
     public void Triangle(int a, int b, int c)
     {
         faces.Add(a); faces.Add(b); faces.Add(c); faces.Add(0);

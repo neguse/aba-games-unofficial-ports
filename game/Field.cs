@@ -1,7 +1,7 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class Field {
 
   public const float GROUND_LEVEL = -17;
@@ -12,6 +12,7 @@ public class Field {
   public ActorPool fieldObjs;
   public FieldPattern[] fieldPattern = new FieldPattern[FIELD_NUM];
   public FieldPattern pattern;
+  public float[] clearColor;
   public Rand rand;
   public float mnx;
   public float groundOffset;
@@ -34,7 +35,7 @@ public class Field {
   public void start(int sn) {
     pattern = fieldPattern[sn];
     rand.setSeed(pattern.randSeed);
-    Screen.setClearColor(pattern.br, pattern.bg, pattern.bb, 1);
+    clearColor = new float[] { pattern.br, pattern.bg, pattern.bb, 1 };
     foreach (FieldLinePattern flp in pattern.line)
       flp.cnt = flp.interval[rand.nextInt(flp.interval.Length)];
     fieldObjs.clear();
@@ -75,31 +76,32 @@ public class Field {
       mnx -= 640;
   }
 
-  public void draw() {
-    fieldObjs.draw();
+  public void draw(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+    fieldObjs.draw(model, tint, blend);
   }
 
   public void setGroundY(float y) {
     groundOffset = y;
   }
 
-  public void drawBack() {
-    glBegin(GL_QUADS);
-    Screen.setColor(pattern.gr, pattern.gg, pattern.gb);
-    glVertex3f(0, 480, 0);
-    glVertex3f(640, 480, 0);
+  public void drawBack(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+    var mesh = new Mesh("field-back");
+    int part1 = mesh.vertexCount;
+    tint = new float[] { pattern.gr, pattern.gg, pattern.gb, 1 };
+    mesh.Vertex(0, 480, 0, tint);
+    mesh.Vertex(640, 480, 0, tint);
     float gy1 = 400 - groundOffset;
-    glVertex3f(640, gy1, 0);
-    glVertex3f(0, gy1, 0);
-    glVertex3f(0, gy1, 0);
-    glVertex3f(640, gy1, 0);
-    Screen.setColor(pattern.mrr, pattern.mrg, pattern.mrb);
+    mesh.Vertex(640, gy1, 0, tint);
+    mesh.Vertex(0, gy1, 0, tint);
+    mesh.Vertex(0, gy1, 0, tint);
+    mesh.Vertex(640, gy1, 0, tint);
+    tint = new float[] { pattern.mrr, pattern.mrg, pattern.mrb, 1 };
     float gy2 = GROUND_Y - groundOffset;
-    glVertex3f(640, gy2, 0);
-    glVertex3f(0, gy2, 0);
-    glEnd();
+    mesh.Vertex(640, gy2, 0, tint);
+    mesh.Vertex(0, gy2, 0, tint);
+    mesh.Quads(part1, mesh.vertexCount - part1);
     int idx = 0;
-    glBegin(GL_TRIANGLES);
+    int part2 = mesh.vertexCount;
     for (int i = 0; i < backMountPos.Length / 2; i++) {
       float x1 = (backMountPos[idx].x - mnx);
       float x2 = (backMountPos[idx + 1].x - mnx);
@@ -107,16 +109,19 @@ public class Field {
       if (x1 >= 640)
 	break;
       if (x3 >= 0) {
-	Screen.setColor(pattern.mrr, pattern.mrg, pattern.mrb);
-	glVertex3f(x1, backMountPos[idx].y - groundOffset, 0);
-	Screen.setColor(pattern.mtr, pattern.mtg, pattern.mtb);
-	glVertex3f(x2, backMountPos[idx + 1].y - groundOffset, 0);
-	Screen.setColor(pattern.mrr, pattern.mrg, pattern.mrb);
-	glVertex3f(x3, backMountPos[idx + 2].y - groundOffset, 0);
+	tint = new float[] { pattern.mrr, pattern.mrg, pattern.mrb, 1 };
+	mesh.Vertex(x1, backMountPos[idx].y - groundOffset, 0, tint);
+	tint = new float[] { pattern.mtr, pattern.mtg, pattern.mtb, 1 };
+	mesh.Vertex(x2, backMountPos[idx + 1].y - groundOffset, 0, tint);
+	tint = new float[] { pattern.mrr, pattern.mrg, pattern.mrb, 1 };
+	mesh.Vertex(x3, backMountPos[idx + 2].y - groundOffset, 0, tint);
       }
       idx += 2;
     }
-    glEnd();
+    for (int vi = part2; vi + 2 < mesh.vertexCount; vi += 3) mesh.Triangle(vi, vi + 1, vi + 2);
+
+    Gfx.Draw(mesh.count, mesh.Bindings(model, tint, width, false),
+      new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
   }
 
   public bool checkHit(Vector p) {
@@ -200,8 +205,9 @@ public class FieldObj: Actor {
       isExist = false;
   }
 
-  public override void draw() {
-    tumikiSet.drawShade(pos, z, 2);
+  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+    bool depth = true; Gfx.Cull cull = Gfx.Cull.Front; float width = 1;
+    tumikiSet.drawShade(model, tint, blend, depth, cull, width, pos, z, 2);
   }
 }
 

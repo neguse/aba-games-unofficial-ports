@@ -122,7 +122,7 @@ public static class GameVerification
         var game = new GameManager();
         game.init(); game.start(); game.draw();
         Check(GameData.stage.Length == 5 && GameData.enemy.Length == 33 && GameData.tumiki.Length == 99, "original data");
-        Check(game.state == GameState.TITLE && Drawing.batches.Count > 0, "title");
+        Check(game.state == GameState.TITLE && Tumiki.meshes[0].count > 0 && LetterRender.meshes[0].count > 0, "title");
         for (int i = 0; i < 18; i++) game.move();
         game.pad.buttons = Pad.PAD_BUTTON1; game.move();
         Check(game.state == GameState.START_GAME, "start input");

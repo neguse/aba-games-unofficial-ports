@@ -1,7 +1,7 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class Enemy: Actor {
 
   public static int totalNum;
@@ -253,12 +253,13 @@ public class Enemy: Actor {
     totalNum++;
   }
 
-  public override void draw() {
+  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+    bool depth = true; Gfx.Cull cull = Gfx.Cull.Front; float width = 1;
     float z = -0.5f;
     for (int i = 0 ; i < partsNum; i++) {
       EnemyPart p = parts[i];
       if (p.shield > 0)
-	p.draw(pos, z);
+	p.draw(model, tint, blend, depth, cull, width, pos, z);
       if (i == 0)
 	z += 0.2f;
       else
@@ -508,8 +509,8 @@ public class EnemyPart {
     spec.tumikiSet.breakIntoFragmentsAt(fragments, pos.x + spec.ofs.x, pos.y + spec.ofs.y, 0);
   }
 
-  public void draw(Vector pos, float z) {
-    spec.tumikiSet.drawAt(pos.x + spec.ofs.x, pos.y + spec.ofs.y, z, damaged, wounded);
+  public void draw(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z) {
+    spec.tumikiSet.drawAt(model, tint, blend, depth, cull, width, pos.x + spec.ofs.x, pos.y + spec.ofs.y, z, damaged, wounded);
     damaged = false;
   }
 }

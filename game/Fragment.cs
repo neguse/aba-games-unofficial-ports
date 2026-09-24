@@ -1,7 +1,7 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class Fragment: Actor {
 
   public static Rand rand = new Rand();
@@ -53,7 +53,8 @@ public class Fragment: Actor {
     deg += md;
   }
 
-  public override void draw() {
+  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+    bool depth = false; Gfx.Cull cull = Gfx.Cull.Front; float width = 1;
     if (cnt < 16) {
       if ((cnt & 1) == 1)
 	return;
@@ -64,13 +65,23 @@ public class Fragment: Actor {
       if ((cnt % 4) == 3)
 	return;
     }
-    glPushMatrix();
-    glTranslatef(pos.x, pos.y, -1);
-    glRotatef(deg, 0, 0, 1);
-    glScalef(size.x, size.y, (size.x  + size.y) / 2);
-    glCallList(Tumiki.displayListIdx + shape + color * Tumiki.SHAPE_NUM +
-	       Tumiki.SHAPE_NUM * Tumiki.COLOR_NUM);
-    glPopMatrix();
+    float[] parent1 = model;
+    model = Transform.Translate(model, pos.x, pos.y, -1);
+    model = Transform.Rotate(model, deg, 0, 0, 1);
+    model = Transform.Scale(model, size.x, size.y, (size.x  + size.y) / 2);
+    {
+      Mesh shape2 = Tumiki.meshes[shape + color * Tumiki.SHAPE_NUM +
+	       Tumiki.SHAPE_NUM * Tumiki.COLOR_NUM];
+      if (cull == Gfx.Cull.None) {
+        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+          new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
+      } else foreach (MeshRange range in shape2.ranges) {
+        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+          new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
+            Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
+      }
+    }
+    model = parent1;
   }
 }
 

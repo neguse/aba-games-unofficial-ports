@@ -1,7 +1,6 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
 public class StageManager {
 
   public const int STAGE_NUM = 5;

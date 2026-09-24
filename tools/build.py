@@ -32,7 +32,7 @@ dist.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_barrage.py', str(original / 'barrage'), 'build/BarrageCode.cs'], check=True)
 subprocess.run([sys.executable, 'tools/compile_data.py', str(original), 'build/GameData.cs'], check=True)
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--output', 'dist/game.lua'], check=True)
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), 'dist/shaders.json'], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), 'dist/shaders.json', 'shaders/mesh'], check=True)
 for path in Path('web').iterdir():
     shutil.copy2(path, dist / path.name)
 shutil.copytree(original / 'sounds', dist / 'audio', dirs_exist_ok=True)

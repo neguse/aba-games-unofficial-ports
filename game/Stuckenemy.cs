@@ -1,7 +1,7 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class StuckEnemy: Actor {
 
   public bool isConnected;
@@ -217,12 +217,13 @@ public class StuckEnemy: Actor {
     }
   }
 
-  public override void draw() {
+  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+    bool depth = true; Gfx.Cull cull = Gfx.Cull.Front; float width = 1;
     if (!isMyShip) {
       if (manager.mode == GameMode.EXTRA && stuckEnemies.pullInRatio < 1)
-	tumikiSet.drawShadeScaled(pos, 0.2f, 1, deg, stuckEnemies.pullInRatio);
+	tumikiSet.drawShadeScaled(model, tint, blend, depth, cull, width, pos, 0.2f, 1, deg, stuckEnemies.pullInRatio);
       else
-	tumikiSet.drawRotated(pos, 0.2f, deg);
+	tumikiSet.drawRotated(model, tint, blend, depth, cull, width, pos, 0.2f, deg);
     }
   }
 

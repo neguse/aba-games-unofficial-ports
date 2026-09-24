@@ -6,7 +6,8 @@ public static class Game
 {
     static GameManager manager;
     static float elapsed;
-    static int version;
+    public static ShaderRef shader;
+    static string shaderSource;
 
     public static void OnInit()
     {
@@ -34,23 +35,13 @@ public static class Game
         }
         elapsed += Math.Min(dt, 0.1f);
         while (elapsed >= 0.016f) { manager.move(); elapsed -= 0.016f; }
-        manager.draw();
-        var shader = Gfx.UseShader("tumiki", GameShaders.vertex, GameShaders.fragment, 1);
+        string source = GameShaders.vertex + GameShaders.fragment;
+        shader = Gfx.UseShader("tumiki", GameShaders.vertex, GameShaders.fragment,
+            shader != null && shaderSource == source ? (int?)shader.Version : null);
+        shaderSource = source;
         if (shader == null) return;
-        version++;
-        Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = Drawing.clearColor });
-        int index = 0;
-        foreach (var batch in Drawing.batches)
-        {
-            if (batch.vertices.Count == 0) continue;
-            var buffer = Gfx.UseBuffer("geometry" + index.ToString(), Gfx.BufferType.Storage, batch.vertices, version);
-            if (buffer != null)
-                Gfx.Draw(batch.vertices.Count / 8, new Dictionary<string, object> { ["verts"] = buffer }, new DrawOpts {
-                    Shader = shader, Depth = batch.depth, DepthWrite = batch.depth,
-                    Cull = batch.cull ? Gfx.Cull.Front : Gfx.Cull.None,
-                    Blend = batch.blend ? Gfx.Blend.Additive : Gfx.Blend.None });
-            index++;
-        }
+        Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = manager.field.clearColor });
+        manager.draw();
         Gfx.EndPass();
     }
     public static void OnQuit() { manager.prefManager.save(); manager.close(); }

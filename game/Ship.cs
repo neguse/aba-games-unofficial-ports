@@ -1,7 +1,7 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class Ship: BulletTarget {
 
   public Vector pos;
@@ -304,30 +304,30 @@ public class Ship: BulletTarget {
     return pos;
   }
 
-  public void draw() {
-    stuckEnemies.draw();
+  public void draw(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+    stuckEnemies.draw(model, tint, blend);
     if (cnt < -RESPAWN_CNT || (cnt < 0 && (-cnt % 32) < 16))
       return;
-    tumikiSet.drawRotated(pos, 0, deg);
+    tumikiSet.drawRotated(model, tint, blend, depth, cull, width, pos, 0, deg);
   }
 
-  public void drawFriendly() {
+  public void drawFriendly(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
     float z = -3;
     foreach (Vector fp in friendPos) {
-      tumikiSet.drawShadeRotated(fp, z, 1, 0.2f);
+      tumikiSet.drawShadeRotated(model, tint, blend, depth, cull, width, fp, z, 1, 0.2f);
       z -= 1;
     }
   }
 
-  public void drawFriendlyBack() {
+  public void drawFriendlyBack(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
     float z = -3;
     foreach (Vector fp in friendPos) {
-      tumikiSet.drawShadeRotated(fp, z, 1, 0);
+      tumikiSet.drawShadeRotated(model, tint, blend, depth, cull, width, fp, z, 1, 0);
       z -= 1;
     }
   }
 
-  public void drawLeft(float x, float y, float z) {
-    tumikiSet.drawAt(x, y, z, false, false);
+  public void drawLeft(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, float x, float y, float z) {
+    tumikiSet.drawAt(model, tint, blend, depth, cull, width, x, y, z, false, false);
   }
 }

@@ -1,7 +1,7 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class AttractManager {
 
   public Pad pad;
@@ -37,15 +37,14 @@ public class AttractManager {
     }
   }
 
-  public void drawTitle() {
+  public void drawTitle(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
     if (cnt % 64 < 32)
-      LetterRender.drawString
-	("PUSH SHOT BUTTON TO START", 250, 390, 7, LetterDirection.TO_RIGHT, 3);
+      LetterRender.drawString(model, tint, blend, depth, cull, width, "PUSH SHOT BUTTON TO START", 250, 390, 7, LetterDirection.TO_RIGHT, 3);
     int c = cnt % 1200;
     if (c < 300) {
-      drawTitleBoard(70, 50, 16);
+      drawTitleBoard(model, tint, blend, depth, cull, width, 70, 50, 16);
     } else {
-      drawTitleBoard(30, 360, 8);
+      drawTitleBoard(model, tint, blend, depth, cull, width, 30, 360, 8);
       int dr = (c - 300) / 30;
       if (dr > PrefManager.RANKING_NUM)
 	dr = PrefManager.RANKING_NUM;
@@ -71,16 +70,14 @@ public class AttractManager {
 	  rs += "TH";
 	  break;
 	}
-	LetterRender.drawString
-	  (rs, x, y, 9, LetterDirection.TO_RIGHT, 3);
-	LetterRender.drawNum(prefManager.ranking[i].score, 400, y, 9,
+	LetterRender.drawString(model, tint, blend, depth, cull, width, rs, x, y, 9, LetterDirection.TO_RIGHT, 3);
+	LetterRender.drawNum(model, tint, blend, depth, cull, width, prefManager.ranking[i].score, 400, y, 9,
 			     LetterDirection.TO_RIGHT, 3);
 	if (prefManager.ranking[i].stage >= StageManager.STAGE_NUM)
 	  rs = "A";
 	else
 	  rs = (prefManager.ranking[i].stage + 1).ToString();
-	LetterRender.drawString
-	  (rs, 500, y, 9, LetterDirection.TO_RIGHT, 3);
+	LetterRender.drawString(model, tint, blend, depth, cull, width, rs, 500, y, 9, LetterDirection.TO_RIGHT, 3);
       }
     }
   }
@@ -104,32 +101,52 @@ public class AttractManager {
      new int[] {-1,-1,-1, 1, 5, 0, 3, 1, 3, 4, 5, 2, 1, 3,},
      };
 
-  public void drawTitleBoard(float x, float y, float s) {
-    glPushMatrix();
-    glTranslatef(x, y, 0);
-    glScalef(s, s, s);
+  public void drawTitleBoard(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, float x, float y, float s) {
+    float[] parent1 = model;
+    model = Transform.Translate(model, x, y, 0);
+    model = Transform.Scale(model, s, s, s);
     int tx, ty;
     ty = 0;
     foreach (int[] tpl in TITLE_PTN) {
       tx = 0;
       foreach (int tp in tpl) {
 	int c = TITLE_CLR[ty][tx];
-	glPushMatrix();
-	glTranslatef(tx * 2, ty * 2, 0);
+	float[] parent2 = model;
+	model = Transform.Translate(model, tx * 2, ty * 2, 0);
 	if (tp < 0) {
 	  int ti = -tp - 1;
-	  glScalef(0.75f, 0.75f, 0.75f);
-	  glCallList(Tumiki.displayListIdx + ti + c * Tumiki.SHAPE_NUM);
+	  model = Transform.Scale(model, 0.75f, 0.75f, 0.75f);
+	  {
+      Mesh shape3 = Tumiki.meshes[ti + c * Tumiki.SHAPE_NUM];
+      if (cull == Gfx.Cull.None) {
+        Gfx.Draw(shape3.count, shape3.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+          new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
+      } else foreach (MeshRange range in shape3.ranges) {
+        Gfx.Draw(range.count, shape3.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+          new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
+            Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
+      }
+    }
 	} else if (tp > 0) {
 	  int li = tp + 10;
-	  glScalef(0.9f, 0.9f, 0.9f);
-	  glCallList(LetterRender.displayListIdx + li + c * LetterRender.LETTER_NUM);
+	  model = Transform.Scale(model, 0.9f, 0.9f, 0.9f);
+	  {
+      Mesh shape4 = LetterRender.meshes[li + c * LetterRender.LETTER_NUM];
+      if (cull == Gfx.Cull.None) {
+        Gfx.Draw(shape4.count, shape4.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+          new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
+      } else foreach (MeshRange range in shape4.ranges) {
+        Gfx.Draw(range.count, shape4.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+          new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
+            Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
+      }
+    }
 	}
-	glPopMatrix();
+	model = parent2;
 	tx++;
       }
       ty++;
     }
-    glPopMatrix();
+    model = parent1;
   }
 }

@@ -1,7 +1,7 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class BulletActor: Actor {
 
   public static float totalBulletsSpeed;
@@ -253,35 +253,46 @@ public class BulletActor: Actor {
   public const int BULLET_COLOR = 8;
   public const int BULLET_SHADE = 3;
 
-  public override void draw() {
+  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+    bool depth = false; Gfx.Cull cull = Gfx.Cull.Front; float width = bullet.type == BulletType.ENEMY ? 2 : 1;
     if (!isVisible)
       return;
     float d;
     d = (-bullet.deg * bullet.xReverse + PI / 2) * bullet.yReverse - PI / 2;
-    glPushMatrix();
-    glTranslatef(bullet.pos.x, bullet.pos.y, 0);
+    float[] parent1 = model;
+    model = Transform.Translate(model, bullet.pos.x, bullet.pos.y, 0);
     int s = 0;
     switch (bullet.shape) {
     case 0:
-      glRotatef(rtod(d), 0, 0, 1);
-      glScalef(bullet.bulletSize * 0.2f, bullet.bulletSize * 0.5f, 0.3f);
+      model = Transform.Rotate(model, rtod(d), 0, 0, 1);
+      model = Transform.Scale(model, bullet.bulletSize * 0.2f, bullet.bulletSize * 0.5f, 0.3f);
       s = 0;
       break;
     case 1:
-      glRotatef(rtod(d), 0, 0, 1);
-      glScalef(bullet.bulletSize * 0.2f, bullet.bulletSize * 0.5f, 0.3f);
+      model = Transform.Rotate(model, rtod(d), 0, 0, 1);
+      model = Transform.Scale(model, bullet.bulletSize * 0.2f, bullet.bulletSize * 0.5f, 0.3f);
       s = 5;
       break;
     case 2:
-      glRotatef(cnt * 11, 0, 0, 1);
-      glScalef(bullet.bulletSize * 0.4f, bullet.bulletSize * 0.4f, 0.3f);
+      model = Transform.Rotate(model, cnt * 11, 0, 0, 1);
+      model = Transform.Scale(model, bullet.bulletSize * 0.4f, bullet.bulletSize * 0.4f, 0.3f);
       s = 0;
       break;
     }
-    glCallList(Tumiki.displayListIdx + s +
+    {
+      Mesh shape2 = Tumiki.meshes[s +
 	       (BULLET_COLOR + bullet.color) * Tumiki.SHAPE_NUM +
-	       BULLET_SHADE * Tumiki.COLOR_NUM * Tumiki.SHAPE_NUM);
-    glPopMatrix();
+	       BULLET_SHADE * Tumiki.COLOR_NUM * Tumiki.SHAPE_NUM];
+      if (cull == Gfx.Cull.None) {
+        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+          new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
+      } else foreach (MeshRange range in shape2.ranges) {
+        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+          new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
+            Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
+      }
+    }
+    model = parent1;
   }
 }
 
