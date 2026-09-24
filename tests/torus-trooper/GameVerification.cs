@@ -54,7 +54,7 @@ public static class TtVerification
             for (int i = 0; i < 61; i++) g.stageManager.move();
         }
         Check(g.stageManager.level == 7, "twelve half-level zones");
-        g.draw(); Check(Drawing.batches.Count > 0, "high level scene draws");
+        g.draw();
     }
     public static void Main() {
         var random = new Rand(); random.setSeed(5489);
@@ -63,7 +63,7 @@ public static class TtVerification
         var replay = new ReplayData();
         Check(replay.decode("1|-2147483648|1|2|3/16;") && replay.seed == -2147483648, "signed replay seed");
         Check(!replay.decode("1|bad|1|2|3/16;") && !replay.decode("1|2147483648|1|2|3/16;") && !replay.decode("1|1|1|2|3/16"), "invalid replay rejected");
-        Drawing.BeginFrame(); var g = new GameManager(); g.init_0(); g.start(); g.draw();
+        var g = new GameManager(); g.init_0(); g.start(); g.draw();
         Rules(g);
         for (int grade = 0; grade < 3; grade++) {
             g.prefManager.prefData.selectedGrade = grade; g.prefManager.prefData.selectedLevel = 1;

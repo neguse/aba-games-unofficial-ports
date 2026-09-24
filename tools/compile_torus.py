@@ -8,14 +8,9 @@ args = parser.parse_args()
 pixels = bitmap(args.original / 'images/title.bmp', (128, 64, 24))
 output = Path('build/torus-trooper')
 output.mkdir(parents=True, exist_ok=True)
-(output / 'TitleImage.cs').write_text('''using static Drawing;
-public static class TtData {
+(output / 'TitleImage.cs').write_text('''public static class TtData {
 public const int musicCount = 4;
-static DrawImage title = ''' + image('torus-trooper', pixels, 128, 64, False) + ''';
-public static void drawTitle() {
-Color(1, 1, 1, 1);
-Image(title, 470, 380, 128, 48, 1, 1, 1, 1);
-}
+public static DrawImage title = ''' + image('torus-trooper', pixels, 128, 64, False) + ''';
 }
 ''')
 

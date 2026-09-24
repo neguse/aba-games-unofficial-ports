@@ -2,14 +2,14 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public interface Shape
 {
     public void addMass(OdeMass m, Vector3 sizeScale = null, float massScale = 1);
     public void addGeom_3(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null);
     public void recordLinePoints_1(LinePoint lp);
-    public void drawShadow_1(LinePoint lp);
+    public void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp);
 }
 
 public class ShapeGroup : Shape
@@ -50,10 +50,10 @@ public class ShapeGroup : Shape
             s.recordLinePoints_1(lp);
     }
 
-    public virtual void drawShadow_1(LinePoint lp)
+    public virtual void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
     {
         foreach (Shape s in shapes)
-            s.drawShadow_1(lp);
+            s.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", lp);
     }
 }
 
@@ -120,11 +120,12 @@ public abstract class ShapeBase : Shape
     }
 
     public abstract void recordLinePoints_1(LinePoint lp);
-    public abstract void drawShadow_1(LinePoint lp);
+    public abstract void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp);
 }
 
 public class Square : ShapeBase
 {
+    static Mesh shadow;
     public Square(World world, float mass, float px, float py, float sx, float sy, float pz = 0, float sz = 1)
     {
         this.world = world;
@@ -147,23 +148,32 @@ public class Square : ShapeBase
         lp.record(-1, -1, 0);
     }
 
-    public override void drawShadow_1(LinePoint lp)
+    public override void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
     {
-        lp.setPos(pos);
-        lp.setSize(size);
-        if (!(lp.setShadowColor()))
-            return;
-        glBegin(GL_TRIANGLE_FAN);
-        lp.vertex(-1, -1, 0);
-        lp.vertex(1, -1, 0);
-        lp.vertex(1, 1, 0);
-        lp.vertex(-1, 1, 0);
-        glEnd();
+        lp.setPos(pos); lp.setSize(size);
+        tint = lp.shadowColor();
+        if (tint == null) return;
+        if (shadow == null) {
+            var mesh = new Mesh("shadow-Square");        int part1 = mesh.vertexCount;
+        mesh.Vertex(-1, -1, 0, null);
+        mesh.Vertex(1, -1, 0, null);
+        mesh.Vertex(1, 1, 0, null);
+        mesh.Vertex(-1, 1, 0, null);
+        mesh.Fan(part1, mesh.vertexCount - part1);
+
+            shadow = mesh;
+        }
+        model = Transform.Multiply(model, lp.m);
+        model = Transform.Translate(model, pos.x, pos.y, pos.z);
+        model = Transform.Scale(model, size.x / 2, size.y / 2, size.z / 2);
+        if (shadow.count > 0) Gfx.Draw(shadow.count, shadow.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 }
 
 public class Sphere : ShapeBase
 {
+    static Mesh shadow;
     public Sphere(World world, float mass, float px, float py, float rad)
     {
         this.world = world;
@@ -223,23 +233,32 @@ public class Sphere : ShapeBase
         lp.record(-1, -1, 0);
     }
 
-    public override void drawShadow_1(LinePoint lp)
+    public override void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
     {
-        lp.setPos(pos);
-        lp.setSize(size);
-        if (!(lp.setShadowColor()))
-            return;
-        glBegin(GL_TRIANGLE_FAN);
-        lp.vertex(-1, -1, 0);
-        lp.vertex(1, -1, 0);
-        lp.vertex(1, 1, 0);
-        lp.vertex(-1, 1, 0);
-        glEnd();
+        lp.setPos(pos); lp.setSize(size);
+        tint = lp.shadowColor();
+        if (tint == null) return;
+        if (shadow == null) {
+            var mesh = new Mesh("shadow-Sphere");        int part1 = mesh.vertexCount;
+        mesh.Vertex(-1, -1, 0, null);
+        mesh.Vertex(1, -1, 0, null);
+        mesh.Vertex(1, 1, 0, null);
+        mesh.Vertex(-1, 1, 0, null);
+        mesh.Fan(part1, mesh.vertexCount - part1);
+
+            shadow = mesh;
+        }
+        model = Transform.Multiply(model, lp.m);
+        model = Transform.Translate(model, pos.x, pos.y, pos.z);
+        model = Transform.Scale(model, size.x / 2, size.y / 2, size.z / 2);
+        if (shadow.count > 0) Gfx.Draw(shadow.count, shadow.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 }
 
 public class Triangle : ShapeBase
 {
+    static Mesh shadow;
     public Triangle(World world, float mass, float px, float py, float sx, float sy)
     {
         this.world = world;
@@ -261,22 +280,31 @@ public class Triangle : ShapeBase
         lp.record(0, 1, 0);
     }
 
-    public override void drawShadow_1(LinePoint lp)
+    public override void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
     {
-        lp.setPos(pos);
-        lp.setSize(size);
-        if (!(lp.setShadowColor()))
-            return;
-        glBegin(GL_TRIANGLE_FAN);
-        lp.vertex(0, 1, 0);
-        lp.vertex(1, -1, 0);
-        lp.vertex(-0, -1, 0);
-        glEnd();
+        lp.setPos(pos); lp.setSize(size);
+        tint = lp.shadowColor();
+        if (tint == null) return;
+        if (shadow == null) {
+            var mesh = new Mesh("shadow-Triangle");        int part1 = mesh.vertexCount;
+        mesh.Vertex(0, 1, 0, null);
+        mesh.Vertex(1, -1, 0, null);
+        mesh.Vertex(-0, -1, 0, null);
+        mesh.Fan(part1, mesh.vertexCount - part1);
+
+            shadow = mesh;
+        }
+        model = Transform.Multiply(model, lp.m);
+        model = Transform.Translate(model, pos.x, pos.y, pos.z);
+        model = Transform.Scale(model, size.x / 2, size.y / 2, size.z / 2);
+        if (shadow.count > 0) Gfx.Draw(shadow.count, shadow.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 }
 
 public class Box : ShapeBase
 {
+    static Mesh shadow;
     public Box(World world, float mass, float px, float py, float pz, float sx, float sy, float sz)
     {
         this.world = world;
@@ -315,43 +343,63 @@ public class Box : ShapeBase
         lp.record(-1, 1, -1);
     }
 
-    public override void drawShadow_1(LinePoint lp)
+    public override void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
     {
-        lp.setPos(pos);
-        lp.setSize(size);
-        if (!(lp.setShadowColor()))
-            return;
-        glBegin(GL_QUADS);
-        lp.vertex(-1, -1, -1);
-        lp.vertex(1, -1, -1);
-        lp.vertex(1, 1, -1);
-        lp.vertex(-1, 1, -1);
-        lp.vertex(-1, -1, 1);
-        lp.vertex(1, -1, 1);
-        lp.vertex(1, 1, 1);
-        lp.vertex(-1, 1, 1);
-        lp.vertex(-1, -1, -1);
-        lp.vertex(1, -1, -1);
-        lp.vertex(1, -1, 1);
-        lp.vertex(-1, -1, 1);
-        lp.vertex(-1, 1, -1);
-        lp.vertex(1, 1, -1);
-        lp.vertex(1, 1, 1);
-        lp.vertex(-1, 1, 1);
-        lp.vertex(-1, -1, -1);
-        lp.vertex(-1, 1, -1);
-        lp.vertex(-1, 1, 1);
-        lp.vertex(-1, -1, 1);
-        lp.vertex(1, -1, -1);
-        lp.vertex(1, 1, -1);
-        lp.vertex(1, 1, 1);
-        lp.vertex(1, -1, 1);
-        glEnd();
+        lp.setPos(pos); lp.setSize(size);
+        tint = lp.shadowColor();
+        if (tint == null) return;
+        if (shadow == null) {
+            var mesh = new Mesh("shadow-Box");        int part1 = mesh.vertexCount;
+        mesh.Vertex(-1, -1, -1, null);
+        mesh.Vertex(1, -1, -1, null);
+        mesh.Vertex(1, 1, -1, null);
+        mesh.Vertex(-1, 1, -1, null);
+        mesh.Vertex(-1, -1, 1, null);
+        mesh.Vertex(1, -1, 1, null);
+        mesh.Vertex(1, 1, 1, null);
+        mesh.Vertex(-1, 1, 1, null);
+        mesh.Vertex(-1, -1, -1, null);
+        mesh.Vertex(1, -1, -1, null);
+        mesh.Vertex(1, -1, 1, null);
+        mesh.Vertex(-1, -1, 1, null);
+        mesh.Vertex(-1, 1, -1, null);
+        mesh.Vertex(1, 1, -1, null);
+        mesh.Vertex(1, 1, 1, null);
+        mesh.Vertex(-1, 1, 1, null);
+        mesh.Vertex(-1, -1, -1, null);
+        mesh.Vertex(-1, 1, -1, null);
+        mesh.Vertex(-1, 1, 1, null);
+        mesh.Vertex(-1, -1, 1, null);
+        mesh.Vertex(1, -1, -1, null);
+        mesh.Vertex(1, 1, -1, null);
+        mesh.Vertex(1, 1, 1, null);
+        mesh.Vertex(1, -1, 1, null);
+        mesh.Quads(part1, mesh.vertexCount - part1);
+
+            shadow = mesh;
+        }
+        model = Transform.Multiply(model, lp.m);
+        model = Transform.Translate(model, pos.x, pos.y, pos.z);
+        model = Transform.Scale(model, size.x / 2, size.y / 2, size.z / 2);
+        if (shadow.count > 0) Gfx.Draw(shadow.count, shadow.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 }
 
 public class LinePoint
 {
+    Dictionary<string, Mesh> geometry = new Dictionary<string, Mesh>();
+    public static void appendLine(Mesh mesh, float[] tint, float x1, float y1, float z1, float x2, float y2, float z2, float a = 1)
+    {
+        tint = new float[] { a, a, a, 1 };
+        mesh.Vertex(x1, y1, z1, tint);
+        tint = new float[] { a * .5f, a * .5f, a * .5f, 1 };
+        mesh.Vertex((x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2, tint);
+        mesh.Vertex((x1 + x2) / 2, (y1 + y2) / 2, (z1 + z2) / 2, tint);
+        tint = new float[] { a, a, a, 1 };
+        mesh.Vertex(x2, y2, z2, tint);
+    }
+
     public const int HISTORY_MAX = 40;
     public Field field;
     public Vector3[] pos;
@@ -407,11 +455,11 @@ public class LinePoint
         spectrumLength = length;
     }
 
-    public virtual void beginRecord()
+    public virtual void beginRecord(float[] model)
     {
         posIdx = 0;
         for (int i = 0; i < 16; i++)
-            m[i] = Drawing.matrix[i];
+            m[i] = model[i];
     }
 
     public virtual void setPos(Vector3 p)
@@ -499,12 +547,7 @@ public class LinePoint
         }
     }
 
-    public virtual void vertex(float ox, float oy, float oz)
-    {
-        Vector3 translated = calcTranslatedPos(ox, oy, oz);
-        float tx = translated.x, ty = translated.y, tz = translated.z;
-        glVertex3f(tx, ty, tz);
-    }
+
 
     public virtual Vector3 calcTranslatedPos(float ox, float oy, float oz)
     {
@@ -517,51 +560,73 @@ public class LinePoint
         return new Vector3(tx, ty, tz);
     }
 
-    public virtual bool setShadowColor()
+    public virtual float[] shadowColor()
     {
-        if (spectrumColorR + spectrumColorG + spectrumColorB < 0.1f)
-            return false;
-        Screen.setColor(spectrumColorR * 0.3f, spectrumColorG * 0.3f, spectrumColorB * 0.3f);
-        return true;
+        if (spectrumColorR + spectrumColorG + spectrumColorB < 0.1f) return null;
+        return new float[] { spectrumColorR * 0.3f, spectrumColorG * 0.3f, spectrumColorB * 0.3f, 1 };
     }
 
-    public virtual void draw()
+    public virtual void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
+        string geometryKey = key + "-draw";
+        if (!geometry.ContainsKey(geometryKey)) geometry[geometryKey] = new Mesh(geometryKey);
+        Mesh mesh = geometry[geometryKey];
+        mesh.vertices.Clear();
         if (isFirstRecord)
             return;
-        glBegin(GL_LINES);
+        int part1 = mesh.vertexCount;
         for (int i = 0; i < posIdx; i += 2)
-            Screen.drawLine(pos[i].x, pos[i].y, pos[i].z, pos[i + 1].x, pos[i + 1].y, pos[i + 1].z, _alpha);
-        glEnd();
+            LinePoint.appendLine(mesh, tint, pos[i].x, pos[i].y, pos[i].z, pos[i + 1].x, pos[i + 1].y, pos[i + 1].z, _alpha);
+        if (mesh.count != mesh.vertexCount / 2 * 6) {
+            mesh.faces.Clear();
+            for (int vi = part1; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1);
+        }
+
+        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public virtual void drawWithSpectrumColor()
+    public virtual void drawWithSpectrumColor(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
+        string geometryKey = key + "-drawWithSpectrumColor";
+        if (!geometry.ContainsKey(geometryKey)) geometry[geometryKey] = new Mesh(geometryKey);
+        Mesh mesh = geometry[geometryKey];
+        mesh.vertices.Clear();
         if (isFirstRecord)
             return;
         if (spectrumColorR + spectrumColorG + spectrumColorB < 0.1f)
             return;
-        Screen.setColor(spectrumColorR, spectrumColorG, spectrumColorB);
-        glBegin(GL_LINE_STRIP);
+        tint = new float[] { spectrumColorR, spectrumColorG, spectrumColorB, 1 };
+        int part1 = mesh.vertexCount;
         for (int i = 0; i < posIdx; i++)
-            glVertex3f(pos[i].x, pos[i].y, pos[i].z);
-        glEnd();
+            mesh.Vertex(pos[i].x, pos[i].y, pos[i].z, tint);
+        if (mesh.count != Math.Max(0, mesh.vertexCount - 1) * 6) {
+            mesh.faces.Clear();
+            mesh.LineStrip(part1, mesh.vertexCount - part1);
+        }
+
+        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public virtual void drawSpectrum()
+    public virtual void drawSpectrum(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
+        string geometryKey = key + "-drawSpectrum";
+        if (!geometry.ContainsKey(geometryKey)) geometry[geometryKey] = new Mesh(geometryKey);
+        Mesh mesh = geometry[geometryKey];
+        mesh.vertices.Clear();
         if (spectrumLength <= 0 || isFirstRecord)
             return;
         if (spectrumColorR + spectrumColorG + spectrumColorB < 0.1f)
             return;
-        glBegin(GL_QUADS);
+        int part1 = mesh.vertexCount;
         float al = 0.5f, bl = 0.5f;
         float hif = default(float), nhif = default(float);
         float hio = 5.5f;
         nhif = histIdx;
         for (int j = 0; j < 10 * spectrumLength; j++)
         {
-            Screen.setColor((spectrumColorR + (1.0f - spectrumColorR) * bl) * al, (spectrumColorG + (1.0f - spectrumColorG) * bl) * al, (spectrumColorB + (1.0f - spectrumColorB) * bl) * al, al);
+            tint = new float[] { (spectrumColorR + (1.0f - spectrumColorR) * bl) * al, (spectrumColorG + (1.0f - spectrumColorG) * bl) * al, (spectrumColorB + (1.0f - spectrumColorB) * bl) * al, al };
             hif = nhif;
             nhif = hif - hio;
             if (nhif < 0)
@@ -572,10 +637,10 @@ public class LinePoint
             {
                 for (int i = 0; i < posIdx; i += 2)
                 {
-                    glVertex3f(posHist[hi][i].x, posHist[hi][i].y, posHist[hi][i].z);
-                    glVertex3f(posHist[hi][i + 1].x, posHist[hi][i + 1].y, posHist[hi][i + 1].z);
-                    glVertex3f(posHist[nhi][i + 1].x, posHist[nhi][i + 1].y, posHist[nhi][i + 1].z);
-                    glVertex3f(posHist[nhi][i].x, posHist[nhi][i].y, posHist[nhi][i].z);
+                    mesh.Vertex(posHist[hi][i].x, posHist[hi][i].y, posHist[hi][i].z, tint);
+                    mesh.Vertex(posHist[hi][i + 1].x, posHist[hi][i + 1].y, posHist[hi][i + 1].z, tint);
+                    mesh.Vertex(posHist[nhi][i + 1].x, posHist[nhi][i + 1].y, posHist[nhi][i + 1].z, tint);
+                    mesh.Vertex(posHist[nhi][i].x, posHist[nhi][i].y, posHist[nhi][i].z, tint);
                 }
             }
 
@@ -583,7 +648,13 @@ public class LinePoint
             bl *= 0.88f * spectrumLength;
         }
 
-        glEnd();
+        if (mesh.count != mesh.vertexCount / 4 * 6) {
+            mesh.faces.Clear();
+            mesh.Quads(part1, mesh.vertexCount - part1);
+        }
+
+        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
     public virtual float alpha(float v)
@@ -607,65 +678,81 @@ public class LinePoint
 
 public interface Drawable
 {
-    public void draw();
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null);
 }
 
 public class EyeShape : Drawable
 {
-    public virtual void draw()
+    static Mesh geometry;
+    public virtual void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
-        Screen.setColor(1.0f, 0, 0);
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(-0.5f, 0.5f, 0);
-        glVertex3f(-0.3f, 0.5f, 0);
-        glVertex3f(-0.3f, 0.3f, 0);
-        glVertex3f(-0.5f, 0.3f, 0);
-        glEnd();
-        glBegin(GL_LINE_LOOP);
-        glVertex3f(0.5f, 0.5f, 0);
-        glVertex3f(0.3f, 0.5f, 0);
-        glVertex3f(0.3f, 0.3f, 0);
-        glVertex3f(0.5f, 0.3f, 0);
-        glEnd();
-        Screen.setColor(0.8f, 0.4f, 0.4f);
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(-0.5f, 0.5f, 0);
-        glVertex3f(-0.3f, 0.5f, 0);
-        glVertex3f(-0.3f, 0.3f, 0);
-        glVertex3f(-0.5f, 0.3f, 0);
-        glEnd();
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(0.5f, 0.5f, 0);
-        glVertex3f(0.3f, 0.5f, 0);
-        glVertex3f(0.3f, 0.3f, 0);
-        glVertex3f(0.5f, 0.3f, 0);
-        glEnd();
+        if (geometry == null) {
+            var mesh = new Mesh("EyeShape");
+        tint = new float[] { 1.0f, 0, 0, 1 };
+        int part1 = mesh.vertexCount;
+        mesh.Vertex(-0.5f, 0.5f, 0, tint);
+        mesh.Vertex(-0.3f, 0.5f, 0, tint);
+        mesh.Vertex(-0.3f, 0.3f, 0, tint);
+        mesh.Vertex(-0.5f, 0.3f, 0, tint);
+        mesh.LineStrip(part1, mesh.vertexCount - part1, true);
+        int part2 = mesh.vertexCount;
+        mesh.Vertex(0.5f, 0.5f, 0, tint);
+        mesh.Vertex(0.3f, 0.5f, 0, tint);
+        mesh.Vertex(0.3f, 0.3f, 0, tint);
+        mesh.Vertex(0.5f, 0.3f, 0, tint);
+        mesh.LineStrip(part2, mesh.vertexCount - part2, true);
+        tint = new float[] { 0.8f, 0.4f, 0.4f, 1 };
+        int part3 = mesh.vertexCount;
+        mesh.Vertex(-0.5f, 0.5f, 0, tint);
+        mesh.Vertex(-0.3f, 0.5f, 0, tint);
+        mesh.Vertex(-0.3f, 0.3f, 0, tint);
+        mesh.Vertex(-0.5f, 0.3f, 0, tint);
+        mesh.Fan(part3, mesh.vertexCount - part3);
+        int part4 = mesh.vertexCount;
+        mesh.Vertex(0.5f, 0.5f, 0, tint);
+        mesh.Vertex(0.3f, 0.5f, 0, tint);
+        mesh.Vertex(0.3f, 0.3f, 0, tint);
+        mesh.Vertex(0.5f, 0.3f, 0, tint);
+        mesh.Fan(part4, mesh.vertexCount - part4);
+
+            geometry = mesh;
+        }
+        if (geometry.count > 0) Gfx.Draw(geometry.count, geometry.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 }
 
 public class CenterShape : Drawable
 {
-    public virtual void draw()
+    static Mesh geometry;
+    public virtual void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
-        Screen.setColor(0.6f, 1.0f, 0.5f);
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(-0.2f, -0.2f, 0);
-        glVertex3f(0.2f, -0.2f, 0);
-        glVertex3f(0.2f, 0.2f, 0);
-        glVertex3f(-0.2f, 0.2f, 0);
-        glEnd();
-        Screen.setColor(0.4f, 0.8f, 0.2f);
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(-0.6f, 0.6f, 0);
-        glVertex3f(-0.3f, 0.6f, 0);
-        glVertex3f(-0.3f, 0.3f, 0);
-        glVertex3f(-0.6f, 0.3f, 0);
-        glEnd();
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(0.6f, 0.6f, 0);
-        glVertex3f(0.3f, 0.6f, 0);
-        glVertex3f(0.3f, 0.3f, 0);
-        glVertex3f(0.6f, 0.3f, 0);
-        glEnd();
+        if (geometry == null) {
+            var mesh = new Mesh("CenterShape");
+        tint = new float[] { 0.6f, 1.0f, 0.5f, 1 };
+        int part1 = mesh.vertexCount;
+        mesh.Vertex(-0.2f, -0.2f, 0, tint);
+        mesh.Vertex(0.2f, -0.2f, 0, tint);
+        mesh.Vertex(0.2f, 0.2f, 0, tint);
+        mesh.Vertex(-0.2f, 0.2f, 0, tint);
+        mesh.Fan(part1, mesh.vertexCount - part1);
+        tint = new float[] { 0.4f, 0.8f, 0.2f, 1 };
+        int part2 = mesh.vertexCount;
+        mesh.Vertex(-0.6f, 0.6f, 0, tint);
+        mesh.Vertex(-0.3f, 0.6f, 0, tint);
+        mesh.Vertex(-0.3f, 0.3f, 0, tint);
+        mesh.Vertex(-0.6f, 0.3f, 0, tint);
+        mesh.Fan(part2, mesh.vertexCount - part2);
+        int part3 = mesh.vertexCount;
+        mesh.Vertex(0.6f, 0.6f, 0, tint);
+        mesh.Vertex(0.3f, 0.6f, 0, tint);
+        mesh.Vertex(0.3f, 0.3f, 0, tint);
+        mesh.Vertex(0.6f, 0.3f, 0, tint);
+        mesh.Fan(part3, mesh.vertexCount - part3);
+
+            geometry = mesh;
+        }
+        if (geometry.count > 0) Gfx.Draw(geometry.count, geometry.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 }

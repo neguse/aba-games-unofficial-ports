@@ -35,15 +35,10 @@ for letter in range(5):
     mask = [(255, 255, 255, 0) if p[:3] == (0, 0, 0) else (0, 0, 0, 0) for p in panel]
     images.append(image(f'mu-cade-{letter}', panel, 64, 64, True))
     masks.append(image(f'mu-cade-mask-{letter}', mask, 64, 64, True))
-(output / 'Data.cs').write_text('''using static Drawing;
-public static class McdData {
+(output / 'Data.cs').write_text('''public static class McdData {
 public static float[][][] Letters(){return ''' + emit(letters, 3) + ''';}
-static DrawImage[] images = new DrawImage[]{''' + ','.join(images) + '''};
-static DrawImage[] masks = new DrawImage[]{''' + ','.join(masks) + '''};
-public static void DrawGlyph(int letter,float cx,float cy,float size,bool mask){
-Image(mask ? masks[letter] : images[letter], cx-size/2, cy-size/2, size, size,
-    mask ? 1 : Screen.red, mask ? 1 : Screen.green, mask ? 1 : Screen.blue, 1, mask);
-}
+public static DrawImage[] images = new DrawImage[]{''' + ','.join(images) + '''};
+public static DrawImage[] masks = new DrawImage[]{''' + ','.join(masks) + '''};
 }
 ''')
 compiler = Compiler()

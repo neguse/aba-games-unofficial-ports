@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Field
 {
@@ -13,16 +13,31 @@ public class Field
     public const float SIDEWALL_WIDTH = 145;
     public const float TORUS_Y = -24.0f;
     public Frame frame;
-    public TtnScreen screen;
     public Vector _size, _outerSize;
     public Vector3 _eyePos;
     public float eyeDeg;
     public Vector3 circlePos;
     public int cnt;
-    public Field(Frame frame, TtnScreen screen)
+    Mesh sidewall = new Mesh("sidewall");
+    public Field(Frame frame)
     {
         this.frame = frame;
-        this.screen = screen;
+        float[] wallColor;
+        wallColor = new float[] { 0.25f, 0.25f, 0.25f, 0.5f };
+        sidewall.Vertex(0, 0, 0, wallColor);
+        sidewall.Vertex(SIDEWALL_WIDTH, 0, 0, wallColor);
+        sidewall.Vertex(SIDEWALL_WIDTH, 480, 0, wallColor);
+        sidewall.Vertex(0, 480, 0, wallColor);
+        sidewall.Vertex(640, 0, 0, wallColor);
+        sidewall.Vertex(640 - SIDEWALL_WIDTH, 0, 0, wallColor);
+        sidewall.Vertex(640 - SIDEWALL_WIDTH, 480, 0, wallColor);
+        sidewall.Vertex(640, 480, 0, wallColor);
+        wallColor = new float[] { 1.0f, 1.0f, 1.0f, 0.8f };
+        sidewall.Vertex(SIDEWALL_WIDTH, 0, 0, wallColor);
+        sidewall.Vertex(SIDEWALL_WIDTH, 480, 0, wallColor);
+        sidewall.Vertex(640 - SIDEWALL_WIDTH, 0, 0, wallColor);
+        sidewall.Vertex(640 - SIDEWALL_WIDTH, 480, 0, wallColor);
+        sidewall.Quads(0, 8); sidewall.Line(8, 9); sidewall.Line(10, 11);
         _size = new Vector(12, 12);
         _outerSize = new Vector(13, 13);
         _eyePos = new Vector3();
@@ -191,52 +206,25 @@ public class Field
         _eyePos.z = cos(eyeDeg) * CIRCLE_RADIUS * EYE_POS_DIST_RATIO;
     }
 
-    public virtual void setLookAt()
+    public virtual float[] setLookAt()
     {
-        Drawing.LoadIdentity();
-        Drawing.ortho = false;
-        glRotatef(-eyeDeg * 180 / PI, 0, 1, 0);
-        glTranslatef(-_eyePos.x, -_eyePos.y, -_eyePos.z);
+        return Transform.Translate(Transform.Rotate(Transform.Perspective(), -eyeDeg * 180 / PI, 0, 1, 0), -_eyePos.x, -_eyePos.y, -_eyePos.z);
     }
 
-    public virtual void resetLookAt()
+    public virtual float[] resetLookAt()
     {
-        Drawing.LoadIdentity();
-        Drawing.ortho = false;
-        glTranslatef(0, 0, -1);
+        return Transform.Translate(Transform.Perspective(), 0, 0, -1);
     }
 
-    public virtual void beginDrawingFront()
+    public virtual float[] beginDrawingFront()
     {
-        Drawing.LoadIdentity();
-        Drawing.ortho = true;
-        drawSidewall();
+        float[] model = Transform.Ortho(); drawSidewall(model, null, Gfx.Blend.Additive); return model;
     }
 
-    public virtual void drawSidewall()
+    public virtual void drawSidewall(float[] model, float[] color, Gfx.Blend blend)
     {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        TtnScreen.setColor(0.25f, 0.25f, 0.25f, 0.5f);
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(0, 0, 0);
-        glVertex3f(SIDEWALL_WIDTH, 0, 0);
-        glVertex3f(SIDEWALL_WIDTH, 480, 0);
-        glVertex3f(0, 480, 0);
-        glEnd();
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(640, 0, 0);
-        glVertex3f(640 - SIDEWALL_WIDTH, 0, 0);
-        glVertex3f(640 - SIDEWALL_WIDTH, 480, 0);
-        glVertex3f(640, 480, 0);
-        glEnd();
-        TtnScreen.setColor(1.0f, 1.0f, 1.0f, 0.8f);
-        glBegin(GL_LINES);
-        glVertex3f(SIDEWALL_WIDTH, 0, 0);
-        glVertex3f(SIDEWALL_WIDTH, 480, 0);
-        glVertex3f(640 - SIDEWALL_WIDTH, 0, 0);
-        glVertex3f(640 - SIDEWALL_WIDTH, 480, 0);
-        glEnd();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        Gfx.Draw(sidewall.count, sidewall.Bindings(model, null, 1, false),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Alpha });
     }
 
     public virtual void move_0()
@@ -244,23 +232,23 @@ public class Field
         cnt++;
     }
 
-    public virtual void drawBack()
+    public virtual void drawBack(float[] model, float[] color, Gfx.Blend blend)
     {
-        glPushMatrix();
-        glTranslatef(0, TORUS_Y, 0);
-        drawTorusShape(PI / 2);
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, 0, TORUS_Y, 0);
+        drawTorusShape(model, color, blend, PI / 2);
+        model = parent1;
     }
 
-    public virtual void drawFront()
+    public virtual void drawFront(float[] model, float[] color, Gfx.Blend blend)
     {
-        glPushMatrix();
-        glTranslatef(0, TORUS_Y, 0);
-        drawTorusShape(-PI / 2);
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, 0, TORUS_Y, 0);
+        drawTorusShape(model, color, blend, -PI / 2);
+        model = parent1;
     }
 
-    public virtual void drawTorusShape(float d1s)
+    public virtual void drawTorusShape(float[] model, float[] color, Gfx.Blend blend, float d1s)
     {
         Vector3 cp = new Vector3();
         cp.y = 0;
@@ -268,8 +256,8 @@ public class Field
         float torusRad = CIRCLE_RADIUS * 0.9f;
         float ringRad = 0;
         float d1 = 0;
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBegin(GL_QUADS);
+        blend = Gfx.Blend.Alpha;
+        var part1 = new Mesh("Field-drawTorusShape-1" + "-" + d1s.ToString());
         ringRad = CIRCLE_RADIUS * 0.3f;
         d1 = d1s;
         for (int i = 0; i < 16; i++, d1 = d1 + (PI * 2 / 32))
@@ -280,24 +268,25 @@ public class Field
                 cp.x = sin(d1) * torusRad;
                 cp.z = cos(d1) * torusRad;
                 createRingOffset(ringOfs, cp, ringRad, d1, d2);
-                TtnScreen.setColor(0.3f, 0.3f, 0.3f, 0.8f);
-                TtnScreen.glVertex(ringOfs);
+                color = new float[] { 0.3f, 0.3f, 0.3f, 0.8f };
+                part1.Vertex(ringOfs.x, ringOfs.y, ringOfs.z, color);
                 createRingOffset(ringOfs, cp, ringRad, d1, d2 + PI * 2 / 16);
-                TtnScreen.glVertex(ringOfs);
+                part1.Vertex(ringOfs.x, ringOfs.y, ringOfs.z, color);
                 cp.x = sin(d1 + PI * 2 / 32) * torusRad;
                 cp.z = cos(d1 + PI * 2 / 32) * torusRad;
                 createRingOffset(ringOfs, cp, ringRad, d1 + PI * 2 / 32, d2 + PI * 2 / 16);
-                TtnScreen.glVertex(ringOfs);
+                part1.Vertex(ringOfs.x, ringOfs.y, ringOfs.z, color);
                 createRingOffset(ringOfs, cp, ringRad, d1 + PI * 2 / 32, d2);
-                TtnScreen.setColor(0.3f, 0.3f, 0.3f, 0.2f);
-                TtnScreen.glVertex(ringOfs);
+                color = new float[] { 0.3f, 0.3f, 0.3f, 0.2f };
+                part1.Vertex(ringOfs.x, ringOfs.y, ringOfs.z, color);
             }
         }
 
-        glEnd();
-        glBegin(GL_LINE_STRIP);
+        part1.Quads(0, part1.vertexCount);
+        Gfx.Draw(part1.count, part1.Bindings(model, null, 1, blend == Gfx.Blend.Additive), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+        var part2 = new Mesh("Field-drawTorusShape-2" + "-" + d1s.ToString());
         ringRad = CIRCLE_RADIUS * 0.3f;
-        TtnScreen.setColor(0.1f, 0.1f, 0.1f);
+        color = new float[] { 0.1f, 0.1f, 0.1f, 1 };
         d1 = d1s;
         for (int i = 0; i < 16; i++, d1 = d1 + (PI * 2 / 32))
         {
@@ -307,20 +296,21 @@ public class Field
                 cp.x = sin(d1 + PI * 2 / 32 * 0.1f) * torusRad;
                 cp.z = cos(d1 + PI * 2 / 32 * 0.1f) * torusRad;
                 createRingOffset(ringOfs, cp, ringRad, d1 + PI * 2 / 32 * 0.1f, d2 + PI * 2 / 16 * 0.1f);
-                TtnScreen.glVertex(ringOfs);
+                part2.Vertex(ringOfs.x, ringOfs.y, ringOfs.z, color);
                 createRingOffset(ringOfs, cp, ringRad, d1 + PI * 2 / 32 * 0.1f, d2 + PI * 2 / 16 * 0.9f);
-                TtnScreen.glVertex(ringOfs);
+                part2.Vertex(ringOfs.x, ringOfs.y, ringOfs.z, color);
                 cp.x = sin(d1 + PI * 2 / 32 * 0.9f) * torusRad;
                 cp.z = cos(d1 + PI * 2 / 32 * 0.9f) * torusRad;
                 createRingOffset(ringOfs, cp, ringRad, d1 + PI * 2 / 32 * 0.9f, d2 + PI * 2 / 32 * 0.1f);
-                TtnScreen.glVertex(ringOfs);
+                part2.Vertex(ringOfs.x, ringOfs.y, ringOfs.z, color);
                 createRingOffset(ringOfs, cp, ringRad, d1 + PI * 2 / 32 * 0.9f, d2 + PI * 2 / 16 * 0.9f);
-                TtnScreen.glVertex(ringOfs);
+                part2.Vertex(ringOfs.x, ringOfs.y, ringOfs.z, color);
             }
         }
 
-        glEnd();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        part2.LineStrip(0, part2.vertexCount);
+        Gfx.Draw(part2.count, part2.Bindings(model, null, 1, blend == Gfx.Blend.Additive), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+        blend = Gfx.Blend.Additive;
     }
 
     public virtual void createRingOffset(Vector3 ringOfs, Vector3 centerPos, float rad, float d1, float d2)

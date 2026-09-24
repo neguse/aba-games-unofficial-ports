@@ -2,13 +2,13 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 using static RrConstants;
 using static RrArrays;
 using static RrRandom;
 using static RrBarrage;
 using static RrSound;
-using static RrGl;
+using static RrInput;
 using static RrPreference;
 using static RrCore;
 using static RrAttract;
@@ -1320,7 +1320,7 @@ public static class RrBoss
         return boss.y + boss.collisionYUp;
     }
 
-    public static void drawBossWing(float x1, float y1, float z1, float x2, float y2, float z2, BossWing wg)
+    public static void drawBossWing(float[] model, Gfx.Blend blend, string key, float x1, float y1, float z1, float x2, float y2, float z2, BossWing wg)
     {
         int i = 0;
         float sz = wg.size;
@@ -1328,12 +1328,12 @@ public static class RrBoss
             i = 0;
             for (; i < wg.wingNum; i++)
             {
-                drawSquare(x2, y2, z2, x1, y1, z1, x1 + wg.x[(i)][(0)] * sz, y1 + wg.y[(i)][(0)] * sz, z1 + wg.z[(i)][(0)] * sz, x2 + wg.x[(i)][(1)] * sz, y2 + wg.y[(i)][(1)] * sz, z2 + wg.z[(i)][(1)] * sz, boss.r, boss.g, boss.b);
+                drawSquare(model, blend, key + "-147" + "-" + i.ToString(), x2, y2, z2, x1, y1, z1, x1 + wg.x[(i)][(0)] * sz, y1 + wg.y[(i)][(0)] * sz, z1 + wg.z[(i)][(0)] * sz, x2 + wg.x[(i)][(1)] * sz, y2 + wg.y[(i)][(1)] * sz, z2 + wg.z[(i)][(1)] * sz, boss.r, boss.g, boss.b);
             }
         }
     }
 
-    public static void drawBoss()
+    public static void drawBoss(float[] model, Gfx.Blend blend, string key)
     {
         float x = 0, y = 0;
         float x1 = 0, y1 = 0, z1 = 0, x2 = 0, y2 = 0, z2 = 0;
@@ -1351,8 +1351,8 @@ public static class RrBoss
         if ((bossShape.diffuse > 0) && (boss.state < DESTROIED))
         {
             df = bossShape.diffuse;
-            drawStar(1, x, y, 0, df, df, df, (float)(df + 256) / 500.0f);
-            drawStar(1, x, y, 0, df, df, df, (float)(df + randN(256)) / 500.0f);
+            drawStar(model, blend, key + "-483" + "-" + i.ToString() + "-" + j.ToString(), 1, x, y, 0, df, df, df, (float)(df + 256) / 500.0f);
+            drawStar(model, blend, key + "-557" + "-" + i.ToString() + "-" + j.ToString(), 1, x, y, 0, df, df, df, (float)(df + randN(256)) / 500.0f);
         }
 
         {
@@ -1385,32 +1385,32 @@ public static class RrBoss
                             case ATTACKING:
                             case LAST_ATTACK:
                             case DESTROIED:
-                                drawLine(x1, y1, z1, x2, y2, z2, bossShape.r, bossShape.g, bossShape.b, 240);
-                                drawBossWing(x1, y1, z1, x2, y2, z2, (bt.wing[(j)]));
+                                drawLine(model, blend, key + "-2018" + "-" + i.ToString() + "-" + j.ToString(), x1, y1, z1, x2, y2, z2, bossShape.r, bossShape.g, bossShape.b, 240);
+                                drawBossWing(model, blend, key + "-1988" + "-" + i.ToString() + "-" + j.ToString(), x1, y1, z1, x2, y2, z2, (bt.wing[(j)]));
                                 break;
                             case CREATING:
                                 if (j == crBpn)
                                 {
-                                    drawLinePart(x1, y1, z1, x2, y2, z2, bossShape.r, bossShape.g, bossShape.b, 240, crBpl);
+                                    drawLinePart(model, blend, key + "-2313" + "-" + i.ToString() + "-" + j.ToString(), x1, y1, z1, x2, y2, z2, bossShape.r, bossShape.g, bossShape.b, 240, crBpl);
                                 }
                                 else if (j < crBpn)
                                 {
-                                    drawLine(x1, y1, z1, x2, y2, z2, bossShape.r, bossShape.g, bossShape.b, 240);
+                                    drawLine(model, blend, key + "-2769" + "-" + i.ToString() + "-" + j.ToString(), x1, y1, z1, x2, y2, z2, bossShape.r, bossShape.g, bossShape.b, 240);
                                 }
 
                                 if (crBpn == bpn)
                                 {
                                     bt.wing[(j)].size = (float)crBpl / 255;
-                                    drawBossWing(x1, y1, z1, x2, y2, z2, (bt.wing[(j)]));
+                                    drawBossWing(model, blend, key + "-2796" + "-" + i.ToString() + "-" + j.ToString(), x1, y1, z1, x2, y2, z2, (bt.wing[(j)]));
                                 }
 
                                 break;
                             case CHANGE:
-                                drawLine(x1, y1, z1, x2, y2, z2, bossShape.r, bossShape.g, bossShape.b, 240);
+                                drawLine(model, blend, key + "-3350" + "-" + i.ToString() + "-" + j.ToString(), x1, y1, z1, x2, y2, z2, bossShape.r, bossShape.g, bossShape.b, 240);
                                 if (crBpn == bpn)
                                 {
                                     bt.wing[(j)].size = (float)crBpl / 128;
-                                    drawBossWing(x1, y1, z1, x2, y2, z2, (bt.wing[(j)]));
+                                    drawBossWing(model, blend, key + "-3271" + "-" + i.ToString() + "-" + j.ToString(), x1, y1, z1, x2, y2, z2, (bt.wing[(j)]));
                                 }
 
                                 break;
@@ -1419,8 +1419,8 @@ public static class RrBoss
                         if (((bt.diffuse > 0) && (boss.state != CHANGE)) && (boss.state < DESTROIED))
                         {
                             df = bt.diffuse;
-                            drawStar(0, x2, y2, z2, df, df, df, (float)(df + 256) / 900.0f);
-                            drawStar(0, x2, y2, z2, df, df, df, (float)(df + randN(256)) / 900.0f);
+                            drawStar(model, blend, key + "-3911" + "-" + i.ToString() + "-" + j.ToString(), 0, x2, y2, z2, df, df, df, (float)(df + 256) / 900.0f);
+                            drawStar(model, blend, key + "-4004" + "-" + i.ToString() + "-" + j.ToString(), 0, x2, y2, z2, df, df, df, (float)(df + randN(256)) / 900.0f);
                         }
 
                         x1 = x2;
@@ -1444,24 +1444,24 @@ public static class RrBoss
                             case ATTACKING:
                             case LAST_ATTACK:
                             case DESTROIED:
-                                drawLine(x1, y1, z1, x2, y2, z2, bossShape.r, bossShape.g, bossShape.b, 220);
-                                drawBossWing(x1, y1, z1, x2, y2, z2, (bt.eWing[(j)]));
+                                drawLine(model, blend, key + "-5115" + "-" + i.ToString() + "-" + j.ToString(), x1, y1, z1, x2, y2, z2, bossShape.r, bossShape.g, bossShape.b, 220);
+                                drawBossWing(model, blend, key + "-4659" + "-" + i.ToString() + "-" + j.ToString(), x1, y1, z1, x2, y2, z2, (bt.eWing[(j)]));
                                 break;
                             case CREATING:
                                 if (crBpn == bpn)
                                 {
-                                    drawLinePart(x1, y1, z1, x2, y2, z2, bossShape.r, bossShape.g, bossShape.b, 220, crBpl);
+                                    drawLinePart(model, blend, key + "-5200" + "-" + i.ToString() + "-" + j.ToString(), x1, y1, z1, x2, y2, z2, bossShape.r, bossShape.g, bossShape.b, 220, crBpl);
                                     bt.eWing[(j)].size = (float)crBpl / 255;
-                                    drawBossWing(x1, y1, z1, x2, y2, z2, (bt.eWing[(j)]));
+                                    drawBossWing(model, blend, key + "-5118" + "-" + i.ToString() + "-" + j.ToString(), x1, y1, z1, x2, y2, z2, (bt.eWing[(j)]));
                                 }
 
                                 break;
                             case CHANGE:
-                                drawLine(x1, y1, z1, x2, y2, z2, bossShape.r, bossShape.g, bossShape.b, 220);
+                                drawLine(model, blend, key + "-6099" + "-" + i.ToString() + "-" + j.ToString(), x1, y1, z1, x2, y2, z2, bossShape.r, bossShape.g, bossShape.b, 220);
                                 if (crBpn == bpn)
                                 {
                                     bt.eWing[(j)].size = (float)crBpl / 128;
-                                    drawBossWing(x1, y1, z1, x2, y2, z2, (bt.eWing[(j)]));
+                                    drawBossWing(model, blend, key + "-5595" + "-" + i.ToString() + "-" + j.ToString(), x1, y1, z1, x2, y2, z2, (bt.eWing[(j)]));
                                 }
 
                                 break;
@@ -1470,30 +1470,30 @@ public static class RrBoss
                         if (((bt.diffuse > 0) && (boss.state != CHANGE)) && (boss.state < DESTROIED))
                         {
                             df = bt.diffuse;
-                            drawStar(1, x2, y2, z2, df, df, df, (float)(df + 256) / 640.0f);
-                            drawStar(1, x2, y2, z2, df, df, df, (float)(df + randN(256)) / 640.0f);
+                            drawStar(model, blend, key + "-6520" + "-" + i.ToString() + "-" + j.ToString(), 1, x2, y2, z2, df, df, df, (float)(df + 256) / 640.0f);
+                            drawStar(model, blend, key + "-6613" + "-" + i.ToString() + "-" + j.ToString(), 1, x2, y2, z2, df, df, df, (float)(df + randN(256)) / 640.0f);
                         }
                     }
                 }
             }
         }
 
-        drawCore(x, y, boss.cnt, boss.r, boss.g, boss.b);
+        drawCore(model, blend, key + "-6784" + "-" + i.ToString() + "-" + j.ToString(), x, y, boss.cnt, boss.r, boss.g, boss.b);
     }
 
-    public static void drawBossState()
+    public static void drawBossState(float[] model, Gfx.Blend blend, string key)
     {
         int wd = 0, cwd = 0;
         if (boss.state >= ATTACKING)
         {
             if ((boss.state < DESTROIED) || ((boss.cnt & 31) < 16))
             {
-                drawTimeCenter(bossTimer, 470, 44, 10, 210, 240, 210);
+                drawTimeCenter(model, blend, key + "-175", bossTimer, 470, 44, 10, 210, 240, 210);
             }
 
             if (boss.state == DESTROIED_END)
             {
-                drawBossScoreAtr();
+                drawBossScoreAtr(model, blend, key + "-320");
             }
         }
 
@@ -1508,12 +1508,12 @@ public static class RrBoss
             wd = GameMath.integer(boss.shield * 300 / BOSS_SHIELD_MAX);
         }
 
-        drawBox(180 + GameMath.integer(wd / 2), 24, GameMath.integer(wd / 2), 6, 240, 240, 210);
-        drawNumCenter(boss.shield, 176 + wd, 10, 6, 210, 210, 240);
+        drawBox(model, blend, key + "-808", 180 + GameMath.integer(wd / 2), 24, GameMath.integer(wd / 2), 6, 240, 240, 210);
+        drawNumCenter(model, blend, key + "-905", boss.shield, 176 + wd, 10, 6, 210, 210, 240);
         cwd = GameMath.integer(boss.patternChangeShield * 300 / BOSS_SHIELD_MAX);
         if (wd > cwd)
         {
-            drawNumCenter(boss.patternChangeShield, 176 + cwd, 10, 6, 240, 210, 210);
+            drawNumCenter(model, blend, key + "-1091", boss.patternChangeShield, 176 + cwd, 10, 6, 240, 210, 210);
         }
     }
 }

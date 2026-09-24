@@ -2,13 +2,12 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class GameManager
 {
     public Pad pad;
     public PrefManager prefManager;
-    public TtScreen screen;
     public Tunnel tunnel;
     public Ship ship;
     public ShotPool shots;
@@ -32,7 +31,6 @@ public class GameManager
         Shot.init_0();
         pad = new RecordablePad();
         prefManager = new PrefManager();
-        screen = new TtScreen();
         interval = 16;
         tunnel = new Tunnel();
         ship = new Ship(pad, tunnel);
@@ -158,24 +156,9 @@ public class GameManager
 
     public void draw()
     {
-        if (screen.startRenderToLuminousScreen())
-        {
-            glPushMatrix();
-            ship.setEyepos();
-            state.drawLuminous();
-            glPopMatrix();
-            screen.endRenderToLuminousScreen();
-        }
-
-        screen.clear();
-        glPushMatrix();
-        ship.setEyepos();
-        state.draw();
-        glPopMatrix();
-        screen.drawLuminous();
-        TtScreen.viewOrthoFixed();
-        state.drawFront();
-        TtScreen.viewPerspective();
+        float[] model = ship.setEyepos();
+        state.draw(model, null, Gfx.Blend.Additive, Gfx.Cull.None, 1);
+        state.drawFront(Transform.Ortho(), null, Gfx.Blend.Additive, Gfx.Cull.None, 1);
     }
 }
 
@@ -206,9 +189,9 @@ public abstract class GameState
 
     public abstract void start();
     public abstract void move();
-    public abstract void draw();
-    public abstract void drawLuminous();
-    public abstract void drawFront();
+    public abstract void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth);
+    public abstract void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth);
+    public abstract void drawFront(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth);
     public float level
     {
         set
@@ -429,46 +412,46 @@ public class InGameState : GameState
                 ship.isGameOver = true;
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        glEnable(GL_CULL_FACE);
-        tunnel.draw();
-        glDisable(GL_CULL_FACE);
-        particles.draw();
-        enemies.draw();
-        ship.draw();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        floatLetters.draw();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        glDisable(GL_BLEND);
-        bullets.draw();
-        glEnable(GL_BLEND);
-        shots.draw();
+        cull = Gfx.Cull.Front;
+        tunnel.draw(model, tint, blend, cull, lineWidth);
+        cull = Gfx.Cull.None;
+        particles.draw(model, tint, blend, cull, lineWidth);
+        enemies.draw(model, tint, blend, cull, lineWidth);
+        ship.draw(model, tint, blend, cull, lineWidth);
+        blend = Gfx.Blend.Alpha;
+        floatLetters.draw(model, tint, blend, cull, lineWidth);
+        blend = Gfx.Blend.Additive;
+        blend = Gfx.Blend.None;
+        bullets.draw(model, tint, blend, cull, lineWidth);
+        blend = Gfx.Blend.Additive;
+        shots.draw(model, tint, blend, cull, lineWidth);
     }
 
-    public override void drawLuminous()
+    public override void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        particles.drawLuminous();
+        particles.drawLuminous(model, tint, blend, cull, lineWidth);
     }
 
-    public override void drawFront()
+    public override void drawFront(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        ship.drawFront();
-        Letter.drawNum(score, 610, 0, 15);
-        Letter.drawString("/", 510, 40, 7);
-        Letter.drawNum(nextExtend - score, 615, 40, 7);
+        ship.drawFront(model, tint, blend, cull, lineWidth);
+        Letter.drawNum(model, tint, blend, cull, lineWidth, score, 610, 0, 15);
+        Letter.drawString(model, tint, blend, cull, lineWidth, "/", 510, 40, 7);
+        Letter.drawNum(model, tint, blend, cull, lineWidth, nextExtend - score, 615, 40, 7);
         if (time > BEEP_START_TIME)
-            Letter.drawTime(time, 220, 24, 15);
+            Letter.drawTime(model, tint, blend, cull, lineWidth, time, 220, 24, 15);
         else
-            Letter.drawTime(time, 220, 24, 15, 1);
+            Letter.drawTime(model, tint, blend, cull, lineWidth, time, 220, 24, 15, 1);
         if ((timeChangedShowCnt >= 0) && ((timeChangedShowCnt % 64) > 32))
-            Letter.drawString(timeChangedMsg, 250, 24, 7, LetterDirection.TO_RIGHT, 1);
-        Letter.drawString("LEVEL", 20, 410, 8, LetterDirection.TO_RIGHT, 1);
-        Letter.drawNum(GameMath.integer(stageManager.level), 135, 410, 8);
+            Letter.drawString(model, tint, blend, cull, lineWidth, timeChangedMsg, 250, 24, 7, LetterDirection.TO_RIGHT, 1);
+        Letter.drawString(model, tint, blend, cull, lineWidth, "LEVEL", 20, 410, 8, LetterDirection.TO_RIGHT, 1);
+        Letter.drawNum(model, tint, blend, cull, lineWidth, GameMath.integer(stageManager.level), 135, 410, 8);
         if (ship.isGameOver)
-            Letter.drawString("GAME OVER", 140, 180, 20);
+            Letter.drawString(model, tint, blend, cull, lineWidth, "GAME OVER", 140, 180, 20);
         if ((pauseCnt > 0) && ((pauseCnt % 64) < 32))
-            Letter.drawString("PAUSE", 240, 185, 17);
+            Letter.drawString(model, tint, blend, cull, lineWidth, "PAUSE", 240, 185, 17);
     }
 
     public void shipDestroyed()
@@ -647,45 +630,45 @@ public class TitleState : GameState
         }
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         if ((replayData != null))
         {
             float rcr = titleManager.replayChangeRatio * 2.4f;
             if (rcr > 1)
                 rcr = 1;
-            Drawing.viewportRatio = (3 + rcr) / 4;
-            glEnable(GL_CULL_FACE);
-            tunnel.draw();
-            tunnel.drawBackward();
-            glDisable(GL_CULL_FACE);
-            particles.draw();
-            enemies.draw();
-            passedEnemies.draw();
-            ship.draw();
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            floatLetters.draw();
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-            glDisable(GL_BLEND);
-            bullets.draw();
-            glEnable(GL_BLEND);
-            shots.draw();
+            float ratio = (3 + rcr) / 4;
+            float[] viewport = Transform.Identity(); viewport[0] = ratio; viewport[12] = ratio - 1;
+            model = Transform.Multiply(viewport, model);
+            cull = Gfx.Cull.Front;
+            tunnel.draw(model, tint, blend, cull, lineWidth);
+            tunnel.drawBackward(model, tint, blend, cull, lineWidth);
+            cull = Gfx.Cull.None;
+            particles.draw(model, tint, blend, cull, lineWidth);
+            enemies.draw(model, tint, blend, cull, lineWidth);
+            passedEnemies.draw(model, tint, blend, cull, lineWidth);
+            ship.draw(model, tint, blend, cull, lineWidth);
+            blend = Gfx.Blend.Alpha;
+            floatLetters.draw(model, tint, blend, cull, lineWidth);
+            blend = Gfx.Blend.Additive;
+            blend = Gfx.Blend.None;
+            bullets.draw(model, tint, blend, cull, lineWidth);
+            blend = Gfx.Blend.Additive;
+            shots.draw(model, tint, blend, cull, lineWidth);
         }
 
-        Drawing.viewportRatio = 1;
-        Drawing.projectionScale = 1;
-        titleManager.draw();
+        titleManager.draw(model, tint, blend, cull, lineWidth);
     }
 
-    public override void drawLuminous()
+    public override void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
     }
 
-    public override void drawFront()
+    public override void drawFront(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        titleManager.drawFront();
+        titleManager.drawFront(model, tint, blend, cull, lineWidth);
         if ((!(Ship.drawFrontMode)) || (titleManager.replayChangeRatio < 1))
             return;
-        inGameState.drawFront();
+        inGameState.drawFront(model, tint, blend, cull, lineWidth);
     }
 }

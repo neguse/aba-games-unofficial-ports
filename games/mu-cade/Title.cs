@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class TitleManager
 {
@@ -27,34 +27,34 @@ public class TitleManager
         cnt++;
     }
 
-    public virtual void draw()
+    public virtual void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         float x = 250, y = 50;
         float lsz = 50, lof = 40;
         for (int i = 0; i < 5; i++)
         {
-            Screen.setColorForced(1, 1, 1);
-            field.titleMask = true;
-            field.drawLetter_4(i, x, y, lsz);
-            glBlendFunc(GL_ONE, GL_ONE);
-            Screen.setColor(1, 1, 1);
-            field.titleMask = false;
-            field.drawLetter_4(i, x, y, lsz);
+            tint = new float[] { 1, 1, 1, 1 };
+            bool mask = true;
+            field.drawLetter_4(model, tint, blend, key + "-drawLetter_4-1" + "-" + i.ToString(), i, x, y, lsz, mask);
+            blend = Gfx.Blend.Additive;
+            tint = new float[] { 1, 1, 1, 1 };
+            mask = false;
+            field.drawLetter_4(model, tint, blend, key + "-drawLetter_4-2" + "-" + i.ToString(), i, x, y, lsz, mask);
             if (i == 0)
                 x += lof * 1.0f;
             else
                 x += lof * 0.9f;
         }
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        blend = Gfx.Blend.Additive;
         if ((cnt % 120) < 60)
-            Letter.drawString("PUSH SHOT BUTTON TO START", 200, 430, 5);
+            Letter.drawString(model, tint, blend, key + "-drawString-1", "PUSH SHOT BUTTON TO START", 200, 430, 5);
         if ((cnt % 3600) == 0)
             stageManager.initRank();
-        drawRanking();
+        drawRanking(model, tint, blend, key + "-drawRanking-1");
     }
 
-    public virtual void drawRanking()
+    public virtual void drawRanking(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         int rn = GameMath.integer((cnt - 60) / 40);
         if (rn > PrefData.RANKING_NUM)
@@ -80,11 +80,11 @@ public class TitleManager
             }
 
             if (i < 9)
-                Letter.drawString(rstr, 80, y, 7);
+                Letter.drawString(model, tint, blend, key + "-drawString-1" + "-" + i.ToString(), rstr, 80, y, 7);
             else
-                Letter.drawString(rstr, 66, y, 7);
-            Letter.drawNum(prefManager.prefData.highScore[i], 400, y, 6);
-            Letter.drawTime(prefManager.prefData.time[i], 600, y + 6, 6);
+                Letter.drawString(model, tint, blend, key + "-drawString-2" + "-" + i.ToString(), rstr, 66, y, 7);
+            Letter.drawNum(model, tint, blend, key + "-drawNum-1" + "-" + i.ToString(), prefManager.prefData.highScore[i], 400, y, 6);
+            Letter.drawTime(model, tint, blend, key + "-drawTime-1" + "-" + i.ToString(), prefManager.prefData.time[i], 600, y + 6, 6);
             y += 24;
         }
     }

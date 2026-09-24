@@ -1,13 +1,17 @@
 // Copyright 2004 Kenta Cho. Some rights reserved.
 using System;
+using static Lub;
 using System.Collections.Generic;
 
 public abstract class Actor
 {
+    static int nextMesh;
+    public string meshKey;
+    public Actor() { meshKey = nextMesh.ToString(); nextMesh++; }
     public bool exists;
     public abstract void init_1_(object[] args);
     public abstract void move_0();
-    public abstract void draw();
+    public abstract void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null);
 }
 
 public class ActorPool<T>
@@ -76,11 +80,11 @@ public class ActorPool<T>
                 item.move_0();
     }
 
-    public virtual void draw()
+    public virtual void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         foreach (var item in actor)
             if (item.exists)
-                item.draw();
+                item.draw(model, tint, blend, key + "-" + item.meshKey, target);
     }
 
     public virtual void clear()

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class FloatLetter : Actor
 {
@@ -53,16 +53,16 @@ public class FloatLetter : Actor
             alpha = alpha - (0.03f);
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        glPushMatrix();
+        float[] parent1 = model;
         Vector3 sp = tunnel.getPos_1_Vector3(pos);
-        glTranslatef(0, 0, sp.z);
-        TtScreen.setColor(1, 1, 1, 1);
-        Letter.drawString(msg, sp.x, sp.y, size, LetterDirection.TO_RIGHT, 2, false, d * 180 / PI);
-        TtScreen.setColor(1, 1, 1, alpha);
-        Letter.drawString(msg, sp.x, sp.y, size, LetterDirection.TO_RIGHT, 3, false, d * 180 / PI);
-        glPopMatrix();
+        model = Transform.Translate(model, 0, 0, sp.z);
+        tint = new float[] { 1, 1, 1, 1 };
+        Letter.drawString(model, tint, blend, cull, lineWidth, msg, sp.x, sp.y, size, LetterDirection.TO_RIGHT, 2, false, d * 180 / PI);
+        tint = new float[] { 1, 1, 1, alpha };
+        Letter.drawString(model, tint, blend, cull, lineWidth, msg, sp.x, sp.y, size, LetterDirection.TO_RIGHT, 3, false, d * 180 / PI);
+        model = parent1;
     }
 }
 

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class BulletActor : Actor
 {
@@ -170,7 +170,7 @@ public class BulletActor : Actor
             removeForced();
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
     }
 
@@ -316,13 +316,14 @@ public class SimpleBullet : OdeActor
 
     public virtual void recordLinePoints_0()
     {
-        glPushMatrix();
-        Screen.glTranslate_1_Vector(pos);
-        glRotatef(deg * 180 / PI, 0, 0, 1);
-        linePoint.beginRecord();
+        float[] model = Transform.Identity();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, 0);
+        model = Transform.Rotate(model, deg * 180 / PI, 0, 0, 1);
+        linePoint.beginRecord(model);
         shape.recordLinePoints_1(linePoint);
         linePoint.endRecord();
-        glPopMatrix();
+        model = parent1;
     }
 
     public virtual void collapseIntoParticle()
@@ -336,25 +337,25 @@ public class SimpleBullet : OdeActor
             gameManager.addScore_1(10);
     }
 
-    public virtual void drawSpectrum()
+    public virtual void drawSpectrum(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         if (removeCnt > 0)
             return;
-        linePoint.drawSpectrum();
+        linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
     }
 
-    public virtual void drawShadow_0()
+    public virtual void drawShadow_0(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         if (removeCnt > 0)
             return;
-        shape.drawShadow_1(linePoint);
+        shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", linePoint);
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         if (removeCnt > 0)
             return;
-        linePoint.draw();
+        linePoint.draw(model, tint, blend, key + "-draw-1");
     }
 
     public virtual void slowdown()

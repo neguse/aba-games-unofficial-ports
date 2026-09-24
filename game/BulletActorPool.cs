@@ -1,7 +1,7 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class BulletActorPool: ActorPool {
 
   public int cnt;
@@ -98,21 +98,21 @@ public class BulletActorPool: ActorPool {
     cnt++;
   }
 
-  public void drawShots() {
+  public void drawShots(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
     foreach (Actor ac in actor)
       if (ac.isExist) {
 	BulletActor ba = (BulletActor) ac;
 	if (ba.bullet.type == BulletType.SHIP)
-	  ac.draw();
+	  ac.draw(model, tint, blend);
       }
   }
 
-  public void drawBullets() {
+  public void drawBullets(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
     foreach (Actor ac in actor)
       if (ac.isExist) {
 	BulletActor ba = (BulletActor) ac;
 	if (ba.bullet.type == BulletType.ENEMY)
-	  ac.draw();
+	  ac.draw(model, tint, blend);
       }
   }
 

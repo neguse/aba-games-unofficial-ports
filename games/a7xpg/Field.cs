@@ -1,7 +1,7 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Field
 {
@@ -60,54 +60,62 @@ public class Field
         eyeZ = eyeZ + ((eyeZa - eyeZ) * 0.06f);
     }
 
-    public void draw()
+    public void draw(float[] model, float[] tint, Gfx.Blend blend)
     {
-        glBegin(GL_TRIANGLE_STRIP);
-        A7xScreen.setColor(r, g, b, 0.4f);
-        glVertex3f(-size.x, -size.y, 0);
-        A7xScreen.setColor(r, g, b, 0.8f);
-        glVertex3f(-size.x, -size.y, HEIGHT);
-        A7xScreen.setColor(r, g, b, 0.4f);
-        glVertex3f(size.x, -size.y, 0);
-        A7xScreen.setColor(r, g, b, 0.8f);
-        glVertex3f(size.x, -size.y, HEIGHT);
-        A7xScreen.setColor(r, g, b, 0.4f);
-        glVertex3f(size.x, size.y, 0);
-        A7xScreen.setColor(r, g, b, 0.8f);
-        glVertex3f(size.x, size.y, HEIGHT);
-        A7xScreen.setColor(r, g, b, 0.4f);
-        glVertex3f(-size.x, size.y, 0);
-        A7xScreen.setColor(r, g, b, 0.8f);
-        glVertex3f(-size.x, size.y, HEIGHT);
-        A7xScreen.setColor(r, g, b, 0.4f);
-        glVertex3f(-size.x, -size.y, 0);
-        A7xScreen.setColor(r, g, b, 0.8f);
-        glVertex3f(-size.x, -size.y, HEIGHT);
-        glEnd();
+        var mesh = new Mesh("Field-draw");
+        int part1 = mesh.vertexCount;
+        tint = new float[] { r, g, b, 0.4f };
+        mesh.Vertex(-size.x, -size.y, 0, tint);
+        tint = new float[] { r, g, b, 0.8f };
+        mesh.Vertex(-size.x, -size.y, HEIGHT, tint);
+        tint = new float[] { r, g, b, 0.4f };
+        mesh.Vertex(size.x, -size.y, 0, tint);
+        tint = new float[] { r, g, b, 0.8f };
+        mesh.Vertex(size.x, -size.y, HEIGHT, tint);
+        tint = new float[] { r, g, b, 0.4f };
+        mesh.Vertex(size.x, size.y, 0, tint);
+        tint = new float[] { r, g, b, 0.8f };
+        mesh.Vertex(size.x, size.y, HEIGHT, tint);
+        tint = new float[] { r, g, b, 0.4f };
+        mesh.Vertex(-size.x, size.y, 0, tint);
+        tint = new float[] { r, g, b, 0.8f };
+        mesh.Vertex(-size.x, size.y, HEIGHT, tint);
+        tint = new float[] { r, g, b, 0.4f };
+        mesh.Vertex(-size.x, -size.y, 0, tint);
+        tint = new float[] { r, g, b, 0.8f };
+        mesh.Vertex(-size.x, -size.y, HEIGHT, tint);
+        for (int vi = part1; vi + 2 < mesh.vertexCount; vi++) mesh.Triangle(vi + ((vi - part1) % 2), vi + 1 - ((vi - part1) % 2), vi + 2);
+
+        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public void drawLuminous()
+    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend)
     {
-        A7xScreen.setColor(lr, lg, lb, 0.9f * alpha);
-        glBegin(GL_LINE_STRIP);
-        glVertex3f(-size.x, -size.y, HEIGHT);
-        glVertex3f(size.x, -size.y, HEIGHT);
-        glVertex3f(size.x, size.y, HEIGHT);
-        glVertex3f(-size.x, size.y, HEIGHT);
-        glVertex3f(-size.x, -size.y, HEIGHT);
-        glEnd();
+        var mesh = new Mesh("Field-drawLuminous");
+        tint = new float[] { lr, lg, lb, 0.9f * alpha };
+        int part1 = mesh.vertexCount;
+        mesh.Vertex(-size.x, -size.y, HEIGHT, tint);
+        mesh.Vertex(size.x, -size.y, HEIGHT, tint);
+        mesh.Vertex(size.x, size.y, HEIGHT, tint);
+        mesh.Vertex(-size.x, size.y, HEIGHT, tint);
+        mesh.Vertex(-size.x, -size.y, HEIGHT, tint);
+        mesh.LineStrip(part1, mesh.vertexCount - part1);
         float hz = HEIGHT_OFFSET - z;
         for (int i = 0; i < 8; i++)
         {
-            A7xScreen.setColor(lr, lg, lb, (0.8f - i * 0.05f) * alpha);
-            glBegin(GL_LINE_STRIP);
-            glVertex3f(-size.x, -size.y, hz);
-            glVertex3f(size.x, -size.y, hz);
-            glVertex3f(size.x, size.y, hz);
-            glVertex3f(-size.x, size.y, hz);
-            glVertex3f(-size.x, -size.y, hz);
-            glEnd();
+            tint = new float[] { lr, lg, lb, (0.8f - i * 0.05f) * alpha };
+            int part2 = mesh.vertexCount;
+            mesh.Vertex(-size.x, -size.y, hz, tint);
+            mesh.Vertex(size.x, -size.y, hz, tint);
+            mesh.Vertex(size.x, size.y, hz, tint);
+            mesh.Vertex(-size.x, size.y, hz, tint);
+            mesh.Vertex(-size.x, -size.y, hz, tint);
+            mesh.LineStrip(part2, mesh.vertexCount - part2);
             hz = hz - (HEIGHT_OFFSET);
         }
+
+        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 }

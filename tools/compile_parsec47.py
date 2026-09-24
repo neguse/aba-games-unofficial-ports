@@ -27,13 +27,8 @@ for i, directory in enumerate(directories):
 lines += ['}', 'public void unloadBulletMLs() {}', '}']
 (output / 'BarrageManager.cs').write_text('\n'.join(lines) + '\n')
 pixels = bitmap(args.original / 'images/title.bmp', (128, 128, 24))
-(output / 'TitleImage.cs').write_text('''using static Drawing;
-public static class TitleImage {
-static DrawImage title = ''' + image('parsec47', pixels, 128, 128, False) + ''';
-public static void Draw() {
-Color(1, 1, 1, 1);
-Image(title, 180, 20, 128, 128, 1, 1, 1, 1);
-}
+(output / 'TitleImage.cs').write_text('''public static class TitleImage {
+public static DrawImage title = ''' + image('parsec47', pixels, 128, 128, False) + ''';
 }
 ''')
 print(f'Compiled {len(compiler.patterns)} PARSEC47 patterns and title image')

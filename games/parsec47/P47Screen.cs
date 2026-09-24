@@ -1,8 +1,7 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
-public class P47Screen: Screen {
+public class P47Screen {
  public static P47Rand rand = new P47Rand();
   public static float retro, retroSize;
   public static float retroR, retroG, retroB, retroA;
@@ -20,7 +19,7 @@ public class P47Screen: Screen {
     retroZ = z;
   }
 
-  public static void drawLineRetro(float x1, float y1, float x2, float y2) {
+  public static void appendLineRetro(Mesh mesh, float x1, float y1, float x2, float y2) {
     float cf = (1 - retro) * 0.5f;
     float r = retroR + (1 - retroR) * cf;
     float g = retroG + (1 - retroG) * cf;
@@ -32,18 +31,18 @@ public class P47Screen: Screen {
       b *= 1.5f; if (b > 1) b = 1;
       a *= 1.5f; if (a > 1) a = 1;
     }
-    Screen.setColorAlpha(r, g, b, a);
+    float[] color = new float[] { r, g, b, a };
     if (retro < 0.2f) {
-      glBegin(GL_LINES);
-      glVertex3f(x1, y1, retroZ);
-      glVertex3f(x2, y2, retroZ);
-      glEnd();
+      int part1 = mesh.vertexCount;
+      mesh.Vertex(x1, y1, retroZ, color);
+      mesh.Vertex(x2, y2, retroZ, color);
+      for (int vi = part1; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1);
     } else {
       float ds = retroSize * retro;
       float ds2 = ds / 2;
       float lx = fabs(x2 - x1);
       float ly = fabs(y2 - y1);
-      glBegin(GL_QUADS);
+      int part2 = mesh.vertexCount;
       if (lx < ly) {
 	int n = GameMath.integer(ly / ds);
 	if (n > 0) {
@@ -62,10 +61,10 @@ public class P47Screen: Screen {
 	      x -= ds;
 	      xos += ds;
 	    }
-	    glVertex3f(x - ds2, y - ds2, retroZ);
-	    glVertex3f(x + ds2, y - ds2, retroZ);
-	    glVertex3f(x + ds2, y + ds2, retroZ);
-	    glVertex3f(x - ds2, y + ds2, retroZ);
+	    mesh.Vertex(x - ds2, y - ds2, retroZ, color);
+	    mesh.Vertex(x + ds2, y - ds2, retroZ, color);
+	    mesh.Vertex(x + ds2, y + ds2, retroZ, color);
+	    mesh.Vertex(x - ds2, y + ds2, retroZ, color);
 	  }
 	}
       } else {
@@ -86,44 +85,44 @@ public class P47Screen: Screen {
 	      y -= ds;
 	      yos += ds;
 	    }
-	    glVertex3f(x - ds2, y - ds2, retroZ);
-	    glVertex3f(x + ds2, y - ds2, retroZ);
-	    glVertex3f(x + ds2, y + ds2, retroZ);
-	    glVertex3f(x - ds2, y + ds2, retroZ);
+	    mesh.Vertex(x - ds2, y - ds2, retroZ, color);
+	    mesh.Vertex(x + ds2, y - ds2, retroZ, color);
+	    mesh.Vertex(x + ds2, y + ds2, retroZ, color);
+	    mesh.Vertex(x - ds2, y + ds2, retroZ, color);
 	  }
 	}
       }
-      glEnd();
+      mesh.Quads(part2, mesh.vertexCount - part2);
     }
   }
 
-  public static void drawBoxRetro(float x, float y, float width, float height, float deg) {
+  public static void appendBoxRetro(Mesh mesh, float x, float y, float width, float height, float deg) {
     float w1=0, h1=0, w2=0, h2=0;
     w1 = width * cos(deg) - height * sin(deg);
     h1 = width * sin(deg) + height * cos(deg);
     w2 = -width * cos(deg) - height * sin(deg);
     h2 = -width * sin(deg) + height * cos(deg);
-    drawLineRetro(x + w2, y - h2, x + w1, y - h1);
-    drawLineRetro(x + w1, y - h1, x - w2, y + h2);
-    drawLineRetro(x - w2, y + h2, x - w1, y + h1);
-    drawLineRetro(x - w1, y + h1, x + w2, y - h2);
+    appendLineRetro(mesh, x + w2, y - h2, x + w1, y - h1);
+    appendLineRetro(mesh, x + w1, y - h1, x - w2, y + h2);
+    appendLineRetro(mesh, x - w2, y + h2, x - w1, y + h1);
+    appendLineRetro(mesh, x - w1, y + h1, x + w2, y - h2);
   }
 
-  public static void drawBoxSolid(float x, float y, float width, float height) {
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex3f(x, y, 0);
-    glVertex3f(x + width, y, 0);
-    glVertex3f(x + width, y + height, 0);
-    glVertex3f(x, y + height, 0);
-    glEnd();
+  public static void appendBoxSolid(Mesh mesh, float[] color, float x, float y, float width, float height) {
+    int part1 = mesh.vertexCount;
+    mesh.Vertex(x, y, 0, color);
+    mesh.Vertex(x + width, y, 0, color);
+    mesh.Vertex(x + width, y + height, 0, color);
+    mesh.Vertex(x, y + height, 0, color);
+    mesh.Fan(part1, mesh.vertexCount - part1);
   }
 
-  public static void drawBoxLine(float x, float y, float width, float height) {
-    glBegin(GL_LINE_LOOP);
-    glVertex3f(x, y, 0);
-    glVertex3f(x + width, y, 0);
-    glVertex3f(x + width, y + height, 0);
-    glVertex3f(x, y + height, 0);
-    glEnd();
+  public static void appendBoxLine(Mesh mesh, float[] color, float x, float y, float width, float height) {
+    int part1 = mesh.vertexCount;
+    mesh.Vertex(x, y, 0, color);
+    mesh.Vertex(x + width, y, 0, color);
+    mesh.Vertex(x + width, y + height, 0, color);
+    mesh.Vertex(x, y + height, 0, color);
+    mesh.LineStrip(part1, mesh.vertexCount - part1, true);
   }
 }

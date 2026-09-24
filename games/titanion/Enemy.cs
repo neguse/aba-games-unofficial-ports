@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class EnemyPool : ActorPool<Enemy>
 {
@@ -149,37 +149,37 @@ public class EnemyPool : ActorPool<Enemy>
         return n;
     }
 
-    public virtual void drawFront()
+    public virtual void drawFront(float[] model, float[] color, Gfx.Blend blend)
     {
         if (trailEffect)
             foreach (Enemy a in actors)
                 if (((a.exists)) && ((a.state.pos.y <= _field.size().y * 1.5f)))
-                    a.drawTrails_0();
+                    a.drawTrails_0(model, color, blend);
         foreach (Enemy a in actors)
             if (((a.exists)) && ((a.state.pos.y <= _field.size().y * 1.5f)))
-                a.draw_0();
+                a.draw_0(model, color, blend);
     }
 
-    public virtual void drawBack()
+    public virtual void drawBack(float[] model, float[] color, Gfx.Blend blend)
     {
         if (trailEffect)
             foreach (Enemy a in actors)
                 if (((((a.exists)) && ((a.state.pos.y > _field.size().y * 1.5f)))) && (((((a.state.pos.x <= _field.circularDistance() / 4)) && ((a.state.pos.x >= -_field.circularDistance() / 4))))))
-                    a.drawTrails_0();
+                    a.drawTrails_0(model, color, blend);
         foreach (Enemy a in actors)
             if (((((a.exists)) && ((a.state.pos.y > _field.size().y * 1.5f)))) && (((((a.state.pos.x <= _field.circularDistance() / 4)) && ((a.state.pos.x >= -_field.circularDistance() / 4))))))
-                a.draw_0();
+                a.draw_0(model, color, blend);
     }
 
-    public virtual void drawPillarBack()
+    public virtual void drawPillarBack(float[] model, float[] color, Gfx.Blend blend)
     {
         if (trailEffect)
             foreach (Enemy a in actors)
                 if (((((a.exists)) && ((a.state.pos.y > _field.size().y * 1.5f)))) && (((((a.state.pos.x > _field.circularDistance() / 4)) || ((a.state.pos.x < -_field.circularDistance() / 4))))))
-                    a.drawTrails_0();
+                    a.drawTrails_0(model, color, blend);
         foreach (Enemy a in actors)
             if (((((a.exists)) && ((a.state.pos.y > _field.size().y * 1.5f)))) && (((((a.state.pos.x > _field.circularDistance() / 4)) || ((a.state.pos.x < -_field.circularDistance() / 4))))))
-                a.draw_0();
+                a.draw_0(model, color, blend);
     }
 
     public virtual Field field(Field v)
@@ -316,9 +316,9 @@ public class Enemy : Token<EnemyState, EnemySpec>
         return spec.beforeAlign_1(state);
     }
 
-    public virtual void drawTrails_0()
+    public virtual void drawTrails_0(float[] model, float[] color, Gfx.Blend blend)
     {
-        spec.drawTrails_1(state);
+        spec.drawTrails_1(model, color, blend, state);
     }
 
     public override Vector pos()
@@ -455,7 +455,7 @@ public class EnemyState : TokenState
         }
     }
 
-    public virtual void drawTrails_6(EnemyShape s, float r, float g, float b, Vector size, Field field)
+    public virtual void drawTrails_6(float[] model, float[] color, Gfx.Blend blend, EnemyShape s, float r, float g, float b, Vector size, Field field)
     {
         int ti = trailIdx;
         float a = 1.0f;
@@ -471,10 +471,10 @@ public class EnemyState : TokenState
             }
 
             Trail t = trails[ti];
-            TtnScreen.setColor(r * a, g * a, b * a, a * 0.66f);
+            color = new float[] { r * a, g * a, b * a, a * 0.66f };
             Vector3 p = field.calcCircularPos_1(t.pos);
             float cd = field.calcCircularDeg(t.pos.x);
-            s.draw_5(p, cd, t.deg, t.cnt, size);
+            s.draw_5(model, color, blend, p, cd, t.deg, t.cnt, size);
             a = a * (0.7f);
         }
     }
@@ -1058,11 +1058,11 @@ public abstract class EnemySpec : TokenSpec<EnemyState>
     public abstract bool gotoNextPhase(EnemyState es);
     public abstract bool isInAttack_1(EnemyState es);
     public abstract int calcStandByTime(EnemyState es);
-    public override void draw_1(EnemyState es)
+    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
     {
         Vector3 p = field.calcCircularPos_1(es.pos);
         float cd = field.calcCircularDeg(es.pos.x);
-        ((shape is EnemyShape ? (EnemyShape)shape : null)).draw_5(p, cd, es.deg, es.cnt, es.size);
+        ((shape is EnemyShape ? (EnemyShape)shape : null)).draw_5(model, color, blend, p, cd, es.deg, es.cnt, es.size);
         for (int i = 1; i < turretNum; i++)
         {
             float x = es.pos.x;
@@ -1078,16 +1078,16 @@ public abstract class EnemySpec : TokenSpec<EnemyState>
 
             p = field.calcCircularPos_2(x, es.pos.y);
             cd = field.calcCircularDeg(x);
-            TtnScreen.setColor(0.5f, 0.5f, 1);
-            ((EnemyShape)trailShape).draw_6(p, cd, es.deg, es.cnt, es.size.x * 0.5f, es.size.y * 0.5f);
+            color = new float[] { 0.5f, 0.5f, 1, 1 };
+            ((EnemyShape)trailShape).draw_6(model, color, blend, p, cd, es.deg, es.cnt, es.size.x * 0.5f, es.size.y * 0.5f);
         }
     }
 
-    public virtual void drawTrails_1(EnemyState es)
+    public virtual void drawTrails_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
     {
         if (es.captureState > 0)
             return;
-        es.drawTrails_6(trailShape, 0.2f, 0.2f, 0.8f, es.size, field);
+        es.drawTrails_6(model, color, blend, trailShape, 0.2f, 0.2f, 0.8f, es.size, field);
     }
 }
 
@@ -1119,13 +1119,13 @@ public class GhostEnemySpec : EnemySpec
         this.shape = shape;
     }
 
-    public override void draw_1(EnemyState es)
+    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
     {
         {
             Vector3 p = field.calcCircularPos_1(es.pos);
             float cd = field.calcCircularDeg(es.pos.x);
-            TtnScreen.setColor(0.5f, 0.5f, 1, 0.8f);
-            ((shape is EnemyShape ? (EnemyShape)shape : null)).draw_5(p, cd, es.deg, es.cnt, es.size);
+            color = new float[] { 0.5f, 0.5f, 1, 0.8f };
+            ((shape is EnemyShape ? (EnemyShape)shape : null)).draw_5(model, color, blend, p, cd, es.deg, es.cnt, es.size);
         }
     }
 

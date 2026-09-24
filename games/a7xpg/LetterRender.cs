@@ -1,30 +1,52 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class LetterRender
 {
-    public static int displayListIdx;
-    public static void drawLetter(int n, float x, float y, float s)
+    public static Mesh[] meshes;
+    public static void appendBoxSolid(Mesh mesh, float[] model, float[] tint, float x, float y, float width, float height)
     {
-        glPushMatrix();
-        glTranslatef(x, y, 0);
-        glScalef(s, s, s);
-        glCallList(displayListIdx + n);
-        glPopMatrix();
+        int part1 = mesh.vertexCount;
+        mesh.Vertex(x, y, 0, tint, model);
+        mesh.Vertex(x + width, y, 0, tint, model);
+        mesh.Vertex(x + width, y + height, 0, tint, model);
+        mesh.Vertex(x, y + height, 0, tint, model);
+        mesh.Quads(part1, mesh.vertexCount - part1);
     }
 
-    public static void drawLetterReverse(int n, float x, float y, float s)
+    public static void appendBoxLine(Mesh mesh, float[] model, float[] tint, float x, float y, float width, float height)
     {
-        glPushMatrix();
-        glTranslatef(x, y, 0);
-        glScalef(s, -s, s);
-        glCallList(displayListIdx + n);
-        glPopMatrix();
+        int part1 = mesh.vertexCount;
+        mesh.Vertex(x, y, 0, tint, model);
+        mesh.Vertex(x + width, y, 0, tint, model);
+        mesh.Vertex(x + width, y + height, 0, tint, model);
+        mesh.Vertex(x, y + height, 0, tint, model);
+        mesh.LineStrip(part1, mesh.vertexCount - part1, true);
     }
 
-    public static void drawString(string str, float lx, float y, float s)
+    public static void drawLetter(float[] model, float[] tint, Gfx.Blend blend, int n, float x, float y, float s)
+    {
+        float[] parent1 = model;
+        model = Transform.Translate(model, x, y, 0);
+        model = Transform.Scale(model, s, s, s);
+        { Mesh shape2 = meshes[n]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        model = parent1;
+    }
+
+    public static void drawLetterReverse(float[] model, float[] tint, Gfx.Blend blend, int n, float x, float y, float s)
+    {
+        float[] parent1 = model;
+        model = Transform.Translate(model, x, y, 0);
+        model = Transform.Scale(model, s, -s, s);
+        { Mesh shape2 = meshes[n]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        model = parent1;
+    }
+
+    public static void drawString(float[] model, float[] tint, Gfx.Blend blend, string str, float lx, float y, float s)
     {
         float x = lx;
         for (int i = 0; i < str.Length; i++)
@@ -39,20 +61,20 @@ public class LetterRender
                     idx = idx < 0 ? 37 : idx + 10;
                 }
 
-                drawLetter(idx, x, y, s);
+                drawLetter(model, tint, blend, idx, x, y, s);
             }
 
             x = x + (s * 1.7f);
         }
     }
 
-    public static void drawNum(int num, float lx, float y, float s)
+    public static void drawNum(float[] model, float[] tint, Gfx.Blend blend, int num, float lx, float y, float s)
     {
         int n = num;
         float x = lx;
         for (;;)
         {
-            drawLetter(n % 10, x, y, s);
+            drawLetter(model, tint, blend, n % 10, x, y, s);
             x = x - (s * 1.7f);
             n = GameMath.integer(n / (10));
             if (n <= 0)
@@ -60,13 +82,13 @@ public class LetterRender
         }
     }
 
-    public static void drawNumReverse(int num, float lx, float y, float s)
+    public static void drawNumReverse(float[] model, float[] tint, Gfx.Blend blend, int num, float lx, float y, float s)
     {
         int n = num;
         float x = lx;
         for (;;)
         {
-            drawLetterReverse(n % 10, x, y, s);
+            drawLetterReverse(model, tint, blend, n % 10, x, y, s);
             x = x - (s * 1.7f);
             n = GameMath.integer(n / (10));
             if (n <= 0)
@@ -74,7 +96,7 @@ public class LetterRender
         }
     }
 
-    public static void drawTime(int time, float lx, float y, float s)
+    public static void drawTime(float[] model, float[] tint, Gfx.Blend blend, int time, float lx, float y, float s)
     {
         int n = time;
         float x = lx;
@@ -82,12 +104,12 @@ public class LetterRender
         {
             if (i != 4)
             {
-                drawLetter(n % 10, x, y, s);
+                drawLetter(model, tint, blend, n % 10, x, y, s);
                 n = GameMath.integer(n / (10));
             }
             else
             {
-                drawLetter(n % 6, x, y, s);
+                drawLetter(model, tint, blend, n % 6, x, y, s);
                 n = GameMath.integer(n / (6));
             }
 
@@ -96,10 +118,10 @@ public class LetterRender
                 switch (i)
                 {
                     case 3:
-                        drawLetter(41, x + s * 1.16f, y, s);
+                        drawLetter(model, tint, blend, 41, x + s * 1.16f, y, s);
                         break;
                     case 5:
-                        drawLetter(40, x + s * 1.16f, y, s);
+                        drawLetter(model, tint, blend, 40, x + s * 1.16f, y, s);
                         break;
                     default:
                         break;
@@ -117,15 +139,15 @@ public class LetterRender
         }
     }
 
-    public static void drawBox(float x, float y, float width, float height)
+    public static void appendBox(Mesh mesh, float[] model, float[] tint, float x, float y, float width, float height)
     {
-        A7xScreen.setColor(1, 1, 1, 0.5f);
-        A7xScreen.drawBoxSolid(x - width, y - height, width * 2, height * 2);
-        A7xScreen.setColor(1, 1, 1, 1);
-        A7xScreen.drawBoxLine(x - width, y - height, width * 2, height * 2);
+        tint = new float[] { 1, 1, 1, 0.5f };
+        appendBoxSolid(mesh, model, tint, x - width, y - height, width * 2, height * 2);
+        tint = new float[] { 1, 1, 1, 1 };
+        appendBoxLine(mesh, model, tint, x - width, y - height, width * 2, height * 2);
     }
 
-    public static void createLetter(int idx)
+    public static void appendLetter(Mesh mesh, float[] model, float[] tint, int idx)
     {
         int i = 0;
         float x = 0, y = 0, length = 0, size = 0, t = 0;
@@ -145,27 +167,24 @@ public class LetterRender
             y = y;
             deg = deg % (180);
             if (deg <= 45 || deg > 135)
-                drawBox(x, y, size, length);
+                appendBox(mesh, model, tint, x, y, size, length);
             else
-                drawBox(x, y, length, size);
+                appendBox(mesh, model, tint, x, y, length, size);
         }
     }
 
-    public static void createDisplayLists()
+    public static void createMeshes()
     {
-        displayListIdx = glGenLists(42);
+        meshes = new Mesh[42]; Mesh mesh = null; float[] model = Transform.Identity(); float[] tint = null;
         for (int i = 0; i < 42; i++)
         {
-            glNewList(displayListIdx + i, GL_COMPILE);
-            createLetter(i);
-            glEndList();
+            mesh = new Mesh("LetterRender-" + (i).ToString()); meshes[i] = mesh;
+            appendLetter(mesh, model, tint, i);
+
         }
     }
 
-    public static void deleteDisplayLists()
-    {
-        glDeleteLists(displayListIdx, 39);
-    }
+    public static void deleteMeshes() { meshes = null; }
 
     public static float[][][] spData = new float[][][]
     {

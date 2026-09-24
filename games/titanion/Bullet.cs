@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class BulletPool : ActorPool<Bullet>
 {
@@ -173,20 +173,21 @@ public class BulletSpec : TokenSpec<BulletState>
         }
     }
 
-    public override void draw_1(BulletState bs)
+    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, BulletState bs)
     {
         {
             if (bs.waitCnt > 0)
                 return;
             Vector3 p = null;
-            glBegin(GL_LINES);
-            TtnScreen.setColor(0.1f, 0.4f, 0.4f, 0.5f);
+            var part1 = new Mesh("Bullet-draw_1-1" + "-" + bs.meshKey);
+            color = new float[] { 0.1f, 0.4f, 0.4f, 0.5f };
             p = field.calcCircularPos_1(bs.tailPos);
-            TtnScreen.glVertex(p);
-            TtnScreen.setColor(0.2f * BulletState.colorAlpha, 0.8f * BulletState.colorAlpha, 0.8f * BulletState.colorAlpha);
+            part1.Vertex(p.x, p.y, p.z, color);
+            color = new float[] { 0.2f * BulletState.colorAlpha, 0.8f * BulletState.colorAlpha, 0.8f * BulletState.colorAlpha, 1 };
             p = field.calcCircularPos_1(bs.pos);
-            TtnScreen.glVertex(p);
-            glEnd();
+            part1.Vertex(p.x, p.y, p.z, color);
+            for (int vi = 0; vi + 1 < part1.vertexCount; vi += 2) part1.Line(vi, vi + 1);
+            Gfx.Draw(part1.count, part1.Bindings(model, null, 1, blend == Gfx.Blend.Additive), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
             p = field.calcCircularPos_1(bs.pos);
             float d = 0;
             switch (gameState.mode_0())
@@ -201,9 +202,9 @@ public class BulletSpec : TokenSpec<BulletState>
             }
 
             float cd = field.calcCircularDeg(bs.pos.x);
-            ((shape is BulletShapeBase ? (BulletShapeBase)shape : null)).draw_4(p, cd, d, bs.cnt * 3.0f);
-            TtnScreen.setColor(0.6f * BulletState.colorAlpha, 0.9f * BulletState.colorAlpha, 0.9f * BulletState.colorAlpha);
-            ((lineShape is BulletShapeBase ? (BulletShapeBase)lineShape : null)).draw_4(p, cd, d, bs.cnt * 3.0f);
+            ((shape is BulletShapeBase ? (BulletShapeBase)shape : null)).draw_4(model, color, blend, p, cd, d, bs.cnt * 3.0f);
+            color = new float[] { 0.6f * BulletState.colorAlpha, 0.9f * BulletState.colorAlpha, 0.9f * BulletState.colorAlpha, 1 };
+            ((lineShape is BulletShapeBase ? (BulletShapeBase)lineShape : null)).draw_4(model, color, blend, p, cd, d, bs.cnt * 3.0f);
         }
     }
 }

@@ -34,10 +34,12 @@ end
 if topic == "test.gameover" then Game.manager.score = 1234567; Game.manager:start_gameover() end
 if topic == "scores" then`);
         code = code.replace(/return Game\s*$/, `local frame = Game.on_frame
+local renderFrames = 0
 function Game.on_frame(dt)
  frame(dt)
+ renderFrames = renderFrames + 1
  local g = Game.manager
- lub.host.send('test.state', table.concat({g.state,g.mode,g.title.mode,g.stage_manager.parsec,g.ship.pos.x,g.ship.roll_lock_cnt,g.cnt,g.pref_manager.hi_score[2][2][1]}, ','))
+ lub.host.send('test.state', table.concat({g.state,g.mode,g.title.mode,g.stage_manager.parsec,g.ship.pos.x,g.ship.roll_lock_cnt,g.cnt,g.pref_manager.hi_score[2][2][1],renderFrames}, ','))
 end
 return Game`);
         await route.fulfill({ response, body: code });
@@ -53,11 +55,19 @@ return Game`);
         });
         await page.waitForFunction(() => window.gameState);
     }
-    async function press(key) { await page.keyboard.down(key); await page.waitForTimeout(160); await page.keyboard.up(key); await page.waitForTimeout(160); }
+    async function press(key) {
+        await page.keyboard.down(key);
+        let frame = await page.evaluate(() => gameState[8]);
+        await page.waitForFunction(frame => gameState[8] >= frame + 2, frame);
+        await page.keyboard.up(key);
+        frame = await page.evaluate(() => gameState[8]);
+        await page.waitForFunction(frame => gameState[8] >= frame + 2, frame);
+    }
     await page.goto(url); await observe();
     await page.waitForFunction(() => gameState[0] === 0);
     await page.screenshot({ path: 'build/screenshots/parsec47-title.png' });
     for (let mode = 0; mode < 2; mode++) {
+        await page.waitForFunction(() => gameState[0] === 0 && gameState[6] > 9);
         if (mode) { await press('x'); await page.waitForFunction(() => gameState[2] === 1); }
         await press('z'); await page.waitForFunction(mode => gameState[0] === 1 && gameState[1] === mode, mode);
         await page.waitForTimeout(600);

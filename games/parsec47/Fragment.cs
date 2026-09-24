@@ -1,7 +1,7 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class Fragment: LuminousActor {
 
   public const float R = 1, G = 0.8f, B = 0.6f;
@@ -67,17 +67,22 @@ public class Fragment: LuminousActor {
     retro *= 0.97f;
   }
 
-  public override void draw() {
+  public override void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+    var mesh = new Mesh("Fragment-draw" + "-" + meshKey);
     P47Screen.setRetroZ(z);
     P47Screen.setRetroParam(retro, 0.2f);
-    P47Screen.drawLineRetro(pos[0].x, pos[0].y, pos[1].x, pos[1].y);
+    P47Screen.appendLineRetro(mesh, pos[0].x, pos[0].y, pos[1].x, pos[1].y);
+
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
-  public override void drawLuminous() {
+  public override void drawLuminous(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+    Mesh mesh = target;
     if (lumAlp < 0.2f) return;
-    Screen.setColorAlpha(R, G, B, lumAlp);
-    glVertex3f(pos[0].x, pos[0].y, z);
-    glVertex3f(pos[1].x, pos[1].y, z);
+    color = new float[] { R, G, B, lumAlp };
+    mesh.Vertex(pos[0].x, pos[0].y, z, color);
+    mesh.Vertex(pos[1].x, pos[1].y, z, color);
   }
 }
 

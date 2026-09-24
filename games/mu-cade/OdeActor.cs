@@ -1,3 +1,4 @@
+using static Lub;
 // Copyright 2006 Kenta Cho. Some rights reserved.
 using System;
 using System.Collections.Generic;
@@ -44,7 +45,7 @@ public class OdeActor : Actor
     {
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
     }
 

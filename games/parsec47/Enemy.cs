@@ -1,7 +1,7 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class Enemy: Actor {
 
 
@@ -595,7 +595,8 @@ public class Enemy: Actor {
       checkDamage();
   }
 
-  public override void draw() {
+  public override void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+    var mesh = new Mesh("Enemy-draw" + "-" + meshKey);
     float ap=0;
     if (appCnt > 0) {
 
@@ -622,19 +623,18 @@ public class Enemy: Actor {
     for (int index24 = 0; index24 < EnemyType.BODY_SHAPE_POINT_NUM; index24++, ni++) {
       if (ni >= EnemyType.BODY_SHAPE_POINT_NUM)
 	ni = 0;
-      P47Screen.drawLineRetro(pos.x + type.bodyShapePos[index24].x, pos.y + type.bodyShapePos[index24].y,
+      P47Screen.appendLineRetro(mesh, pos.x + type.bodyShapePos[index24].x, pos.y + type.bodyShapePos[index24].y,
 			      pos.x + type.bodyShapePos[ni].x, pos.y + type.bodyShapePos[ni].y);
     }
     if (type.type != EnemyType.SMALL) {
-      glBegin(GL_TRIANGLE_FAN);
-      Screen.setColorAlpha(P47Screen.retroR, P47Screen.retroG, P47Screen.retroB, 0);
+      int part1 = mesh.vertexCount;
+      color = new float[] { P47Screen.retroR, P47Screen.retroG, P47Screen.retroB, 0 };
       for (int index25 = 0; index25 < EnemyType.BODY_SHAPE_POINT_NUM; index25++) {
 	if (index25 == 2)
-	  Screen.setColorAlpha
-	    (P47Screen.retroR, P47Screen.retroG, P47Screen.retroB, P47Screen.retroA);
-	glVertex3f(pos.x + type.bodyShapePos[index25].x, pos.y + type.bodyShapePos[index25].y, z);
+	  color = new float[] { P47Screen.retroR, P47Screen.retroG, P47Screen.retroB, P47Screen.retroA };
+	mesh.Vertex(pos.x + type.bodyShapePos[index25].x, pos.y + type.bodyShapePos[index25].y, z, color);
       }
-      glEnd();
+      mesh.Fan(part1, mesh.vertexCount - part1);
     }
     for (int index26 = 0; index26 < type.batteryNum; index26++) {
       BatteryType  bt = type.batteryType[index26];
@@ -650,30 +650,31 @@ public class Enemy: Actor {
       }
       ni = 1;
       if (battery[index26].shield <= 0) {
-	P47Screen.drawLineRetro(pos.x + bt.wingShapePos[0].x, pos.y + bt.wingShapePos[0].y,
+	P47Screen.appendLineRetro(mesh, pos.x + bt.wingShapePos[0].x, pos.y + bt.wingShapePos[0].y,
 				pos.x + bt.wingShapePos[1].x, pos.y + bt.wingShapePos[1].y);
       } else {
 	for (int index27 = 0; index27 < BatteryType.WING_SHAPE_POINT_NUM; index27++, ni++) {
 	  if (ni >= BatteryType.WING_SHAPE_POINT_NUM)
 	    ni = 0;
-	  P47Screen.drawLineRetro(pos.x + bt.wingShapePos[index27].x, pos.y + bt.wingShapePos[index27].y,
+	  P47Screen.appendLineRetro(mesh, pos.x + bt.wingShapePos[index27].x, pos.y + bt.wingShapePos[index27].y,
 				  pos.x + bt.wingShapePos[ni].x, pos.y + bt.wingShapePos[ni].y);
 	}
 	if (type.type != EnemyType.SMALL) {
-	  glBegin(GL_TRIANGLE_FAN);
-	  Screen.setColorAlpha
-	    (P47Screen.retroR, P47Screen.retroG, P47Screen.retroB, P47Screen.retroA);
+	  int part2 = mesh.vertexCount;
+	  color = new float[] { P47Screen.retroR, P47Screen.retroG, P47Screen.retroB, P47Screen.retroA };
 	  for (int index28 = 0; index28 < BatteryType.WING_SHAPE_POINT_NUM; index28++) {
 	    if (index28 == 2)
-	      Screen.setColorAlpha
-		(P47Screen.retroR, P47Screen.retroG, P47Screen.retroB, 0);
-	    glVertex3f(pos.x + bt.wingShapePos[index28].x, pos.y + bt.wingShapePos[index28].y, z);
+	      color = new float[] { P47Screen.retroR, P47Screen.retroG, P47Screen.retroB, 0 };
+	    mesh.Vertex(pos.x + bt.wingShapePos[index28].x, pos.y + bt.wingShapePos[index28].y, z, color);
 	  }
-	  glEnd();
+	  mesh.Fan(part2, mesh.vertexCount - part2);
 	}
       }
     }
     P47Screen.setRetroZ(0);
+
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 }
 

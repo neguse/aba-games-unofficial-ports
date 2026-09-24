@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Particle : Actor
 {
@@ -103,20 +103,21 @@ public class Particle : Actor
 
     public virtual void recordLinePoints_0()
     {
-        glPushMatrix();
-        Screen.glTranslate_1_Vector3(pos);
-        glRotatef(deg * 180 / PI, 0, 0, 1);
-        linePoint.beginRecord();
+        float[] model = Transform.Identity();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, pos.z);
+        model = Transform.Rotate(model, deg * 180 / PI, 0, 0, 1);
+        linePoint.beginRecord(model);
         linePoint.record(-1, 0, 0);
         linePoint.record(1, 0, 0);
         linePoint.endRecord();
-        glPopMatrix();
+        model = parent1;
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
-        linePoint.drawSpectrum();
-        linePoint.drawWithSpectrumColor();
+        linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
+        linePoint.drawWithSpectrumColor(model, tint, blend, key + "-drawWithSpectrumColor-1");
     }
 }
 
@@ -243,33 +244,36 @@ public class ConnectedParticle : Actor
 
     public virtual void recordLinePoints_0()
     {
+        float[] model = Transform.Identity();
         if (!((prevParticle) != null) || !(prevParticle.exists))
             return;
-        glPushMatrix();
-        Screen.glTranslate_1_Vector3(_pos);
+        float[] parent1 = model;
+        model = Transform.Translate(model, _pos.x, _pos.y, _pos.z);
         if (enableRotate)
-            glMultMatrix(rot);
-        linePoint.beginRecord();
+            model = Transform.Multiply(model, rot);
+        linePoint.beginRecord(model);
         linePoint.record(0, 0, 0);
         linePoint.record((prevParticle.pos().x - _pos.x) * 2, (prevParticle.pos().y - _pos.y) * 2, (prevParticle.pos().z - _pos.z) * 2);
         linePoint.endRecord();
-        glPopMatrix();
+        model = parent1;
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         if (!((prevParticle) != null) || !(prevParticle.exists))
             return;
-        linePoint.drawSpectrum();
-        linePoint.drawWithSpectrumColor();
-        glPushMatrix();
-        Screen.glTranslate_1_Vector3(_pos);
-        Screen.setColor(r, g, b);
-        glBegin(GL_LINES);
-        glVertex3f(0, 0, 0);
-        glVertex3f(prevParticle.pos().x - _pos.x, prevParticle.pos().y - _pos.y, prevParticle.pos().z - _pos.z);
-        glEnd();
-        glPopMatrix();
+        linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
+        linePoint.drawWithSpectrumColor(model, tint, blend, key + "-drawWithSpectrumColor-1");
+        float[] parent1 = model;
+        model = Transform.Translate(model, _pos.x, _pos.y, _pos.z);
+        tint = new float[] { r, g, b, 1 };
+        var part2 = new Mesh(key + "-ConnectedParticle-draw-2");
+        part2.Vertex(0, 0, 0, tint);
+        part2.Vertex(prevParticle.pos().x - _pos.x, prevParticle.pos().y - _pos.y, prevParticle.pos().z - _pos.z, tint);
+        for (int vi = 0; vi + 1 < part2.vertexCount; vi += 2) part2.Line(vi, vi + 1);
+        if (part2.count > 0) Gfx.Draw(part2.count, part2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+        model = parent1;
     }
 
     public virtual Vector3 pos()
@@ -291,6 +295,7 @@ public class ConnectedParticlePool : ActorPool<ConnectedParticle>
 
     public virtual void recordLinePoints_0()
     {
+        float[] model = Transform.Identity();
         foreach (ConnectedParticle cp in actor)
             if (cp.exists)
                 cp.recordLinePoints_0();
@@ -405,19 +410,20 @@ public class TailParticle : Actor
 
     public virtual void recordLinePoints_0()
     {
-        glPushMatrix();
-        Screen.glTranslate_1_Vector3(pos);
-        glRotatef(deg * 180 / PI, 0, 0, 1);
-        linePoint.beginRecord();
+        float[] model = Transform.Identity();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, pos.z);
+        model = Transform.Rotate(model, deg * 180 / PI, 0, 0, 1);
+        linePoint.beginRecord(model);
         shape.recordLinePoints_1(linePoint);
         linePoint.endRecord();
-        glPopMatrix();
+        model = parent1;
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
-        linePoint.drawSpectrum();
-        linePoint.drawWithSpectrumColor();
+        linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
+        linePoint.drawWithSpectrumColor(model, tint, blend, key + "-drawWithSpectrumColor-1");
     }
 }
 
@@ -462,10 +468,11 @@ public class StarParticle : Actor
             exists = false;
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
-        glVertex3f(pos.x, pos.y, pos.z);
-        glVertex3f(pos.x, pos.y, pos.z + size);
+        Mesh mesh = target;
+        mesh.Vertex(pos.x, pos.y, pos.z, tint);
+        mesh.Vertex(pos.x, pos.y, pos.z + size, tint);
     }
 }
 
@@ -515,20 +522,20 @@ public class NumIndicator : Actor
             exists = false;
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         if (num2 <= 1)
         {
-            Letter.drawNumSign(num1, pos.x + Letter.getWidthNum(num1, size) / 2, pos.y, size);
+            Letter.drawNumSign(model, tint, blend, key + "-drawNumSign-1", num1, pos.x + Letter.getWidthNum(num1, size) / 2, pos.y, size);
         }
         else
         {
             float wd = Letter.getWidthNum(num1, size) + Letter.getWidth(1, size) + Letter.getWidthNum(num2, size);
             float x = default(float);
             x = pos.x - wd / 2 + Letter.getWidthNum(num1, size);
-            Letter.drawNumSign(num1, x, pos.y, size);
+            Letter.drawNumSign(model, tint, blend, key + "-drawNumSign-2", num1, x, pos.y, size);
             x = pos.x + wd / 2;
-            Letter.drawNumSign(num2, x, pos.y, size, 33);
+            Letter.drawNumSign(model, tint, blend, key + "-drawNumSign-3", num2, x, pos.y, size, 33);
         }
     }
 }

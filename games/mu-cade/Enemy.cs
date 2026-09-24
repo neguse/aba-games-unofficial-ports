@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Enemy : OdeActor
 {
@@ -284,9 +284,9 @@ public class Enemy : OdeActor
         return state.pos;
     }
 
-    public virtual void drawSpectrum()
+    public virtual void drawSpectrum(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
-        state.linePoint.drawSpectrum();
+        state.linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
     }
 
     public virtual bool collideBullet()
@@ -294,15 +294,15 @@ public class Enemy : OdeActor
         return spec.collideBullet();
     }
 
-    public virtual void drawShadow_0()
+    public virtual void drawShadow_0(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
-        spec.drawShadow_1(state.linePoint);
+        spec.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", state.linePoint);
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
-        state.linePoint.draw();
-        spec.drawSubShape(state);
+        state.linePoint.draw(model, tint, blend, key + "-draw-1");
+        spec.drawSubShape(model, tint, blend, key + "-drawSubShape-1", state);
     }
 
     public virtual EnemyState getState_0()
@@ -338,20 +338,20 @@ public class EnemyPool : OdeActorPool<Enemy>
     {
     }
 
-    public virtual void drawShadow_0()
+    public virtual void drawShadow_0(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        blend = Gfx.Blend.Alpha;
         foreach (Enemy e in actor)
             if (e.exists)
-                e.drawShadow_0();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+                e.drawShadow_0(model, tint, blend, key + "-drawShadow_0-1-" + e.meshKey);
+        blend = Gfx.Blend.Additive;
     }
 
-    public virtual void drawSpectrum()
+    public virtual void drawSpectrum(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         foreach (Enemy e in actor)
             if (e.exists)
-                e.drawSpectrum();
+                e.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1-" + e.meshKey);
     }
 
     public virtual bool exists()
@@ -524,22 +524,23 @@ public abstract class EnemySpec
 
     public virtual void recordLinePoints_2(EnemyState state, LinePoint lp)
     {
-        glPushMatrix();
-        Screen.glTranslate_1_Vector3(state.pos);
-        glMultMatrix(state.rot);
-        glScalef(state.sizeScale.x, state.sizeScale.y, state.sizeScale.z);
-        lp.beginRecord();
+        float[] model = Transform.Identity();
+        float[] parent1 = model;
+        model = Transform.Translate(model, state.pos.x, state.pos.y, state.pos.z);
+        model = Transform.Multiply(model, state.rot);
+        model = Transform.Scale(model, state.sizeScale.x, state.sizeScale.y, state.sizeScale.z);
+        lp.beginRecord(model);
         shape.recordLinePoints_1(lp);
         lp.endRecord();
-        glPopMatrix();
+        model = parent1;
     }
 
-    public virtual void drawShadow_1(LinePoint lp)
+    public virtual void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
     {
-        shape.drawShadow_1(lp);
+        shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", lp);
     }
 
-    public virtual void drawSubShape(EnemyState state)
+    public virtual void drawSubShape(float[] model, float[] tint, Gfx.Blend blend, string key, EnemyState state)
     {
     }
 

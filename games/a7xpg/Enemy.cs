@@ -1,11 +1,11 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Enemy : LuminousActor
 {
-    public static int displayListIdx;
+    public static Mesh[] meshes;
     public Ship ship;
     public Field field;
     public Rand rand;
@@ -641,7 +641,7 @@ public class Enemy : LuminousActor
         hitWall = false;
     }
 
-    public void drawType0()
+    public void drawType0(float[] model, float[] tint, Gfx.Blend blend)
     {
         float sz = 0;
         if (cnt < 0)
@@ -650,33 +650,39 @@ public class Enemy : LuminousActor
             sz = size * cnt / APPEAR_CNT;
         else
             sz = size;
-        glPushMatrix();
-        glTranslatef(pos.x, pos.y, 0.5f);
-        glRotatef(-deg * 180 / PI, 0, 0, 1);
-        glScalef(sz, sz, sz);
-        glCallList(displayListIdx + type * 3);
-        glCallList(displayListIdx + type * 3 + 1);
-        glTranslatef(0, 0, -0.5f);
-        glScalef(1, 1, -1);
-        glCallList(displayListIdx + type * 3 + 2);
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, 0.5f);
+        model = Transform.Rotate(model, -deg * 180 / PI, 0, 0, 1);
+        model = Transform.Scale(model, sz, sz, sz);
+        { Mesh shape2 = meshes[type * 3]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        { Mesh shape3 = meshes[type * 3 + 1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        model = Transform.Translate(model, 0, 0, -0.5f);
+        model = Transform.Scale(model, 1, 1, -1);
+        { Mesh shape4 = meshes[type * 3 + 2]; if (shape4.count > 0) Gfx.Draw(shape4.count, shape4.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        model = parent1;
     }
 
-    public void drawType4()
+    public void drawType4(float[] model, float[] tint, Gfx.Blend blend)
     {
         if (cnt < 0)
             return;
-        glPushMatrix();
-        glTranslatef(pos.x, pos.y, 0.5f);
-        glCallList(displayListIdx + type * 3);
-        glCallList(displayListIdx + type * 3 + 1);
-        glTranslatef(0, 0, -0.5f);
-        glScalef(1, 1, -1);
-        glCallList(displayListIdx + type * 3 + 2);
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, 0.5f);
+        { Mesh shape2 = meshes[type * 3]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        { Mesh shape3 = meshes[type * 3 + 1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        model = Transform.Translate(model, 0, 0, -0.5f);
+        model = Transform.Scale(model, 1, 1, -1);
+        { Mesh shape4 = meshes[type * 3 + 2]; if (shape4.count > 0) Gfx.Draw(shape4.count, shape4.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        model = parent1;
     }
 
-    public void drawArm()
+    public void drawArm(float[] model, float[] tint, Gfx.Blend blend)
     {
         float sz = 0;
         if (cnt < 0)
@@ -685,33 +691,37 @@ public class Enemy : LuminousActor
             sz = size * cnt / APPEAR_CNT;
         else
             sz = size;
-        glPushMatrix();
-        glTranslatef(pos.x, pos.y, 0.5f);
-        glRotatef(-armDeg * 180 / PI, 0, 0, 1);
-        glBegin(GL_TRIANGLE_FAN);
-        A7xScreen.setColor(0.7f, 0.9f, 0.3f, 0.3f);
-        glVertex3f(0, 0, 0.5f);
-        A7xScreen.setColor(0.7f, 0.9f, 0.3f, 0.9f);
-        glVertex3f(-0.5f, 0, 0.5f);
-        glVertex3f(0, sz, 0.5f);
-        glVertex3f(0.5f, 0, 0.5f);
-        glVertex3f(0, -sz, 0.5f);
-        glEnd();
-        glTranslatef(0, 0, -0.5f);
-        glScalef(1, 1, -1);
-        glBegin(GL_TRIANGLE_FAN);
-        A7xScreen.setColor(0.7f, 0.9f, 0.3f, 0.1f);
-        glVertex3f(0, 0, 0.5f);
-        A7xScreen.setColor(0.7f, 0.9f, 0.3f, 0.5f);
-        glVertex3f(-0.5f, 0, 0.5f);
-        glVertex3f(0, sz, 0.5f);
-        glVertex3f(0.5f, 0, 0.5f);
-        glVertex3f(0, -sz, 0.5f);
-        glEnd();
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, 0.5f);
+        model = Transform.Rotate(model, -armDeg * 180 / PI, 0, 0, 1);
+        var part2 = new Mesh("Enemy-drawArm-2" + "-" + meshKey);
+        tint = new float[] { 0.7f, 0.9f, 0.3f, 0.3f };
+        part2.Vertex(0, 0, 0.5f, tint);
+        tint = new float[] { 0.7f, 0.9f, 0.3f, 0.9f };
+        part2.Vertex(-0.5f, 0, 0.5f, tint);
+        part2.Vertex(0, sz, 0.5f, tint);
+        part2.Vertex(0.5f, 0, 0.5f, tint);
+        part2.Vertex(0, -sz, 0.5f, tint);
+        part2.Fan(0, part2.vertexCount - 0);
+        if (part2.count > 0) Gfx.Draw(part2.count, part2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+        model = Transform.Translate(model, 0, 0, -0.5f);
+        model = Transform.Scale(model, 1, 1, -1);
+        var part3 = new Mesh("Enemy-drawArm-3" + "-" + meshKey);
+        tint = new float[] { 0.7f, 0.9f, 0.3f, 0.1f };
+        part3.Vertex(0, 0, 0.5f, tint);
+        tint = new float[] { 0.7f, 0.9f, 0.3f, 0.5f };
+        part3.Vertex(-0.5f, 0, 0.5f, tint);
+        part3.Vertex(0, sz, 0.5f, tint);
+        part3.Vertex(0.5f, 0, 0.5f, tint);
+        part3.Vertex(0, -sz, 0.5f, tint);
+        part3.Fan(0, part3.vertexCount - 0);
+        if (part3.count > 0) Gfx.Draw(part3.count, part3.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+        model = parent1;
     }
 
-    public void drawType5()
+    public void drawType5(float[] model, float[] tint, Gfx.Blend blend)
     {
         float sz = 0;
         if (cnt < 0)
@@ -723,344 +733,348 @@ public class Enemy : LuminousActor
         int hi = posHstIdx;
         for (int i = 0; i < 5; i++)
         {
-            glPushMatrix();
-            glTranslatef(posHst[hi].x, posHst[hi].y, 0.5f);
-            glRotatef(-degHst[hi] * 180 / PI, 0, 0, 1);
-            glScalef(sz, sz, sz);
-            glCallList(displayListIdx + 5 * 3);
-            glCallList(displayListIdx + 5 * 3 + 1);
-            glTranslatef(0, 0, -0.5f);
-            glScalef(1, 1, -1);
-            glCallList(displayListIdx + 5 * 3 + 2);
-            glPopMatrix();
+            float[] parent1 = model;
+            model = Transform.Translate(model, posHst[hi].x, posHst[hi].y, 0.5f);
+            model = Transform.Rotate(model, -degHst[hi] * 180 / PI, 0, 0, 1);
+            model = Transform.Scale(model, sz, sz, sz);
+            { Mesh shape2 = meshes[5 * 3]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+            { Mesh shape3 = meshes[5 * 3 + 1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+            model = Transform.Translate(model, 0, 0, -0.5f);
+            model = Transform.Scale(model, 1, 1, -1);
+            { Mesh shape4 = meshes[5 * 3 + 2]; if (shape4.count > 0) Gfx.Draw(shape4.count, shape4.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+            model = parent1;
             hi = GameMath.integer(hi + (size * 2 / speed));
             if (hi >= POSITION_HISTORY_LENGTH)
                 hi = hi - (POSITION_HISTORY_LENGTH);
         }
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
     {
         switch (type)
         {
             case 4:
-                drawType4();
-                drawArm();
+                drawType4(model, tint, blend);
+                drawArm(model, tint, blend);
                 break;
             case 5:
-                drawType5();
+                drawType5(model, tint, blend);
                 break;
             default:
-                drawType0();
+                drawType0(model, tint, blend);
                 break;
         }
     }
 
-    public void drawType0Luminous()
+    public void drawType0Luminous(float[] model, float[] tint, Gfx.Blend blend)
     {
-        glPushMatrix();
-        glTranslatef(pos.x, pos.y, 0.5f);
-        glRotatef(-deg * 180 / PI, 0, 0, 1);
-        glScalef(size, size, size);
-        glCallList(displayListIdx + type * 3 + 1);
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, 0.5f);
+        model = Transform.Rotate(model, -deg * 180 / PI, 0, 0, 1);
+        model = Transform.Scale(model, size, size, size);
+        { Mesh shape2 = meshes[type * 3 + 1]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        model = parent1;
     }
 
-    public void drawType4Luminous()
+    public void drawType4Luminous(float[] model, float[] tint, Gfx.Blend blend)
     {
-        glPushMatrix();
-        glTranslatef(pos.x, pos.y, 0.5f);
-        glCallList(displayListIdx + type * 3 + 1);
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, 0.5f);
+        { Mesh shape2 = meshes[type * 3 + 1]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        model = parent1;
     }
 
-    public void drawArmLuminous()
+    public void drawArmLuminous(float[] model, float[] tint, Gfx.Blend blend)
     {
-        glPushMatrix();
-        glTranslatef(pos.x, pos.y, 0.5f);
-        glRotatef(-armDeg * 180 / PI, 0, 0, 1);
-        glBegin(GL_LINE_STRIP);
-        A7xScreen.setColor(0.5f, 0.9f, 0.3f, 0.9f);
-        glVertex3f(-0.5f, 0, 0.5f);
-        glVertex3f(0, size, 0.5f);
-        glVertex3f(0.5f, 0, 0.5f);
-        glVertex3f(0, -size, 0.5f);
-        glVertex3f(-0.5f, 0, 0.5f);
-        glEnd();
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, 0.5f);
+        model = Transform.Rotate(model, -armDeg * 180 / PI, 0, 0, 1);
+        var part2 = new Mesh("Enemy-drawArmLuminous-2" + "-" + meshKey);
+        tint = new float[] { 0.5f, 0.9f, 0.3f, 0.9f };
+        part2.Vertex(-0.5f, 0, 0.5f, tint);
+        part2.Vertex(0, size, 0.5f, tint);
+        part2.Vertex(0.5f, 0, 0.5f, tint);
+        part2.Vertex(0, -size, 0.5f, tint);
+        part2.Vertex(-0.5f, 0, 0.5f, tint);
+        part2.LineStrip(0, part2.vertexCount - 0);
+        if (part2.count > 0) Gfx.Draw(part2.count, part2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+        model = parent1;
     }
 
-    public void drawType5Luminous()
+    public void drawType5Luminous(float[] model, float[] tint, Gfx.Blend blend)
     {
     }
 
-    public override void drawLuminous()
+    public override void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
     {
         if (cnt < APPEAR_CNT)
             return;
         switch (type)
         {
             case 4:
-                drawType4Luminous();
-                drawArmLuminous();
+                drawType4Luminous(model, tint, blend);
+                drawArmLuminous(model, tint, blend);
                 break;
             case 5:
-                drawType5Luminous();
+                drawType5Luminous(model, tint, blend);
                 break;
             default:
-                drawType0Luminous();
+                drawType0Luminous(model, tint, blend);
                 break;
         }
     }
 
-    public static void createDisplayLists()
+    public static void createMeshes()
     {
-        displayListIdx = glGenLists(18);
-        glNewList(displayListIdx, GL_COMPILE);
-        drawEnemyType0(1);
-        glEndList();
-        glNewList(displayListIdx + 1, GL_COMPILE);
-        drawEnemyType0Line(1);
-        glEndList();
-        glNewList(displayListIdx + 2, GL_COMPILE);
-        drawEnemyType0(0.6f);
-        glEndList();
-        glNewList(displayListIdx + 3, GL_COMPILE);
-        drawEnemyType1(1);
-        glEndList();
-        glNewList(displayListIdx + 4, GL_COMPILE);
-        drawEnemyType1Line(1);
-        glEndList();
-        glNewList(displayListIdx + 5, GL_COMPILE);
-        drawEnemyType1(0.6f);
-        glEndList();
-        glNewList(displayListIdx + 6, GL_COMPILE);
-        drawEnemyType2(1);
-        glEndList();
-        glNewList(displayListIdx + 7, GL_COMPILE);
-        drawEnemyType2Line(1);
-        glEndList();
-        glNewList(displayListIdx + 8, GL_COMPILE);
-        drawEnemyType2(0.6f);
-        glEndList();
-        glNewList(displayListIdx + 9, GL_COMPILE);
-        drawEnemyType3(1);
-        glEndList();
-        glNewList(displayListIdx + 10, GL_COMPILE);
-        drawEnemyType3Line(1);
-        glEndList();
-        glNewList(displayListIdx + 11, GL_COMPILE);
-        drawEnemyType3(0.6f);
-        glEndList();
-        glNewList(displayListIdx + 12, GL_COMPILE);
-        drawEnemyType4(1);
-        glEndList();
-        glNewList(displayListIdx + 13, GL_COMPILE);
-        drawEnemyType4Line(1);
-        glEndList();
-        glNewList(displayListIdx + 14, GL_COMPILE);
-        drawEnemyType4(0.6f);
-        glEndList();
-        glNewList(displayListIdx + 15, GL_COMPILE);
-        drawEnemyType5(1);
-        glEndList();
-        glNewList(displayListIdx + 16, GL_COMPILE);
-        drawEnemyType5Line(1);
-        glEndList();
-        glNewList(displayListIdx + 17, GL_COMPILE);
-        drawEnemyType5(0.6f);
-        glEndList();
+        meshes = new Mesh[18]; Mesh mesh = null; float[] model = Transform.Identity(); float[] tint = null;
+        mesh = new Mesh("Enemy-" + (0).ToString()); meshes[0] = mesh;
+        appendEnemyType0(mesh, model, tint, 1);
+
+        mesh = new Mesh("Enemy-" + (1).ToString()); meshes[1] = mesh;
+        appendEnemyType0Line(mesh, model, tint, 1);
+
+        mesh = new Mesh("Enemy-" + (2).ToString()); meshes[2] = mesh;
+        appendEnemyType0(mesh, model, tint, 0.6f);
+
+        mesh = new Mesh("Enemy-" + (3).ToString()); meshes[3] = mesh;
+        appendEnemyType1(mesh, model, tint, 1);
+
+        mesh = new Mesh("Enemy-" + (4).ToString()); meshes[4] = mesh;
+        appendEnemyType1Line(mesh, model, tint, 1);
+
+        mesh = new Mesh("Enemy-" + (5).ToString()); meshes[5] = mesh;
+        appendEnemyType1(mesh, model, tint, 0.6f);
+
+        mesh = new Mesh("Enemy-" + (6).ToString()); meshes[6] = mesh;
+        appendEnemyType2(mesh, model, tint, 1);
+
+        mesh = new Mesh("Enemy-" + (7).ToString()); meshes[7] = mesh;
+        appendEnemyType2Line(mesh, model, tint, 1);
+
+        mesh = new Mesh("Enemy-" + (8).ToString()); meshes[8] = mesh;
+        appendEnemyType2(mesh, model, tint, 0.6f);
+
+        mesh = new Mesh("Enemy-" + (9).ToString()); meshes[9] = mesh;
+        appendEnemyType3(mesh, model, tint, 1);
+
+        mesh = new Mesh("Enemy-" + (10).ToString()); meshes[10] = mesh;
+        appendEnemyType3Line(mesh, model, tint, 1);
+
+        mesh = new Mesh("Enemy-" + (11).ToString()); meshes[11] = mesh;
+        appendEnemyType3(mesh, model, tint, 0.6f);
+
+        mesh = new Mesh("Enemy-" + (12).ToString()); meshes[12] = mesh;
+        appendEnemyType4(mesh, model, tint, 1);
+
+        mesh = new Mesh("Enemy-" + (13).ToString()); meshes[13] = mesh;
+        appendEnemyType4Line(mesh, model, tint, 1);
+
+        mesh = new Mesh("Enemy-" + (14).ToString()); meshes[14] = mesh;
+        appendEnemyType4(mesh, model, tint, 0.6f);
+
+        mesh = new Mesh("Enemy-" + (15).ToString()); meshes[15] = mesh;
+        appendEnemyType5(mesh, model, tint, 1);
+
+        mesh = new Mesh("Enemy-" + (16).ToString()); meshes[16] = mesh;
+        appendEnemyType5Line(mesh, model, tint, 1);
+
+        mesh = new Mesh("Enemy-" + (17).ToString()); meshes[17] = mesh;
+        appendEnemyType5(mesh, model, tint, 0.6f);
+
     }
 
-    public static void deleteDisplayLists()
+    public static void deleteMeshes() { meshes = null; }
+
+    public static void appendEnemyType0(Mesh mesh, float[] model, float[] tint, float alpha)
     {
-        glDeleteLists(displayListIdx, 18);
+        int part1 = mesh.vertexCount;
+        tint = new float[] { 0.9f, 0.7f, 0.4f, 0.9f * alpha };
+        mesh.Vertex(0.8f, 1, 0.2f, tint, model);
+        tint = new float[] { 1, 0.2f, 0.4f, 0.9f * alpha };
+        mesh.Vertex(1, -1, 0, tint, model);
+        mesh.Vertex(0.7f, -0.8f, 0.8f, tint, model);
+        mesh.Vertex(0, 1, 0.2f, tint, model);
+        mesh.Fan(part1, mesh.vertexCount - part1);
+        int part2 = mesh.vertexCount;
+        tint = new float[] { 0.9f, 0.7f, 0.4f, 0.9f * alpha };
+        mesh.Vertex(-0.8f, 1, 0.2f, tint, model);
+        tint = new float[] { 1, 0.2f, 0.4f, 0.9f * alpha };
+        mesh.Vertex(-1, -1, 0, tint, model);
+        mesh.Vertex(-0.7f, -0.8f, 0.8f, tint, model);
+        mesh.Vertex(0, 1, 0.2f, tint, model);
+        mesh.Fan(part2, mesh.vertexCount - part2);
     }
 
-    public static void drawEnemyType0(float alpha)
+    public static void appendEnemyType0Line(Mesh mesh, float[] model, float[] tint, float alpha)
     {
-        glBegin(GL_TRIANGLE_FAN);
-        A7xScreen.setColor(0.9f, 0.7f, 0.4f, 0.9f * alpha);
-        glVertex3f(0.8f, 1, 0.2f);
-        A7xScreen.setColor(1, 0.2f, 0.4f, 0.9f * alpha);
-        glVertex3f(1, -1, 0);
-        glVertex3f(0.7f, -0.8f, 0.8f);
-        glVertex3f(0, 1, 0.2f);
-        glEnd();
-        glBegin(GL_TRIANGLE_FAN);
-        A7xScreen.setColor(0.9f, 0.7f, 0.4f, 0.9f * alpha);
-        glVertex3f(-0.8f, 1, 0.2f);
-        A7xScreen.setColor(1, 0.2f, 0.4f, 0.9f * alpha);
-        glVertex3f(-1, -1, 0);
-        glVertex3f(-0.7f, -0.8f, 0.8f);
-        glVertex3f(0, 1, 0.2f);
-        glEnd();
+        int part1 = mesh.vertexCount;
+        tint = new float[] { 0.9f, 0.2f, 0.2f, 1 * alpha };
+        mesh.Vertex(0.7f, -0.8f, 0.8f, tint, model);
+        mesh.Vertex(0.8f, 1, 0.2f, tint, model);
+        mesh.Vertex(-0.8f, 1, 0.2f, tint, model);
+        mesh.Vertex(-0.7f, -0.8f, 0.8f, tint, model);
+        mesh.LineStrip(part1, mesh.vertexCount - part1);
     }
 
-    public static void drawEnemyType0Line(float alpha)
+    public static void appendEnemyType1(Mesh mesh, float[] model, float[] tint, float alpha)
     {
-        glBegin(GL_LINE_STRIP);
-        A7xScreen.setColor(0.9f, 0.2f, 0.2f, 1 * alpha);
-        glVertex3f(0.7f, -0.8f, 0.8f);
-        glVertex3f(0.8f, 1, 0.2f);
-        glVertex3f(-0.8f, 1, 0.2f);
-        glVertex3f(-0.7f, -0.8f, 0.8f);
-        glEnd();
+        int part1 = mesh.vertexCount;
+        tint = new float[] { 0.7f, 0.3f, 0.6f, 1.0f * alpha };
+        mesh.Vertex(0, 1, 0.5f, tint, model);
+        tint = new float[] { 0.5f, 0.2f, 0.7f, 0.8f * alpha };
+        mesh.Vertex(-0.5f, -1, 0.2f, tint, model);
+        mesh.Vertex(-0.8f, -0.6f, 0.6f, tint, model);
+        mesh.Vertex(0, -0.3f, 1, tint, model);
+        mesh.Vertex(0.8f, -0.6f, 0.6f, tint, model);
+        mesh.Vertex(0.5f, -1, 0.2f, tint, model);
+        mesh.Fan(part1, mesh.vertexCount - part1);
     }
 
-    public static void drawEnemyType1(float alpha)
+    public static void appendEnemyType1Line(Mesh mesh, float[] model, float[] tint, float alpha)
     {
-        glBegin(GL_TRIANGLE_FAN);
-        A7xScreen.setColor(0.7f, 0.3f, 0.6f, 1.0f * alpha);
-        glVertex3f(0, 1, 0.5f);
-        A7xScreen.setColor(0.5f, 0.2f, 0.7f, 0.8f * alpha);
-        glVertex3f(-0.5f, -1, 0.2f);
-        glVertex3f(-0.8f, -0.6f, 0.6f);
-        glVertex3f(0, -0.3f, 1);
-        glVertex3f(0.8f, -0.6f, 0.6f);
-        glVertex3f(0.5f, -1, 0.2f);
-        glEnd();
+        int part1 = mesh.vertexCount;
+        tint = new float[] { 0.4f, 0.2f, 0.7f, 1.0f * alpha };
+        mesh.Vertex(-0.5f, -1, 0.2f, tint, model);
+        mesh.Vertex(-0.8f, -0.6f, 0.6f, tint, model);
+        mesh.Vertex(0, -0.3f, 1, tint, model);
+        mesh.Vertex(0.8f, -0.6f, 0.6f, tint, model);
+        mesh.Vertex(0.5f, -1, 0.2f, tint, model);
+        mesh.LineStrip(part1, mesh.vertexCount - part1);
     }
 
-    public static void drawEnemyType1Line(float alpha)
+    public static void appendEnemyType2(Mesh mesh, float[] model, float[] tint, float alpha)
     {
-        glBegin(GL_LINE_STRIP);
-        A7xScreen.setColor(0.4f, 0.2f, 0.7f, 1.0f * alpha);
-        glVertex3f(-0.5f, -1, 0.2f);
-        glVertex3f(-0.8f, -0.6f, 0.6f);
-        glVertex3f(0, -0.3f, 1);
-        glVertex3f(0.8f, -0.6f, 0.6f);
-        glVertex3f(0.5f, -1, 0.2f);
-        glEnd();
+        int part1 = mesh.vertexCount;
+        tint = new float[] { 0.6f, 0.8f, 0.2f, 1.0f * alpha };
+        mesh.Vertex(-0.3f, -0.6f, 1, tint, model);
+        tint = new float[] { 0.5f, 0.8f, 0.2f, 0.5f * alpha };
+        mesh.Vertex(0, 0.6f, 0.7f, tint, model);
+        mesh.Vertex(-0.9f, 0.8f, 0.4f, tint, model);
+        tint = new float[] { 0.6f, 0.8f, 0.5f, 1.0f * alpha };
+        mesh.Vertex(-0.2f, 0, 0, tint, model);
+        for (int vi = part1; vi + 2 < mesh.vertexCount; vi++) mesh.Triangle(vi + ((vi - part1) % 2), vi + 1 - ((vi - part1) % 2), vi + 2);
+        int part2 = mesh.vertexCount;
+        tint = new float[] { 0.6f, 0.8f, 0.2f, 1.0f * alpha };
+        mesh.Vertex(0.3f, -0.6f, 1, tint, model);
+        tint = new float[] { 0.5f, 0.8f, 0.2f, 0.5f * alpha };
+        mesh.Vertex(0, 0.6f, 0.7f, tint, model);
+        mesh.Vertex(0.9f, 0.8f, 0.4f, tint, model);
+        tint = new float[] { 0.6f, 0.8f, 0.5f, 1.0f * alpha };
+        mesh.Vertex(0.2f, 0, 0, tint, model);
+        for (int vi = part2; vi + 2 < mesh.vertexCount; vi++) mesh.Triangle(vi + ((vi - part2) % 2), vi + 1 - ((vi - part2) % 2), vi + 2);
     }
 
-    public static void drawEnemyType2(float alpha)
+    public static void appendEnemyType2Line(Mesh mesh, float[] model, float[] tint, float alpha)
     {
-        glBegin(GL_TRIANGLE_STRIP);
-        A7xScreen.setColor(0.6f, 0.8f, 0.2f, 1.0f * alpha);
-        glVertex3f(-0.3f, -0.6f, 1);
-        A7xScreen.setColor(0.5f, 0.8f, 0.2f, 0.5f * alpha);
-        glVertex3f(0, 0.6f, 0.7f);
-        glVertex3f(-0.9f, 0.8f, 0.4f);
-        A7xScreen.setColor(0.6f, 0.8f, 0.5f, 1.0f * alpha);
-        glVertex3f(-0.2f, 0, 0);
-        glEnd();
-        glBegin(GL_TRIANGLE_STRIP);
-        A7xScreen.setColor(0.6f, 0.8f, 0.2f, 1.0f * alpha);
-        glVertex3f(0.3f, -0.6f, 1);
-        A7xScreen.setColor(0.5f, 0.8f, 0.2f, 0.5f * alpha);
-        glVertex3f(0, 0.6f, 0.7f);
-        glVertex3f(0.9f, 0.8f, 0.4f);
-        A7xScreen.setColor(0.6f, 0.8f, 0.5f, 1.0f * alpha);
-        glVertex3f(0.2f, 0, 0);
-        glEnd();
+        tint = new float[] { 0.5f, 1, 0.2f, 1.0f * alpha };
+        int part1 = mesh.vertexCount;
+        mesh.Vertex(-0.9f, 0.8f, 0.4f, tint, model);
+        mesh.Vertex(0, 0.6f, 0.7f, tint, model);
+        mesh.Vertex(0.9f, 0.8f, 0.4f, tint, model);
+        mesh.LineStrip(part1, mesh.vertexCount - part1);
     }
 
-    public static void drawEnemyType2Line(float alpha)
+    public static void appendEnemyType3(Mesh mesh, float[] model, float[] tint, float alpha)
     {
-        A7xScreen.setColor(0.5f, 1, 0.2f, 1.0f * alpha);
-        glBegin(GL_LINE_STRIP);
-        glVertex3f(-0.9f, 0.8f, 0.4f);
-        glVertex3f(0, 0.6f, 0.7f);
-        glVertex3f(0.9f, 0.8f, 0.4f);
-        glEnd();
+        int part1 = mesh.vertexCount;
+        tint = new float[] { 0.8f, 0.2f, 0.4f, 0.9f * alpha };
+        mesh.Vertex(0, 1, 0.7f, tint, model);
+        mesh.Vertex(0.8f, 0.4f, 0.7f, tint, model);
+        tint = new float[] { 0.8f, 0.1f, 0.6f, 0.6f * alpha };
+        mesh.Vertex(0.6f, 0.3f, 0, tint, model);
+        tint = new float[] { 0.8f, 0.2f, 0.4f, 0.9f * alpha };
+        mesh.Vertex(0.8f, -0.4f, 0.7f, tint, model);
+        for (int vi = part1; vi + 2 < mesh.vertexCount; vi++) mesh.Triangle(vi + ((vi - part1) % 2), vi + 1 - ((vi - part1) % 2), vi + 2);
+        int part2 = mesh.vertexCount;
+        tint = new float[] { 0.8f, 0.2f, 0.4f, 0.9f * alpha };
+        mesh.Vertex(0.8f, -0.4f, 0.7f, tint, model);
+        mesh.Vertex(0, -1, 0.7f, tint, model);
+        tint = new float[] { 0.8f, 0.1f, 0.6f, 0.6f * alpha };
+        mesh.Vertex(0, -0.7f, 0, tint, model);
+        tint = new float[] { 0.8f, 0.2f, 0.4f, 0.9f * alpha };
+        mesh.Vertex(-0.8f, -0.4f, 0.7f, tint, model);
+        for (int vi = part2; vi + 2 < mesh.vertexCount; vi++) mesh.Triangle(vi + ((vi - part2) % 2), vi + 1 - ((vi - part2) % 2), vi + 2);
+        int part3 = mesh.vertexCount;
+        tint = new float[] { 0.8f, 0.2f, 0.4f, 0.9f * alpha };
+        mesh.Vertex(-0.8f, -0.4f, 0.7f, tint, model);
+        mesh.Vertex(-0.8f, 0.4f, 0.7f, tint, model);
+        tint = new float[] { 0.8f, 0.1f, 0.6f, 0.6f * alpha };
+        mesh.Vertex(-0.6f, 0.3f, 0, tint, model);
+        tint = new float[] { 0.8f, 0.2f, 0.4f, 0.9f * alpha };
+        mesh.Vertex(0, 1, 0.7f, tint, model);
+        for (int vi = part3; vi + 2 < mesh.vertexCount; vi++) mesh.Triangle(vi + ((vi - part3) % 2), vi + 1 - ((vi - part3) % 2), vi + 2);
     }
 
-    public static void drawEnemyType3(float alpha)
+    public static void appendEnemyType3Line(Mesh mesh, float[] model, float[] tint, float alpha)
     {
-        glBegin(GL_TRIANGLE_STRIP);
-        A7xScreen.setColor(0.8f, 0.2f, 0.4f, 0.9f * alpha);
-        glVertex3f(0, 1, 0.7f);
-        glVertex3f(0.8f, 0.4f, 0.7f);
-        A7xScreen.setColor(0.8f, 0.1f, 0.6f, 0.6f * alpha);
-        glVertex3f(0.6f, 0.3f, 0);
-        A7xScreen.setColor(0.8f, 0.2f, 0.4f, 0.9f * alpha);
-        glVertex3f(0.8f, -0.4f, 0.7f);
-        glEnd();
-        glBegin(GL_TRIANGLE_STRIP);
-        A7xScreen.setColor(0.8f, 0.2f, 0.4f, 0.9f * alpha);
-        glVertex3f(0.8f, -0.4f, 0.7f);
-        glVertex3f(0, -1, 0.7f);
-        A7xScreen.setColor(0.8f, 0.1f, 0.6f, 0.6f * alpha);
-        glVertex3f(0, -0.7f, 0);
-        A7xScreen.setColor(0.8f, 0.2f, 0.4f, 0.9f * alpha);
-        glVertex3f(-0.8f, -0.4f, 0.7f);
-        glEnd();
-        glBegin(GL_TRIANGLE_STRIP);
-        A7xScreen.setColor(0.8f, 0.2f, 0.4f, 0.9f * alpha);
-        glVertex3f(-0.8f, -0.4f, 0.7f);
-        glVertex3f(-0.8f, 0.4f, 0.7f);
-        A7xScreen.setColor(0.8f, 0.1f, 0.6f, 0.6f * alpha);
-        glVertex3f(-0.6f, 0.3f, 0);
-        A7xScreen.setColor(0.8f, 0.2f, 0.4f, 0.9f * alpha);
-        glVertex3f(0, 1, 0.7f);
-        glEnd();
+        tint = new float[] { 0.8f, 0.2f, 0.6f, 0.9f * alpha };
+        int part1 = mesh.vertexCount;
+        mesh.Vertex(0, 1, 0.7f, tint, model);
+        mesh.Vertex(0.6f, 0.3f, 0, tint, model);
+        mesh.Vertex(0.8f, -0.4f, 0.7f, tint, model);
+        mesh.Vertex(0, -0.7f, 0, tint, model);
+        mesh.Vertex(-0.8f, -0.4f, 0.7f, tint, model);
+        mesh.Vertex(-0.6f, 0.3f, 0, tint, model);
+        mesh.Vertex(0, 1, 0.7f, tint, model);
+        mesh.LineStrip(part1, mesh.vertexCount - part1);
     }
 
-    public static void drawEnemyType3Line(float alpha)
+    public static void appendEnemyType4(Mesh mesh, float[] model, float[] tint, float alpha)
     {
-        A7xScreen.setColor(0.8f, 0.2f, 0.6f, 0.9f * alpha);
-        glBegin(GL_LINE_STRIP);
-        glVertex3f(0, 1, 0.7f);
-        glVertex3f(0.6f, 0.3f, 0);
-        glVertex3f(0.8f, -0.4f, 0.7f);
-        glVertex3f(0, -0.7f, 0);
-        glVertex3f(-0.8f, -0.4f, 0.7f);
-        glVertex3f(-0.6f, 0.3f, 0);
-        glVertex3f(0, 1, 0.7f);
-        glEnd();
+        int part1 = mesh.vertexCount;
+        tint = new float[] { 0.5f, 0.7f, 0.3f, 0.9f * alpha };
+        mesh.Vertex(0, 0, 1, tint, model);
+        tint = new float[] { 0.5f, 0.9f, 0.3f, 0.5f * alpha };
+        mesh.Vertex(1, 0, 0.2f, tint, model);
+        mesh.Vertex(0, 1, 0.2f, tint, model);
+        mesh.Vertex(-1, 0, 0.2f, tint, model);
+        mesh.Vertex(0, -1, 0.2f, tint, model);
+        mesh.Vertex(1, 0, 0.2f, tint, model);
+        mesh.Fan(part1, mesh.vertexCount - part1);
     }
 
-    public static void drawEnemyType4(float alpha)
+    public static void appendEnemyType4Line(Mesh mesh, float[] model, float[] tint, float alpha)
     {
-        glBegin(GL_TRIANGLE_FAN);
-        A7xScreen.setColor(0.5f, 0.7f, 0.3f, 0.9f * alpha);
-        glVertex3f(0, 0, 1);
-        A7xScreen.setColor(0.5f, 0.9f, 0.3f, 0.5f * alpha);
-        glVertex3f(1, 0, 0.2f);
-        glVertex3f(0, 1, 0.2f);
-        glVertex3f(-1, 0, 0.2f);
-        glVertex3f(0, -1, 0.2f);
-        glVertex3f(1, 0, 0.2f);
-        glEnd();
+        tint = new float[] { 0.3f, 0.8f, 0.3f, 0.9f * alpha };
+        int part1 = mesh.vertexCount;
+        mesh.Vertex(1, 0, 0.2f, tint, model);
+        mesh.Vertex(0, 1, 0.2f, tint, model);
+        mesh.Vertex(-1, 0, 0.2f, tint, model);
+        mesh.Vertex(0, -1, 0.2f, tint, model);
+        mesh.Vertex(1, 0, 0.2f, tint, model);
+        mesh.LineStrip(part1, mesh.vertexCount - part1);
     }
 
-    public static void drawEnemyType4Line(float alpha)
+    public static void appendEnemyType5(Mesh mesh, float[] model, float[] tint, float alpha)
     {
-        A7xScreen.setColor(0.3f, 0.8f, 0.3f, 0.9f * alpha);
-        glBegin(GL_LINE_STRIP);
-        glVertex3f(1, 0, 0.2f);
-        glVertex3f(0, 1, 0.2f);
-        glVertex3f(-1, 0, 0.2f);
-        glVertex3f(0, -1, 0.2f);
-        glVertex3f(1, 0, 0.2f);
-        glEnd();
+        int part1 = mesh.vertexCount;
+        tint = new float[] { 0.6f, 0.3f, 0.8f, 0.9f * alpha };
+        mesh.Vertex(0, 0.5f, 1, tint, model);
+        tint = new float[] { 0.4f, 0.3f, 0.9f, 0.6f * alpha };
+        mesh.Vertex(-0.3f, 1, 0.3f, tint, model);
+        mesh.Vertex(0.3f, 1, 0.3f, tint, model);
+        mesh.Vertex(0.5f, -1, 0.4f, tint, model);
+        mesh.Vertex(-0.5f, -1, 0.4f, tint, model);
+        mesh.Vertex(-0.3f, 1, 0.3f, tint, model);
+        mesh.Fan(part1, mesh.vertexCount - part1);
     }
 
-    public static void drawEnemyType5(float alpha)
+    public static void appendEnemyType5Line(Mesh mesh, float[] model, float[] tint, float alpha)
     {
-        glBegin(GL_TRIANGLE_FAN);
-        A7xScreen.setColor(0.6f, 0.3f, 0.8f, 0.9f * alpha);
-        glVertex3f(0, 0.5f, 1);
-        A7xScreen.setColor(0.4f, 0.3f, 0.9f, 0.6f * alpha);
-        glVertex3f(-0.3f, 1, 0.3f);
-        glVertex3f(0.3f, 1, 0.3f);
-        glVertex3f(0.5f, -1, 0.4f);
-        glVertex3f(-0.5f, -1, 0.4f);
-        glVertex3f(-0.3f, 1, 0.3f);
-        glEnd();
-    }
-
-    public static void drawEnemyType5Line(float alpha)
-    {
-        A7xScreen.setColor(0.4f, 0.3f, 0.9f, 0.9f * alpha);
-        glBegin(GL_LINE_STRIP);
-        glVertex3f(-0.3f, 1, 0.3f);
-        glVertex3f(0.3f, 1, 0.3f);
-        glVertex3f(0.5f, -1, 0.4f);
-        glVertex3f(-0.5f, -1, 0.4f);
-        glVertex3f(-0.3f, 1, 0.3f);
-        glEnd();
+        tint = new float[] { 0.4f, 0.3f, 0.9f, 0.9f * alpha };
+        int part1 = mesh.vertexCount;
+        mesh.Vertex(-0.3f, 1, 0.3f, tint, model);
+        mesh.Vertex(0.3f, 1, 0.3f, tint, model);
+        mesh.Vertex(0.5f, -1, 0.4f, tint, model);
+        mesh.Vertex(-0.5f, -1, 0.4f, tint, model);
+        mesh.Vertex(-0.3f, 1, 0.3f, tint, model);
+        mesh.LineStrip(part1, mesh.vertexCount - part1);
     }
 }
 

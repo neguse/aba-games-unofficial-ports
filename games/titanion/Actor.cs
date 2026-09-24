@@ -1,5 +1,6 @@
 // Copyright 2004-2005 Kenta Cho. Some rights reserved.
 using System;
+using static Lub;
 using System.Collections.Generic;
 
 public abstract class Actor
@@ -7,7 +8,7 @@ public abstract class Actor
     public bool exists;
     public abstract void init_1(List<object> args);
     public abstract void move_0();
-    public abstract void draw_0();
+    public abstract void draw_0(float[] model, float[] color, Gfx.Blend blend);
 }
 
 public class ActorPool<T>
@@ -81,11 +82,11 @@ public class ActorPool<T>
                 item.move_0();
     }
 
-    public virtual void draw_0()
+    public virtual void draw_0(float[] model, float[] color, Gfx.Blend blend)
     {
         foreach (T item in actors)
             if (item.exists)
-                item.draw_0();
+                item.draw_0(model, color, blend);
     }
 
     public virtual void clear()

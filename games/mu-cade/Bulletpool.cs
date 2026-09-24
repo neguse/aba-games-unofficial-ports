@@ -1,6 +1,6 @@
 // Copyright 2006 Kenta Cho. Some rights reserved.
 using System.Collections.Generic;
-using static Drawing;
+using static Lub;
 
 public class BulletPool : ActorPool<BulletActor>
 {
@@ -68,21 +68,21 @@ public class BulletPool : ActorPool<BulletActor>
         cnt++;
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
-        simpleBullets.draw();
+        simpleBullets.draw(model, tint, blend, key + "-draw-1");
     }
 
-    public void drawShadow_0()
+    public void drawShadow_0(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        simpleBullets.drawShadow_0();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        blend = Gfx.Blend.Alpha;
+        simpleBullets.drawShadow_0(model, tint, blend, key + "-drawShadow_0-1");
+        blend = Gfx.Blend.Additive;
     }
 
-    public void drawSpectrum()
+    public void drawSpectrum(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
-        simpleBullets.drawSpectrum();
+        simpleBullets.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
     }
 
     public override void clear()
@@ -112,18 +112,18 @@ public class SimpleBulletPool : OdeActorPool<SimpleBullet>
     {
     }
 
-    public void drawShadow_0()
+    public void drawShadow_0(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         foreach (var a in actor)
             if (a.exists)
-                a.drawShadow_0();
+                a.drawShadow_0(model, tint, blend, key + "-drawShadow_0-1" + "-" + a.meshKey);
     }
 
-    public void drawSpectrum()
+    public void drawSpectrum(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         foreach (var a in actor)
             if (a.exists)
-                a.drawSpectrum();
+                a.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1" + "-" + a.meshKey);
     }
 
     public int collapseIntoParticle()

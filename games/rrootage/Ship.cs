@@ -2,13 +2,13 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 using static RrConstants;
 using static RrArrays;
 using static RrRandom;
 using static RrBarrage;
 using static RrSound;
-using static RrGl;
+using static RrInput;
 using static RrPreference;
 using static RrCore;
 using static RrAttract;
@@ -474,7 +474,7 @@ public static class RrShip
             ship.invCnt--;
     }
 
-    public static void drawShip()
+    public static void drawShip(float[] model, Gfx.Blend blend, string key)
     {
         float x = 0, y = 0, bx = 0, by = 0;
         int inv = 0, ic = 0;
@@ -487,32 +487,32 @@ public static class RrShip
                 {
                     bx = (float)ship.bombPos.x / FIELD_SCREEN_RATIO;
                     by = -(float)ship.bombPos.y / FIELD_SCREEN_RATIO;
-                    drawBomb(bx, by, (float)ship.bombWdt / FIELD_SCREEN_RATIO, ship.bombCnt);
+                    drawBomb(model, blend, key + "-456", bx, by, (float)ship.bombWdt / FIELD_SCREEN_RATIO, ship.bombCnt);
                 }
 
                 break;
             case PSY_MODE:
                 if (ship.grzInvCnt > 0)
                 {
-                    drawCircle(x, y, 0.01f * ship.grzInvCnt, ship.grzInvCnt, 150, 180, 240, 220, 220, 230);
+                    drawCircle(model, blend, key + "-677", x, y, 0.01f * ship.grzInvCnt, ship.grzInvCnt, 150, 180, 240, 220, 220, 230);
                 }
 
                 break;
             case IKA_MODE:
                 if (ship.color == 0)
                 {
-                    drawCircle(x, y, (float)ship.fldWdt / FIELD_SCREEN_RATIO, ship.cnt, 120, 120, 150, 255, 255, 255);
+                    drawCircle(model, blend, key + "-909", x, y, (float)ship.fldWdt / FIELD_SCREEN_RATIO, ship.cnt, 120, 120, 150, 255, 255, 255);
                 }
                 else
                 {
-                    drawCircle(x, y, (float)ship.fldWdt / FIELD_SCREEN_RATIO, ship.cnt, 200, 0, 0, 100, 0, 0);
+                    drawCircle(model, blend, key + "-1085", x, y, (float)ship.fldWdt / FIELD_SCREEN_RATIO, ship.cnt, 200, 0, 0, 100, 0, 0);
                 }
 
                 break;
             case GW_MODE:
                 if (ship.rfCnt > 0)
                 {
-                    drawCircle(x, y, (float)ship.rfWdt / FIELD_SCREEN_RATIO, ship.cnt, 200, 250, 200, 100, 200, 100);
+                    drawCircle(model, blend, key + "-1318", x, y, (float)ship.rfWdt / FIELD_SCREEN_RATIO, ship.cnt, 200, 250, 200, 100, 200, 100);
                 }
 
                 break;
@@ -521,7 +521,7 @@ public static class RrShip
         ic = ship.invCnt & 31;
         if ((ic > 0) && (ic < 16))
             inv = 1;
-        drawShipShape(x, y, ship.d, inv);
+        drawShipShape(model, blend, key + "-1564", x, y, ship.d, inv);
     }
 
     public static void destroyShip()

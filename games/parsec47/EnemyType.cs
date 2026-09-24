@@ -1,7 +1,6 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
 public class Barrage {
 
   public int parser;

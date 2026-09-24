@@ -1,7 +1,7 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class Particle: LuminousActor {
 
   public const float R = 1, G = 1, B = 0.5f;
@@ -56,16 +56,18 @@ public class Particle: LuminousActor {
     lumAlp *= 0.98f;
   }
 
-  public override void draw() {
-    glVertex3f(ppos.x, ppos.y, pz);
-    glVertex3f(pos.x, pos.y, z);
+  public override void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+    Mesh mesh = target;
+    mesh.Vertex(ppos.x, ppos.y, pz, color);
+    mesh.Vertex(pos.x, pos.y, z, color);
   }
 
-  public override void drawLuminous() {
+  public override void drawLuminous(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+    Mesh mesh = target;
     if (lumAlp < 0.2f) return;
-    Screen.setColorAlpha(R, G, B, lumAlp);
-    glVertex3f(ppos.x, ppos.y, pz);
-    glVertex3f(pos.x, pos.y, z);
+    color = new float[] { R, G, B, lumAlp };
+    mesh.Vertex(ppos.x, ppos.y, pz, color);
+    mesh.Vertex(pos.x, pos.y, z, color);
   }
 }
 

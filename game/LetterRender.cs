@@ -1,10 +1,10 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class LetterRender {
 
-  public static int displayListIdx;
+  public static Mesh[] meshes = new Mesh[DISPLAY_LIST_NUM];
   public const float LETTER_WIDTH = 2.1f;
   public const float LETTER_HEIGHT = 3.0f;
   public const int COLOR_NUM = 6;
@@ -21,22 +21,42 @@ public class LetterRender {
     return s * LETTER_HEIGHT;
   }
 
-  public static void drawLetter(int n, float x, float y, float s, float d, int c) {
-    glPushMatrix();
-    glTranslatef(x, y, 0);
-    glScalef(s, s, s);
-    glRotatef(d, 0, 0, 1);
-    glCallList(displayListIdx + n + c * LETTER_NUM);
-    glPopMatrix();
+  public static void drawLetter(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, int n, float x, float y, float s, float d, int c) {
+    float[] parent1 = model;
+    model = Transform.Translate(model, x, y, 0);
+    model = Transform.Scale(model, s, s, s);
+    model = Transform.Rotate(model, d, 0, 0, 1);
+    {
+      Mesh shape2 = LetterRender.meshes[n + c * LETTER_NUM];
+      if (cull == Gfx.Cull.None) {
+        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+          new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
+      } else foreach (MeshRange range in shape2.ranges) {
+        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+          new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
+            Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
+      }
+    }
+    model = parent1;
   }
 
-  public static void drawLetterRev(int n, float x, float y, float s, float d, int c) {
-    glPushMatrix();
-    glTranslatef(x, y, 0);
-    glScalef(s, -s, s);
-    glRotatef(d, 0, 0, 1);
-    glCallList(displayListIdx + n + c * LETTER_NUM);
-    glPopMatrix();
+  public static void drawLetterRev(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, int n, float x, float y, float s, float d, int c) {
+    float[] parent1 = model;
+    model = Transform.Translate(model, x, y, 0);
+    model = Transform.Scale(model, s, -s, s);
+    model = Transform.Rotate(model, d, 0, 0, 1);
+    {
+      Mesh shape2 = LetterRender.meshes[n + c * LETTER_NUM];
+      if (cull == Gfx.Cull.None) {
+        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+          new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
+      } else foreach (MeshRange range in shape2.ranges) {
+        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+          new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
+            Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
+      }
+    }
+    model = parent1;
   }
 
   public static int convertCharToInt(string c) {
@@ -45,7 +65,7 @@ public class LetterRender {
     return index < 0 ? 0 : index;
   }
 
-  public static void drawStringFacing(string str, float lx, float y, float s, int d, int cl,
+  public static void drawStringFacing(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, string str, float lx, float y, float s, int d, int cl,
 				bool rev) {
     if (cl < 0)
       rand.setSeed(-cl);
@@ -74,14 +94,14 @@ public class LetterRender {
 	idx = convertCharToInt(c);
 	if (cl >= 0) {
 	  if (rev)
-	    drawLetterRev(idx, x, y, s, ld, cl);
+	    drawLetterRev(model, tint, blend, depth, cull, width, idx, x, y, s, ld, cl);
 	  else
-	    drawLetter(idx, x, y, s, ld, cl);
+	    drawLetter(model, tint, blend, depth, cull, width, idx, x, y, s, ld, cl);
 	} else {
 	  if (rev)
-	    drawLetterRev(idx, x, y, s, ld, rand.nextInt(COLOR_NUM));
+	    drawLetterRev(model, tint, blend, depth, cull, width, idx, x, y, s, ld, rand.nextInt(COLOR_NUM));
 	  else
-	    drawLetter(idx, x, y, s, ld, rand.nextInt(COLOR_NUM));
+	    drawLetter(model, tint, blend, depth, cull, width, idx, x, y, s, ld, rand.nextInt(COLOR_NUM));
 	}
       }
       switch(d) {
@@ -101,11 +121,11 @@ public class LetterRender {
     }
   }
 
-  public static void drawString(string str, float lx, float y, float s, int d, int cl) {
-    drawStringFacing(str, lx, y, s, d, cl, false);
+  public static void drawString(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, string str, float lx, float y, float s, int d, int cl) {
+    drawStringFacing(model, tint, blend, depth, cull, width, str, lx, y, s, d, cl, false);
   }
 
-  public static void drawNum(int num, float lx, float y, float s, int d, int cl) {
+  public static void drawNum(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, int num, float lx, float y, float s, int d, int cl) {
     lx += LETTER_WIDTH * s / 2;
     y += LETTER_HEIGHT * s / 2;
     int n = num;
@@ -126,7 +146,7 @@ public class LetterRender {
       break;
     }
     for (;;) {
-      drawLetter(n % 10, x, y, s, ld, cl);
+      drawLetter(model, tint, blend, depth, cull, width, n % 10, x, y, s, ld, cl);
       switch(d) {
       case LetterDirection.TO_RIGHT:
 	x -= s * LETTER_WIDTH;
@@ -146,7 +166,7 @@ public class LetterRender {
     }
   }
 
-  public static void drawNumSign(int num, float lx, float ly, float s, int cl) {
+  public static void drawNumSign(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, int num, float lx, float ly, float s, int cl) {
     float dg;
     if (num < 100)
       dg = 2;
@@ -160,31 +180,31 @@ public class LetterRender {
     float y = ly + LETTER_HEIGHT * s / 2;
     int n = num;
     for (;;) {
-      drawLetterRev(n % 10, x, y, s, 0, cl);
+      drawLetterRev(model, tint, blend, depth, cull, width, n % 10, x, y, s, 0, cl);
       x -= s * LETTER_WIDTH;
       n /= 10;
       if (n <= 0) break;
     }
   }
 
-  public static void drawTime(int time, float lx, float y, float s, int cl) {
+  public static void drawTime(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, int time, float lx, float y, float s, int cl) {
     int n = time;
     float x = lx;
     for (int i = 0; i < 7; i++) {
       if (i != 4) {
-	drawLetter(n % 10, x, y, s, LetterDirection.TO_RIGHT, cl);
+	drawLetter(model, tint, blend, depth, cull, width, n % 10, x, y, s, LetterDirection.TO_RIGHT, cl);
 	n /= 10;
       } else {
-	drawLetter(n % 6, x, y, s, LetterDirection.TO_RIGHT, cl);
+	drawLetter(model, tint, blend, depth, cull, width, n % 6, x, y, s, LetterDirection.TO_RIGHT, cl);
 	n /= 6;
       }
       if ((i & 1) == 1 || i == 0) {
 	switch (i) {
 	case 3:
-	  drawLetter(41, x + s * 1.16f, y, s, LetterDirection.TO_RIGHT, cl);
+	  drawLetter(model, tint, blend, depth, cull, width, 41, x + s * 1.16f, y, s, LetterDirection.TO_RIGHT, cl);
 	  break;
 	case 5:
-	  drawLetter(40, x + s * 1.16f, y, s, LetterDirection.TO_RIGHT, cl);
+	  drawLetter(model, tint, blend, depth, cull, width, 40, x + s * 1.16f, y, s, LetterDirection.TO_RIGHT, cl);
 	  break;
 	default:
 	  break;
@@ -199,18 +219,18 @@ public class LetterRender {
 
   public const int LETTER_SHADE = 3;
 
-  public static void drawBox(float x, float y, float width, float height, float deg, int col) {
-    glPushMatrix();
-    glTranslatef(x - width / 2, y - height / 2, 0);
-    glRotatef(deg, 0, 0, 1);
-    glScalef(width, height, 0.3f);
-    glCallList(Tumiki.displayListIdx +
+  public static void appendBox(Mesh mesh, float[] model, float[] tint, float x, float y, float width, float height, float deg, int col) {
+    float[] parent1 = model;
+    model = Transform.Translate(model, x - width / 2, y - height / 2, 0);
+    model = Transform.Rotate(model, deg, 0, 0, 1);
+    model = Transform.Scale(model, width, height, 0.3f);
+    mesh.Append(Tumiki.meshes[
 	       col * Tumiki.SHAPE_NUM +
-	       LETTER_SHADE * Tumiki.COLOR_NUM * Tumiki.SHAPE_NUM);
-    glPopMatrix();
+	       LETTER_SHADE * Tumiki.COLOR_NUM * Tumiki.SHAPE_NUM], model);
+    model = parent1;
   }
 
-  public static void buildLetter(int idx, int c) {
+  public static void buildLetter(Mesh mesh, float[] model, float[] tint, int idx, int c) {
     float x, y, length, size, t;
     float deg;
     for (int i = 0;; i++) {
@@ -235,28 +255,28 @@ public class LetterRender {
       y = y;
       deg %= 180;
       deg += rand.nextSignedFloat(16);
-      drawBox(x, y, size, length, deg, c);
+      appendBox(mesh, model, tint, x, y, size, length, deg, c);
 
     }
   }
 
-  public static void createDisplayLists() {
+  public static void createMeshes() {
     rand = new Rand();
     rand.setSeed(0);
-    displayListIdx = glGenLists(DISPLAY_LIST_NUM);
-    int di = displayListIdx;
+    float[] model = Transform.Identity(); float[] tint = null; Mesh mesh = null;
+    int di = 0;
     for (int j = 0; j < COLOR_NUM; j++) {
       for (int i = 0; i < LETTER_NUM; i++) {
-	glNewList(di, GL_COMPILE);
-	buildLetter(i, j);
-	glEndList();
+	mesh = new Mesh("LetterRender-" + di.ToString()); meshes[di] = mesh; model = Transform.Identity();
+	buildLetter(mesh, model, tint, i, j);
+
 	di++;
       }
     }
   }
 
-  public static void deleteDisplayLists() {
-    glDeleteLists(displayListIdx, DISPLAY_LIST_NUM);
+  public static void deleteMeshes() {
+    meshes = new Mesh[DISPLAY_LIST_NUM];
   }
 
   public static float[][][] spData =

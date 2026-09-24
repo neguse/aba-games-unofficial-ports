@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Field
 {
@@ -10,7 +10,6 @@ public class Field
     public const float EYE_POS_Y = -2.5f;
     public const float EYE_POS_Z = 15f;
     public static Rand rand;
-    public Screen screen;
     public World world;
     public GameManager gameManager;
     public Ship ship;
@@ -18,7 +17,7 @@ public class Field
     public Vector _size;
     public Vector eyePos, eyePosSize;
     public Wall floorWall;
-    public bool titleMask;
+    Mesh fieldMesh, overlayMesh, glyphQuad;
     public int cnt;
     public static void init_0()
     {
@@ -30,9 +29,8 @@ public class Field
         rand.setSeed(seed);
     }
 
-    public Field(Screen screen, World world, GameManager gameManager)
+    public Field(World world, GameManager gameManager)
     {
-        this.screen = screen;
         this.world = world;
         this.gameManager = gameManager;
         _size = new Vector(20, 15);
@@ -122,70 +120,62 @@ public class Field
         eyePos.y += (ty - eyePos.y) * 0.05f;
     }
 
-    public virtual void setLookAt()
-    {
-        glPushMatrix();
-        LoadIdentity();
-        Screen.lookAt(eyePos.x, eyePos.y + EYE_POS_Y, EYE_POS_Z, eyePos.x, eyePos.y, 0, 0, 1, 0);
-        Drawing.view = Drawing.matrix;
-        glPopMatrix();
-    }
+    public virtual float[] setLookAt() { return Transform.LookAt(Transform.Perspective(), eyePos.x, eyePos.y + EYE_POS_Y, EYE_POS_Z, eyePos.x, eyePos.y, 0, 0, 1, 0); }
 
-    public virtual void setLookAtTitle()
-    {
-        glPushMatrix();
-        LoadIdentity();
-        Screen.lookAt(0, EYE_POS_Y, EYE_POS_Z, 0, 0, 0, 0, 1, 0);
-        Drawing.view = Drawing.matrix;
-        glPopMatrix();
-    }
+    public virtual float[] setLookAtTitle() { return Transform.LookAt(Transform.Perspective(), 0, EYE_POS_Y, EYE_POS_Z, 0, 0, 0, 0, 1, 0); }
 
-    public virtual void draw()
+    public virtual void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
-        glBegin(GL_LINES);
+        if (fieldMesh == null) { var mesh = new Mesh("field");
+        int part1 = mesh.vertexCount;
         for (int z = 0; z > -8; z--)
         {
             float a = 1;
             if (z < 0)
                 a = 0.8f + z * 0.05f;
-            drawSquare(-_size.x, -_size.y, _size.x * 2, _size.y * 2, z, a);
+            appendSquare(mesh, model, tint, -_size.x, -_size.y, _size.x * 2, _size.y * 2, z, a);
         }
 
         for (float w = 0.98f; w < 1.0f; w += 0.0033f)
-            drawSquare(-_size.x * w, -_size.y * w, _size.x * w * 2, _size.y * w * 2, 0, 0.9f);
+            appendSquare(mesh, model, tint, -_size.x * w, -_size.y * w, _size.x * w * 2, _size.y * w * 2, 0, 0.9f);
         for (float x = -0.9f; x < 1.0f; x += 0.1f)
         {
-            Screen.setColor(1, 1, 1);
-            glVertex3f(_size.x * x, -_size.y, 0);
-            Screen.setColor(0.4f, 0.4f, 0.4f);
-            glVertex3f(_size.x * x, -_size.y, -8);
-            Screen.setColor(1, 1, 1);
-            glVertex3f(_size.x * x, _size.y, 0);
-            Screen.setColor(0.4f, 0.4f, 0.4f);
-            glVertex3f(_size.x * x, _size.y, -8);
+            tint = new float[] { 1, 1, 1, 1 };
+            mesh.Vertex(_size.x * x, -_size.y, 0, tint);
+            tint = new float[] { 0.4f, 0.4f, 0.4f, 1 };
+            mesh.Vertex(_size.x * x, -_size.y, -8, tint);
+            tint = new float[] { 1, 1, 1, 1 };
+            mesh.Vertex(_size.x * x, _size.y, 0, tint);
+            tint = new float[] { 0.4f, 0.4f, 0.4f, 1 };
+            mesh.Vertex(_size.x * x, _size.y, -8, tint);
         }
 
         for (float y = -1; y < 1.1f; y += 0.1f)
         {
-            Screen.setColor(1, 1, 1);
-            glVertex3f(-_size.x, _size.y * y, 0);
-            Screen.setColor(0.4f, 0.4f, 0.4f);
-            glVertex3f(-_size.x, _size.y * y, -8);
-            Screen.setColor(1, 1, 1);
-            glVertex3f(_size.x, _size.y * y, 0);
-            Screen.setColor(0.4f, 0.4f, 0.4f);
-            glVertex3f(_size.x, _size.y * y, -8);
+            tint = new float[] { 1, 1, 1, 1 };
+            mesh.Vertex(-_size.x, _size.y * y, 0, tint);
+            tint = new float[] { 0.4f, 0.4f, 0.4f, 1 };
+            mesh.Vertex(-_size.x, _size.y * y, -8, tint);
+            tint = new float[] { 1, 1, 1, 1 };
+            mesh.Vertex(_size.x, _size.y * y, 0, tint);
+            tint = new float[] { 0.4f, 0.4f, 0.4f, 1 };
+            mesh.Vertex(_size.x, _size.y * y, -8, tint);
         }
 
-        glEnd();
+        for (int vi = part1; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1);
+
+            fieldMesh = mesh;
+        }
+        if (fieldMesh.count > 0) Gfx.Draw(fieldMesh.count, fieldMesh.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public virtual void drawSquare(float x, float y, float w, float h, float z, float a)
+    public virtual void appendSquare(Mesh mesh, float[] model, float[] tint, float x, float y, float w, float h, float z, float a)
     {
-        Screen.drawLine(x, y, z, x + w, y, z, a);
-        Screen.drawLine(x + w, y, z, x + w, y + h, z, a);
-        Screen.drawLine(x + w, y + h, z, x, y + h, z, a);
-        Screen.drawLine(x, y + h, z, x, y, z, a);
+        LinePoint.appendLine(mesh, tint, x, y, z, x + w, y, z, a);
+        LinePoint.appendLine(mesh, tint, x + w, y, z, x + w, y + h, z, a);
+        LinePoint.appendLine(mesh, tint, x + w, y + h, z, x, y + h, z, a);
+        LinePoint.appendLine(mesh, tint, x, y + h, z, x, y, z, a);
     }
 
     public static readonly float[][] OVERLAY_BAR_POS = new float[][]
@@ -261,12 +251,13 @@ public class Field
             7
         }
     };
-    public virtual void drawOverlay()
+    public virtual void drawOverlay(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
-        viewOrthoFixed();
-        gameManager.drawState();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBegin(GL_QUADS);
+        model = Transform.Ortho();
+        gameManager.drawState(model, tint, blend, key + "-drawState-1");
+        blend = Gfx.Blend.Alpha;
+        if (overlayMesh == null) {
+        var part1 = new Mesh("overlay-bars");
         for (int i_0 = 1; i_0 < OVERLAY_BAR_POS.Length; i_0++)
         {
             float x1 = OVERLAY_BAR_POS[i_0 - 1][0];
@@ -277,62 +268,69 @@ public class Field
             float y2 = OVERLAY_BAR_POS[i_0][1];
             float ox2 = OVERLAY_BAR_POS[i_0][2];
             float oy2 = OVERLAY_BAR_POS[i_0][3];
-            Screen.setColor(1, 0, 0);
-            glVertex3f(x1 - ox1, y1 - oy1, 0);
-            glVertex3f(x2 - ox2, y2 - oy2, 0);
-            glVertex3f(x2 + ox2, y2 + oy2, 0);
-            glVertex3f(x1 + ox1, y1 + oy1, 0);
+            tint = new float[] { 1, 0, 0, 1 };
+            part1.Vertex(x1 - ox1, y1 - oy1, 0, tint);
+            part1.Vertex(x2 - ox2, y2 - oy2, 0, tint);
+            part1.Vertex(x2 + ox2, y2 + oy2, 0, tint);
+            part1.Vertex(x1 + ox1, y1 + oy1, 0, tint);
             ox1 *= 0.5f;
             oy1 *= 0.5f;
             ox2 *= 0.5f;
             oy2 *= 0.5f;
-            Screen.setColor(1, 1, 1);
-            glVertex3f(x1 - ox1, y1 - oy1, 0);
-            glVertex3f(x2 - ox2, y2 - oy2, 0);
-            glVertex3f(x2 + ox2, y2 + oy2, 0);
-            glVertex3f(x1 + ox1, y1 + oy1, 0);
+            tint = new float[] { 1, 1, 1, 1 };
+            part1.Vertex(x1 - ox1, y1 - oy1, 0, tint);
+            part1.Vertex(x2 - ox2, y2 - oy2, 0, tint);
+            part1.Vertex(x2 + ox2, y2 + oy2, 0, tint);
+            part1.Vertex(x1 + ox1, y1 + oy1, 0, tint);
         }
 
-        glEnd();
+        part1.Quads(0, part1.vertexCount - 0);
+            overlayMesh = part1;
+        }
+        Gfx.Draw(overlayMesh.count, overlayMesh.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
         float x = 285, y = 465;
         float lsz = 26, lof = 20;
         for (int i_1 = 0; i_1 < 5; i_1++)
         {
-            Screen.setColorForced(1, 1, 1);
-            titleMask = true;
-            drawLetter_4(i_1, x, y, lsz);
-            glBlendFunc(GL_ONE, GL_ONE);
-            Screen.setColor(1, 0, 0);
-            titleMask = false;
-            drawLetter_4(i_1, x, y, lsz);
-            glBlendFunc(GL_ONE, GL_ONE);
-            Screen.setColor(1, 1, 1);
-            titleMask = false;
-            drawLetter_4(i_1, x, y, lsz);
+            tint = new float[] { 1, 1, 1, 1 };
+            bool mask = true;
+            drawLetter_4(model, tint, blend, key + "-drawLetter_4-1" + "-" + i_1.ToString(), i_1, x, y, lsz, mask);
+            blend = Gfx.Blend.Additive;
+            tint = new float[] { 1, 0, 0, 1 };
+            mask = false;
+            drawLetter_4(model, tint, blend, key + "-drawLetter_4-2" + "-" + i_1.ToString(), i_1, x, y, lsz, mask);
+            blend = Gfx.Blend.Additive;
+            tint = new float[] { 1, 1, 1, 1 };
+            mask = false;
+            drawLetter_4(model, tint, blend, key + "-drawLetter_4-3" + "-" + i_1.ToString(), i_1, x, y, lsz, mask);
             if (i_1 == 0)
                 x += lof * 1.0f;
             else
                 x += lof * 0.9f;
         }
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        viewPerspective();
+        blend = Gfx.Blend.Additive;
     }
 
-    public void drawLetter_4(int i, float cx, float cy, float width)
+    public void drawLetter_4(float[] model, float[] tint, Gfx.Blend blend, string key, int i, float cx, float cy, float width, bool mask)
     {
-        McdData.DrawGlyph(i, cx, cy, width, titleMask);
+        if (glyphQuad == null) {
+            glyphQuad = new Mesh("title-glyph");
+            glyphQuad.Vertex(-0.5f, -0.5f, 0, new float[] { 0, 0, 0, 1 });
+            glyphQuad.Vertex(0.5f, -0.5f, 0, new float[] { 1, 0, 0, 1 });
+            glyphQuad.Vertex(0.5f, 0.5f, 0, new float[] { 1, 1, 0, 1 });
+            glyphQuad.Vertex(-0.5f, 0.5f, 0, new float[] { 0, 1, 0, 1 });
+            glyphQuad.Quads(0, 4);
+        }
+        model = Transform.Scale(Transform.Translate(model, cx, cy, 0), width, width, 1);
+        Gfx.Draw(glyphQuad.count, glyphQuad.Bindings(model, mask ? new float[] { 1, 1, 1, 1 } : tint, 1, !mask, 0, mask ? McdData.masks[i] : McdData.images[i]),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = mask ? Gfx.Blend.Multiply : Gfx.Blend.Additive });
     }
 
-    public virtual void viewOrthoFixed()
-    {
-        Screen.viewOrthoFixed();
-    }
 
-    public virtual void viewPerspective()
-    {
-        Screen.viewPerspective();
-    }
+
+
 
     public virtual bool checkInField_1_Vector(Vector p)
     {
@@ -366,7 +364,7 @@ public class Wall : OdeActor
     {
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
     }
 }

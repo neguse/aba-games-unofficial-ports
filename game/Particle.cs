@@ -1,7 +1,7 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class Particle: Actor {
 
   public static Rand rand = new Rand();
@@ -57,22 +57,23 @@ public class Particle: Actor {
     }
   }
 
-  public override void draw() {
+  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+    Mesh mesh = target;
     switch (type) {
     case ParticleType.SMOKE:
-      Screen.setColorAlpha(0.8f, 0.8f, 0.8f, alpha);
+      tint = new float[] { 0.8f, 0.8f, 0.8f, alpha };
       break;
     case ParticleType.SPARK:
       if ((cnt & 1) == 0)
-	Screen.setColorAlpha(1, 0.4f, 0.2f, alpha);
+	tint = new float[] { 1, 0.4f, 0.2f, alpha };
       else
-	Screen.setColorAlpha(1, 1, 0.1f, alpha);
+	tint = new float[] { 1, 1, 0.1f, alpha };
       break;
     }
-    glVertex3f(pos.x - size, pos.y - size, 0);
-    glVertex3f(pos.x + size, pos.y - size, 0);
-    glVertex3f(pos.x + size, pos.y + size, 0);
-    glVertex3f(pos.x - size, pos.y + size, 0);
+    mesh.Vertex(pos.x - size, pos.y - size, 0, tint);
+    mesh.Vertex(pos.x + size, pos.y - size, 0, tint);
+    mesh.Vertex(pos.x + size, pos.y + size, 0, tint);
+    mesh.Vertex(pos.x - size, pos.y + size, 0, tint);
   }
 }
 

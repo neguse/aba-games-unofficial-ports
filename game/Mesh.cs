@@ -9,17 +9,23 @@ public class DrawImage
     public TextureRef texture;
 }
 
+public class MeshRange
+{
+    public int first, count, material;
+}
+
 public class Mesh
 {
-    static DrawImage white = new DrawImage { key = "gunroar-white", width = 1, height = 1, atlasHeight = 1, levels = 1, pixels = new List<int> { 255, 255, 255, 255 } };
+    static DrawImage white = new DrawImage { key = "mesh-white", width = 1, height = 1, atlasHeight = 1, levels = 1, pixels = new List<int> { 255, 255, 255, 255 } };
     public List<float> vertices = new List<float>();
     public List<float> faces = new List<float>();
+    public List<MeshRange> ranges = new List<MeshRange>();
     public string key;
     BufferRef vertexBuffer, faceBuffer;
     public Mesh(string key) { this.key = key; }
     public int vertexCount { get { return vertices.Count / 8; } }
     public int count { get { return faces.Count / 4 * 3; } }
-    public void Vertex(float x, float y, float z, float[] color, float[] transform = null)
+    public void Vertex(float x, float y, float z, float[] color, float[] transform = null, bool inheritColor = false)
     {
         if (transform != null)
         {
@@ -28,9 +34,24 @@ public class Mesh
             y = transform[1] * px + transform[5] * py + transform[9] * pz + transform[13];
             z = transform[2] * px + transform[6] * py + transform[10] * pz + transform[14];
         }
-        vertices.Add(x); vertices.Add(y); vertices.Add(z); vertices.Add(0);
+        vertices.Add(x); vertices.Add(y); vertices.Add(z); vertices.Add(color == null || inheritColor ? 1 : 0);
         for (int i = 0; i < 4; i++) vertices.Add(color == null ? 1 : color[i]);
         vertexBuffer = null;
+    }
+    public void Append(Mesh source, float[] model)
+    {
+        int baseVertex = vertexCount, baseFace = count;
+        for (int i = 0; i < source.vertices.Count; i += 8)
+            Vertex(source.vertices[i], source.vertices[i + 1], source.vertices[i + 2],
+                new float[] { source.vertices[i + 4], source.vertices[i + 5], source.vertices[i + 6], source.vertices[i + 7] }, model, source.vertices[i + 3] > 0);
+        for (int i = 0; i < source.faces.Count; i += 4)
+        {
+            faces.Add(source.faces[i] + baseVertex); faces.Add(source.faces[i + 1] + baseVertex);
+            faces.Add(source.faces[i + 2] + (source.faces[i + 3] == 1 ? 0 : baseVertex)); faces.Add(source.faces[i + 3]);
+        }
+        foreach (MeshRange range in source.ranges)
+            ranges.Add(new MeshRange { first = baseFace + range.first, count = range.count, material = range.material });
+        faceBuffer = null;
     }
     public void Triangle(int a, int b, int c)
     {
@@ -59,7 +80,14 @@ public class Mesh
         for (int i = 0; i < count - 1; i++) Line(first + i, first + i + 1);
         if (loop && count > 1) Line(first + count - 1, first);
     }
-    public Dictionary<string, object> Bindings(float[] model, float[] color = null, float width = 1, bool additive = true, int first = 0, DrawImage image = null)
+    public void AddRange(int first, int material)
+    {
+        if (count == first) return;
+        if (ranges.Count > 0 && ranges[ranges.Count - 1].material == material)
+            ranges[ranges.Count - 1].count += count - first;
+        else ranges.Add(new MeshRange { first = first, count = count - first, material = material });
+    }
+    public Dictionary<string, object> Bindings(float[] model, float[] color = null, float width = 1, bool additive = true, int first = 0, DrawImage image = null, float viewportWidth = 640, float viewportHeight = 480)
     {
         vertexBuffer = Gfx.UseBuffer(key + "-vertices", Gfx.BufferType.Storage, vertices,
             vertexBuffer == null ? (int?)null : vertexBuffer.Version);
@@ -74,6 +102,7 @@ public class Mesh
             ["uniforms"] = new Dictionary<string, object> {
                 ["model"] = model, ["tint"] = color == null ? new float[] { 1, 1, 1, 1 } : color,
                 ["options"] = new float[] { width, additive ? 1 : 0, first, image == null ? 0 : 1 },
+                ["viewport"] = new float[] { viewportWidth, viewportHeight, 0, 0 },
                 ["imageInfo"] = new float[] { texture.width, texture.height, texture.levels - 1, 0 } } };
     }
 }

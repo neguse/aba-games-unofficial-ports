@@ -1,14 +1,13 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class Shot: Actor {
 
   public Vector pos;
   public const float SPEED = 1;
 
   public const float FIELD_SPACE = 1;
-  public static int displayListIdx;
   public Field field;
   public Vector vel;
   public float deg;
@@ -43,14 +42,18 @@ public class Shot: Actor {
     cnt++;
   }
 
-  public override void draw() {
+  public override void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+    var mesh = new Mesh("Shot-draw" + "-" + meshKey);
     float r=0;
     if (cnt > RETRO_CNT)
       r = 1;
     else
       r = GameMath.integer(cnt / RETRO_CNT);
     P47Screen.setRetroParam(r, 0.2f);
-    P47Screen.drawBoxRetro(pos.x, pos.y, 0.2f, 1, deg);
+    P47Screen.appendBoxRetro(mesh, pos.x, pos.y, 0.2f, 1, deg);
+
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 }
 

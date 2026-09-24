@@ -32,7 +32,7 @@ dist.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_barrage.py', str(original / 'barrage'), 'build/BarrageCode.cs'], check=True)
 subprocess.run([sys.executable, 'tools/compile_data.py', str(original), 'build/GameData.cs'], check=True)
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--output', 'dist/game.lua'], check=True)
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), 'dist/shaders.json'], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), 'dist/shaders.json', 'shaders/mesh'], check=True)
 for path in Path('web').iterdir():
     shutil.copy2(path, dist / path.name)
 shutil.copytree(original / 'sounds', dist / 'audio', dirs_exist_ok=True)
@@ -57,7 +57,7 @@ subprocess.run([sys.executable, 'tools/compile_parsec47.py', str(p47)], check=Tr
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'parsec47',
                 '--output', str(target / 'game.lua')], check=True)
 shutil.copy2('games/parsec47/index.html', target / 'index.html')
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/title'], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
 shutil.copytree(p47 / 'sounds', target / 'audio', dirs_exist_ok=True)
 (target / 'LICENSE.txt').write_text((p47 / 'readme_e.txt').read_text() + '\n\n' + licenses)
 archive = Path('.cache/gr0_15.zip')
@@ -94,7 +94,7 @@ subprocess.run([sys.executable, 'tools/compile_titanion.py', str(ttn)], check=Tr
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'titanion',
                 '--output', str(target / 'game.lua')], check=True)
 shutil.copy2('games/titanion/index.html', target / 'index.html')
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/title'], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
 (target / 'audio').mkdir(exist_ok=True)
 for directory in ['chunks', 'musics']:
     for audio in (ttn / 'sounds' / directory).iterdir():
@@ -113,7 +113,7 @@ target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_a7xpg.py', str(a7x)], check=True)
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'a7xpg',
                 '--output', str(target / 'game.lua')], check=True)
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/a7xpg/game'], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
 shutil.copy2('games/a7xpg/index.html', target / 'index.html')
 shutil.copytree(a7x / 'sounds', target / 'audio', dirs_exist_ok=True)
 (target / 'LICENSE.txt').write_text((a7x / 'readme_e.txt').read_text() + '\n\n' + Path('games/a7xpg/PHOBOS-LICENSE.txt').read_text() + '\n\n' + licenses)
@@ -131,7 +131,7 @@ subprocess.run([sys.executable, 'tools/compile_torus.py', str(tt)], check=True)
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'torus-trooper',
                 '--output', str(target / 'game.lua')], check=True)
 shutil.copy2('games/torus-trooper/index.html', target / 'index.html')
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/title'], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
 (target / 'audio').mkdir(exist_ok=True)
 for directory in ['chunks', 'musics']:
     for audio in (tt / 'sounds' / directory).iterdir():
@@ -150,7 +150,7 @@ target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_rrootage.py', str(rr)], check=True)
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'rrootage',
                 '--output', str(target / 'game.lua')], check=True)
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/rrootage/game'], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
 shutil.copy2('games/rrootage/index.html', target / 'index.html')
 shutil.copytree(rr / 'sounds', target / 'audio', dirs_exist_ok=True)
 (target / 'LICENSE.txt').write_text((rr / 'LICENSE.txt').read_text() + '\n\n' + licenses)
@@ -252,7 +252,7 @@ subprocess.run([sys.executable, 'tools/compile_mucade.py', str(mcd)], check=True
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'mu-cade',
                 '--output', str(target / 'game.lua')], check=True)
 shutil.copy2('games/mu-cade/index.html', target / 'index.html')
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/title'], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
 (target / 'audio').mkdir(exist_ok=True)
 for path in (mcd / 'sounds').rglob('*'):
     if path.is_file():

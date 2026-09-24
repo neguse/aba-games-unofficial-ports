@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Enemy : Actor
 {
@@ -404,36 +404,36 @@ public class Enemy : Actor
         exists = false;
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         Vector3 sp = tunnel.getPos_1_Vector(pos);
-        glPushMatrix();
-        TtScreen.glTranslate(sp);
-        glRotatef((pos.x - bank) * 180 / PI, 0, 0, 1);
+        float[] parent1 = model;
+        model = Transform.Translate(model, sp.x, sp.y, sp.z);
+        model = Transform.Rotate(model, (pos.x - bank) * 180 / PI, 0, 0, 1);
         if (sp.z > 200)
         {
             float sz = 1 - (sp.z - 200) * 0.0025f;
-            glScalef(sz, sz, sz);
+            model = Transform.Scale(model, sz, sz, sz);
         }
 
-        glRotatef(d1 * 180 / PI, 0, 1, 0);
-        glRotatef(d2 * 180 / PI, 1, 0, 0);
+        model = Transform.Rotate(model, d1 * 180 / PI, 0, 1, 0);
+        model = Transform.Rotate(model, d2 * 180 / PI, 1, 0, 0);
         if (!(damaged))
-            spec.shape.draw();
+            spec.shape.draw(model, tint, blend, cull, lineWidth);
         else
-            spec.damagedShape.draw();
-        glPopMatrix();
+            spec.damagedShape.draw(model, tint, blend, cull, lineWidth);
+        model = parent1;
         if ((bitBullet != null && bitBullet.Count > 0))
         {
             foreach (BulletActor bb in bitBullet)
             {
                 sp = tunnel.getPos_1_Vector(bb.bullet.pos);
-                glPushMatrix();
-                TtScreen.glTranslate(sp);
-                glRotatef(bitCnt * 7, 0, 1, 0);
-                glRotatef(pos.x * 180 / PI, 0, 0, 1);
-                ShipSpec.bitShape().draw();
-                glPopMatrix();
+                float[] parent2 = model;
+                model = Transform.Translate(model, sp.x, sp.y, sp.z);
+                model = Transform.Rotate(model, bitCnt * 7, 0, 1, 0);
+                model = Transform.Rotate(model, pos.x * 180 / PI, 0, 0, 1);
+                ShipSpec.bitShape().draw(model, tint, blend, cull, lineWidth);
+                model = parent2;
             }
         }
     }

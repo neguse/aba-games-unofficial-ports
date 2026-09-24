@@ -41,9 +41,21 @@ public static class Transform
             t*x*y-s*z, t*y*y+c, t*y*z+s*x, 0,
             t*x*z+s*y, t*y*z-s*x, t*z*z+c, 0, 0,0,0,1 });
     }
-    public static float[] Perspective()
+    public static float[] Perspective(float far = 1000, float scale = 1)
     {
-        return new float[] { 1,0,0,0, 0,4f/3,0,0, 0,0,-1000f/999.9f,-1, 0,0,-100f/999.9f,0 };
+        return new float[] { scale,0,0,0, 0,4f/3 * scale,0,0, 0,0,-far/(far - 0.1f),-1, 0,0,-far * 0.1f/(far - 0.1f),0 };
+    }
+    public static float[] LookAt(float[] matrix, float ex, float ey, float ez, float lx, float ly, float lz, float ux, float uy, float uz)
+    {
+        float fx = lx - ex, fy = ly - ey, fz = lz - ez;
+        float length = (float)Math.Sqrt(fx * fx + fy * fy + fz * fz);
+        fx /= length; fy /= length; fz /= length;
+        float sx = fy * uz - fz * uy, sy = fz * ux - fx * uz, sz = fx * uy - fy * ux;
+        length = (float)Math.Sqrt(sx * sx + sy * sy + sz * sz);
+        sx /= length; sy /= length; sz /= length;
+        float tx = sy * fz - sz * fy, ty = sz * fx - sx * fz, tz = sx * fy - sy * fx;
+        matrix = Multiply(matrix, new float[] { sx, tx, -fx, 0, sy, ty, -fy, 0, sz, tz, -fz, 0, 0, 0, 0, 1 });
+        return Translate(matrix, -ex, -ey, -ez);
     }
     public static float[] Ortho()
     {

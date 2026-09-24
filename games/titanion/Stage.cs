@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Stage
 {
@@ -449,42 +449,42 @@ public class Stage
         }
     }
 
-    public virtual void draw_0()
+    public virtual void draw_0(float[] model, float[] color, Gfx.Blend blend)
     {
         if ((((((((gameState.mode_0() != GameStateMode.MODERN))) && ((phaseTime < PHASE_RESULT_SHOW_CNT))))) && ((phaseNum > 1))))
         {
-            Letter.drawString("SHOTS FIRED", 152, 250, 6, LetterDirection.TO_RIGHT, false, 0, 1, 1, 0.33f);
-            Letter.drawNum(shotFiredNumRsl, 480, 250, 6);
-            Letter.drawString("NUMBER OF HITS", 152, 280, 6, LetterDirection.TO_RIGHT, false, 0, 1, 1, 0.33f);
-            Letter.drawNum(shotHitNumRsl, 480, 280, 6);
-            Letter.drawString("HIT-MISS RATIO", 152, 310, 6);
-            Letter.drawNum(GameMath.integer((hitRatio * 10000)), 480, 310, 6, 3, -1, 2);
-            Letter.drawString("BONUS", 200, 350, 6, LetterDirection.TO_RIGHT, false, 0, 1, 0.33f, 0.33f);
-            Letter.drawNum(hitRatioBonus, 440, 350, 6);
+            Letter.drawString(model, color, blend, "SHOTS FIRED", 152, 250, 6, LetterDirection.TO_RIGHT, false, 0, 1, 1, 0.33f);
+            Letter.drawNum(model, color, blend, shotFiredNumRsl, 480, 250, 6);
+            Letter.drawString(model, color, blend, "NUMBER OF HITS", 152, 280, 6, LetterDirection.TO_RIGHT, false, 0, 1, 1, 0.33f);
+            Letter.drawNum(model, color, blend, shotHitNumRsl, 480, 280, 6);
+            Letter.drawString(model, color, blend, "HIT-MISS RATIO", 152, 310, 6);
+            Letter.drawNum(model, color, blend, GameMath.integer((hitRatio * 10000)), 480, 310, 6, 3, -1, 2);
+            Letter.drawString(model, color, blend, "BONUS", 200, 350, 6, LetterDirection.TO_RIGHT, false, 0, 1, 0.33f, 0.33f);
+            Letter.drawNum(model, color, blend, hitRatioBonus, 440, 350, 6);
         }
         else if (phaseTime < PHASE_RESULT_SHOW_CNT + PHASE_START_SHOW_CNT)
         {
-            Letter.drawNum(phaseNum, 392, 200, 10);
-            Letter.drawString("PHASE", 232, 200, 10);
+            Letter.drawNum(model, color, blend, phaseNum, 392, 200, 10);
+            Letter.drawString(model, color, blend, "PHASE", 232, 200, 10);
         }
     }
 
-    public virtual void drawPhaseNum()
+    public virtual void drawPhaseNum(float[] model, float[] color, Gfx.Blend blend)
     {
-        Letter.drawNum(phaseNum, 622, 448, 10);
+        Letter.drawNum(model, color, blend, phaseNum, 622, 448, 10);
     }
 
-    public virtual void drawGameover()
+    public virtual void drawGameover(float[] model, float[] color, Gfx.Blend blend)
     {
         float hr = 0;
         if (shotFiredNumTotal > 0)
             hr = (float)shotHitNumTotal / shotFiredNumTotal;
-        Letter.drawString("SHOTS FIRED", 152, 250, 6, LetterDirection.TO_RIGHT, false, 0, 1, 1, 0.33f);
-        Letter.drawNum(shotFiredNumTotal, 480, 250, 6);
-        Letter.drawString("NUMBER OF HITS", 152, 280, 6, LetterDirection.TO_RIGHT, false, 0, 1, 1, 0.33f);
-        Letter.drawNum(shotHitNumTotal, 480, 280, 6);
-        Letter.drawString("HIT-MISS RATIO", 152, 310, 6);
-        Letter.drawNum(GameMath.integer((hr * 10000)), 480, 310, 6, 3, -1, 2);
+        Letter.drawString(model, color, blend, "SHOTS FIRED", 152, 250, 6, LetterDirection.TO_RIGHT, false, 0, 1, 1, 0.33f);
+        Letter.drawNum(model, color, blend, shotFiredNumTotal, 480, 250, 6);
+        Letter.drawString(model, color, blend, "NUMBER OF HITS", 152, 280, 6, LetterDirection.TO_RIGHT, false, 0, 1, 1, 0.33f);
+        Letter.drawNum(model, color, blend, shotHitNumTotal, 480, 280, 6);
+        Letter.drawString(model, color, blend, "HIT-MISS RATIO", 152, 310, 6);
+        Letter.drawNum(model, color, blend, GameMath.integer((hr * 10000)), 480, 310, 6, 3, -1, 2);
     }
 
     public virtual int attackSmallEnemyNum()

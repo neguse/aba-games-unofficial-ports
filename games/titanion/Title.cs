@@ -2,10 +2,12 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Title
 {
+    public Mesh logo = new Mesh("title-logo");
+    Mesh marker = new Mesh("title-marker");
     public Preference preference;
     public RecordablePad pad;
     public Frame frame;
@@ -25,6 +27,19 @@ public class Title
 
     public virtual void init_0()
     {
+        logo.Vertex(0, 0, 0, new float[] { 0, 0, 0, 1 });
+        logo.Vertex(280, 0, 0, new float[] { 1, 0, 0, 1 });
+        logo.Vertex(280, 64, 0, new float[] { 1, 1, 0, 1 });
+        logo.Vertex(0, 64, 0, new float[] { 0, 1, 0, 1 });
+        logo.Quads(0, 4);
+        marker.Vertex(0, 1.7f, 0, new float[] { 1, 1, 1, 0.5f });
+        marker.Vertex(1, 0, 0, new float[] { 1, 1, 1, 0.5f });
+        marker.Vertex(-1, 0, 0, new float[] { 1, 1, 1, 0.5f });
+        marker.Fan(0, 3);
+        marker.Vertex(0, 1.7f, 0, new float[] { 1, 1, 1, 1 });
+        marker.Vertex(1, 0, 0, new float[] { 1, 1, 1, 1 });
+        marker.Vertex(-1, 0, 0, new float[] { 1, 1, 1, 1 });
+        marker.LineStrip(3, 3, true);
     }
 
     public virtual void close()
@@ -95,10 +110,10 @@ public class Title
         cnt++;
     }
 
-    public virtual void draw_0()
+    public virtual void draw_0(float[] model, float[] color, Gfx.Blend blend)
     {
-        TtnScreen.setColor(1, 1, 1);
-        drawBoard(titlePos.x, titlePos.y, 280 * titleSize, 64 * titleSize);
+        color = new float[] { 1, 1, 1, 1 };
+        drawBoard(model, color, blend, titlePos.x, titlePos.y, 280 * titleSize, 64 * titleSize);
         if ((cnt % 120) < 60)
         {
             float x = 175, sz = 6;
@@ -111,54 +126,43 @@ public class Title
                 sz = sz - (c * 0.045f);
             }
 
-            Letter.drawString("PUSH SHOT BUTTON TO START", x, 440, sz);
+            Letter.drawString(model, color, blend, "PUSH SHOT BUTTON TO START", x, 440, sz);
         }
 
         if (cnt >= 240)
         {
-            drawRanking();
+            drawRanking(model, color, blend);
         }
 
         if ((cnt % 60) < 30)
         {
-            drawTriangle(575, 398, 180);
-            drawTriangle(575, 417, 0);
+            drawTriangle(model, color, blend, 575, 398, 180);
+            drawTriangle(model, color, blend, 575, 417, 0);
         }
 
-        Letter.drawString(GameState.MODE_NAME[cursorIdx], 540, 400, 5);
+        Letter.drawString(model, color, blend, GameState.MODE_NAME[cursorIdx], 540, 400, 5);
     }
 
-    public virtual void drawBoard(float x, float y, float w, float h)
+    public virtual void drawBoard(float[] model, float[] color, Gfx.Blend blend, float x, float y, float w, float h)
     {
-        glPushMatrix();
-        glTranslatef(x, y, 0);
-        glScalef(w / 280, h / 64, 1);
-        TitanionTitleImage.draw();
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, x, y, 0);
+        model = Transform.Scale(model, w / 280, h / 64, 1);
+        Gfx.Draw(logo.count, logo.Bindings(model, new float[] { 1, 1, 1, 1 }, 1, blend == Gfx.Blend.Additive, 0, TitanionTitleImage.title),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+        model = parent1;
     }
 
-    public virtual void drawTriangle(float x, float y, float d)
+    public virtual void drawTriangle(float[] model, float[] color, Gfx.Blend blend, float x, float y, float d)
     {
-        glPushMatrix();
-        glTranslatef(x, y, 0);
-        glRotatef(d, 0, 0, 1);
-        glScalef(5, 5, 1);
-        glBegin(GL_TRIANGLE_FAN);
-        TtnScreen.setColor(1, 1, 1, 0.5f);
-        glVertex3f(0, 1.7f, 0);
-        glVertex3f(1, 0, 0);
-        glVertex3f(-1, 0, 0);
-        glEnd();
-        glBegin(GL_LINE_LOOP);
-        TtnScreen.setColor(1, 1, 1, 1);
-        glVertex3f(0, 1.7f, 0);
-        glVertex3f(1, 0, 0);
-        glVertex3f(-1, 0, 0);
-        glEnd();
-        glPopMatrix();
+        model = Transform.Translate(model, x, y, 0);
+        model = Transform.Rotate(model, d, 0, 0, 1);
+        model = Transform.Scale(model, 5, 5, 1);
+        Gfx.Draw(marker.count, marker.Bindings(model, null, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public virtual void drawRanking()
+    public virtual void drawRanking(float[] model, float[] color, Gfx.Blend blend)
     {
         int rn = GameMath.integer((cnt - 240) / 30);
         if (rn > Preference.RANKING_NUM)
@@ -186,9 +190,9 @@ public class Title
                 }
 
                 if (i < 9)
-                    Letter.drawString(rstr, 180, y, 7);
+                    Letter.drawString(model, color, blend, rstr, 180, y, 7);
                 else
-                    Letter.drawString(rstr, 166, y, 7);
+                    Letter.drawString(model, color, blend, rstr, 166, y, 7);
             }
 
             float sx = 450, sy = y, sz = 6;
@@ -201,7 +205,7 @@ public class Title
                 sz = sz - (c * 0.03f);
             }
 
-            Letter.drawNum(preference.highScore[cursorIdx][i], sx, sy, sz);
+            Letter.drawNum(model, color, blend, preference.highScore[cursorIdx][i], sx, sy, sz);
             y = y + (24);
         }
     }

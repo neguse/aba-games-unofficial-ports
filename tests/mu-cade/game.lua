@@ -1,4 +1,7 @@
 lub={config=function()end,host={available=function()return false end}}
+local draws=0
+lub.gfx={ADDITIVE=1,ALPHA=2,MULTIPLY=3,NONE=0,use_buffer=function(key,kind,data)assert(#data>0,key);return {version=1}end,
+ use_texture=function()return {version=1}end,draw=function(n)draws=draws+n end}
 local game=dofile(arg[1]);game.on_init()
 local g=Game.manager
 local stageMove=g.stage_manager.move_0
@@ -34,12 +37,12 @@ for _,kind in ipairs({CentHeadToAndFrom,CentHeadChase,CentHeadRoll})do
   local head=spec:set_jointed_enemies_5(g.enemies,0,10,0,0);assert(head and count(g.enemies)==spec.body_length)
   local most=0
   for i=1,240 do tick(0);most=math.max(most,count(g.bullets.simple_bullets))end
-  assert(most>0,'enemy barrage');g.screen:clear();g:draw();assert(#Drawing.batches>0)
+  assert(most>0,'enemy barrage');draws=0;g:draw();assert(draws>0)
  end
 end
 fresh();local before=g.score;local block=g.enemies:get_instance();assert(block:set_10(g.stage_manager._block_spec,0,0,0,0,1,1,1,1))
 mcdphysics.body_position(block._body_id,30,0,-11);tick(0,2);assert(not block.exists and g.score>before)
-Drawing.begin_frame();Letter.draw_string('ABC 123',10,20,3);assert(#Drawing.batches>0 and #Drawing.batches[1].vertices>100)
+draws=0;Letter.draw_string(Transform.ortho(),nil,lub.gfx.ADDITIVE,'test','ABC 123',10,20,3);assert(draws>100)
 local lp=LinePoint.new(g.field);assert(#lp.pos==8 and #lp.pos_hist==40 and #lp.pos_hist[1]==8)
 fresh();local spec=CentHeadChase.new(g.field,g.ship,g.bullets,g.world,30,1)
 local head=spec:set_jointed_enemies_5(g.enemies,0,10,0,0);assert(head)

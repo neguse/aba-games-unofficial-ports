@@ -1,7 +1,7 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class ScoreSign: Actor {
 
   public Vector pos;
@@ -42,8 +42,9 @@ public class ScoreSign: Actor {
     my *= 0.92f;
   }
 
-  public override void draw() {
-    LetterRender.drawNumSign(num, pos.x, pos.y, size, 3);
+  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+    bool depth = false; Gfx.Cull cull = Gfx.Cull.Front; float width = 1;
+    LetterRender.drawNumSign(model, tint, blend, depth, cull, width, num, pos.x, pos.y, size, 3);
   }
 }
 

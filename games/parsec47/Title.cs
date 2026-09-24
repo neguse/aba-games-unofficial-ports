@@ -1,8 +1,9 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class Title {
+  public Mesh logo;
 
   public Pad pad;
   public P47GameManager gameManager;
@@ -121,18 +122,26 @@ public class Title {
     gameManager.startStage(curY, curX, getStartParsec(curY, curX), mode);
   }
 
-  public void drawBox(int x, int y, int w, int h) {
-    Screen.setColorAlpha(1, 1, 1, 1);
-    P47Screen.drawBoxLine(x, y, w, h);
-    Screen.setColorAlpha(1, 1, 1, 0.5f);
-    P47Screen.drawBoxSolid(x, y, w, h);
+  public void drawBox(float[] model, float[] color, Gfx.Blend blend, int x, int y, int w, int h) {
+    var mesh = new Mesh("Title-drawBox" + "-" + x.ToString() + "-" + y.ToString());
+    color = new float[] { 1, 1, 1, 1 };
+    P47Screen.appendBoxLine(mesh, color, x, y, w, h);
+    color = new float[] { 1, 1, 1, 0.5f };
+    P47Screen.appendBoxSolid(mesh, color, x, y, w, h);
+
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
-  public void drawBoxLight(int x, int y, int w, int h) {
-    Screen.setColorAlpha(1, 1, 1, 0.7f);
-    P47Screen.drawBoxLine(x, y, w, h);
-    Screen.setColorAlpha(1, 1, 1, 0.3f);
-    P47Screen.drawBoxSolid(x, y, w, h);
+  public void drawBoxLight(float[] model, float[] color, Gfx.Blend blend, int x, int y, int w, int h) {
+    var mesh = new Mesh("Title-drawBoxLight" + "-" + x.ToString() + "-" + y.ToString());
+    color = new float[] { 1, 1, 1, 0.7f };
+    P47Screen.appendBoxLine(mesh, color, x, y, w, h);
+    color = new float[] { 1, 1, 1, 0.3f };
+    P47Screen.appendBoxSolid(mesh, color, x, y, w, h);
+
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
   public const int BOX_SMALL_SIZE = 24;
@@ -140,44 +149,48 @@ public class Title {
   public static string[] DIFFICULTY_STR = new string[] { "PRACTICE", "NORMAL", "HARD", "EXTREME", "QUIT" };
   public static string[] MODE_STR = new string[] { "ROLL", "LOCK" };
 
-  public void drawTitleBoard() { TitleImage.Draw(); }
+  public void drawTitleBoard(float[] model, float[] color, Gfx.Blend blend) { if (logo == null) {
+      logo = new Mesh("title-logo");
+      logo.Vertex(180, 20, 0, new float[] { 0, 0, 0, 1 });
+      logo.Vertex(308, 20, 0, new float[] { 1, 0, 0, 1 });
+      logo.Vertex(308, 148, 0, new float[] { 1, 1, 0, 1 });
+      logo.Vertex(180, 148, 0, new float[] { 0, 1, 0, 1 });
+      logo.Quads(0, 4);
+    }
+    Gfx.Draw(logo.count, logo.Bindings(model, new float[] { 1, 1, 1, 1 }, 1, blend == Gfx.Blend.Additive, 0, TitleImage.title),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
 
-  public void draw() {
+  public void draw(float[] model, float[] color, Gfx.Blend blend) {
     int sx=0, sy=0;
-    LetterRender.drawString
-      (DIFFICULTY_STR[curY], 470 - DIFFICULTY_STR[curY].Length * 14, 150,
+    LetterRender.drawString(model, color, blend, DIFFICULTY_STR[curY], 470 - DIFFICULTY_STR[curY].Length * 14, 150,
        10, LetterRender.TO_RIGHT);
-    LetterRender.drawString
-      (MODE_STR[mode], 470 - MODE_STR[mode].Length * 14, 450,
+    LetterRender.drawString(model, color, blend, MODE_STR[mode], 470 - MODE_STR[mode].Length * 14, 450,
        10, LetterRender.TO_RIGHT);
     if (curX > 0) {
-      LetterRender.drawString("START AT PARSEC", 290, 180, 6, LetterRender.TO_RIGHT);
-      LetterRender.drawNum(getStartParsec(curY, curX), 470, 180, 6, LetterRender.TO_RIGHT);
+      LetterRender.drawString(model, color, blend, "START AT PARSEC", 290, 180, 6, LetterRender.TO_RIGHT);
+      LetterRender.drawNum(model, color, blend, getStartParsec(curY, curX), 470, 180, 6, LetterRender.TO_RIGHT);
     }
     if (curY < P47PrefManager.DIFFICULTY_NUM)
-      LetterRender.drawNum
-	(prefManager.hiScore[mode][curY][curX], 470, 210, 10, LetterRender.TO_RIGHT);
+      LetterRender.drawNum(model, color, blend, prefManager.hiScore[mode][curY][curX], 470, 210, 10, LetterRender.TO_RIGHT);
     sy = 260;
     for (int index2 = 0; index2 < P47PrefManager.DIFFICULTY_NUM + 1; index2++) {
       sx = 180;
       for (int index3 = 0; index3 < slotNum[mode][index2]; index3++) {
 	if (index3 == curX && index2 == curY) {
 	  int bs = GameMath.integer((BOX_COUNT - boxCnt) / 2);
-	  drawBox(sx - bs, sy - bs, BOX_SMALL_SIZE + bs * 2, BOX_SMALL_SIZE + bs * 2);
+	  drawBox(model, color, blend, sx - bs, sy - bs, BOX_SMALL_SIZE + bs * 2, BOX_SMALL_SIZE + bs * 2);
 	  if (index3 == 0) {
-	    LetterRender.drawString
-	      (DIFFICULTY_SHORT_STR[index2], sx + 13, sy + 13, 12, LetterRender.TO_RIGHT);
+	    LetterRender.drawString(model, color, blend, DIFFICULTY_SHORT_STR[index2], sx + 13, sy + 13, 12, LetterRender.TO_RIGHT);
 	  } else {
-	    LetterRender.drawString
-	      (DIFFICULTY_SHORT_STR[index2], sx + 4, sy + 13, 12, LetterRender.TO_RIGHT);
+	    LetterRender.drawString(model, color, blend, DIFFICULTY_SHORT_STR[index2], sx + 4, sy + 13, 12, LetterRender.TO_RIGHT);
 	    if (index3 >= P47PrefManager.REACHED_PARSEC_SLOT_NUM - 1) {
-	      LetterRender.drawString("X", sx + 21, sy + 14, 12, LetterRender.TO_RIGHT);
+	      LetterRender.drawString(model, color, blend, "X", sx + 21, sy + 14, 12, LetterRender.TO_RIGHT);
 	    } else {
-	      LetterRender.drawNum(index3, sx + 22, sy + 13, 12, LetterRender.TO_RIGHT);
+	      LetterRender.drawNum(model, color, blend, index3, sx + 22, sy + 13, 12, LetterRender.TO_RIGHT);
 	    }
 	  }
 	} else {
-	  drawBoxLight(sx, sy, BOX_SMALL_SIZE, BOX_SMALL_SIZE);
+	  drawBoxLight(model, color, blend, sx, sy, BOX_SMALL_SIZE, BOX_SMALL_SIZE);
 	}
 	sx += 28;
       }
@@ -185,6 +198,6 @@ public class Title {
       if (index2 == P47PrefManager.DIFFICULTY_NUM - 1)
 	sy += 15;
     }
-    drawTitleBoard();
+    drawTitleBoard(model, color, blend);
   }
 }

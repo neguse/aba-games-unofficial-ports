@@ -1,13 +1,13 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class A7xGameManager
 {
+    Mesh logo, glowMesh;
     public const int ENEMY_MAX = 32;
     public A7xPrefManager prefManager;
-    public A7xScreen screen;
     public Rand rand;
     public Field field;
     public Ship ship;
@@ -77,18 +77,17 @@ public class A7xGameManager
         prefManager = new A7xPrefManager();
         for (int i = 0; i < ENEMY_MAX; i++)
             enemyTable[i] = new float[3];
-        screen = new A7xScreen();
         rand = new Rand();
         field = new Field();
         field.init();
-        Ship.createDisplayLists();
+        Ship.createMeshes();
         ship = new Ship();
         ship.init(input, field, this);
-        Gold.createDisplayLists();
+        Gold.createMeshes();
         Gold goldClass = new Gold();
         GoldInitializer gi = new GoldInitializer(ship, field, rand, this);
         golds = new LuminousActorPool(16, goldClass, gi);
-        Enemy.createDisplayLists();
+        Enemy.createMeshes();
         Enemy enemyClass = new Enemy();
         EnemyInitializer ei = new EnemyInitializer(ship, field, rand, this);
         enemies = new LuminousActorPool(ENEMY_MAX, enemyClass, ei);
@@ -98,7 +97,7 @@ public class A7xGameManager
         Bonus bonusClass = new Bonus();
         BonusInitializer bi = new BonusInitializer();
         bonuses = new ActorPool(8, bonusClass, bi);
-        LetterRender.createDisplayLists();
+        LetterRender.createMeshes();
         for (int i = 0; i < 3; i++)
             bgm[i] = new Sound();
         bgm[0].loadSound("bgm1.ogg");
@@ -132,10 +131,10 @@ public class A7xGameManager
             bgm[i].free();
         for (int i = 0; i < 12; i++)
             se[i].free();
-        LetterRender.deleteDisplayLists();
-        Enemy.deleteDisplayLists();
-        Gold.deleteDisplayLists();
-        Ship.deleteDisplayLists();
+        LetterRender.deleteMeshes();
+        Enemy.deleteMeshes();
+        Gold.deleteMeshes();
+        Ship.deleteMeshes();
     }
 
     public void playSe(int n)
@@ -598,264 +597,286 @@ public class A7xGameManager
         cnt++;
     }
 
-    public void inGameDraw()
+    public void inGameDraw(float[] model, float[] tint, Gfx.Blend blend)
     {
-        bonuses.draw();
-        field.draw();
-        golds.draw();
-        glBegin(GL_LINES);
-        particles.draw();
-        glEnd();
-        ship.draw();
-        enemies.draw();
+        float lineWidth = 1;
+        bonuses.draw(model, tint, blend);
+        field.draw(model, tint, blend);
+        golds.draw(model, tint, blend);
+        { var mesh = new Mesh("particles-draw"); particles.draw(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        ship.draw(model, tint, blend);
+        enemies.draw(model, tint, blend);
     }
 
-    public void stageClearDraw()
+    public void stageClearDraw(float[] model, float[] tint, Gfx.Blend blend)
     {
+        float lineWidth = 1;
         if (cnt < 32)
-            field.draw();
-        glBegin(GL_LINES);
-        particles.draw();
-        glEnd();
+            field.draw(model, tint, blend);
+        { var mesh = new Mesh("particles-draw"); particles.draw(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
     }
 
-    public void titleDraw()
+    public void titleDraw(float[] model, float[] tint, Gfx.Blend blend)
     {
-        glBegin(GL_LINES);
-        particles.draw();
-        glEnd();
-        enemies.draw();
+        float lineWidth = 1;
+        { var mesh = new Mesh("particles-draw"); particles.draw(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        enemies.draw(model, tint, blend);
     }
 
-    public void gameoverDraw()
+    public void gameoverDraw(float[] model, float[] tint, Gfx.Blend blend)
     {
-        field.draw();
-        glBegin(GL_LINES);
-        particles.draw();
-        glEnd();
-        enemies.draw();
+        float lineWidth = 1;
+        field.draw(model, tint, blend);
+        { var mesh = new Mesh("particles-draw"); particles.draw(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        enemies.draw(model, tint, blend);
     }
 
-    public void inGameDrawLuminous()
+    public void inGameDrawLuminous(float[] model, float[] tint, Gfx.Blend blend)
     {
-        field.drawLuminous();
-        golds.drawLuminous();
-        glLineWidth(2);
-        glBegin(GL_LINES);
-        particles.drawLuminous();
-        glEnd();
-        glLineWidth(1);
-        ship.drawLuminous();
-        enemies.drawLuminous();
+        float lineWidth = 1;
+        field.drawLuminous(model, tint, blend);
+        golds.drawLuminous(model, tint, blend);
+        lineWidth = 2;
+        { var mesh = new Mesh("particles-drawLuminous"); particles.drawLuminous(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        lineWidth = 1;
+        ship.drawLuminous(model, tint, blend);
+        enemies.drawLuminous(model, tint, blend);
     }
 
-    public void stageClearDrawLuminous()
+    public void stageClearDrawLuminous(float[] model, float[] tint, Gfx.Blend blend)
     {
+        float lineWidth = 1;
         if (cnt < 32)
-            field.drawLuminous();
-        glBegin(GL_LINES);
-        particles.drawLuminous();
-        glEnd();
+            field.drawLuminous(model, tint, blend);
+        { var mesh = new Mesh("particles-drawLuminous"); particles.drawLuminous(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
     }
 
-    public void titleDrawLuminous()
+    public void titleDrawLuminous(float[] model, float[] tint, Gfx.Blend blend)
     {
-        field.drawLuminous();
-        glBegin(GL_LINES);
-        particles.drawLuminous();
-        glEnd();
-        enemies.drawLuminous();
+        float lineWidth = 1;
+        field.drawLuminous(model, tint, blend);
+        { var mesh = new Mesh("particles-drawLuminous"); particles.drawLuminous(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        enemies.drawLuminous(model, tint, blend);
     }
 
-    public void gameoverDrawLuminous()
+    public void gameoverDrawLuminous(float[] model, float[] tint, Gfx.Blend blend)
     {
-        field.drawLuminous();
-        glBegin(GL_LINES);
-        particles.drawLuminous();
-        glEnd();
-        enemies.drawLuminous();
+        float lineWidth = 1;
+        field.drawLuminous(model, tint, blend);
+        { var mesh = new Mesh("particles-drawLuminous"); particles.drawLuminous(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        enemies.drawLuminous(model, tint, blend);
     }
 
-    public void drawScore()
+    public void drawScore(float[] model, float[] tint, Gfx.Blend blend)
     {
-        LetterRender.drawNum(score, 300, 20, 10);
+        LetterRender.drawNum(model, tint, blend, score, 300, 20, 10);
     }
 
-    public void drawHiScore()
+    public void drawHiScore(float[] model, float[] tint, Gfx.Blend blend)
     {
-        LetterRender.drawNum(prefManager.hiScore, 620, 20, 10);
+        LetterRender.drawNum(model, tint, blend, prefManager.hiScore, 620, 20, 10);
     }
 
-    public void drawStageTimer()
+    public void drawStageTimer(float[] model, float[] tint, Gfx.Blend blend)
     {
-        LetterRender.drawTime(stageTimer * 17, 620, 20, 10);
+        LetterRender.drawTime(model, tint, blend, stageTimer * 17, 620, 20, 10);
     }
 
-    public void inGameDrawStatus()
+    public void inGameDrawStatus(float[] model, float[] tint, Gfx.Blend blend)
     {
         if (state == IN_GAME && cnt < 120)
         {
-            LetterRender.drawString("STAGE", 200, 180, 22);
-            LetterRender.drawNum(stage + 1, 440, 180, 22);
+            LetterRender.drawString(model, tint, blend, "STAGE", 200, 180, 22);
+            LetterRender.drawNum(model, tint, blend, stage + 1, 440, 180, 22);
         }
 
-        drawScore();
+        drawScore(model, tint, blend);
         if (state == STAGE_CLEAR || cnt > 120)
-            drawStageTimer();
-        LetterRender.drawNum(left, 80, 460, 10);
-        glPushMatrix();
-        glTranslatef(30, 460, 0);
-        glScalef(11, -11, 1);
-        glCallList(Ship.displayListIdx);
-        glCallList(Ship.displayListIdx + 1);
-        glPopMatrix();
+            drawStageTimer(model, tint, blend);
+        LetterRender.drawNum(model, tint, blend, left, 80, 460, 10);
+        float[] parent1 = model;
+        model = Transform.Translate(model, 30, 460, 0);
+        model = Transform.Scale(model, 11, -11, 1);
+        { Mesh shape2 = Ship.meshes[0]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        { Mesh shape3 = Ship.meshes[1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        model = parent1;
         if (state == IN_GAME)
         {
-            ship.drawGauge();
-            LetterRender.drawNum(leftGold, 80, 430, 10);
-            glPushMatrix();
-            glTranslatef(30, 430, 0);
-            glScalef(11, -11, 1);
-            glCallList(Gold.displayListIdx);
-            glCallList(Gold.displayListIdx + 1);
-            glPopMatrix();
+            ship.drawGauge(model, tint, blend);
+            LetterRender.drawNum(model, tint, blend, leftGold, 80, 430, 10);
+            float[] parent4 = model;
+            model = Transform.Translate(model, 30, 430, 0);
+            model = Transform.Scale(model, 11, -11, 1);
+            { Mesh shape5 = Gold.meshes[0]; if (shape5.count > 0) Gfx.Draw(shape5.count, shape5.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+            { Mesh shape6 = Gold.meshes[1]; if (shape6.count > 0) Gfx.Draw(shape6.count, shape6.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+            model = parent4;
         }
     }
 
-    public void stageClearDrawStatus()
+    public void stageClearDrawStatus(float[] model, float[] tint, Gfx.Blend blend)
     {
         if (stageTimer > 0)
         {
-            LetterRender.drawString("STAGE CLEAR", 100, 150, 24);
+            LetterRender.drawString(model, tint, blend, "STAGE CLEAR", 100, 150, 24);
             if (cnt > 32)
-                LetterRender.drawString("TIME BONUS", 80, 240, 15);
+                LetterRender.drawString(model, tint, blend, "TIME BONUS", 80, 240, 15);
             if (cnt > 64)
-                LetterRender.drawNum(timeBonus, 550, 290, 15);
+                LetterRender.drawNum(model, tint, blend, timeBonus, 550, 290, 15);
         }
         else
         {
-            LetterRender.drawString("TIME OVER", 124, 150, 24);
+            LetterRender.drawString(model, tint, blend, "TIME OVER", 124, 150, 24);
         }
     }
 
-    public void titleDrawStatus()
+    public void titleDrawStatus(float[] model, float[] tint, Gfx.Blend blend)
     {
         if ((cnt % 120) < 60)
-            LetterRender.drawString("PUSH BUTTON TO START", 320, 400, 8);
-        drawScore();
-        drawHiScore();
-        A7xData.drawTitle();
+            LetterRender.drawString(model, tint, blend, "PUSH BUTTON TO START", 320, 400, 8);
+        drawScore(model, tint, blend);
+        drawHiScore(model, tint, blend);
+        if (logo == null) {
+            logo = new Mesh("title-logo");
+            logo.Vertex(80, 50, 0, new float[] { 0, 0, 0, 1 });
+            logo.Vertex(180, 50, 0, new float[] { 1, 0, 0, 1 });
+            logo.Vertex(180, 150, 0, new float[] { 1, 1, 0, 1 });
+            logo.Vertex(80, 150, 0, new float[] { 0, 1, 0, 1 });
+            logo.Quads(0, 4);
+        }
+        Gfx.Draw(logo.count, logo.Bindings(model, new float[] { 1, 1, 1, 1 }, 1, true, 0, A7xData.title),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public void gameoverDrawStatus()
+    public void gameoverDrawStatus(float[] model, float[] tint, Gfx.Blend blend)
     {
         if (cnt > 64)
         {
-            LetterRender.drawString("GAME OVER", 220, 200, 15);
+            LetterRender.drawString(model, tint, blend, "GAME OVER", 220, 200, 15);
             if (continueEnable)
             {
-                LetterRender.drawString("CONTINUE", 250, 270, 9);
+                LetterRender.drawString(model, tint, blend, "CONTINUE", 250, 270, 9);
                 if (contCy == 0)
                 {
-                    LetterRender.drawString("YES", 380, 260, 10);
-                    LetterRender.drawString("NO", 395, 280, 5);
+                    LetterRender.drawString(model, tint, blend, "YES", 380, 260, 10);
+                    LetterRender.drawString(model, tint, blend, "NO", 395, 280, 5);
                 }
                 else
                 {
-                    LetterRender.drawString("YES", 395, 260, 5);
-                    LetterRender.drawString("NO", 395, 280, 10);
+                    LetterRender.drawString(model, tint, blend, "YES", 395, 260, 5);
+                    LetterRender.drawString(model, tint, blend, "NO", 395, 280, 10);
                 }
             }
         }
 
-        drawScore();
-        drawHiScore();
+        drawScore(model, tint, blend);
+        drawHiScore(model, tint, blend);
     }
 
-    public void pauseDrawStatus()
+    public void pauseDrawStatus(float[] model, float[] tint, Gfx.Blend blend)
     {
         if ((pauseCnt % 60) < 30)
-            LetterRender.drawString("PAUSE", 280, 220, 12);
+            LetterRender.drawString(model, tint, blend, "PAUSE", 280, 220, 12);
     }
 
-    public void setEyepos()
-    {
-        glTranslatef(0, 0, -field.eyeZ);
-    }
+
 
     public void draw()
     {
-        screen.startRenderToTexture();
-        glPushMatrix();
-        setEyepos();
+        float[] model = Transform.Translate(Transform.Perspective(), 0, 0, -field.eyeZ);
+        float[] tint = null; Gfx.Blend blend = Gfx.Blend.Additive;
+        Gfx.BeginPass(new PassOpts { Target = Game.glow, ClearColor = new float[] { 0, 0, 0, 0 } });
         switch (state)
         {
             case IN_GAME:
             case PAUSE:
-                inGameDrawLuminous();
+                inGameDrawLuminous(model, tint, blend);
                 break;
             case STAGE_CLEAR:
-                stageClearDrawLuminous();
+                stageClearDrawLuminous(model, tint, blend);
                 break;
             case TITLE:
-                titleDrawLuminous();
+                titleDrawLuminous(model, tint, blend);
                 break;
             case GAMEOVER:
-                gameoverDrawLuminous();
+                gameoverDrawLuminous(model, tint, blend);
                 break;
             default:
                 break;
         }
 
-        glPopMatrix();
-        screen.endRenderToTexture();
-        screen.clear();
-        glPushMatrix();
-        setEyepos();
+        Gfx.EndPass();
+        Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = new float[] { 0, 0, 0, 0 } });
         switch (state)
         {
             case IN_GAME:
             case PAUSE:
-                inGameDraw();
+                inGameDraw(model, tint, blend);
                 break;
             case STAGE_CLEAR:
-                stageClearDraw();
+                stageClearDraw(model, tint, blend);
                 break;
             case TITLE:
-                titleDraw();
+                titleDraw(model, tint, blend);
                 break;
             case GAMEOVER:
-                gameoverDraw();
+                gameoverDraw(model, tint, blend);
                 break;
             default:
                 break;
         }
 
-        glPopMatrix();
-        screen.drawLuminous();
-        screen.viewOrthoFixed();
+        if (glowMesh == null) {
+            glowMesh = new Mesh("glow-overlay");
+            int[] dx = new int[] { 0, 5, -5, 0, 0 }, dy = new int[] { 0, 0, 0, 5, -5 };
+            for (int i = 0; i < 5; i++) {
+                for (int c = 0; c < 4; c++) {
+                    float u = c >= 2 ? 1 : 0, v = c == 1 || c == 2 ? 1 : 0;
+                    float x = u * 640 + dx[i], y = v * 480 + (c >= 2 ? dx[i] : dy[i]);
+                    glowMesh.Vertex(x / 320 - 1, 1 - y / 240, 0, new float[] { u, v, 0, 1 });
+                }
+            }
+            glowMesh.Quads(0, 20);
+        }
+        var bindings = glowMesh.Bindings(Transform.Identity(), new float[] { 0.5f, 0.4f, 0.45f, 0 });
+        bindings["image"] = Game.glow;
+        var uniforms = (System.Collections.Generic.Dictionary<string, object>)bindings["uniforms"];
+        uniforms["options"] = new float[] { 1, 0, 0, 2 };
+        Gfx.Draw(glowMesh.count, bindings, new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        model = Transform.Ortho();
         switch (state)
         {
             case IN_GAME:
-                inGameDrawStatus();
+                inGameDrawStatus(model, tint, blend);
                 break;
             case STAGE_CLEAR:
-                inGameDrawStatus();
-                stageClearDrawStatus();
+                inGameDrawStatus(model, tint, blend);
+                stageClearDrawStatus(model, tint, blend);
                 break;
             case TITLE:
-                titleDrawStatus();
+                titleDrawStatus(model, tint, blend);
                 break;
             case GAMEOVER:
-                gameoverDrawStatus();
+                gameoverDrawStatus(model, tint, blend);
                 break;
             case PAUSE:
-                pauseDrawStatus();
+                pauseDrawStatus(model, tint, blend);
                 break;
             default:
                 break;
         }
 
-        screen.viewPerspective();
+        Gfx.EndPass();
     }
 }

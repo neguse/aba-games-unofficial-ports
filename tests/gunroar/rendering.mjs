@@ -13,7 +13,9 @@ try {
     let reloadCode;
     await page.route('**/game.lua', async route => {
         const response = await route.fetch();
-        const code = (await response.text()).replace(/return Game\s*$/, `
+        const source = await response.text();
+        page.hasGlowFixture = source.includes('SampleLevel(image_smp');
+        const code = source.replace(/return Game\s*$/, `
 local init=Game.on_init
 Game.on_init=function() init();lub.config({resource_sweep_after_frames=2}) end
 Game.render_revision=function() return 1 end
@@ -24,10 +26,10 @@ local function quad(key,x,y,w,h,z,color)
  m:vertex(x+w,y+h,z,color);m:vertex(x,y+h,z,color);m:quads(0,4)
  return m
 end
-local function draw(mesh,model,color,width,blend,depth,image)
+local function draw(mesh,model,color,width,blend,depth,image,cull)
  if mesh:get_count()==0 then return end
  lub.gfx.draw(mesh:get_count(),mesh:bindings(model,color,width or 1,blend==lub.gfx.ADDITIVE,0,image),
-  {shader=Game.shader,depth=depth or false,cull=lub.gfx.NONE,blend=blend or lub.gfx.ADDITIVE})
+  {shader=Game.shader,depth=depth or false,cull=cull or lub.gfx.NONE,blend=blend or lub.gfx.ADDITIVE})
 end
 local uploads=0
 local upload=lub.gfx.use_buffer
@@ -44,6 +46,16 @@ Game.on_frame=function(dt)
   Game.test_revision=revision
  end
  local ortho=Transform.ortho()
+ local glow
+ if string.find(GameShaders.fragment,'SampleLevel(image_smp',1,true) then
+ glow=lub.gfx.use_texture('test-glow',128,128,lub.gfx.RGBA8,nil,1,{target=true})
+ lub.gfx.begin_pass({target=glow,clear_color={0,0,0,0}})
+ local glowLine=Mesh.new('test-glow-line')
+ glowLine:vertex(8,32,0,{1,0,0,1});glowLine:vertex(120,32,0,{1,0,0,1});glowLine:line(0,1)
+ local glowBindings=glowLine:bindings(Transform.scale(ortho,5,3.75,1),nil,4,true,0,nil,128,128)
+ lub.gfx.draw(glowLine:get_count(),glowBindings,{shader=Game.shader,depth=false,cull=lub.gfx.NONE,blend=lub.gfx.ADDITIVE})
+ lub.gfx.end_pass()
+ end
  lub.gfx.begin_pass({target=lub.gfx.main_tex,clear_color={0,0,0,1}})
  local placement=Transform.scale(Transform.translate(ortho,20,20,0),2,1,1)
  draw(Game.test_mesh,placement,revision==1 and {1,0,0,1} or {0,1,0,1},1,lub.gfx.ADDITIVE)
@@ -57,9 +69,14 @@ Game.on_frame=function(dt)
  end
  line:line(0,1);line:line_strip(2,3);line:line_strip(5,3,true)
  draw(line,ortho,nil,4,lub.gfx.ADDITIVE)
+ draw(line,Transform.translate(ortho,0,120,0),nil,4,lub.gfx.ADDITIVE,false,nil,lub.gfx.FRONT)
  local fan=Mesh.new('test-fan')
  for _,p in ipairs({{210,30},{200,20},{220,20},{220,40},{200,40},{200,20}}) do fan:vertex(p[1],p[2],0,{1,1,0,1}) end
  fan:fan(0,6);draw(fan,ortho,nil,1,lub.gfx.ADDITIVE)
+ local tinted=Mesh.new('test-tinted-alpha')
+ tinted:vertex(400,150,0,{1,0,0,0.5},nil,true);tinted:vertex(440,150,0,{1,0,0,0.5},nil,true)
+ tinted:vertex(440,190,0,{1,0,0,0.5},nil,true);tinted:vertex(400,190,0,{1,0,0,0.5},nil,true);tinted:quads(0,4)
+ draw(tinted,ortho,{0.5,1,1,1},1,lub.gfx.ADDITIVE)
  local gradient=Mesh.new('test-gradient')
  gradient:vertex(400,20,0,{1,0,0,1});gradient:vertex(464,20,0,{0.5,0,0,0});gradient:vertex(400,84,0,{0.5,0,0,0})
  gradient:triangle(0,1,2);draw(gradient,ortho,nil,1,lub.gfx.ADDITIVE)
@@ -78,6 +95,14 @@ Game.on_frame=function(dt)
  local small=Transform.scale(Transform.translate(ortho,560.25,20.25,0),0.5/32,0.5/32,1)
  small=Transform.translate(small,-500,-20,0)
  draw(sprite,small,nil,1,lub.gfx.ADDITIVE,false,image)
+ if glow then
+  local overlay=Mesh.new('test-glow-overlay')
+  overlay:vertex(500,300,0,{0,0,0,1});overlay:vertex(628,300,0,{1,0,0,1})
+  overlay:vertex(628,428,0,{1,1,0,1});overlay:vertex(500,428,0,{0,1,0,1});overlay:quads(0,4)
+  local binding=overlay:bindings(ortho,{0.5,1,1,1})
+  binding.image=glow;binding.uniforms.options={1,0,0,2}
+  lub.gfx.draw(overlay:get_count(),binding,{shader=Game.shader,depth=false,cull=lub.gfx.NONE,blend=lub.gfx.ADDITIVE})
+ end
  lub.gfx.end_pass()
  assert(uploads <= (revision==1 and 2 or 4), 'unchanged mesh must reuse the runtime version')
  lub.host.send('render.frame',tostring(frames)..','..revision)
@@ -100,8 +125,11 @@ return Game`);
     await page.evaluate(code => Module.FS.writeFile('/samples/game/.lub/game.lua', code), reloadCode);
     await page.waitForFunction(() => window.renderFrame?.[1] === 2 && window.renderFrame[0] >= 100, null, { timeout: 45000 }).catch(async error => { throw new Error(`${await page.locator('#status').textContent()} ${errors.join('\n')} ${error.message}`); });
     const png = await page.locator('#canvas').screenshot({ path: 'build/screenshots/gunroar-direct-render-test.png' });
-    const points = [[40,30,[0,255,0]], [19,30,[0,0,0]], [25,30,[0,0,0]], [60,30,[0,255,0]], [70,30,[0,0,0]],
-        [210,30,[255,255,0]], [250,30,[128,0,0]], [270,50,[64,0,128]], [290,70,[0,0,128]],
+    const points = [
+        ...(page.hasGlowFixture ? [[560,330,[128,0,0]], [560,333,[128,0,0]], [560,329,[0,0,0]], [560,334,[0,0,0]]] : []),
+        [40,218,[0,255,0]], [110,220,[0,255,0]], [120,230,[0,255,0]],
+        [40,30,[0,255,0]], [19,30,[0,0,0]], [25,30,[0,0,0]], [60,30,[0,255,0]], [70,30,[0,0,0]],
+        [410,160,[64,0,0]], [210,30,[255,255,0]], [250,30,[128,0,0]], [270,50,[64,0,128]], [290,70,[0,0,128]],
         [40,98,[0,255,0]], [40,101,[0,255,0]], [40,97,[0,0,0]],
         [110,100,[0,255,0]], [120,110,[0,255,0]], [170,100,[0,255,0]], [180,110,[0,255,0]],
         [25,145,[255,0,0]], [35,155,[255,0,0]], [65,155,[0,0,255]], [45,165,[0,255,0]],

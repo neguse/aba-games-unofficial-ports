@@ -1,7 +1,7 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Particle : LuminousActor
 {
@@ -84,23 +84,29 @@ public class Particle : LuminousActor
         lumAlp = lumAlp * (0.98f);
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
     {
-        A7xScreen.setColor(r, g, b, 1);
-        glVertex3f(ppos.x, ppos.y, pz);
-        glVertex3f(pos.x, pos.y, z);
-        A7xScreen.setColor(r, g, b, 0.7f);
-        glVertex3f(ppos.x, ppos.y, -pz);
-        glVertex3f(pos.x, pos.y, -z);
+        Mesh mesh = target; int first = mesh.vertexCount;
+        tint = new float[] { r, g, b, 1 };
+        mesh.Vertex(ppos.x, ppos.y, pz, tint);
+        mesh.Vertex(pos.x, pos.y, z, tint);
+        tint = new float[] { r, g, b, 0.7f };
+        mesh.Vertex(ppos.x, ppos.y, -pz, tint);
+        mesh.Vertex(pos.x, pos.y, -z, tint);
+
+        for (int i = first; i + 1 < mesh.vertexCount; i += 2) mesh.Line(i, i + 1);
     }
 
-    public override void drawLuminous()
+    public override void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
     {
+        Mesh mesh = target; int first = mesh.vertexCount;
         if (lumAlp < 0.2f)
             return;
-        A7xScreen.setColor(r, g, b, lumAlp);
-        glVertex3f(ppos.x, ppos.y, pz);
-        glVertex3f(pos.x, pos.y, z);
+        tint = new float[] { r, g, b, lumAlp };
+        mesh.Vertex(ppos.x, ppos.y, pz, tint);
+        mesh.Vertex(pos.x, pos.y, z, tint);
+
+        for (int i = first; i + 1 < mesh.vertexCount; i += 2) mesh.Line(i, i + 1);
     }
 }
 

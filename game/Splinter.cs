@@ -1,7 +1,7 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class Splinter: Actor {
 
   public static int signNum;
@@ -167,11 +167,11 @@ public class Splinter: Actor {
     }
   }
 
-  public override void draw() {
-    tumikiSet.drawShadeRotated(pos, -0.7f, 1, deg);
+  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+    bool depth = true; Gfx.Cull cull = Gfx.Cull.Front; float width = 1;
+    tumikiSet.drawShadeRotated(model, tint, blend, depth, cull, width, pos, -0.7f, 1, deg);
     if (hasSign && (cnt & 31) < 24) {
-      LetterRender.drawStringFacing
-	("CATCH ME!", pos.x - 6, pos.y + 2.7f, 0.6f, LetterDirection.TO_RIGHT, 3, true);
+      LetterRender.drawStringFacing(model, tint, blend, depth, cull, width, "CATCH ME!", pos.x - 6, pos.y + 2.7f, 0.6f, LetterDirection.TO_RIGHT, 3, true);
     }
   }
 

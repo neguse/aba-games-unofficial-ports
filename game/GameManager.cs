@@ -1,7 +1,7 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class GameManager {
 
   public bool nowait = false;
@@ -12,7 +12,6 @@ public class GameManager {
   public Pad pad;
   public PrefManager prefManager;
   public StageManager stageManager;
-  public Screen screen;
   public Rand rand;
   public Field field;
   public Ship ship;
@@ -49,11 +48,9 @@ public class GameManager {
   public int credit;
 
   public void init() {
-    Drawing.BeginFrame();
     GameData.Initialize();
     pad = new Pad();
     prefManager = new PrefManager();
-    screen = new Screen();
     rand = new Rand();
     field = new Field();
     field.init();
@@ -84,8 +81,8 @@ public class GameManager {
     bullets.setStageManager(stageManager);
     attractManager = new AttractManager(pad, prefManager, this);
     SoundManager.init(this);
-    Tumiki.createDisplayLists();
-    LetterRender.createDisplayLists();
+    Tumiki.createMeshes();
+    LetterRender.createMeshes();
   }
 
   public void start() {
@@ -96,8 +93,8 @@ public class GameManager {
   public void close() {
 
     SoundManager.close();
-    LetterRender.deleteDisplayLists();
-    Tumiki.deleteDisplayLists();
+    LetterRender.deleteMeshes();
+    Tumiki.deleteMeshes();
   }
 
   public void startTitle() {
@@ -420,149 +417,148 @@ public class GameManager {
   }
 
   public void draw() {
-    screen.clear();
-    screen.viewOrthoFixed();
-    glDisable(GL_CULL_FACE);
-    field.drawBack();
-    glEnable(GL_CULL_FACE);
-    screen.viewPerspective();
-
-    glPushMatrix();
-    setEyepos();
+    float[] model = Transform.Ortho(); float[] tint = null;
+    Gfx.Blend blend = Gfx.Blend.None; bool depth = false; Gfx.Cull cull = Gfx.Cull.None; float width = 1;
+    cull = Gfx.Cull.None;
+    field.drawBack(model, tint, blend, depth, cull, width);
+    cull = Gfx.Cull.Front;
+    model = setEyepos();
     switch (state) {
     case GameState.START_GAME:
     case GameState.IN_GAME:
     case GameState.PAUSE:
     case GameState.END_GAME:
-      drawInGame();
+      drawInGame(model, tint, blend, depth, cull, width);
       break;
     case GameState.GAMEOVER:
-      drawGameover();
+      drawGameover(model, tint, blend, depth, cull, width);
       break;
     case GameState.TITLE:
-      drawTitle();
+      drawTitle(model, tint, blend, depth, cull, width);
       break;
     }
-    glPopMatrix();
-
-    screen.viewOrthoFixed();
-    glDisable(GL_CULL_FACE);
-    letters.draw();
+    model = Transform.Ortho(); depth = false;
+    cull = Gfx.Cull.None;
+    letters.draw(model, tint, blend);
     switch (state) {
     case GameState.IN_GAME:
-      drawStatusInGame();
+      drawStatusInGame(model, tint, blend, depth, cull, width);
       break;
     case GameState.GAMEOVER:
     case GameState.END_GAME:
-      drawStatusGameover();
+      drawStatusGameover(model, tint, blend, depth, cull, width);
       break;
     case GameState.PAUSE:
-      drawStatusPause();
+      drawStatusPause(model, tint, blend, depth, cull, width);
       break;
     case GameState.TITLE:
-      drawStatusTitle();
+      drawStatusTitle(model, tint, blend, depth, cull, width);
       break;
     case GameState.START_GAME:
       break;
     }
-    glEnable(GL_CULL_FACE);
-    screen.viewPerspective();
+    cull = Gfx.Cull.Front;
+
   }
 
-  public void drawInGame() {
-    glEnable(GL_DEPTH_TEST);
-    field.draw();
-    enemies.draw();
-    splinters.draw();
+  public void drawInGame(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+    depth = true;
+    field.draw(model, tint, blend, depth, cull, width);
+    enemies.draw(model, tint, blend);
+    splinters.draw(model, tint, blend);
     if (state == GameState.START_GAME)
-      ship.drawFriendly();
+      ship.drawFriendly(model, tint, blend, depth, cull, width);
     else if (state == GameState.END_GAME)
-      ship.drawFriendlyBack();
-    ship.draw();
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBegin(GL_QUADS);
-    particles.draw();
-    glEnd();
-    glDisable(GL_BLEND);
-    fragments.draw();
-    bullets.drawShots();
-    signs.draw();
-    glEnable(GL_DEPTH_TEST);
-    gauge.draw();
-    drawLeft();
-    glDisable(GL_DEPTH_TEST);
-    glLineWidth(2);
-    bullets.drawBullets();
-    glLineWidth(1);
+      ship.drawFriendlyBack(model, tint, blend, depth, cull, width);
+    ship.draw(model, tint, blend, depth, cull, width);
+    depth = false;
+    blend = Gfx.Blend.Additive;
+    var mesh = new Mesh("particles");
+    particles.draw(model, tint, blend, mesh);
+    mesh.Quads(0, mesh.vertexCount);
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, true),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
+    blend = Gfx.Blend.None;
+    fragments.draw(model, tint, blend);
+    bullets.drawShots(model, tint, blend, depth, cull, width);
+    signs.draw(model, tint, blend);
+    depth = true;
+    gauge.draw(model, tint, blend, depth, cull, width);
+    drawLeft(model, tint, blend, depth, cull, width);
+    depth = false;
+    width = 2;
+    bullets.drawBullets(model, tint, blend, depth, cull, width);
+    width = 1;
   }
 
-  public void drawGameover() {
-    glEnable(GL_DEPTH_TEST);
-    field.draw();
-    enemies.draw();
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBegin(GL_QUADS);
-    particles.draw();
-    glEnd();
-    glDisable(GL_BLEND);
-    fragments.draw();
-    bullets.drawShots();
+  public void drawGameover(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+    depth = true;
+    field.draw(model, tint, blend, depth, cull, width);
+    enemies.draw(model, tint, blend);
+    depth = false;
+    blend = Gfx.Blend.Additive;
+    var mesh = new Mesh("particles");
+    particles.draw(model, tint, blend, mesh);
+    mesh.Quads(0, mesh.vertexCount);
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, true),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
+    blend = Gfx.Blend.None;
+    fragments.draw(model, tint, blend);
+    bullets.drawShots(model, tint, blend, depth, cull, width);
   }
 
-  public void drawTitle() {
-    glEnable(GL_DEPTH_TEST);
-    field.draw();
-    glDisable(GL_DEPTH_TEST);
+  public void drawTitle(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+    depth = true;
+    field.draw(model, tint, blend, depth, cull, width);
+    depth = false;
   }
 
-  public void drawInfo() {
-    LetterRender.drawString("SCORE", 4, 4, 12, LetterDirection.TO_RIGHT, -3);
-    LetterRender.drawNum(score, 300, 4, 12, LetterDirection.TO_RIGHT, 3);
+  public void drawInfo(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+    LetterRender.drawString(model, tint, blend, depth, cull, width, "SCORE", 4, 4, 12, LetterDirection.TO_RIGHT, -3);
+    LetterRender.drawNum(model, tint, blend, depth, cull, width, score, 300, 4, 12, LetterDirection.TO_RIGHT, 3);
     if (bossTimer < BOSSTIMER_FREEZED && (bossDstCnt & 31) > 8) {
-      LetterRender.drawTime(bossTimer, 600, 32, 10, 3);
+      LetterRender.drawTime(model, tint, blend, depth, cull, width, bossTimer, 600, 32, 10, 3);
     }
   }
 
-  public void drawLeft() {
+  public void drawLeft(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
     float x = -field.size.x * 0.85f, sz = 0.4f;
     for (int i = 0; i < left; i++, x += 2) {
-      glPushMatrix();
-      glScalef(sz, sz, sz);
-      ship.drawLeft(x / sz, -field.size.y * 0.82f / sz, 1 / sz);
-      glPopMatrix();
+      float[] parent1 = model;
+      model = Transform.Scale(model, sz, sz, sz);
+      ship.drawLeft(model, tint, blend, depth, cull, width, x / sz, -field.size.y * 0.82f / sz, 1 / sz);
+      model = parent1;
     }
   }
 
-  public void drawStatusInGame() {
-    drawInfo();
+  public void drawStatusInGame(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+    drawInfo(model, tint, blend, depth, cull, width);
   }
 
-  public void drawStatusGameover() {
-    drawInfo();
+  public void drawStatusGameover(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+    drawInfo(model, tint, blend, depth, cull, width);
     if (credit > 0 && cnt > 64) {
-      LetterRender.drawString("CONTINUE", 280, 400, 10, LetterDirection.TO_RIGHT, 1);
+      LetterRender.drawString(model, tint, blend, depth, cull, width, "CONTINUE", 280, 400, 10, LetterDirection.TO_RIGHT, 1);
       if (isContinue) {
-	LetterRender.drawString("YES", 480, 400, 12, LetterDirection.TO_RIGHT, 0);
-	LetterRender.drawString("NO", 562, 402, 8, LetterDirection.TO_RIGHT, 2);
+	LetterRender.drawString(model, tint, blend, depth, cull, width, "YES", 480, 400, 12, LetterDirection.TO_RIGHT, 0);
+	LetterRender.drawString(model, tint, blend, depth, cull, width, "NO", 562, 402, 8, LetterDirection.TO_RIGHT, 2);
       } else {
-	LetterRender.drawString("YES", 483, 402, 8, LetterDirection.TO_RIGHT, 2);
-	LetterRender.drawString("NO", 560, 400, 12, LetterDirection.TO_RIGHT, 0);
+	LetterRender.drawString(model, tint, blend, depth, cull, width, "YES", 483, 402, 8, LetterDirection.TO_RIGHT, 2);
+	LetterRender.drawString(model, tint, blend, depth, cull, width, "NO", 560, 400, 12, LetterDirection.TO_RIGHT, 0);
       }
-      LetterRender.drawString("CREDIT " + credit.ToString(), 32, 420, 8,
+      LetterRender.drawString(model, tint, blend, depth, cull, width, "CREDIT " + credit.ToString(), 32, 420, 8,
 			      LetterDirection.TO_RIGHT, 3);
     }
   }
 
-  public void drawStatusPause() {
-    drawInfo();
+  public void drawStatusPause(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+    drawInfo(model, tint, blend, depth, cull, width);
     if ((pauseCnt % 60) < 30)
-      LetterRender.drawString("PAUSE", 280, 220, 12, LetterDirection.TO_RIGHT, -5);
+      LetterRender.drawString(model, tint, blend, depth, cull, width, "PAUSE", 280, 220, 12, LetterDirection.TO_RIGHT, -5);
   }
 
-  public void drawStatusTitle() {
-    attractManager.drawTitle();
+  public void drawStatusTitle(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+    attractManager.drawTitle(model, tint, blend, depth, cull, width);
   }
 
   public int screenShakeCnt;
@@ -578,13 +574,13 @@ public class GameManager {
       screenShakeCnt--;
   }
 
-  public void setEyepos() {
+  public float[] setEyepos() {
     float x = 0, y = 0;
     if (screenShakeCnt > 0) {
       x = rand.nextSignedFloat(screenShakeIntense * (screenShakeCnt + 10));
       y = rand.nextSignedFloat(screenShakeIntense * (screenShakeCnt + 10));
     }
-    glTranslatef(x, y, -field.eyeZ);
+    return Transform.Translate(Transform.Perspective(), x, y, -field.eyeZ);
   }
 }
   public static class GameState { public const int START_GAME = 0; public const int IN_GAME = 1; public const int GAMEOVER = 2; public const int PAUSE = 3; public const int TITLE = 4; public const int END_GAME = 5; }

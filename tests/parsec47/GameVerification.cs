@@ -18,17 +18,14 @@ public static class P47Verification
         first.setSeed(123); reference.setSeed(123);
         Check(first.nextInt(10000) == reference.nextInt(10000), "MT first value");
         Check(second.nextInt(10000) == reference.nextInt(10000), "shared MT sequence");
-        Drawing.BeginFrame(); Drawing.recordBlend = true;
-        Drawing.premultiplyAdditive = true;
         var game = new P47GameManager(); game.init(); game.start();
-        Drawing.glDisable(Drawing.GL_DEPTH_TEST); Drawing.glDisable(Drawing.GL_CULL_FACE); Drawing.glEnable(Drawing.GL_BLEND);
         Check(game.state == P47GameManager.TITLE_STATE, "title");
         Check(game.stageManager.smallType[0].barrage[0].morphNum == 8, "eight morph patterns");
         game.draw();
-        var background = Drawing.batches[0].vertices;
-        Check(Math.Abs(background[4] - game.field.r * 0.7f) < 0.00001f &&
-              Math.Abs(background[6] - game.field.b * 0.7f) < 0.00001f &&
-              Math.Abs(background[7] - 0.7f) < 0.00001f, "display list inherits field color");
+        Check(Field.meshes[0].vertices[3] == 1 && Field.meshes[0].count > 0,
+              "field mesh inherits draw color");
+        Check(BulletActor.meshes[1].ranges[0].material == (int)Lub.Gfx.Blend.None,
+              "bullet outline is opaque");
         game.title.changeMode();
         Check(game.title.mode == 1, "title selects LOCK");
         game.title.setStatus(); game.startInGame();

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class GameManager
 {
@@ -10,7 +10,6 @@ public class GameManager
     public const int RANK_DOWN_INTERVAL = 60 * 1000;
     public const int BGM_CHANGE_INTERVAL = 2 * 60 * 1000;
     public RecordableTwinStickPad pad;
-    public Screen screen;
     public World world;
     public Field field;
     public EnemyPool enemies;
@@ -55,10 +54,8 @@ public class GameManager
         TailParticle.init_0();
         Field.init_0();
         pad = new RecordableTwinStickPad();
-        screen = new Screen();
         world = new World();
-        field = new Field(screen, world, this);
-        screen.setField(field);
+        field = new Field(world, this);
         object[] pargs = default(object[]);
         pargs = McdArrays.Append(pargs, field);
         particles = new ParticlePool(256, pargs);
@@ -66,7 +63,7 @@ public class GameManager
         starParticles = new StarParticlePool(128, pargs);
         numIndicators = new NumIndicatorPool(16, null);
         field.setStarParticles(starParticles);
-        ship = new Ship(world, pad, field, screen, particles, connectedParticles, this);
+        ship = new Ship(world, pad, field, particles, connectedParticles, this);
         field.setShip(ship);
         object[] tpargs = default(object[]);
         tpargs = McdArrays.Append(tpargs, field);
@@ -366,43 +363,42 @@ public class GameManager
 
     public virtual void draw()
     {
+        float[] model = state == GameManagerGameState.IN_GAME || state == GameManagerGameState.REPLAY ? field.setLookAt() : field.setLookAtTitle();
+        float[] tint = new float[] { 1, 1, 1, 1 }; Gfx.Blend blend = Gfx.Blend.Additive; string key = "scene";
+        var stars = new Mesh("stars");
+        starParticles.draw(model, tint, blend, "stars", stars);
+        for (int i = 0; i + 1 < stars.vertexCount; i += 2) stars.Line(i, i + 1);
+        if (stars.count > 0) Gfx.Draw(stars.count, stars.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
         if (state == GameManagerGameState.IN_GAME || state == GameManagerGameState.REPLAY)
-            field.setLookAt();
-        else
-            field.setLookAtTitle();
-        Screen.setColor(1, 1, 1);
-        glBegin(GL_LINES);
-        starParticles.draw();
-        glEnd();
-        if (state == GameManagerGameState.IN_GAME || state == GameManagerGameState.REPLAY)
-            field.draw();
-        enemies.drawSpectrum();
-        if (state == GameManagerGameState.IN_GAME || state == GameManagerGameState.REPLAY)
-        {
-            enemies.drawShadow_0();
-            enemies.draw();
-        }
-
-        particles.draw();
-        connectedParticles.draw();
-        if (state == GameManagerGameState.IN_GAME || state == GameManagerGameState.REPLAY)
-            tailParticles.draw();
-        bullets.drawSpectrum();
+            field.draw(model, tint, blend, key + "-draw-1");
+        enemies.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
         if (state == GameManagerGameState.IN_GAME || state == GameManagerGameState.REPLAY)
         {
-            bullets.drawShadow_0();
-            bullets.draw();
-            ship.draw();
-            numIndicators.draw();
+            enemies.drawShadow_0(model, tint, blend, key + "-drawShadow_0-1");
+            enemies.draw(model, tint, blend, key + "-draw-2");
         }
 
-        field.drawOverlay();
+        particles.draw(model, tint, blend, key + "-draw-3");
+        connectedParticles.draw(model, tint, blend, key + "-draw-4");
+        if (state == GameManagerGameState.IN_GAME || state == GameManagerGameState.REPLAY)
+            tailParticles.draw(model, tint, blend, key + "-draw-5");
+        bullets.drawSpectrum(model, tint, blend, key + "-drawSpectrum-2");
+        if (state == GameManagerGameState.IN_GAME || state == GameManagerGameState.REPLAY)
+        {
+            bullets.drawShadow_0(model, tint, blend, key + "-drawShadow_0-2");
+            bullets.draw(model, tint, blend, key + "-draw-6");
+            ship.draw(model, tint, blend, key + "-draw-7");
+            numIndicators.draw(model, tint, blend, key + "-draw-8");
+        }
+
+        field.drawOverlay(model, tint, blend, key + "-drawOverlay-1");
     }
 
-    public virtual void drawState()
+    public virtual void drawState(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
-        Letter.drawNum(score, 120, 21, 6);
-        Letter.drawTime(time, 610, 30, 6);
+        Letter.drawNum(model, tint, blend, key + "-drawNum-1", score, 120, 21, 6);
+        Letter.drawTime(model, tint, blend, key + "-drawTime-1", time, 610, 30, 6);
         switch (state)
         {
             case GameManagerGameState.IN_GAME:
@@ -412,7 +408,7 @@ public class GameManager
                     float x = 320 - (left - 1) * 12;
                     for (int i = 0; i < left; i++)
                     {
-                        ship.drawLeft(x, 35);
+                        ship.drawLeft(model, tint, blend, key + "-drawLeft-1" + "-" + i.ToString(), x, 35);
                         x += 24;
                     }
                 }
@@ -420,20 +416,20 @@ public class GameManager
                 if (_isGameOver)
                 {
                     if (gameOverCnt > 60)
-                        Letter.drawString("GAME OVER", 214, 200, 12);
+                        Letter.drawString(model, tint, blend, key + "-drawString-1", "GAME OVER", 214, 200, 12);
                 }
                 else if (paused)
                 {
                     if (pauseCnt % 120 < 60)
-                        Letter.drawString("PAUSE", 290, 420, 7);
+                        Letter.drawString(model, tint, blend, key + "-drawString-2", "PAUSE", 290, 420, 7);
                 }
 
                 if (state == GameManagerGameState.IN_GAME)
                     break;
-                titleManager.draw();
+                titleManager.draw(model, tint, blend, key + "-draw-1");
                 break;
             case GameManagerGameState.TITLE:
-                titleManager.draw();
+                titleManager.draw(model, tint, blend, key + "-draw-2");
                 break;
         }
     }

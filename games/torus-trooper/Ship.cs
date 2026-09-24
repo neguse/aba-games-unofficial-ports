@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Ship : BulletTarget
 {
@@ -461,8 +461,9 @@ public class Ship : BulletTarget
         return _relPos;
     }
 
-    public void setEyepos()
+    public float[] setEyepos()
     {
+        float scale = 1;
         float ex = 0, ey = 0, ez = 0;
         float lx = 0, ly = 0, lz = 0;
         float deg = 0;
@@ -497,7 +498,7 @@ public class Ship : BulletTarget
             ly = lp3.y;
             lz = lp3.z;
             deg = camera.deg;
-            Drawing.projectionScale = 1 / camera.zoom;
+            scale = 1 / camera.zoom;
         }
 
         if (screenShakeCnt > 0)
@@ -513,7 +514,7 @@ public class Ship : BulletTarget
             lz = lz + (mz);
         }
 
-        TtScreen.lookAt(ex, ey, ez, lx, ly, lz, sin(deg), -cos(deg), 0);
+        return Transform.LookAt(Transform.Perspective(10000, scale), ex, ey, ez, lx, ly, lz, sin(deg), -cos(deg), 0);
     }
 
     public void setScreenShake(int cnt, float its)
@@ -648,26 +649,26 @@ public class Ship : BulletTarget
         gameState.clearVisibleBullets();
     }
 
-    public void draw()
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         if ((cnt < -INVINCIBLE_CNT) || (((cnt < 0) && ((-cnt % 32) < 16))))
             return;
-        glPushMatrix();
-        glTranslatef(pos3.x, pos3.y, pos3.z);
-        glRotatef((pos.x - bank) * 180 / PI, 0, 0, 1);
-        glRotatef(d1 * 180 / PI, 0, 1, 0);
-        glRotatef(d2 * 180 / PI, 1, 0, 0);
-        _shape.draw();
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos3.x, pos3.y, pos3.z);
+        model = Transform.Rotate(model, (pos.x - bank) * 180 / PI, 0, 0, 1);
+        model = Transform.Rotate(model, d1 * 180 / PI, 0, 1, 0);
+        model = Transform.Rotate(model, d2 * 180 / PI, 1, 0, 0);
+        _shape.draw(model, tint, blend, cull, lineWidth);
+        model = parent1;
     }
 
-    public void drawFront()
+    public void drawFront(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        Letter.drawNum(GameMath.integer((speed * 2500)), 490, 420, 20);
-        Letter.drawString("KM/H", 540, 445, 12);
-        Letter.drawNum(rank, 150, 432, 16);
-        Letter.drawString("/", 185, 448, 10);
-        Letter.drawNum(zoneEndRank - rank, 250, 448, 10);
+        Letter.drawNum(model, tint, blend, cull, lineWidth, GameMath.integer((speed * 2500)), 490, 420, 20);
+        Letter.drawString(model, tint, blend, cull, lineWidth, "KM/H", 540, 445, 12);
+        Letter.drawNum(model, tint, blend, cull, lineWidth, rank, 150, 432, 16);
+        Letter.drawString(model, tint, blend, cull, lineWidth, "/", 185, 448, 10);
+        Letter.drawNum(model, tint, blend, cull, lineWidth, zoneEndRank - rank, 250, 448, 10);
     }
 
     public Vector pos

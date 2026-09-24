@@ -2,13 +2,13 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 using static RrConstants;
 using static RrArrays;
 using static RrRandom;
 using static RrBarrage;
 using static RrSound;
-using static RrGl;
+using static RrInput;
 using static RrPreference;
 using static RrCore;
 using static RrAttract;
@@ -105,7 +105,7 @@ public static class RrShot
         }
     }
 
-    public static void drawShots()
+    public static void drawShots(float[] model, Gfx.Blend blend, string key)
     {
         int i = 0;
         Shot st = null;
@@ -118,7 +118,7 @@ public static class RrShot
                 if (shot[(i)].cnt < 0)
                     continue;
                 st = (shot[(i)]);
-                drawShot(st.x, st.y, st.d, st.color, st.width, st.height);
+                drawShot(model, blend, key + "-317" + "-" + i.ToString(), st.x, st.y, st.d, st.color, st.width, st.height);
             }
         }
     }

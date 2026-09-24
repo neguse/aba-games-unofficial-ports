@@ -1,7 +1,7 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class Lock: Actor {
 
     public const int SEARCH = 0;
@@ -158,7 +158,8 @@ public class Lock: Actor {
     cnt++;
   }
 
-  public override void draw() {
+  public override void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+    var mesh = new Mesh("Lock-draw" + "-" + meshKey);
     switch (state) {
     case LOCKING: {
       float y = targetLockedPos.y - (LOCK_CNT - cnt) * 0.5f;
@@ -166,7 +167,7 @@ public class Lock: Actor {
       float radius = (LOCK_CNT - cnt) * 0.5f + 0.8f;
       P47Screen.setRetroParam(GameMath.integer((LOCK_CNT - cnt) / LOCK_CNT), 0.2f);
       for (int index4 = 0; index4 < 3; index4++, angle += 6.28f / 3) {
-	P47Screen.drawBoxRetro(targetLockedPos.x + sin(angle) * radius,
+	P47Screen.appendBoxRetro(mesh, targetLockedPos.x + sin(angle) * radius,
 			       y + cos(angle) * radius,
 			       0.2f, 1, angle + 3.14f / 2);
       }
@@ -179,7 +180,7 @@ public class Lock: Actor {
       float r = 0.8f;
       P47Screen.setRetroParam(0, 0.2f);
       for (int index5 = 0; index5 < 3; index5++, d += 6.28f / 3) {
-	P47Screen.drawBoxRetro(targetLockedPos.x + sin(d) * r,
+	P47Screen.appendBoxRetro(mesh, targetLockedPos.x + sin(d) * r,
 			       targetLockedPos.y + cos(d) * r,
 			       0.2f, 1, d + 3.14f / 2);
       }
@@ -191,10 +192,13 @@ public class Lock: Actor {
 	else if (rr > 1)
 	  rr = 1;
 	P47Screen.setRetroParam(rr, 0.33f);
-	P47Screen.drawLineRetro(pos[index6].x, pos[index6].y, pos[index6 + 1].x, pos[index6 + 1].y);
+	P47Screen.appendLineRetro(mesh, pos[index6].x, pos[index6].y, pos[index6 + 1].x, pos[index6 + 1].y);
       }
       break;
     }
+
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 }
 

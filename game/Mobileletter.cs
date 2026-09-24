@@ -1,7 +1,7 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class MobileLetter: Actor {
 
   public static Rand rand = new Rand();
@@ -71,8 +71,9 @@ public class MobileLetter: Actor {
     deg *= 0.99f;
   }
 
-  public override void draw() {
-    LetterRender.drawLetter(str, pos.x, pos.y, size, deg, color);
+  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+    bool depth = false; Gfx.Cull cull = Gfx.Cull.None; float width = 1;
+    LetterRender.drawLetter(model, tint, blend, depth, cull, width, str, pos.x, pos.y, size, deg, color);
   }
 }
 
