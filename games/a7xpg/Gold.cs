@@ -1,12 +1,12 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Gold : LuminousActor
 {
     public const float SIZE = 1;
-    public static int displayListIdx;
+    public static Mesh[] meshes;
     public Ship ship;
     public Field field;
     public Rand rand;
@@ -63,67 +63,68 @@ public class Gold : LuminousActor
         }
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
     {
-        glPushMatrix();
-        glTranslatef(pos.x, pos.y, 0.5f);
-        glRotatef(ROLL_DEG * cnt, 0, 0, 1);
-        glCallList(displayListIdx);
-        glCallList(displayListIdx + 1);
-        glTranslatef(0, 0, -0.5f);
-        glScalef(1, 1, -1);
-        glCallList(displayListIdx);
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, 0.5f);
+        model = Transform.Rotate(model, ROLL_DEG * cnt, 0, 0, 1);
+        { Mesh shape2 = meshes[0]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        { Mesh shape3 = meshes[1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        model = Transform.Translate(model, 0, 0, -0.5f);
+        model = Transform.Scale(model, 1, 1, -1);
+        { Mesh shape4 = meshes[0]; if (shape4.count > 0) Gfx.Draw(shape4.count, shape4.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        model = parent1;
     }
 
-    public override void drawLuminous()
+    public override void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
     {
-        glPushMatrix();
-        glTranslatef(pos.x, pos.y, 0.5f);
-        glRotatef(ROLL_DEG * cnt, 0, 0, 1);
-        glCallList(displayListIdx + 1);
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, 0.5f);
+        model = Transform.Rotate(model, ROLL_DEG * cnt, 0, 0, 1);
+        { Mesh shape2 = meshes[1]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        model = parent1;
     }
 
-    public static void createDisplayLists()
+    public static void createMeshes()
     {
-        displayListIdx = glGenLists(2);
-        glNewList(displayListIdx, GL_COMPILE);
-        drawGold(1);
-        glEndList();
-        glNewList(displayListIdx + 1, GL_COMPILE);
-        drawGoldLine(1);
-        glEndList();
+        meshes = new Mesh[2]; Mesh mesh = null; float[] model = Transform.Identity(); float[] tint = null;
+        mesh = new Mesh("Gold-" + (0).ToString()); meshes[0] = mesh;
+        appendGold(mesh, model, tint, 1);
+
+        mesh = new Mesh("Gold-" + (1).ToString()); meshes[1] = mesh;
+        appendGoldLine(mesh, model, tint, 1);
+
     }
 
-    public static void deleteDisplayLists()
+    public static void deleteMeshes() { meshes = null; }
+
+    public static void appendGold(Mesh mesh, float[] model, float[] tint, float alpha)
     {
-        glDeleteLists(displayListIdx, 2);
+        int part1 = mesh.vertexCount;
+        tint = new float[] { 1, 1, 0.3f, 0.9f * alpha };
+        mesh.Vertex(0, 0, 1, tint, model);
+        tint = new float[] { 0.2f, 0.5f, 0.4f, 0.8f * alpha };
+        mesh.Vertex(1, 0, 0, tint, model);
+        mesh.Vertex(0, 1, 0, tint, model);
+        mesh.Vertex(-1, 0, 0, tint, model);
+        mesh.Vertex(0, -1, 0, tint, model);
+        mesh.Fan(part1, mesh.vertexCount - part1);
     }
 
-    public static void drawGold(float alpha)
+    public static void appendGoldLine(Mesh mesh, float[] model, float[] tint, float alpha)
     {
-        glBegin(GL_TRIANGLE_FAN);
-        A7xScreen.setColor(1, 1, 0.3f, 0.9f * alpha);
-        glVertex3f(0, 0, 1);
-        A7xScreen.setColor(0.2f, 0.5f, 0.4f, 0.8f * alpha);
-        glVertex3f(1, 0, 0);
-        glVertex3f(0, 1, 0);
-        glVertex3f(-1, 0, 0);
-        glVertex3f(0, -1, 0);
-        glEnd();
-    }
-
-    public static void drawGoldLine(float alpha)
-    {
-        glBegin(GL_LINE_STRIP);
-        A7xScreen.setColor(1, 1, 0.3f, 0.9f * alpha);
-        glVertex3f(1, 0, 0);
-        glVertex3f(0, 1, 0);
-        glVertex3f(-1, 0, 0);
-        glVertex3f(0, -1, 0);
-        glVertex3f(1, 0, 0);
-        glEnd();
+        int part1 = mesh.vertexCount;
+        tint = new float[] { 1, 1, 0.3f, 0.9f * alpha };
+        mesh.Vertex(1, 0, 0, tint, model);
+        mesh.Vertex(0, 1, 0, tint, model);
+        mesh.Vertex(-1, 0, 0, tint, model);
+        mesh.Vertex(0, -1, 0, tint, model);
+        mesh.Vertex(1, 0, 0, tint, model);
+        mesh.LineStrip(part1, mesh.vertexCount - part1);
     }
 }
 

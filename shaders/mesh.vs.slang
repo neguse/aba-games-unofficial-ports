@@ -1,7 +1,7 @@
 struct Vertex { float4 position; float4 color; };
 StructuredBuffer<Vertex> verts;
 StructuredBuffer<float4> faces;
-cbuffer Params : register(b0) { column_major float4x4 model; float4 tint; float4 options; float4 imageInfo; };
+cbuffer Params : register(b0) { column_major float4x4 model; float4 tint; float4 options; float4 imageInfo; float4 viewport; };
 struct Output { float4 color : COLOR0; nointerpolation uint premultiply : TEXCOORD1; float4 position : SV_Position; };
 [shader("vertex")]
 Output vs_main(uint index : LUB_VERTEX_ID) {
@@ -13,13 +13,13 @@ Output vs_main(uint index : LUB_VERTEX_ID) {
         corner += face.z;
         Vertex a = verts[face.x], b = verts[face.y];
         float4 pa = mul(model, float4(a.position.xyz, 1)), pb = mul(model, float4(b.position.xyz, 1));
-        float2 delta = (pb.xy / pb.w - pa.xy / pa.w) * float2(320, 240);
+        float2 delta = (pb.xy / pb.w - pa.xy / pa.w) * (viewport.xy / 2);
         float length = sqrt(dot(delta, delta));
         if (pa.w <= 0 || pb.w <= 0 || length == 0) {
             output.position = float4(0, 0, 0, 1); output.color = 0;
             return output;
         }
-        float2 offset = float2(-delta.y, delta.x) / length * options.x / float2(640, 480);
+        float2 offset = float2(-delta.y, delta.x) / length * options.x / viewport.xy;
         bool end = corner == 2 || corner == 3 || corner == 5;
         float sign = corner == 1 || corner == 4 || corner == 5 ? -1 : 1;
         output.position = end ? pb : pa;

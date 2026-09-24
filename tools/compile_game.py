@@ -34,7 +34,7 @@ if args.game == 'titanion':
     sources += [f for f in sorted(Path('games/titanion').glob('*.cs')) if f.name not in names]
     sources += sorted(Path('build/titanion').glob('*.cs'))
 if args.game == 'a7xpg':
-    sources = [Path('game/Core.cs'), Path('game/Drawing.cs'), Path('game/PatternNumber.cs')]
+    sources = [Path('game/Core.cs'), Path('game/Mesh.cs'), Path('game/Transform.cs'), Path('game/PatternNumber.cs')]
     sources += sorted(Path('games/a7xpg').glob('*.cs'))
     sources += sorted(Path('build/a7xpg').glob('*.cs'))
 if args.game == 'torus-trooper':
@@ -77,11 +77,11 @@ if args.game == 'masashikun-hi':
     sources = [Path('games/masashikun-hi/Models.cs')]
     sources += [p for p in sorted(Path('games/masashikun-hi').glob('*.cs')) if p.name != 'Models.cs']
     sources += sorted(Path('build/masashikun-hi').glob('*.cs'))
-if args.game in ['a7xpg', 'rrootage', 'mu-cade']:
+if args.game in ['rrootage', 'mu-cade']:
     sources = [Path('game/TextureDrawing.cs')] + [p for p in sources if p != Path('game/TextureDrawing.cs')]
 shader_source = 'public static class GameShaders {\n'
 for name, stage in [('vertex', 'vs'), ('fragment', 'fs')]:
-    shader_source += f'public static string {name} = {json.dumps(Path(f"shaders/mesh.{stage}.slang" if args.game in ["titanion", "parsec47", "tumiki", "torus-trooper"] else f"games/{args.game}/game.{stage}.slang" if args.game in ["gunroar", "a7xpg", "rrootage", "noiz2sa", "wok", "mazer-mayhem", "gear-toy-gear", "masashikun-hi"] else f"shaders/title.{stage}.slang" if args.game in ["torus-trooper", "mu-cade"] else f"shaders/game.{stage}.slang").read_text())};\n'
+    shader_source += f'public static string {name} = {json.dumps(Path(f"shaders/mesh.{stage}.slang" if args.game in ["titanion", "parsec47", "tumiki", "torus-trooper", "a7xpg"] else f"games/{args.game}/game.{stage}.slang" if args.game in ["gunroar", "a7xpg", "rrootage", "noiz2sa", "wok", "mazer-mayhem", "gear-toy-gear", "masashikun-hi"] else f"shaders/title.{stage}.slang" if args.game in ["torus-trooper", "mu-cade"] else f"shaders/game.{stage}.slang").read_text())};\n'
 shader_source += '}\n'
 Path('build/Shaders.cs').write_text(shader_source)
 sources.append(Path('build/Shaders.cs'))

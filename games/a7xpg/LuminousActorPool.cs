@@ -1,7 +1,7 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class LuminousActorPool : ActorPool
 {
@@ -9,12 +9,12 @@ public class LuminousActorPool : ActorPool
     {
     }
 
-    public void drawLuminous()
+    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
     {
         for (int i = 0; i < actor.Length; i++)
         {
             if (actor[i].isExist)
-                ((LuminousActor)actor[i]).drawLuminous();
+                ((LuminousActor)actor[i]).drawLuminous(model, tint, blend, target);
         }
     }
 }

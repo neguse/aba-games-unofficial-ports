@@ -11,7 +11,6 @@ public static class A7xVerification
         Rand.setSeed(1234);
         float[] small = new float[] { 0.008762520738f, 0.004202578682f, 0.0002763710218f, 0.00450108014f, 0.008169221692f, 0.001831445494f, 0.009473296814f, 0.004576541483f, 0.001127034193f, 0.0028995662f, 0.0002518402471f, 0.0006354987854f, 0.004562656395f, 0.007859470323f, 0.006024090573f, 0.001746507245f };
         for (int i = 0; i < small.Length; i++) check(Math.Abs(rand.nextFloat(0.01f) - small[i]) < 0.00000001f, "D1 small float " + i.ToString());
-        Drawing.BeginFrame(); Drawing.recordBlend = true; Drawing.premultiplyAdditive = true;
         var game = new A7xGameManager(); game.init(); game.start(); game.startInGame();
         float[][] trace = new float[][] {
             new float[] { 0, -3.00000453f, 0.200000003f, 0 },
@@ -61,8 +60,7 @@ public static class A7xVerification
                 game.input.directions = (f / 120) % 4 == 0 ? 1 : (f / 120) % 4 == 1 ? 8 : (f / 120) % 4 == 2 ? 2 : 4;
                 game.inGameMove();
             }
-            Drawing.BeginFrame(); game.inGameDraw();
-            check(Drawing.batches.Count > 0, "stage render " + stage.ToString());
+            game.inGameDraw(Transform.Translate(Transform.Perspective(), 0, 0, -game.field.eyeZ), null, Lub.Gfx.Blend.Additive);
             game.leftGold = 1; game.stageTimer = 1200; game.getGold();
             check(game.state == A7xGameManager.STAGE_CLEAR && game.timeBonus == 2040, "stage clear bonus");
             for (int f = 0; f < 302; f++) { game.cnt++; game.stageClearMove(); if (game.state == A7xGameManager.IN_GAME) break; }

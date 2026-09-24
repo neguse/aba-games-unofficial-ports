@@ -113,7 +113,7 @@ target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_a7xpg.py', str(a7x)], check=True)
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'a7xpg',
                 '--output', str(target / 'game.lua')], check=True)
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/a7xpg/game'], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
 shutil.copy2('games/a7xpg/index.html', target / 'index.html')
 shutil.copytree(a7x / 'sounds', target / 'audio', dirs_exist_ok=True)
 (target / 'LICENSE.txt').write_text((a7x / 'readme_e.txt').read_text() + '\n\n' + Path('games/a7xpg/PHOBOS-LICENSE.txt').read_text() + '\n\n' + licenses)

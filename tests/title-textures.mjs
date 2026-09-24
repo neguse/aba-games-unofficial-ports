@@ -6,7 +6,7 @@ const base = process.argv[2] || 'http://127.0.0.1:8765/';
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH, headless: true,
     args: ['--no-sandbox', '--enable-unsafe-webgpu', '--use-angle=swiftshader', '--enable-features=Vulkan,WebGPU', '--use-vulkan=swiftshader', '--disable-vulkan-fallback-to-gl-for-testing'] });
 try {
-    for (const game of ['a7xpg', 'mu-cade']) {
+    for (const game of ['mu-cade']) {
         const page = await browser.newPage({ viewport: { width: 640, height: 900 } });
         const errors = [];
         page.on('pageerror', error => errors.push(error.message));

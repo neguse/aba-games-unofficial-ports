@@ -13,7 +13,9 @@ try {
     let reloadCode;
     await page.route('**/game.lua', async route => {
         const response = await route.fetch();
-        const code = (await response.text()).replace(/return Game\s*$/, `
+        const source = await response.text();
+        page.hasGlowFixture = source.includes('SampleLevel(image_smp');
+        const code = source.replace(/return Game\s*$/, `
 local init=Game.on_init
 Game.on_init=function() init();lub.config({resource_sweep_after_frames=2}) end
 Game.render_revision=function() return 1 end
@@ -44,6 +46,16 @@ Game.on_frame=function(dt)
   Game.test_revision=revision
  end
  local ortho=Transform.ortho()
+ local glow
+ if string.find(GameShaders.fragment,'SampleLevel(image_smp',1,true) then
+ glow=lub.gfx.use_texture('test-glow',128,128,lub.gfx.RGBA8,nil,1,{target=true})
+ lub.gfx.begin_pass({target=glow,clear_color={0,0,0,0}})
+ local glowLine=Mesh.new('test-glow-line')
+ glowLine:vertex(8,32,0,{1,0,0,1});glowLine:vertex(120,32,0,{1,0,0,1});glowLine:line(0,1)
+ local glowBindings=glowLine:bindings(Transform.scale(ortho,5,3.75,1),nil,4,true,0,nil,128,128)
+ lub.gfx.draw(glowLine:get_count(),glowBindings,{shader=Game.shader,depth=false,cull=lub.gfx.NONE,blend=lub.gfx.ADDITIVE})
+ lub.gfx.end_pass()
+ end
  lub.gfx.begin_pass({target=lub.gfx.main_tex,clear_color={0,0,0,1}})
  local placement=Transform.scale(Transform.translate(ortho,20,20,0),2,1,1)
  draw(Game.test_mesh,placement,revision==1 and {1,0,0,1} or {0,1,0,1},1,lub.gfx.ADDITIVE)
@@ -79,6 +91,14 @@ Game.on_frame=function(dt)
  local small=Transform.scale(Transform.translate(ortho,560.25,20.25,0),0.5/32,0.5/32,1)
  small=Transform.translate(small,-500,-20,0)
  draw(sprite,small,nil,1,lub.gfx.ADDITIVE,false,image)
+ if glow then
+  local overlay=Mesh.new('test-glow-overlay')
+  overlay:vertex(500,300,0,{0,0,0,1});overlay:vertex(628,300,0,{1,0,0,1})
+  overlay:vertex(628,428,0,{1,1,0,1});overlay:vertex(500,428,0,{0,1,0,1});overlay:quads(0,4)
+  local binding=overlay:bindings(ortho,{0.5,1,1,1})
+  binding.image=glow;binding.uniforms.options={1,0,0,2}
+  lub.gfx.draw(overlay:get_count(),binding,{shader=Game.shader,depth=false,cull=lub.gfx.NONE,blend=lub.gfx.ADDITIVE})
+ end
  lub.gfx.end_pass()
  assert(uploads <= (revision==1 and 2 or 4), 'unchanged mesh must reuse the runtime version')
  lub.host.send('render.frame',tostring(frames)..','..revision)
@@ -102,6 +122,7 @@ return Game`);
     await page.waitForFunction(() => window.renderFrame?.[1] === 2 && window.renderFrame[0] >= 100, null, { timeout: 45000 }).catch(async error => { throw new Error(`${await page.locator('#status').textContent()} ${errors.join('\n')} ${error.message}`); });
     const png = await page.locator('#canvas').screenshot({ path: 'build/screenshots/gunroar-direct-render-test.png' });
     const points = [
+        ...(page.hasGlowFixture ? [[560,330,[128,0,0]], [560,333,[128,0,0]], [560,329,[0,0,0]], [560,334,[0,0,0]]] : []),
         [40,218,[0,255,0]], [110,220,[0,255,0]], [120,230,[0,255,0]],
         [40,30,[0,255,0]], [19,30,[0,0,0]], [25,30,[0,0,0]], [60,30,[0,255,0]], [70,30,[0,0,0]],
         [210,30,[255,255,0]], [250,30,[128,0,0]], [270,50,[64,0,128]], [290,70,[0,0,128]],

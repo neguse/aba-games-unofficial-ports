@@ -1,5 +1,6 @@
 Texture2D<float4> image;
-cbuffer Params : register(b0) { column_major float4x4 model; float4 tint; float4 options; float4 imageInfo; };
+SamplerState image_smp;
+cbuffer Params : register(b0) { column_major float4x4 model; float4 tint; float4 options; float4 imageInfo; float4 viewport; };
 float4 titlePixel(int2 p, int2 size, int offset) {
     p = (p % size + size) % size;
     return image.Load(int3(p.x, p.y + offset, 0));
@@ -23,6 +24,7 @@ struct Input { float4 color : COLOR0; nointerpolation uint premultiply : TEXCOOR
 [shader("fragment")]
 float4 fs_main(Input input) : SV_Target {
     float2 dx = ddx(input.color.xy), dy = ddy(input.color.xy);
+    if (options.w == 2) return image.SampleLevel(image_smp, input.color.xy, 0) * tint;
     if (options.w > 0) return sampleTitle(input.color.xy, dx, dy);
     float4 color = input.color;
     if (input.premultiply != 0) color.rgb *= color.a;

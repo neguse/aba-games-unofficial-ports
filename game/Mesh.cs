@@ -87,7 +87,7 @@ public class Mesh
             ranges[ranges.Count - 1].count += count - first;
         else ranges.Add(new MeshRange { first = first, count = count - first, material = material });
     }
-    public Dictionary<string, object> Bindings(float[] model, float[] color = null, float width = 1, bool additive = true, int first = 0, DrawImage image = null)
+    public Dictionary<string, object> Bindings(float[] model, float[] color = null, float width = 1, bool additive = true, int first = 0, DrawImage image = null, float viewportWidth = 640, float viewportHeight = 480)
     {
         vertexBuffer = Gfx.UseBuffer(key + "-vertices", Gfx.BufferType.Storage, vertices,
             vertexBuffer == null ? (int?)null : vertexBuffer.Version);
@@ -102,6 +102,7 @@ public class Mesh
             ["uniforms"] = new Dictionary<string, object> {
                 ["model"] = model, ["tint"] = color == null ? new float[] { 1, 1, 1, 1 } : color,
                 ["options"] = new float[] { width, additive ? 1 : 0, first, image == null ? 0 : 1 },
+                ["viewport"] = new float[] { viewportWidth, viewportHeight, 0, 0 },
                 ["imageInfo"] = new float[] { texture.width, texture.height, texture.levels - 1, 0 } } };
     }
 }

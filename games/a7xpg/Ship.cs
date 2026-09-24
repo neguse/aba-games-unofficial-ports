@@ -1,12 +1,12 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Ship
 {
     public const float SIZE = 1;
-    public static int displayListIdx;
+    public static Mesh[] meshes;
     public Vector pos;
     public bool invincible;
     public bool restart;
@@ -332,64 +332,73 @@ public class Ship
         }
     }
 
-    public void draw()
+    public void draw(float[] model, float[] tint, Gfx.Blend blend)
     {
         if (cnt < -INVINCIBLE_CNT || (cnt < 0 && (-cnt % 32) < 16))
             return;
-        glPushMatrix();
-        glTranslatef(pos.x, pos.y, 0.5f);
-        glRotatef(-deg * 180 / PI, 0, 0, 1);
-        glCallList(displayListIdx);
-        glCallList(displayListIdx + 1);
-        glTranslatef(0, 0, -0.5f);
-        glScalef(1, 1, -1);
-        glCallList(displayListIdx);
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, 0.5f);
+        model = Transform.Rotate(model, -deg * 180 / PI, 0, 0, 1);
+        { Mesh shape2 = meshes[0]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        { Mesh shape3 = meshes[1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        model = Transform.Translate(model, 0, 0, -0.5f);
+        model = Transform.Scale(model, 1, 1, -1);
+        { Mesh shape4 = meshes[0]; if (shape4.count > 0) Gfx.Draw(shape4.count, shape4.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        model = parent1;
     }
 
-    public void drawLuminous()
+    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend)
     {
         if (cnt < -INVINCIBLE_CNT || (cnt < 0 && (-cnt % 32) < 16))
             return;
-        glPushMatrix();
-        glTranslatef(pos.x, pos.y, 0.5f);
-        glRotatef(-deg * 180 / PI, 0, 0, 1);
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, 0.5f);
+        model = Transform.Rotate(model, -deg * 180 / PI, 0, 0, 1);
         if (invincible)
-            glCallList(displayListIdx + 2);
+            { Mesh shape2 = meshes[2]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         else
-            glCallList(displayListIdx + 1);
-        glPopMatrix();
+            { Mesh shape3 = meshes[1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        model = parent1;
     }
 
-    public void drawGauge()
+    public void drawGauge(float[] model, float[] tint, Gfx.Blend blend)
     {
+        var mesh = new Mesh("Ship-drawGauge");
         if (invincible)
         {
             if ((cnt % 2) == 1)
-                A7xScreen.setColor(1, 0.5f, 0.5f, 1);
+                tint = new float[] { 1, 0.5f, 0.5f, 1 };
             else
-                A7xScreen.setColor(1, 1, 0.5f, 1);
+                tint = new float[] { 1, 1, 0.5f, 1 };
         }
         else
         {
-            A7xScreen.setColor(1, 1, 1, 1);
+            tint = new float[] { 1, 1, 1, 1 };
         }
 
-        A7xScreen.drawBoxLine(420, 455, GAUGE_MAX, 20);
-        A7xScreen.drawBoxLine(420, 455, gauge, 20);
+        LetterRender.appendBoxLine(mesh, Transform.Identity(), tint, 420, 455, GAUGE_MAX, 20);
+        LetterRender.appendBoxLine(mesh, Transform.Identity(), tint, 420, 455, gauge, 20);
         if (invincible)
         {
             if ((cnt % 2) == 1)
-                A7xScreen.setColor(1, 0.5f, 0.5f, 0.5f);
+                tint = new float[] { 1, 0.5f, 0.5f, 0.5f };
             else
-                A7xScreen.setColor(1, 1, 0.5f, 0.5f);
+                tint = new float[] { 1, 1, 0.5f, 0.5f };
         }
         else
         {
-            A7xScreen.setColor(1, 1, 1, 0.5f);
+            tint = new float[] { 1, 1, 1, 0.5f };
         }
 
-        A7xScreen.drawBoxSolid(420, 455, gauge, 20);
+        LetterRender.appendBoxSolid(mesh, Transform.Identity(), tint, 420, 455, gauge, 20);
+
+        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
     public bool checkHit(float x1, float y1, float x2, float y2)
@@ -467,87 +476,84 @@ public class Ship
         v.y = v.y - (cos(wd) * 10 / d / ds);
     }
 
-    public static void createDisplayLists()
+    public static void createMeshes()
     {
-        displayListIdx = glGenLists(3);
-        glNewList(displayListIdx, GL_COMPILE);
-        drawShip(1);
-        glEndList();
-        glNewList(displayListIdx + 1, GL_COMPILE);
-        drawShipLine(1);
-        glEndList();
-        glNewList(displayListIdx + 2, GL_COMPILE);
-        drawShipFireLine(1);
-        glEndList();
+        meshes = new Mesh[3]; Mesh mesh = null; float[] model = Transform.Identity(); float[] tint = null;
+        mesh = new Mesh("Ship-" + (0).ToString()); meshes[0] = mesh;
+        appendShip(mesh, model, tint, 1);
+
+        mesh = new Mesh("Ship-" + (1).ToString()); meshes[1] = mesh;
+        appendShipLine(mesh, model, tint, 1);
+
+        mesh = new Mesh("Ship-" + (2).ToString()); meshes[2] = mesh;
+        appendShipFireLine(mesh, model, tint, 1);
+
     }
 
-    public static void deleteDisplayLists()
+    public static void deleteMeshes() { meshes = null; }
+
+    public static void appendShip(Mesh mesh, float[] model, float[] tint, float alpha)
     {
-        glDeleteLists(displayListIdx, 3);
+        int part1 = mesh.vertexCount;
+        tint = new float[] { 0.3f, 1, 0.2f, 0.8f * alpha };
+        mesh.Vertex(0, 1, 0, tint, model);
+        tint = new float[] { 0.2f, 0.8f, 0.2f, 0.6f * alpha };
+        mesh.Vertex(-0.8f, -1, 0, tint, model);
+        tint = new float[] { 0.2f, 0.8f, 0.2f, 0.4f * alpha };
+        mesh.Vertex(0, -0.8f, 0.6f, tint, model);
+        tint = new float[] { 0.2f, 0.8f, 0.2f, 0.6f * alpha };
+        mesh.Vertex(0.8f, -1, 0, tint, model);
+        mesh.Fan(part1, mesh.vertexCount - part1);
+        int part2 = mesh.vertexCount;
+        tint = new float[] { 0.2f, 0.5f, 0.8f, 0.6f * alpha };
+        mesh.Vertex(-0.8f, -1, 0, tint, model);
+        tint = new float[] { 0.2f, 0.5f, 0.8f, 0.9f * alpha };
+        mesh.Vertex(-1.2f, 0.2f, 1, tint, model);
+        tint = new float[] { 0.2f, 0.5f, 0.8f, 0.4f * alpha };
+        mesh.Vertex(0, -0.9f, 0.2f, tint, model);
+        tint = new float[] { 0.2f, 0.5f, 0.8f, 0.4f * alpha };
+        mesh.Vertex(0, -0.9f, 0.2f, tint, model);
+        tint = new float[] { 0.2f, 0.5f, 0.8f, 0.9f * alpha };
+        mesh.Vertex(1.2f, 0.2f, 1, tint, model);
+        tint = new float[] { 0.2f, 0.5f, 0.8f, 0.6f * alpha };
+        mesh.Vertex(0.8f, -1, 0, tint, model);
+        for (int vi = part2; vi + 2 < mesh.vertexCount; vi += 3) mesh.Triangle(vi, vi + 1, vi + 2);
     }
 
-    public static void drawShip(float alpha)
+    public static void appendShipLine(Mesh mesh, float[] model, float[] tint, float alpha)
     {
-        glBegin(GL_TRIANGLE_FAN);
-        A7xScreen.setColor(0.3f, 1, 0.2f, 0.8f * alpha);
-        glVertex3f(0, 1, 0);
-        A7xScreen.setColor(0.2f, 0.8f, 0.2f, 0.6f * alpha);
-        glVertex3f(-0.8f, -1, 0);
-        A7xScreen.setColor(0.2f, 0.8f, 0.2f, 0.4f * alpha);
-        glVertex3f(0, -0.8f, 0.6f);
-        A7xScreen.setColor(0.2f, 0.8f, 0.2f, 0.6f * alpha);
-        glVertex3f(0.8f, -1, 0);
-        glEnd();
-        glBegin(GL_TRIANGLES);
-        A7xScreen.setColor(0.2f, 0.5f, 0.8f, 0.6f * alpha);
-        glVertex3f(-0.8f, -1, 0);
-        A7xScreen.setColor(0.2f, 0.5f, 0.8f, 0.9f * alpha);
-        glVertex3f(-1.2f, 0.2f, 1);
-        A7xScreen.setColor(0.2f, 0.5f, 0.8f, 0.4f * alpha);
-        glVertex3f(0, -0.9f, 0.2f);
-        A7xScreen.setColor(0.2f, 0.5f, 0.8f, 0.4f * alpha);
-        glVertex3f(0, -0.9f, 0.2f);
-        A7xScreen.setColor(0.2f, 0.5f, 0.8f, 0.9f * alpha);
-        glVertex3f(1.2f, 0.2f, 1);
-        A7xScreen.setColor(0.2f, 0.5f, 0.8f, 0.6f * alpha);
-        glVertex3f(0.8f, -1, 0);
-        glEnd();
+        int part1 = mesh.vertexCount;
+        tint = new float[] { 0.3f, 1, 0.2f, 1 * alpha };
+        mesh.Vertex(-0.8f, -1, 0, tint, model);
+        mesh.Vertex(0, 1, 0, tint, model);
+        mesh.Vertex(0.8f, -1, 0, tint, model);
+        mesh.LineStrip(part1, mesh.vertexCount - part1);
+        tint = new float[] { 0.2f, 0.6f, 0.8f, 1 * alpha };
+        int part2 = mesh.vertexCount;
+        mesh.Vertex(-0.8f, -1, 0, tint, model);
+        mesh.Vertex(-1.2f, 0.2f, 1, tint, model);
+        mesh.Vertex(0, -0.9f, 0.2f, tint, model);
+        mesh.LineStrip(part2, mesh.vertexCount - part2);
+        int part3 = mesh.vertexCount;
+        mesh.Vertex(0, -0.9f, 0.2f, tint, model);
+        mesh.Vertex(1.2f, 0.2f, 1, tint, model);
+        mesh.Vertex(0.8f, -1, 0, tint, model);
+        mesh.LineStrip(part3, mesh.vertexCount - part3);
     }
 
-    public static void drawShipLine(float alpha)
+    public static void appendShipFireLine(Mesh mesh, float[] model, float[] tint, float alpha)
     {
-        glBegin(GL_LINE_STRIP);
-        A7xScreen.setColor(0.3f, 1, 0.2f, 1 * alpha);
-        glVertex3f(-0.8f, -1, 0);
-        glVertex3f(0, 1, 0);
-        glVertex3f(0.8f, -1, 0);
-        glEnd();
-        A7xScreen.setColor(0.2f, 0.6f, 0.8f, 1 * alpha);
-        glBegin(GL_LINE_STRIP);
-        glVertex3f(-0.8f, -1, 0);
-        glVertex3f(-1.2f, 0.2f, 1);
-        glVertex3f(0, -0.9f, 0.2f);
-        glEnd();
-        glBegin(GL_LINE_STRIP);
-        glVertex3f(0, -0.9f, 0.2f);
-        glVertex3f(1.2f, 0.2f, 1);
-        glVertex3f(0.8f, -1, 0);
-        glEnd();
-    }
-
-    public static void drawShipFireLine(float alpha)
-    {
-        glBegin(GL_LINE_STRIP);
-        A7xScreen.setColor(1, 0, 0, 1 * alpha);
-        glVertex3f(-0.8f, -1, 0);
-        glVertex3f(0, 1, 0);
-        glVertex3f(0.8f, -1, 0);
-        glEnd();
-        glBegin(GL_LINES);
-        glVertex3f(-0.8f, -1, 0);
-        glVertex3f(0, -0.9f, 0.2f);
-        glVertex3f(0, -0.9f, 0.2f);
-        glVertex3f(0.8f, -1, 0);
-        glEnd();
+        int part1 = mesh.vertexCount;
+        tint = new float[] { 1, 0, 0, 1 * alpha };
+        mesh.Vertex(-0.8f, -1, 0, tint, model);
+        mesh.Vertex(0, 1, 0, tint, model);
+        mesh.Vertex(0.8f, -1, 0, tint, model);
+        mesh.LineStrip(part1, mesh.vertexCount - part1);
+        int part2 = mesh.vertexCount;
+        mesh.Vertex(-0.8f, -1, 0, tint, model);
+        mesh.Vertex(0, -0.9f, 0.2f, tint, model);
+        mesh.Vertex(0, -0.9f, 0.2f, tint, model);
+        mesh.Vertex(0.8f, -1, 0, tint, model);
+        for (int vi = part2; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1);
     }
 }

@@ -1,7 +1,7 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Bonus : Actor
 {
@@ -47,9 +47,9 @@ public class Bonus : Actor
         my = my * (0.95f);
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
     {
-        LetterRender.drawNumReverse(num, pos.x, pos.y, size);
+        LetterRender.drawNumReverse(model, tint, blend, num, pos.x, pos.y, size);
     }
 }
 
