@@ -26,8 +26,8 @@ Drawing.emit_image = function(part, transform)
  imageCount = imageCount + 1
 end
 local testImage = DrawImage.new()
-testImage.key='title-test'; testImage.width=2; testImage.height=2; testImage.atlas_height=3; testImage.levels=2
-testImage.pixels={255,0,0,255, 0,255,0,255, 0,0,255,255, 255,255,255,255, 128,128,128,255, 0,0,0,0}
+testImage.key='title-test'; testImage.width=2; testImage.height=2; testImage.atlas_height=${game === 'a7xpg' ? 2 : 3}; testImage.levels=${game === 'a7xpg' ? 1 : 2}
+testImage.pixels={255,0,0,255, 0,255,0,255, 0,0,255,255, 255,255,255,255${game === 'a7xpg' ? '' : ', 17,37,57,255, 0,0,0,0'}}
 local testMask = DrawImage.new()
 for key,value in pairs(testImage) do testMask[key]=value end
 testMask.key='title-test-mask'; testMask.pixels={}
@@ -102,7 +102,7 @@ return Game`);
             return { maxError, mip: sample(160, 40), geometry: sample(205, 45), outside: sample(20, 20) };
         }, png.toString('base64'));
         assert.ok(result.maxError <= 2, `${game}: ${JSON.stringify(result)}`);
-        for (const [actual, expected] of [[result.mip, [179, 204, 230]], [result.geometry, [77, 127, 179]], [result.outside, [51, 76, 102]]]) {
+        for (const [actual, expected] of [[result.mip, game === 'a7xpg' ? [179, 204, 230] : [68, 113, 159]], [result.geometry, [77, 127, 179]], [result.outside, [51, 76, 102]]]) {
             actual.forEach((value, i) => assert.ok(Math.abs(value - expected[i]) <= 2, `${game}: ${JSON.stringify(result)}`));
         }
         assert.deepEqual(errors, []);
