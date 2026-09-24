@@ -2,11 +2,11 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public interface Drawable
 {
-    public void draw();
+    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive);
 }
 
 public interface Collidable
@@ -17,24 +17,26 @@ public interface Collidable
 
 public abstract class DrawableShape : Drawable
 {
-    public DisplayList displayList;
+    static int nextMesh;
+    public Mesh mesh;
+    public int opaqueCount;
     public void initializeShape()
     {
-        displayList = new DisplayList(1);
-        displayList.beginNewList();
-        createDisplayList();
-        displayList.endNewList();
+        mesh = new Mesh("shape-" + nextMesh.ToString()); nextMesh++;
+        createMesh();
     }
 
-    public abstract void createDisplayList();
-    public void close()
-    {
-        displayList.close();
-    }
+    public abstract void createMesh();
+    public void close() { mesh = null; }
 
-    public void draw()
+    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
     {
-        displayList.call(0);
+        if (opaqueCount > 0)
+            Gfx.Draw(opaqueCount, mesh.Bindings(model, color, 1, false),
+                new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.None });
+        if (mesh.count > opaqueCount)
+            Gfx.Draw(mesh.count - opaqueCount, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive, opaqueCount / 3),
+                new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 }
 
@@ -111,10 +113,10 @@ public class ResizableDrawable : Drawable, Collidable
     public Drawable _shape;
     public float _size;
     public Vector _collision;
-    public void draw()
+    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
     {
-        glScalef(_size, _size, _size);
-        _shape.draw();
+        model = Transform.Scale(model, _size, _size, _size);
+        _shape.draw(model, color, blend);
     }
 
     public Drawable shape

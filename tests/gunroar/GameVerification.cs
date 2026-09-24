@@ -40,12 +40,8 @@ public static class GrVerification
             int signed = random.nextSignedInt(1); if (signed == -1) minus = true; if (signed == 1) plus = true;
         }
         Check(minus && plus && random.nextInt(0) == 0, "inclusive signed random bounds");
-        Drawing.BeginFrame(); Drawing.recordBlend = true; Drawing.premultiplyAdditive = true;
         var game = new GameManager(); game.init(); game.start();
-        game.draw(); int titleImages = 0;
-        foreach (DrawBatch batch in Drawing.batches)
-            if (batch.image != null) { titleImages++; Check(batch.count == 6, "title uses one textured quad"); }
-        Check(titleImages == 1, "title image survives drawing transforms");
+        Check(game.titleManager.logo.count == 6, "title uses one textured quad");
         for (int mode = 0; mode < 4; mode++)
         {
             game.inGameState.rand.setSeed(900 + mode); game.startInGame(mode);

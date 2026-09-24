@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
 
 public class StageManager
 {
@@ -322,10 +321,10 @@ public class StageManager
         }
     }
 
-    public void draw()
+    public void draw(float[] model)
     {
-        Letter.drawNum(GameMath.integer((rank * 1000)), 620, 10, 10, 0, 0, 33, 3);
-        Letter.drawTime(bossAppTime, 120, 20, 7);
+        Letter.drawNum(model, GameMath.integer((rank * 1000)), 620, 10, 10, 0, 0, 33, 3);
+        Letter.drawTime(model, bossAppTime, 120, 20, 7);
     }
 
     public float rankMultiplier()

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Spark : LuminousActor
 {
@@ -70,34 +70,36 @@ public class Spark : LuminousActor
         vel.opMulAssign(0.96f);
     }
 
-    public override void draw()
+    public override void draw(float[] model, Mesh particles = null)
     {
+        float[] color = null;
         float ox = vel.x;
         float oy = vel.y;
-        GrScreen.setColor(r, g, b, 1);
+        color = new float[] { r, g, b, 1 };
         ox = ox * (2);
         oy = oy * (2);
-        glVertex3f(pos.x - ox, pos.y - oy, 0);
+        particles.Vertex(pos.x - ox, pos.y - oy, 0, color);
         ox = ox * (0.5f);
         oy = oy * (0.5f);
-        GrScreen.setColor(r * 0.5f, g * 0.5f, b * 0.5f, 0);
-        glVertex3f(pos.x - oy, pos.y + ox, 0);
-        glVertex3f(pos.x + oy, pos.y - ox, 0);
+        color = new float[] { r * 0.5f, g * 0.5f, b * 0.5f, 0 };
+        particles.Vertex(pos.x - oy, pos.y + ox, 0, color);
+        particles.Vertex(pos.x + oy, pos.y - ox, 0, color);
     }
 
-    public override void drawLuminous()
+    public override void drawLuminous(float[] model, Mesh particles = null)
     {
+        float[] color = null;
         float ox = vel.x;
         float oy = vel.y;
-        GrScreen.setColor(r, g, b, 1);
+        color = new float[] { r, g, b, 1 };
         ox = ox * (2);
         oy = oy * (2);
-        glVertex3f(pos.x - ox, pos.y - oy, 0);
+        particles.Vertex(pos.x - ox, pos.y - oy, 0, color);
         ox = ox * (0.5f);
         oy = oy * (0.5f);
-        GrScreen.setColor(r * 0.5f, g * 0.5f, b * 0.5f, 0);
-        glVertex3f(pos.x - oy, pos.y + ox, 0);
-        glVertex3f(pos.x + oy, pos.y - ox, 0);
+        color = new float[] { r * 0.5f, g * 0.5f, b * 0.5f, 0 };
+        particles.Vertex(pos.x - oy, pos.y + ox, 0, color);
+        particles.Vertex(pos.x + oy, pos.y - ox, 0, color);
     }
 }
 
@@ -343,26 +345,28 @@ public class Smoke : LuminousActor
         }
     }
 
-    public override void draw()
+    public override void draw(float[] model, Mesh particles = null)
     {
+        float[] color = null;
         float quadSize = size / 2;
-        GrScreen.setColor(r, g, b, a);
-        glVertex3f(pos.x - quadSize, pos.y - quadSize, pos.z);
-        glVertex3f(pos.x + quadSize, pos.y - quadSize, pos.z);
-        glVertex3f(pos.x + quadSize, pos.y + quadSize, pos.z);
-        glVertex3f(pos.x - quadSize, pos.y + quadSize, pos.z);
+        color = new float[] { r, g, b, a };
+        particles.Vertex(pos.x - quadSize, pos.y - quadSize, pos.z, color);
+        particles.Vertex(pos.x + quadSize, pos.y - quadSize, pos.z, color);
+        particles.Vertex(pos.x + quadSize, pos.y + quadSize, pos.z, color);
+        particles.Vertex(pos.x - quadSize, pos.y + quadSize, pos.z, color);
     }
 
-    public override void drawLuminous()
+    public override void drawLuminous(float[] model, Mesh particles = null)
     {
+        float[] color = null;
         if ((r + g > 0.8f) && (b < 0.5f))
         {
             float quadSize = size / 2;
-            GrScreen.setColor(r, g, b, a);
-            glVertex3f(pos.x - quadSize, pos.y - quadSize, pos.z);
-            glVertex3f(pos.x + quadSize, pos.y - quadSize, pos.z);
-            glVertex3f(pos.x + quadSize, pos.y + quadSize, pos.z);
-            glVertex3f(pos.x - quadSize, pos.y + quadSize, pos.z);
+            color = new float[] { r, g, b, a };
+            particles.Vertex(pos.x - quadSize, pos.y - quadSize, pos.z, color);
+            particles.Vertex(pos.x + quadSize, pos.y - quadSize, pos.z, color);
+            particles.Vertex(pos.x + quadSize, pos.y + quadSize, pos.z, color);
+            particles.Vertex(pos.x - quadSize, pos.y + quadSize, pos.z, color);
         }
     }
 }
@@ -376,7 +380,7 @@ public class SmokePool : LuminousActorPool<Smoke>
 
 public class Fragment : Actor
 {
-    public static DisplayList displayList;
+    public static Mesh mesh;
     public static GunroarRand rand;
     public Field field;
     public SmokePool smokes;
@@ -386,24 +390,23 @@ public class Fragment : Actor
     public float d2, md2;
     public static void init_0()
     {
+        float[] color = null;
         rand = new GunroarRand();
-        displayList = new DisplayList(1);
-        displayList.beginNewList();
-        GrScreen.setColor(0.7f, 0.5f, 0.5f, 0.5f);
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex2f(-0.5f, -0.25f);
-        glVertex2f(0.5f, -0.25f);
-        glVertex2f(0.5f, 0.25f);
-        glVertex2f(-0.5f, 0.25f);
-        glEnd();
-        GrScreen.setColor(0.7f, 0.5f, 0.5f, 0.9f);
-        glBegin(GL_LINE_LOOP);
-        glVertex2f(-0.5f, -0.25f);
-        glVertex2f(0.5f, -0.25f);
-        glVertex2f(0.5f, 0.25f);
-        glVertex2f(-0.5f, 0.25f);
-        glEnd();
-        displayList.endNewList();
+        mesh = new Mesh("fragment");
+        color = new float[] { 0.7f, 0.5f, 0.5f, 0.5f };
+        int first1 = mesh.vertexCount;
+        mesh.Vertex(-0.5f, -0.25f, 0, color);
+        mesh.Vertex(0.5f, -0.25f, 0, color);
+        mesh.Vertex(0.5f, 0.25f, 0, color);
+        mesh.Vertex(-0.5f, 0.25f, 0, color);
+        mesh.Fan(first1, mesh.vertexCount - first1);
+        color = new float[] { 0.7f, 0.5f, 0.5f, 0.9f };
+        int first2 = mesh.vertexCount;
+        mesh.Vertex(-0.5f, -0.25f, 0, color);
+        mesh.Vertex(0.5f, -0.25f, 0, color);
+        mesh.Vertex(0.5f, 0.25f, 0, color);
+        mesh.Vertex(-0.5f, 0.25f, 0, color);
+        mesh.LineStrip(first2, mesh.vertexCount - first2, true);
     }
 
     public static void setRandSeed(int seed)
@@ -413,7 +416,7 @@ public class Fragment : Actor
 
     public static void close()
     {
-        displayList.close();
+        mesh = null;
     }
 
     public Fragment()
@@ -478,14 +481,13 @@ public class Fragment : Actor
         d2 = d2 + (md2);
     }
 
-    public override void draw()
+    public override void draw(float[] model, Mesh particles = null)
     {
-        glPushMatrix();
-        GrScreen.glTranslate3(pos);
-        glRotatef(d2, 1, 0, 0);
-        glScalef(size, size, 1);
-        displayList.call(0);
-        glPopMatrix();
+        float[] color = null;
+        model = Transform.Translate(model, pos.x, pos.y, pos.z);
+        model = Transform.Rotate(model, d2, 1, 0, 0);
+        model = Transform.Scale(model, size, size, 1);
+        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, false), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Alpha });
     }
 }
 
@@ -498,7 +500,7 @@ public class FragmentPool : ActorPool<Fragment>
 
 public class SparkFragment : LuminousActor
 {
-    public static DisplayList displayList;
+    public static Mesh mesh;
     public static GunroarRand rand;
     public Field field;
     public SmokePool smokes;
@@ -510,16 +512,15 @@ public class SparkFragment : LuminousActor
     public bool hasSmoke;
     public static void init_0()
     {
+        float[] color = null;
         rand = new GunroarRand();
-        displayList = new DisplayList(1);
-        displayList.beginNewList();
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex2f(-0.25f, -0.25f);
-        glVertex2f(0.25f, -0.25f);
-        glVertex2f(0.25f, 0.25f);
-        glVertex2f(-0.25f, 0.25f);
-        glEnd();
-        displayList.endNewList();
+        mesh = new Mesh("spark-fragment");
+        int first1 = mesh.vertexCount;
+        mesh.Vertex(-0.25f, -0.25f, 0, color);
+        mesh.Vertex(0.25f, -0.25f, 0, color);
+        mesh.Vertex(0.25f, 0.25f, 0, color);
+        mesh.Vertex(-0.25f, 0.25f, 0, color);
+        mesh.Fan(first1, mesh.vertexCount - first1);
     }
 
     public static void setRandSeed(int seed)
@@ -529,7 +530,7 @@ public class SparkFragment : LuminousActor
 
     public static void close()
     {
-        displayList.close();
+        mesh = null;
     }
 
     public SparkFragment()
@@ -608,26 +609,24 @@ public class SparkFragment : LuminousActor
         }
     }
 
-    public override void draw()
+    public override void draw(float[] model, Mesh particles = null)
     {
-        glPushMatrix();
-        GrScreen.setColor(1, rand.nextFloat(1), 0, 0.8f);
-        GrScreen.glTranslate3(pos);
-        glRotatef(d2, 1, 0, 0);
-        glScalef(size, size, 1);
-        displayList.call(0);
-        glPopMatrix();
+        float[] color = null;
+        color = new float[] { 1, rand.nextFloat(1), 0, 0.8f };
+        model = Transform.Translate(model, pos.x, pos.y, pos.z);
+        model = Transform.Rotate(model, d2, 1, 0, 0);
+        model = Transform.Scale(model, size, size, 1);
+        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, false), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Alpha });
     }
 
-    public override void drawLuminous()
+    public override void drawLuminous(float[] model, Mesh particles = null)
     {
-        glPushMatrix();
-        GrScreen.setColor(1, rand.nextFloat(1), 0, 0.8f);
-        GrScreen.glTranslate3(pos);
-        glRotatef(d2, 1, 0, 0);
-        glScalef(size, size, 1);
-        displayList.call(0);
-        glPopMatrix();
+        float[] color = null;
+        color = new float[] { 1, rand.nextFloat(1), 0, 0.8f };
+        model = Transform.Translate(model, pos.x, pos.y, pos.z);
+        model = Transform.Rotate(model, d2, 1, 0, 0);
+        model = Transform.Scale(model, size, size, 1);
+        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, false), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Alpha });
     }
 }
 
@@ -694,22 +693,23 @@ public class Wake : Actor
         size = size * (1.02f);
     }
 
-    public override void draw()
+    public override void draw(float[] model, Mesh particles = null)
     {
+        float[] color = null;
         float ox = vel.x;
         float oy = vel.y;
-        GrScreen.setColor(0.33f, 0.33f, 1);
+        color = new float[] { 0.33f, 0.33f, 1, 1 };
         ox = ox * (size);
         oy = oy * (size);
         if (revShape)
-            glVertex3f(pos.x + ox, pos.y + oy, 0);
+            particles.Vertex(pos.x + ox, pos.y + oy, 0, color);
         else
-            glVertex3f(pos.x - ox, pos.y - oy, 0);
+            particles.Vertex(pos.x - ox, pos.y - oy, 0, color);
         ox = ox * (0.2f);
         oy = oy * (0.2f);
-        GrScreen.setColor(0.2f, 0.2f, 0.6f, 0.5f);
-        glVertex3f(pos.x - oy, pos.y + ox, 0);
-        glVertex3f(pos.x + oy, pos.y - ox, 0);
+        color = new float[] { 0.2f, 0.2f, 0.6f, 0.5f };
+        particles.Vertex(pos.x - oy, pos.y + ox, 0, color);
+        particles.Vertex(pos.x + oy, pos.y - ox, 0, color);
     }
 }
 

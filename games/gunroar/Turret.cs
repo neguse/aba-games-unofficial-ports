@@ -2,10 +2,11 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Turret
 {
+    public string meshKey;
     public static GunroarRand rand;
     public static Vector damagedPos;
     public Field field;
@@ -38,8 +39,9 @@ public class Turret
         rand.setSeed(seed);
     }
 
-    public Turret(Field field, BulletPool bullets, Ship ship, SparkPool sparks, SmokePool smokes, FragmentPool fragments, Enemy parent)
+    public Turret(Field field, BulletPool bullets, Ship ship, SparkPool sparks, SmokePool smokes, FragmentPool fragments, Enemy parent, string meshKey)
     {
+        this.meshKey = meshKey;
         this.field = field;
         this.bullets = bullets;
         this.ship = ship;
@@ -175,30 +177,31 @@ public class Turret
         return true;
     }
 
-    public void draw()
+    public void draw(float[] model)
     {
+        float[] color = null;
         if (spec.invisible)
             return;
-        glPushMatrix();
+        float[] parent1 = model;
         if ((destroyedCnt < 0) && (damagedCnt > 0))
         {
             damagedPos.x = pos.x + rand.nextSignedFloat(damagedCnt * 0.015f);
             damagedPos.y = pos.y + rand.nextSignedFloat(damagedCnt * 0.015f);
-            GrScreen.glTranslate(damagedPos);
+            model = Transform.Translate(model, damagedPos.x, damagedPos.y, 0);
         }
         else
         {
-            GrScreen.glTranslate(pos);
+            model = Transform.Translate(model, pos.x, pos.y, 0);
         }
 
-        glRotatef(-(baseDeg + deg) * 180 / PI, 0, 0, 1);
+        model = Transform.Rotate(model, -(baseDeg + deg) * 180 / PI, 0, 0, 1);
         if (destroyedCnt >= 0)
-            spec.destroyedShape.draw();
+            spec.destroyedShape.draw(model);
         else if (!damaged)
-            spec.shape.draw();
+            spec.shape.draw(model);
         else
-            spec.damagedShape.draw();
-        glPopMatrix();
+            spec.damagedShape.draw(model);
+        model = parent1;
         if (destroyedCnt >= 0)
             return;
         if (appCnt > 120)
@@ -209,42 +212,50 @@ public class Turret
         float td = baseDeg + deg;
         if (spec.nway <= 1)
         {
-            glBegin(GL_LINE_STRIP);
-            GrScreen.setColor(0.9f, 0.1f, 0.1f, a);
-            glVertex2f(pos.x + sin(td) * spec.minRange, pos.y + cos(td) * spec.minRange);
-            GrScreen.setColor(0.9f, 0.1f, 0.1f, a * 0.5f);
-            glVertex2f(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange);
-            glEnd();
+            var geometry1 = new Mesh(meshKey + "-1");
+            int first1 = geometry1.vertexCount;
+            color = new float[] { 0.9f, 0.1f, 0.1f, a };
+            geometry1.Vertex(pos.x + sin(td) * spec.minRange, pos.y + cos(td) * spec.minRange, 0, color);
+            color = new float[] { 0.9f, 0.1f, 0.1f, a * 0.5f };
+            geometry1.Vertex(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange, 0, color);
+            geometry1.LineStrip(first1, geometry1.vertexCount - first1);
+            Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
         }
         else
         {
             td = td - (spec.nwayAngle * (spec.nway - 1) / 2);
-            glBegin(GL_LINE_STRIP);
-            GrScreen.setColor(0.9f, 0.1f, 0.1f, a * 0.75f);
-            glVertex2f(pos.x + sin(td) * spec.minRange, pos.y + cos(td) * spec.minRange);
-            GrScreen.setColor(0.9f, 0.1f, 0.1f, a * 0.25f);
-            glVertex2f(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange);
-            glEnd();
-            glBegin(GL_QUADS);
+            var geometry2 = new Mesh(meshKey + "-2");
+            int first2 = geometry2.vertexCount;
+            color = new float[] { 0.9f, 0.1f, 0.1f, a * 0.75f };
+            geometry2.Vertex(pos.x + sin(td) * spec.minRange, pos.y + cos(td) * spec.minRange, 0, color);
+            color = new float[] { 0.9f, 0.1f, 0.1f, a * 0.25f };
+            geometry2.Vertex(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange, 0, color);
+            geometry2.LineStrip(first2, geometry2.vertexCount - first2);
+            Gfx.Draw(geometry2.count, geometry2.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+            var geometry3 = new Mesh(meshKey + "-3");
+            int first3 = geometry3.vertexCount;
             for (int i = 0; i < spec.nway - 1; i++)
             {
-                GrScreen.setColor(0.9f, 0.1f, 0.1f, a * 0.3f);
-                glVertex2f(pos.x + sin(td) * spec.minRange, pos.y + cos(td) * spec.minRange);
-                GrScreen.setColor(0.9f, 0.1f, 0.1f, a * 0.05f);
-                glVertex2f(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange);
+                color = new float[] { 0.9f, 0.1f, 0.1f, a * 0.3f };
+                geometry3.Vertex(pos.x + sin(td) * spec.minRange, pos.y + cos(td) * spec.minRange, 0, color);
+                color = new float[] { 0.9f, 0.1f, 0.1f, a * 0.05f };
+                geometry3.Vertex(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange, 0, color);
                 td = td + (spec.nwayAngle);
-                glVertex2f(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange);
-                GrScreen.setColor(0.9f, 0.1f, 0.1f, a * 0.3f);
-                glVertex2f(pos.x + sin(td) * spec.minRange, pos.y + cos(td) * spec.minRange);
+                geometry3.Vertex(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange, 0, color);
+                color = new float[] { 0.9f, 0.1f, 0.1f, a * 0.3f };
+                geometry3.Vertex(pos.x + sin(td) * spec.minRange, pos.y + cos(td) * spec.minRange, 0, color);
             }
 
-            glEnd();
-            glBegin(GL_LINE_STRIP);
-            GrScreen.setColor(0.9f, 0.1f, 0.1f, a * 0.75f);
-            glVertex2f(pos.x + sin(td) * spec.minRange, pos.y + cos(td) * spec.minRange);
-            GrScreen.setColor(0.9f, 0.1f, 0.1f, a * 0.25f);
-            glVertex2f(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange);
-            glEnd();
+            geometry3.Quads(first3, geometry3.vertexCount - first3);
+            Gfx.Draw(geometry3.count, geometry3.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+            var geometry4 = new Mesh(meshKey + "-4");
+            int first4 = geometry4.vertexCount;
+            color = new float[] { 0.9f, 0.1f, 0.1f, a * 0.75f };
+            geometry4.Vertex(pos.x + sin(td) * spec.minRange, pos.y + cos(td) * spec.minRange, 0, color);
+            color = new float[] { 0.9f, 0.1f, 0.1f, a * 0.25f };
+            geometry4.Vertex(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange, 0, color);
+            geometry4.LineStrip(first4, geometry4.vertexCount - first4);
+            Gfx.Draw(geometry4.count, geometry4.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
         }
     }
 
@@ -629,13 +640,13 @@ public class TurretGroup
     public Vector centerPos;
     public Turret[] turret = new Turret[MAX_NUM];
     public int cnt;
-    public TurretGroup(Field field, BulletPool bullets, Ship ship, SparkPool sparks, SmokePool smokes, FragmentPool fragments, Enemy parent)
+    public TurretGroup(Field field, BulletPool bullets, Ship ship, SparkPool sparks, SmokePool smokes, FragmentPool fragments, Enemy parent, string meshKey)
     {
         this.ship = ship;
         centerPos = new Vector();
         for (int index0 = 0; index0 < MAX_NUM; index0++)
         {
-            turret[index0] = new Turret(field, bullets, ship, sparks, smokes, fragments, parent);
+            turret[index0] = new Turret(field, bullets, ship, sparks, smokes, fragments, parent, meshKey + "-" + index0.ToString());
         }
     }
 
@@ -714,10 +725,10 @@ public class TurretGroup
         return alive;
     }
 
-    public void draw()
+    public void draw(float[] model)
     {
         for (int i = 0; i < spec.num; i++)
-            turret[i].draw();
+            turret[i].draw(model);
     }
 
     public void remove()
@@ -796,13 +807,13 @@ public class MovingTurretGroup
     public int cnt;
     public Vector centerPos;
     public Turret[] turret = new Turret[MAX_NUM];
-    public MovingTurretGroup(Field field, BulletPool bullets, Ship ship, SparkPool sparks, SmokePool smokes, FragmentPool fragments, Enemy parent)
+    public MovingTurretGroup(Field field, BulletPool bullets, Ship ship, SparkPool sparks, SmokePool smokes, FragmentPool fragments, Enemy parent, string meshKey)
     {
         this.ship = ship;
         centerPos = new Vector();
         for (int index1 = 0; index1 < MAX_NUM; index1++)
         {
-            turret[index1] = new Turret(field, bullets, ship, sparks, smokes, fragments, parent);
+            turret[index1] = new Turret(field, bullets, ship, sparks, smokes, fragments, parent, meshKey + "-" + index1.ToString());
         }
 
         {
@@ -947,10 +958,10 @@ public class MovingTurretGroup
         cnt++;
     }
 
-    public void draw()
+    public void draw(float[] model)
     {
         for (int i = 0; i < spec.num; i++)
-            turret[i].draw();
+            turret[i].draw(model);
     }
 
     public void remove()

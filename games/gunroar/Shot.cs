@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Shot : Actor
 {
@@ -10,6 +10,7 @@ public class Shot : Actor
     public const float LANCE_SPEED = 0.5f;
     public static ShotShape shape;
     public static LanceShape lanceShape;
+    public static Mesh lanceMesh;
     public static GunroarRand rand;
     public Field field;
     public EnemyPool enemies;
@@ -26,6 +27,13 @@ public class Shot : Actor
     {
         shape = new ShotShape();
         lanceShape = new LanceShape();
+        lanceMesh = new Mesh("lance");
+        lanceMesh.Vertex(-1, LANCE_SPEED, 0.5f, null);
+        lanceMesh.Vertex(1, LANCE_SPEED, 0.5f, null);
+        lanceMesh.Vertex(1, -LANCE_SPEED, 0.5f, null);
+        lanceMesh.Vertex(-1, -LANCE_SPEED, 0.5f, null);
+        lanceMesh.LineStrip(0, 4, true);
+        lanceMesh.Fan(0, 4);
         rand = new GunroarRand();
     }
 
@@ -174,7 +182,7 @@ public class Shot : Actor
         }
     }
 
-    public override void draw()
+    public override void draw(float[] model, Mesh particles = null)
     {
         if (lance)
         {
@@ -194,25 +202,16 @@ public class Shot : Actor
                 float d = i * 13 + cnt * 3;
                 for (int j = 0; j < 6; j++)
                 {
-                    glPushMatrix();
-                    glTranslatef(x, y, 0);
-                    glRotatef(-_deg * 180 / PI, 0, 0, 1);
-                    glRotatef(d, 0, 1, 0);
-                    GrScreen.setColor(0.4f, 0.8f, 0.8f, a);
-                    glBegin(GL_LINE_LOOP);
-                    glVertex3f(-size, LANCE_SPEED, size / 2);
-                    glVertex3f(size, LANCE_SPEED, size / 2);
-                    glVertex3f(size, -LANCE_SPEED, size / 2);
-                    glVertex3f(-size, -LANCE_SPEED, size / 2);
-                    glEnd();
-                    GrScreen.setColor(0.2f, 0.5f, 0.5f, a / 2);
-                    glBegin(GL_TRIANGLE_FAN);
-                    glVertex3f(-size, LANCE_SPEED, size / 2);
-                    glVertex3f(size, LANCE_SPEED, size / 2);
-                    glVertex3f(size, -LANCE_SPEED, size / 2);
-                    glVertex3f(-size, -LANCE_SPEED, size / 2);
-                    glEnd();
-                    glPopMatrix();
+                    float[] parent1 = model;
+                    model = Transform.Translate(model, x, y, 0);
+                    model = Transform.Rotate(model, -_deg * 180 / PI, 0, 0, 1);
+                    model = Transform.Rotate(model, d, 0, 1, 0);
+                    model = Transform.Scale(model, size, 1, size);
+                    Gfx.Draw(24, lanceMesh.Bindings(model, new float[] { 0.4f, 0.8f, 0.8f, a }),
+                        new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+                    Gfx.Draw(6, lanceMesh.Bindings(model, new float[] { 0.2f, 0.5f, 0.5f, a / 2 }, 1, true, 8),
+                        new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+                    model = parent1;
                     d = d + (60);
                 }
 
@@ -222,12 +221,10 @@ public class Shot : Actor
         }
         else
         {
-            glPushMatrix();
-            GrScreen.glTranslate(pos);
-            glRotatef(-_deg * 180 / PI, 0, 0, 1);
-            glRotatef(cnt * 31, 0, 1, 0);
-            shape.draw();
-            glPopMatrix();
+            model = Transform.Translate(model, pos.x, pos.y, 0);
+            model = Transform.Rotate(model, -_deg * 180 / PI, 0, 0, 1);
+            model = Transform.Rotate(model, cnt * 31, 0, 1, 0);
+            shape.draw(model);
         }
     }
 
@@ -290,23 +287,24 @@ public class ShotShape : CollidableDrawable
         setCollision();
     }
 
-    public override void createDisplayList()
+    public override void createMesh()
     {
-        GrScreen.setColor(0.1f, 0.33f, 0.1f);
-        glBegin(GL_QUADS);
-        glVertex3f(0, 0.3f, 0.1f);
-        glVertex3f(0.066f, 0.3f, -0.033f);
-        glVertex3f(0.1f, -0.3f, -0.05f);
-        glVertex3f(0, -0.3f, 0.15f);
-        glVertex3f(0.066f, 0.3f, -0.033f);
-        glVertex3f(-0.066f, 0.3f, -0.033f);
-        glVertex3f(-0.1f, -0.3f, -0.05f);
-        glVertex3f(0.1f, -0.3f, -0.05f);
-        glVertex3f(-0.066f, 0.3f, -0.033f);
-        glVertex3f(0, 0.3f, 0.1f);
-        glVertex3f(0, -0.3f, 0.15f);
-        glVertex3f(-0.1f, -0.3f, -0.05f);
-        glEnd();
+        float[] color = null;
+        color = new float[] { 0.1f, 0.33f, 0.1f, 1 };
+        int first1 = mesh.vertexCount;
+        mesh.Vertex(0, 0.3f, 0.1f, color);
+        mesh.Vertex(0.066f, 0.3f, -0.033f, color);
+        mesh.Vertex(0.1f, -0.3f, -0.05f, color);
+        mesh.Vertex(0, -0.3f, 0.15f, color);
+        mesh.Vertex(0.066f, 0.3f, -0.033f, color);
+        mesh.Vertex(-0.066f, 0.3f, -0.033f, color);
+        mesh.Vertex(-0.1f, -0.3f, -0.05f, color);
+        mesh.Vertex(0.1f, -0.3f, -0.05f, color);
+        mesh.Vertex(-0.066f, 0.3f, -0.033f, color);
+        mesh.Vertex(0, 0.3f, 0.1f, color);
+        mesh.Vertex(0, -0.3f, 0.15f, color);
+        mesh.Vertex(-0.1f, -0.3f, -0.05f, color);
+        mesh.Quads(first1, mesh.vertexCount - first1);
     }
 
     public override void setCollision()

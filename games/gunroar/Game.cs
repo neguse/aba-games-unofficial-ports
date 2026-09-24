@@ -5,14 +5,13 @@ using static Lub;
 public static class Game
 {
     public static GameManager manager;
+    public static ShaderRef shader;
+    static string shaderSource;
     static float elapsed;
     static int inputMask, mouseX = 320, mouseY = 240, mouseButtons;
     public static void OnInit()
     {
         Config(new ConfigOpts { Width = 640, Height = 480 });
-        Drawing.BeginFrame();
-        Drawing.recordBlend = true;
-        Drawing.premultiplyAdditive = true;
         manager = new GameManager();
         manager.init();
         manager.start();
@@ -105,12 +104,14 @@ public static class Game
                 manager.interval = manager.interval + ((16 - manager.interval) * 0.08f);
         }
 
-        manager.draw();
-        var shader = Gfx.UseShader("gunroar", GameShaders.vertex, GameShaders.fragment, 1);
+        string source = GameShaders.vertex + GameShaders.fragment;
+        shader = Gfx.UseShader("gunroar", GameShaders.vertex, GameShaders.fragment,
+            shader != null && shaderSource == source ? (int?)shader.Version : null);
+        shaderSource = source;
         if (shader == null)
             return;
-        Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = Drawing.clearColor });
-        Drawing.Render(shader);
+        Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = new float[] { 0, 0, 0, 1 } });
+        manager.draw();
         Gfx.EndPass();
     }
 

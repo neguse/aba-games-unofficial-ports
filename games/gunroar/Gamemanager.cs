@@ -3,7 +3,6 @@ using static Lub;
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
 
 public class GameManager
 {
@@ -211,19 +210,11 @@ public class GameManager
 
     public void draw()
     {
-        screen.clear();
-        glPushMatrix();
-        screen.setEyepos();
-        state.draw();
-        glPopMatrix();
-        glPushMatrix();
-        screen.setEyepos();
-        field.drawSideWalls();
-        state.drawFront();
-        glPopMatrix();
-        GrScreen.viewOrthoFixed();
-        state.drawOrtho();
-        GrScreen.viewPerspective();
+        state.draw(screen.eye());
+        float[] model = screen.eye();
+        field.drawSideWalls(model);
+        state.drawFront(model);
+        state.drawOrtho(Transform.Ortho());
     }
 }
 
@@ -276,10 +267,10 @@ public abstract class GameState
 
     public abstract void start();
     public abstract void move();
-    public abstract void draw();
-    public abstract void drawLuminous();
-    public abstract void drawFront();
-    public abstract void drawOrtho();
+    public abstract void draw(float[] model);
+    public abstract void drawLuminous(float[] model);
+    public abstract void drawFront(float[] model);
+    public abstract void drawOrtho(float[] model);
     public void clearAll()
     {
         shots.clear();
@@ -503,68 +494,74 @@ public class InGameState : GameState
         SoundManager.playMarkedSe();
     }
 
-    public override void draw()
+    public override void draw(float[] model)
     {
-        field.draw();
-        glBegin(GL_TRIANGLES);
-        wakes.draw();
-        sparks.draw();
-        glEnd();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBegin(GL_QUADS);
-        smokes.draw();
-        glEnd();
-        fragments.draw();
-        sparkFragments.draw();
-        crystals.draw();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        enemies.draw();
-        shots.draw();
-        ship.draw();
-        bullets.draw();
+        field.draw(model);
+        var particles = new Mesh("sparks-wakes");
+        wakes.draw(model, particles);
+        sparks.draw(model, particles);
+        for (int i = 0; i < particles.vertexCount; i += 3) particles.Triangle(i, i + 1, i + 2);
+        if (particles.count > 0)
+            Gfx.Draw(particles.count, particles.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        var smoke = new Mesh("smoke");
+        smokes.draw(model, smoke);
+        smoke.Quads(0, smoke.vertexCount);
+        if (smoke.count > 0)
+            Gfx.Draw(smoke.count, smoke.Bindings(model, null, 1, false), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Alpha });
+        fragments.draw(model);
+        sparkFragments.draw(model);
+        crystals.draw(model);
+        enemies.draw(model);
+        shots.draw(model);
+        ship.draw(model);
+        bullets.draw(model);
     }
 
-    public override void drawFront()
+    public override void drawFront(float[] model)
     {
-        ship.drawFront();
-        scoreReel.draw(11.5f + (SCORE_REEL_SIZE_DEFAULT - scoreReelSize) * 3, -8.2f - (SCORE_REEL_SIZE_DEFAULT - scoreReelSize) * 3, scoreReelSize);
+        ship.drawFront(model);
+        scoreReel.draw(model, 11.5f + (SCORE_REEL_SIZE_DEFAULT - scoreReelSize) * 3, -8.2f - (SCORE_REEL_SIZE_DEFAULT - scoreReelSize) * 3, scoreReelSize);
         float x = -12;
         for (int i = 0; i < left; i++)
         {
-            glPushMatrix();
-            glTranslatef(x, -9, 0);
-            glScalef(0.7f, 0.7f, 0.7f);
-            ship.drawShape();
-            glPopMatrix();
+            float[] parent3 = model;
+            model = Transform.Translate(model, x, -9, 0);
+            model = Transform.Scale(model, 0.7f, 0.7f, 0.7f);
+            ship.drawShape(model);
+            model = parent3;
             x = x + (0.7f);
         }
 
-        numIndicators.draw();
+        numIndicators.draw(model);
     }
 
-    public void drawGameParams()
+    public void drawGameParams(float[] model)
     {
-        stageManager.draw();
+        stageManager.draw(model);
     }
 
-    public override void drawOrtho()
+    public override void drawOrtho(float[] model)
     {
-        drawGameParams();
+        drawGameParams(model);
         if (isGameOver)
-            Letter.drawString("GAME OVER", 190, 180, 15);
+            Letter.drawString(model, "GAME OVER", 190, 180, 15);
         if ((pauseCnt > 0) && ((pauseCnt % 64) < 32))
-            Letter.drawString("PAUSE", 265, 210, 12);
+            Letter.drawString(model, "PAUSE", 265, 210, 12);
     }
 
-    public override void drawLuminous()
+    public override void drawLuminous(float[] model)
     {
-        glBegin(GL_TRIANGLES);
-        sparks.drawLuminous();
-        glEnd();
-        sparkFragments.drawLuminous();
-        glBegin(GL_QUADS);
-        smokes.drawLuminous();
-        glEnd();
+        var particles = new Mesh("luminous-sparks");
+        sparks.drawLuminous(model, particles);
+        for (int i = 0; i < particles.vertexCount; i += 3) particles.Triangle(i, i + 1, i + 2);
+        if (particles.count > 0)
+            Gfx.Draw(particles.count, particles.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        sparkFragments.drawLuminous(model);
+        var smoke = new Mesh("luminous-smoke");
+        smokes.drawLuminous(model, smoke);
+        smoke.Quads(0, smoke.vertexCount);
+        if (smoke.count > 0)
+            Gfx.Draw(smoke.count, smoke.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
     }
 
     public void shipDestroyed()
@@ -701,34 +698,34 @@ public class TitleState : GameState
         titleManager.move();
     }
 
-    public override void draw()
+    public override void draw(float[] model)
     {
         if (_replayData != null)
         {
-            inGameState.draw();
+            inGameState.draw(model);
         }
         else
         {
-            field.draw();
+            field.draw(model);
         }
     }
 
-    public override void drawFront()
+    public override void drawFront(float[] model)
     {
         if (_replayData != null)
-            inGameState.drawFront();
+            inGameState.drawFront(model);
     }
 
-    public override void drawOrtho()
+    public override void drawOrtho(float[] model)
     {
         if (_replayData != null)
-            inGameState.drawGameParams();
-        titleManager.draw();
+            inGameState.drawGameParams(model);
+        titleManager.draw(model);
     }
 
-    public override void drawLuminous()
+    public override void drawLuminous(float[] model)
     {
-        inGameState.drawLuminous();
+        inGameState.drawLuminous(model);
     }
 }
 

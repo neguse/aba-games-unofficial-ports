@@ -22,7 +22,10 @@ subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub),
                 '--game', args.game, '--entry', entry, '--test', test,
                 '--output', str(output)], check=True)
 runner = output.with_name('run-game.lua')
-runner.write_text('lub = {host = {available = function() return false end}}\nlocal game = dofile(arg[1]); game.main()\n')
+runner.write_text('lub = {host = {available = function() return false end}}\n' + (
+    'lub.gfx = {use_buffer = function() return {version=1} end, '
+    'use_texture = function() return {version=1} end, draw = function() end}\n'
+    if args.game == 'gunroar' else '') + 'local game = dofile(arg[1]); game.main()\n')
 result = subprocess.run([str(args.lub / 'third_party/tcs/deps/lua/lua32'), str(runner), str(output)],
                         text=True, stdout=subprocess.PIPE, check=True)
 print(result.stdout, end='')

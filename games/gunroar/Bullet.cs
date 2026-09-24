@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
 
 public class Bullet : Actor
 {
@@ -149,24 +148,22 @@ public class Bullet : Actor
         exists = false;
     }
 
-    public override void draw()
+    public override void draw(float[] model, Mesh particles = null)
     {
         if (!field.checkInOuterField_1(pos))
             return;
-        glPushMatrix();
-        GrScreen.glTranslate(pos);
+        model = Transform.Translate(model, pos.x, pos.y, 0);
         if (_destructive)
         {
-            glRotatef(cnt * 13, 0, 0, 1);
+            model = Transform.Rotate(model, cnt * 13, 0, 0, 1);
         }
         else
         {
-            glRotatef(-deg * 180 / PI, 0, 0, 1);
-            glRotatef(cnt * 13, 0, 1, 0);
+            model = Transform.Rotate(model, -deg * 180 / PI, 0, 0, 1);
+            model = Transform.Rotate(model, cnt * 13, 0, 1, 0);
         }
 
-        shape.draw();
-        glPopMatrix();
+        shape.draw(model);
     }
 
     public void checkShotHit(Vector p, Collidable s, Shot shot)
