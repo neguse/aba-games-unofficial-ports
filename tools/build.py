@@ -150,7 +150,7 @@ target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_rrootage.py', str(rr)], check=True)
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'rrootage',
                 '--output', str(target / 'game.lua')], check=True)
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/rrootage/game'], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
 shutil.copy2('games/rrootage/index.html', target / 'index.html')
 shutil.copytree(rr / 'sounds', target / 'audio', dirs_exist_ok=True)
 (target / 'LICENSE.txt').write_text((rr / 'LICENSE.txt').read_text() + '\n\n' + licenses)

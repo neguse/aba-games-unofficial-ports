@@ -2,13 +2,12 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
 using static RrConstants;
 using static RrArrays;
 using static RrRandom;
 using static RrBarrage;
 using static RrSound;
-using static RrGl;
+using static RrInput;
 using static RrPreference;
 using static RrCore;
 using static RrAttract;

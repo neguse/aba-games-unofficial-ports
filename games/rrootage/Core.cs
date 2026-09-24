@@ -2,13 +2,13 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 using static RrConstants;
 using static RrArrays;
 using static RrRandom;
 using static RrBarrage;
 using static RrSound;
-using static RrGl;
+using static RrInput;
 using static RrPreference;
 using static RrCore;
 using static RrAttract;
@@ -112,60 +112,60 @@ public static class RrCore
         moveScreenShake();
     }
 
-    public static void draw()
+    public static void draw(float[] model, Gfx.Blend blend, string key)
     {
         switch (status)
         {
             case TITLE:
-                drawBackground();
-                drawBoss();
-                drawBulletsWake();
-                drawBullets();
-                startDrawBoards();
-                drawSideBoards();
-                drawTitle();
-                endDrawBoards();
+                drawBackground(model, blend, key + "-75");
+                drawBoss(model, blend, key + "-136");
+                drawBulletsWake(model, blend, key + "-137");
+                drawBullets(model, blend, key + "-227");
+                model = Transform.Ortho();
+                drawSideBoards(model, blend, key + "-301");
+                drawTitle(model, blend, key + "-391");
+
                 break;
             case IN_GAME:
             case STAGE_CLEAR:
-                drawBackground();
-                drawBoss();
-                drawLasers();
-                drawShots();
-                drawBulletsWake();
-                drawFrags();
-                drawShip();
-                drawBullets();
-                startDrawBoards();
-                drawSideBoards();
-                drawBossState();
-                endDrawBoards();
+                drawBackground(model, blend, key + "-433");
+                drawBoss(model, blend, key + "-606");
+                drawLasers(model, blend, key + "-606");
+                drawShots(model, blend, key + "-692");
+                drawBulletsWake(model, blend, key + "-526");
+                drawFrags(model, blend, key + "-784");
+                drawShip(model, blend, key + "-925");
+                drawBullets(model, blend, key + "-757");
+                model = Transform.Ortho();
+                drawSideBoards(model, blend, key + "-803");
+                drawBossState(model, blend, key + "-893");
+
                 break;
             case GAMEOVER:
-                drawBackground();
-                drawBoss();
-                drawBulletsWake();
-                drawFrags();
-                drawBullets();
-                startDrawBoards();
-                drawSideBoards();
-                drawGameover();
-                endDrawBoards();
+                drawBackground(model, blend, key + "-882");
+                drawBoss(model, blend, key + "-1251");
+                drawBulletsWake(model, blend, key + "-888");
+                drawFrags(model, blend, key + "-1286");
+                drawBullets(model, blend, key + "-1203");
+                model = Transform.Ortho();
+                drawSideBoards(model, blend, key + "-1193");
+                drawGameover(model, blend, key + "-1340");
+
                 break;
             case PAUSE:
-                drawBackground();
-                drawBoss();
-                drawLasers();
-                drawShots();
-                drawBulletsWake();
-                drawFrags();
-                drawShip();
-                drawBullets();
-                startDrawBoards();
-                drawSideBoards();
-                drawBossState();
-                drawPause();
-                endDrawBoards();
+                drawBackground(model, blend, key + "-1240");
+                drawBoss(model, blend, key + "-1754");
+                drawLasers(model, blend, key + "-1641");
+                drawShots(model, blend, key + "-1813");
+                drawBulletsWake(model, blend, key + "-1277");
+                drawFrags(model, blend, key + "-1849");
+                drawShip(model, blend, key + "-2135");
+                drawBullets(model, blend, key + "-1736");
+                model = Transform.Ortho();
+                drawSideBoards(model, blend, key + "-1668");
+                drawBossState(model, blend, key + "-1816");
+                drawPause(model, blend, key + "-2106");
+
                 break;
         }
     }

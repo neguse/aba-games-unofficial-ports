@@ -2,13 +2,13 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 using static RrConstants;
 using static RrArrays;
 using static RrRandom;
 using static RrBarrage;
 using static RrSound;
-using static RrGl;
+using static RrInput;
 using static RrPreference;
 using static RrCore;
 using static RrAttract;
@@ -276,7 +276,7 @@ public static class RrBackground
         }
     }
 
-    public static void drawBackground()
+    public static void drawBackground(float[] model, Gfx.Blend blend, string key)
     {
         int lx = 0, ly = 0, i = 0;
         float x = 0, y = 0;
@@ -291,7 +291,7 @@ public static class RrBackground
                     lx = 0;
                     for (; lx < pl.xn; lx++, x = x + (pl.width))
                     {
-                        drawRollLineAbs(x, pl.y + pl.oy, pl.z, x, pl.y + pl.oy + pl.height * pl.yn, pl.z, pl.r, pl.g, pl.b, pl.a, pl.d1);
+                        drawRollLineAbs(model, blend, key + "-396" + "-" + i.ToString() + "-" + lx.ToString() + "-" + ly.ToString(), x, pl.y + pl.oy, pl.z, x, pl.y + pl.oy + pl.height * pl.yn, pl.z, pl.r, pl.g, pl.b, pl.a, pl.d1);
                     }
                 }
 
@@ -300,7 +300,7 @@ public static class RrBackground
                     ly = 0;
                     for (; ly < pl.yn; ly++, y = y + (pl.height))
                     {
-                        drawRollLineAbs(pl.x + pl.ox, y, pl.z, pl.x + pl.ox + pl.width * pl.xn, y, pl.z, pl.r, pl.g, pl.b, pl.a, pl.d1);
+                        drawRollLineAbs(model, blend, key + "-743" + "-" + i.ToString() + "-" + lx.ToString() + "-" + ly.ToString(), pl.x + pl.ox, y, pl.z, pl.x + pl.ox + pl.width * pl.xn, y, pl.z, pl.r, pl.g, pl.b, pl.a, pl.d1);
                     }
                 }
             }

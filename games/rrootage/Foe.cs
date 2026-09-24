@@ -2,13 +2,13 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 using static RrConstants;
 using static RrArrays;
 using static RrRandom;
 using static RrBarrage;
 using static RrSound;
-using static RrGl;
+using static RrInput;
 using static RrPreference;
 using static RrCore;
 using static RrAttract;
@@ -519,7 +519,7 @@ public static class RrFoe
         }
     }
 
-    public static void drawBulletsWake()
+    public static void drawBulletsWake(float[] model, Gfx.Blend blend, string key)
     {
         int i = 0;
         Foe fe = null;
@@ -535,7 +535,7 @@ public static class RrFoe
                 y = -(float)fe.pos.y / FIELD_SCREEN_RATIO;
                 sx = (float)fe.spos.x / FIELD_SCREEN_RATIO;
                 sy = -(float)fe.spos.y / FIELD_SCREEN_RATIO;
-                drawLine(x, y, 0, sx, sy, 0, 150, 180, 90, (63 - fe.cnt) * 3);
+                drawLine(model, blend, key + "-588" + "-" + i.ToString(), x, y, 0, sx, sy, 0, 150, 180, 90, (63 - fe.cnt) * 3);
             }
         }
     }
@@ -567,7 +567,7 @@ public static class RrFoe
             150
         },
     };
-    public static void drawBullets()
+    public static void drawBullets(float[] model, Gfx.Blend blend, string key)
     {
         int i = 0;
         Foe fe = null;
@@ -587,12 +587,12 @@ public static class RrFoe
                 bt = fe.shapeType;
                 if (mode == IKA_MODE)
                 {
-                    drawShapeIka(x, y, fe.bulletSize[(bt)], d, fe.cnt & 1, fe.bulletShape[(bt)], fe.color);
+                    drawShapeIka(model, blend, key + "-646" + "-" + i.ToString(), x, y, fe.bulletSize[(bt)], d, fe.cnt & 1, fe.bulletShape[(bt)], fe.color);
                 }
                 else
                 {
                     bc = fe.color % BULLET_COLOR_NUM;
-                    drawShape(x, y, fe.bulletSize[(bt)], d, fe.cnt, fe.bulletShape[(bt)], bulletColor[(bc)][(0)], bulletColor[(bc)][(1)], bulletColor[(bc)][(2)]);
+                    drawShape(model, blend, key + "-914" + "-" + i.ToString(), x, y, fe.bulletSize[(bt)], d, fe.cnt, fe.bulletShape[(bt)], bulletColor[(bc)][(0)], bulletColor[(bc)][(1)], bulletColor[(bc)][(2)]);
                 }
             }
         }

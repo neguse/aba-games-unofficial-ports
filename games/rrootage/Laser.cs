@@ -2,13 +2,13 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 using static RrConstants;
 using static RrArrays;
 using static RrRandom;
 using static RrBarrage;
 using static RrSound;
-using static RrGl;
+using static RrInput;
 using static RrPreference;
 using static RrCore;
 using static RrAttract;
@@ -146,7 +146,7 @@ public static class RrLaser
         laserCnt++;
     }
 
-    public static void drawLasers()
+    public static void drawLasers(float[] model, Gfx.Blend blend, string key)
     {
         float x = 0, y = 0;
         int i = 0;
@@ -167,7 +167,7 @@ public static class RrLaser
                     t = 0;
                 else
                     t = 2;
-                drawLaser(x, y, (float)laserWidth / FIELD_SCREEN_RATIO, LASER_SCREEN_HEIGHT, ls.color, (ls.color + LASER_COLOR_SPEED) & 255, (ls.color + LASER_COLOR_SPEED * 2) & 255, (ls.color + LASER_COLOR_SPEED * 3) & 255, laserCnt, t);
+                drawLaser(model, blend, key + "-606" + "-" + i.ToString(), x, y, (float)laserWidth / FIELD_SCREEN_RATIO, LASER_SCREEN_HEIGHT, ls.color, (ls.color + LASER_COLOR_SPEED) & 255, (ls.color + LASER_COLOR_SPEED * 2) & 255, (ls.color + LASER_COLOR_SPEED * 3) & 255, laserCnt, t);
             }
         }
     }

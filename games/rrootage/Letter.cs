@@ -2,13 +2,13 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 using static RrConstants;
 using static RrArrays;
 using static RrRandom;
 using static RrBarrage;
 using static RrSound;
-using static RrGl;
+using static RrInput;
 using static RrPreference;
 using static RrCore;
 using static RrAttract;
@@ -26,6 +26,7 @@ using static RrVector;
 
 public static class RrLetter
 {
+    static Dictionary<string, Mesh> letters = new Dictionary<string, Mesh>();
     public static float[][][] spData = new float[][][]
     {
         new float[][]
@@ -2019,8 +2020,68 @@ public static class RrLetter
             },
         }
     };
-    public static void drawLetter(int idx, int lx, int ly, int ltSize, int d, int r, int g, int b)
+    public static void drawLetter(float[] model, Gfx.Blend blend, string key, int idx, int lx, int ly, int ltSize, int d, int r, int g, int b)
     {
+        string geometryKey = idx.ToString() + "-" + ltSize.ToString() + "-" + d.ToString();
+        if (!letters.ContainsKey(geometryKey)) letters[geometryKey] = createLetter("letter-" + geometryKey, idx, ltSize, d);
+        Mesh mesh = letters[geometryKey];
+        model = Transform.Translate(model, lx, ly, 0);
+        float[] tint = new float[] { (r & 255) / 255f, (g & 255) / 255f, (b & 255) / 255f, 1 };
+        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+    }
+
+    public static void drawString(float[] model, Gfx.Blend blend, string key, string str, int lx, int ly, int ltSize, int d, int r, int g, int b)
+    {
+        int x = lx, y = ly;
+        int i = 0, idx = 0;
+        {
+            i = 0;
+            for (;; i++)
+            {
+                if (i >= str.Length)
+                    break;
+                string letter = str.Substring(i, 1);
+                if (letter != " ")
+                {
+                    idx = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".IndexOf(letter.ToUpper());
+                    if (idx < 0)
+                    {
+                        if (letter == ".")
+                            idx = 36;
+                        else if (letter == "-")
+                            idx = 38;
+                        else if (letter == "+")
+                            idx = 39;
+                        else
+                            idx = 37;
+                    }
+
+                    drawLetter(model, blend, key + "-805" + "-" + i.ToString(), idx, x, y, ltSize, d, r, g, b);
+                }
+
+                switch (d)
+                {
+                    case 0:
+                        x = GameMath.integer(x + (ltSize * 1.7f));
+                        break;
+                    case 1:
+                        y = GameMath.integer(y + (ltSize * 1.7f));
+                        break;
+                    case 2:
+                        x = GameMath.integer(x - (ltSize * 1.7f));
+                        break;
+                    case 3:
+                        y = GameMath.integer(y - (ltSize * 1.7f));
+                        break;
+                }
+            }
+        }
+    }
+
+    static Mesh createLetter(string key, int idx, int ltSize, int d)
+    {
+        var mesh = new Mesh(key);
         int i = 0;
         float x = 0, y = 0, length = 0, size = 0, t = 0;
         int deg = 0;
@@ -2065,61 +2126,32 @@ public static class RrLetter
                 deg = deg % (180);
                 if ((deg <= 45) || (deg > 135))
                 {
-                    drawBox(GameMath.integer((x * ltSize)) + lx, GameMath.integer((y * ltSize)) + ly, GameMath.integer((size * ltSize)), GameMath.integer((length * ltSize)), r, g, b);
+                    appendBox(mesh, GameMath.integer((x * ltSize)), GameMath.integer((y * ltSize)), GameMath.integer((size * ltSize)), GameMath.integer((length * ltSize)));
                 }
                 else
                 {
-                    drawBox(GameMath.integer((x * ltSize)) + lx, GameMath.integer((y * ltSize)) + ly, GameMath.integer((length * ltSize)), GameMath.integer((size * ltSize)), r, g, b);
+                    appendBox(mesh, GameMath.integer((x * ltSize)), GameMath.integer((y * ltSize)), GameMath.integer((length * ltSize)), GameMath.integer((size * ltSize)));
                 }
             }
         }
+
+        return mesh;
     }
 
-    public static void drawString(string str, int lx, int ly, int ltSize, int d, int r, int g, int b)
+    static void appendBox(Mesh mesh, float x, float y, float width, float height)
     {
-        int x = lx, y = ly;
-        int i = 0, idx = 0;
-        {
-            i = 0;
-            for (;; i++)
-            {
-                if (i >= str.Length)
-                    break;
-                string letter = str.Substring(i, 1);
-                if (letter != " ")
-                {
-                    idx = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".IndexOf(letter.ToUpper());
-                    if (idx < 0)
-                    {
-                        if (letter == ".")
-                            idx = 36;
-                        else if (letter == "-")
-                            idx = 38;
-                        else if (letter == "+")
-                            idx = 39;
-                        else
-                            idx = 37;
-                    }
-
-                    drawLetter(idx, x, y, ltSize, d, r, g, b);
-                }
-
-                switch (d)
-                {
-                    case 0:
-                        x = GameMath.integer(x + (ltSize * 1.7f));
-                        break;
-                    case 1:
-                        y = GameMath.integer(y + (ltSize * 1.7f));
-                        break;
-                    case 2:
-                        x = GameMath.integer(x - (ltSize * 1.7f));
-                        break;
-                    case 3:
-                        y = GameMath.integer(y - (ltSize * 1.7f));
-                        break;
-                }
-            }
-        }
+        int first = mesh.vertexCount;
+        float[] color = new float[] { 1, 1, 1, 128f / 255 };
+        mesh.Vertex(x - width, y - height, 0, color, null, true);
+        mesh.Vertex(x + width, y - height, 0, color, null, true);
+        mesh.Vertex(x + width, y + height, 0, color, null, true);
+        mesh.Vertex(x - width, y + height, 0, color, null, true);
+        mesh.Fan(first, 4);
+        first = mesh.vertexCount;
+        mesh.Vertex(x - width, y - height, 0, null);
+        mesh.Vertex(x + width, y - height, 0, null);
+        mesh.Vertex(x + width, y + height, 0, null);
+        mesh.Vertex(x - width, y + height, 0, null);
+        mesh.LineStrip(first, 4, true);
     }
 }

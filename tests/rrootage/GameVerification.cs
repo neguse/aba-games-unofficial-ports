@@ -3,7 +3,7 @@ using static RrConstants;
 public static class RrVerification {
     static int failures;
     static void Check(bool condition,string name){if(!condition){failures++;Console.WriteLine("FAIL "+name);}}
-    static void Draw(){RrScreen.drawGLSceneStart();RrCore.draw();RrScreen.drawGLSceneEnd();Check(Drawing.batches.Count>0,"scene geometry");}
+    static void Draw(){RrCore.draw(RrScreen.setEyepos(), Lub.Gfx.Blend.Additive, "scene");}
     static void Move(int count){for(int i=0;i<count;i++){RrCore.move();RrCore.tick++;}}
     static int[][] shipReference=new int[][] {
         new int[]{-22830,26322,500,100,2,21,0,0,0,0,0,2000,0,0},
@@ -50,7 +50,7 @@ public static class RrVerification {
     static void ShipMotion(int mode){
         RrAttract.setMode(mode);RrCore.initGame(0);
         for(int f=0;f<600;f++){
-            RrGl.input=(f%120<80?16:0)|(f%180>=40&&f%180<100?32:0)|(f%240<120?5:10);
+            RrInput.input=(f%120<80?16:0)|(f%180>=40&&f%180<100?32:0)|(f%240<120?5:10);
             if(f==240){RrShip.ship.grzCnt=2000;RrShip.ship.absEng=10;}
             RrShip.moveShip();var s=RrShip.ship;
             if(f%60==59){
@@ -61,7 +61,7 @@ public static class RrVerification {
         }
     }
     static void Stages(int mode){
-        RrAttract.setMode(mode);RrGl.input=0;
+        RrAttract.setMode(mode);RrInput.input=0;
         for(int stage=0;stage<40;stage++){
             RrCore.initGame(stage);
             for(int scene=0;scene<5;scene++){
@@ -102,7 +102,6 @@ public static class RrVerification {
         RrAttract.left=0;RrShip.ship.invCnt=0;RrShip.destroyShip();Check(RrCore.status==GAMEOVER,"last life game over");
     }
     public static void Main(){
-        Drawing.BeginFrame();Drawing.recordBlend=true;Drawing.premultiplyAdditive=false;
         RrAngles.tantbl=RrData.tangent;RrAngles.sctbl=RrData.sine;RrBarrage.initBarragemanager();RrAttract.initHiScore();RrAttract.initAttractManager();RrAttract.initGameStateFirst();RrCore.initTitle();Draw();
         var command=new FoeCommand(-1,new Foe(),new PatternState());command.Direction=-90;Check(command.foe.d==768,"wrapped bullet heading");
         Check(RrData.pixels().Count==RrData.atlasWidth*RrData.atlasHeight*4,"texture bytes");
@@ -111,19 +110,19 @@ public static class RrVerification {
             ShipMotion(mode);RrAttract.setMode(mode);RrCore.initGame(0);
             int bullets=0;
             for(int f=0;f<1200;f++){
-                RrGl.input=16|(f%120<40?32:0)|(f%240<120?4:8);RrShip.ship.invCnt=Math.Max(RrShip.ship.invCnt,1);Move(1);
+                RrInput.input=16|(f%120<40?32:0)|(f%240<120?4:8);RrShip.ship.invCnt=Math.Max(RrShip.ship.invCnt,1);Move(1);
                 if(f%120==0){Draw();foreach(var bullet in RrFoe.foe)if(bullet.spc==BULLET||bullet.spc==ACTIVE_BULLET)bullets++;}
             }
             Check(bullets>0,"bullets emitted");
             RrCore.initGame(39);
-            for(int f=0;f<600;f++){RrGl.input=16;RrShip.ship.invCnt=Math.Max(RrShip.ship.invCnt,1);Move(1);if(f%120==0)Draw();}
+            for(int f=0;f<600;f++){RrInput.input=16;RrShip.ship.invCnt=Math.Max(RrShip.ship.invCnt,1);Move(1);if(f%120==0)Draw();}
             Stages(mode);Console.WriteLine("MODE "+mode.ToString());
         }
         Defenses();
         string pref="";for(int i=0;i<160;i++)pref+="1234567,1,";pref+="39,3";RrPreference.loadPreference(pref);
         Check(RrAttract.hiScore.score[3][39]==1234567&&RrAttract.hiScore.stage==39&&RrAttract.hiScore.mode==3,"preferences loaded");
         RrPreference.loadPreference(pref+",0");Check(RrAttract.hiScore.score[0][0]==1234567,"invalid preferences rejected");
-        RrCore.initTitle();Draw();RrGl.input=0;Move(1);RrGl.input=32;Move(1);Check(RrAttract.mode==0,"title mode wraps");
+        RrCore.initTitle();Draw();RrInput.input=0;Move(1);RrInput.input=32;Move(1);Check(RrAttract.mode==0,"title mode wraps");
         Console.WriteLine("RESULT "+failures.ToString());
     }
 }

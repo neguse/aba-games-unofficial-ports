@@ -25,7 +25,7 @@ public class Mesh
     public Mesh(string key) { this.key = key; }
     public int vertexCount { get { return vertices.Count / 8; } }
     public int count { get { return faces.Count / 4 * 3; } }
-    public void Vertex(float x, float y, float z, float[] color, float[] transform = null)
+    public void Vertex(float x, float y, float z, float[] color, float[] transform = null, bool inheritColor = false)
     {
         if (transform != null)
         {
@@ -34,7 +34,7 @@ public class Mesh
             y = transform[1] * px + transform[5] * py + transform[9] * pz + transform[13];
             z = transform[2] * px + transform[6] * py + transform[10] * pz + transform[14];
         }
-        vertices.Add(x); vertices.Add(y); vertices.Add(z); vertices.Add(color == null ? 1 : 0);
+        vertices.Add(x); vertices.Add(y); vertices.Add(z); vertices.Add(color == null || inheritColor ? 1 : 0);
         for (int i = 0; i < 4; i++) vertices.Add(color == null ? 1 : color[i]);
         vertexBuffer = null;
     }
@@ -43,7 +43,7 @@ public class Mesh
         int baseVertex = vertexCount, baseFace = count;
         for (int i = 0; i < source.vertices.Count; i += 8)
             Vertex(source.vertices[i], source.vertices[i + 1], source.vertices[i + 2],
-                source.vertices[i + 3] > 0 ? null : new float[] { source.vertices[i + 4], source.vertices[i + 5], source.vertices[i + 6], source.vertices[i + 7] }, model);
+                new float[] { source.vertices[i + 4], source.vertices[i + 5], source.vertices[i + 6], source.vertices[i + 7] }, model, source.vertices[i + 3] > 0);
         for (int i = 0; i < source.faces.Count; i += 4)
         {
             faces.Add(source.faces[i] + baseVertex); faces.Add(source.faces[i + 1] + baseVertex);

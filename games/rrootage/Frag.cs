@@ -2,13 +2,13 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 using static RrConstants;
 using static RrArrays;
 using static RrRandom;
 using static RrBarrage;
 using static RrSound;
-using static RrGl;
+using static RrInput;
 using static RrPreference;
 using static RrCore;
 using static RrAttract;
@@ -328,7 +328,7 @@ public static class RrFrag
         }
     }
 
-    public static void drawFrags()
+    public static void drawFrags(float[] model, Gfx.Blend blend, string key)
     {
         int c = 0;
         int i = 0;
@@ -341,7 +341,7 @@ public static class RrFrag
                     continue;
                 fr = (frag[(i)]);
                 c = fr.cnt & (FRAG_COLOR_NUM - 1);
-                drawRollLine(fr.x, fr.y, fr.z, fr.width, fr.r[(c)], fr.g[(c)], fr.b[(c)], 255, fr.d1, fr.d2);
+                drawRollLine(model, blend, key + "-315" + "-" + i.ToString(), fr.x, fr.y, fr.z, fr.width, fr.r[(c)], fr.g[(c)], fr.b[(c)], 255, fr.d1, fr.d2);
             }
         }
     }
