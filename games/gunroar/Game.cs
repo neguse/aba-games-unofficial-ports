@@ -6,7 +6,7 @@ public static class Game
 {
     public static GameManager manager;
     static float elapsed;
-    static int version, inputMask, mouseX = 320, mouseY = 240, mouseButtons;
+    static int inputMask, mouseX = 320, mouseY = 240, mouseButtons;
     public static void OnInit()
     {
         Config(new ConfigOpts { Width = 640, Height = 480 });
@@ -109,19 +109,8 @@ public static class Game
         var shader = Gfx.UseShader("gunroar", GameShaders.vertex, GameShaders.fragment, 1);
         if (shader == null)
             return;
-        version++;
         Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = Drawing.clearColor });
-        int index = 0;
-        foreach (var batch in Drawing.batches)
-        {
-            if (batch.vertices.Count == 0)
-                continue;
-            var buffer = Gfx.UseBuffer("geometry" + index.ToString(), Gfx.BufferType.Storage, batch.vertices, version);
-            if (buffer != null)
-                Gfx.Draw(GameMath.integer(batch.vertices.Count / 8), TextureDrawing.Bindings(buffer, batch, index, version), new DrawOpts { Shader = shader, Depth = batch.depth, DepthWrite = batch.depth, Cull = batch.cull ? Gfx.Cull.Front : Gfx.Cull.None, Blend = batch.multiply ? Gfx.Blend.Multiply : batch.blend ? (batch.alphaBlend ? Gfx.Blend.Alpha : Gfx.Blend.Additive) : Gfx.Blend.None });
-            index++;
-        }
-
+        Drawing.Render(shader);
         Gfx.EndPass();
     }
 

@@ -44,7 +44,7 @@ public static class GrVerification
         var game = new GameManager(); game.init(); game.start();
         game.draw(); int titleImages = 0;
         foreach (DrawBatch batch in Drawing.batches)
-            if (batch.image != null) { titleImages++; Check(batch.vertices.Count == 48, "title uses one textured quad"); }
+            if (batch.image != null) { titleImages++; Check(batch.count == 6, "title uses one textured quad"); }
         Check(titleImages == 1, "title image survives drawing transforms");
         for (int mode = 0; mode < 4; mode++)
         {

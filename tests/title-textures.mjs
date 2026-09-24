@@ -15,16 +15,17 @@ try {
             const response = await route.fetch();
             const code = (await response.text()).replace(/return Game\s*$/, `
 local uploads, imageCount, frames = {}, 0, 0
-local useTexture, emit = lub.gfx.use_texture, Drawing.emit_image
+local useTexture = lub.gfx.use_texture
 lub.gfx.use_texture = function(key, w, h, format, data, ...)
  if data and key:sub(1, 6) == 'title-' then uploads[key] = (uploads[key] or 0) + 1 end
  return useTexture(key, w, h, format, data, ...)
 end
+${game === 'gunroar' ? '' : `local emit = Drawing.emit_image
 Drawing.emit_image = function(part, transform)
  emit(part, transform)
  assert(#Drawing.batches[#Drawing.batches].vertices == 48, 'image must be two triangles')
  imageCount = imageCount + 1
-end
+end`}
 local testImage = DrawImage.new()
 testImage.key='title-test'; testImage.width=2; testImage.height=2; testImage.atlas_height=${game === 'a7xpg' ? 2 : 3}; testImage.levels=${game === 'a7xpg' ? 1 : 2}
 testImage.pixels={255,0,0,255, 0,255,0,255, 0,0,255,255, 255,255,255,255${game === 'a7xpg' ? '' : ', 17,37,57,255, 0,0,0,0'}}
@@ -37,6 +38,12 @@ local original = Game.on_frame
 Game.on_frame = function(dt)
  imageCount=0
  original(0.016)
+ ${game === 'gunroar' ? `for _,batch in ipairs(Drawing.batches) do
+  if batch.image then
+   imageCount=imageCount+1
+   assert(batch.count == 6, 'image must be two triangles')
+  end
+ end` : ''}
  assert(imageCount > 0, 'original title must draw images')
  Drawing.begin_frame(); Drawing.ortho=true; Drawing.viewport_ratio=1
  Drawing.gl_disable(Drawing.gl_depth_test); Drawing.gl_disable(Drawing.gl_cull_face); Drawing.gl_enable(Drawing.gl_blend)
@@ -57,11 +64,11 @@ Game.on_frame = function(dt)
  local blank=lub.gfx.use_texture('test-blank',1,1,lub.gfx.RGBA8,{0,0,0,0},1)
  frames=frames+1
  lub.gfx.begin_pass({target=lub.gfx.main_tex,clear_color={0.2,0.3,0.4,1}})
- for index,batch in ipairs(Drawing.batches) do
+ ${game === 'gunroar' ? 'Drawing.render(shader)' : `for index,batch in ipairs(Drawing.batches) do
   local buffer=lub.gfx.use_buffer('title-test-geometry'..index,lub.gfx.STORAGE,batch.vertices,frames)
   local bindings=TextureDrawing.bindings(buffer,batch,index+100,frames);${game === 'a7xpg' ? 'bindings.glow=blank' : ''}
   lub.gfx.draw(#batch.vertices//8,bindings,{shader=shader,cull=lub.gfx.NONE,depth=false,depth_write=false,blend=batch.multiply and lub.gfx.MULTIPLY or lub.gfx.ADDITIVE})
- end
+ end`}
  lub.gfx.end_pass()
  for key,count in pairs(uploads) do assert(count==1, 'repeated texture upload: '..key) end
  lub.host.send('test.images',tostring(frames))

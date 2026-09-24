@@ -19,10 +19,12 @@ float4 sampleTitle(float2 uv, float2 dx, float2 dy) {
     if (titleParameters[1].w > 0) color.rgb *= color.a;
     return color;
 }
-struct Input { float4 position : SV_Position; float4 color : COLOR0; };
+struct Input { float4 position : SV_Position; float4 color : COLOR0; nointerpolation uint premultiply : TEXCOORD1; };
 [shader("fragment")]
 float4 fs_main(Input input) : SV_Target {
     float2 dx = ddx(input.color.xy), dy = ddy(input.color.xy);
     if (input.color.w < -1.5) return sampleTitle(input.color.xy, dx, dy);
-    return input.color;
+    float4 color = input.color;
+    if (input.premultiply != 0) color.rgb *= color.a;
+    return color;
 }
