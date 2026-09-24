@@ -78,20 +78,22 @@ public static class Game
     {
         Gfx.BeginPass(new PassOpts { Target = target, Load = load ? Gfx.LoadAction.Load : Gfx.LoadAction.Clear, ClearColor = new float[] { 0, 0, 0, 0 } });
         foreach (var batch in Drawing.batches)
-            drawVertices(batch.vertices, texture, batch.alphaBlend);
+            drawVertices(batch.vertices, texture, batch.alphaBlend, batch);
         Gfx.EndPass();
         Drawing.batches.Clear();
         Drawing.glLineWidth(1);
     }
 
-    public static void drawVertices(List<float> vertices, TextureRef texture, bool alpha)
+    public static void drawVertices(List<float> vertices, TextureRef texture, bool alpha, DrawBatch batch = null)
     {
         if (vertices.Count == 0)
             return;
         var buffer = Gfx.UseBuffer("geometry" + bufferIndex.ToString(), Gfx.BufferType.Storage, vertices, version);
+        var bindings = TextureDrawing.Bindings(buffer, batch, bufferIndex, version);
+        bindings["glow"] = texture;
         bufferIndex++;
         if (buffer != null)
-            Gfx.Draw(GameMath.integer(vertices.Count / 8), new Dictionary<string, object> { ["verts"] = buffer, ["glow"] = texture }, new DrawOpts { Shader = shader, Cull = Gfx.Cull.None, Depth = false, DepthWrite = false, Blend = alpha ? Gfx.Blend.Alpha : Gfx.Blend.Additive });
+            Gfx.Draw(GameMath.integer(vertices.Count / 8), bindings, new DrawOpts { Shader = shader, Cull = Gfx.Cull.None, Depth = false, DepthWrite = false, Blend = alpha ? Gfx.Blend.Alpha : Gfx.Blend.Additive });
     }
 
     public static void OnQuit()

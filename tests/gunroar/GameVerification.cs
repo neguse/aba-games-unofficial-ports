@@ -42,7 +42,10 @@ public static class GrVerification
         Check(minus && plus && random.nextInt(0) == 0, "inclusive signed random bounds");
         Drawing.BeginFrame(); Drawing.recordBlend = true; Drawing.premultiplyAdditive = true;
         var game = new GameManager(); game.init(); game.start();
-        game.draw(); Check(Drawing.batches.Count > 0 && Drawing.batches[0].vertices.Count > 1000, "title geometry");
+        game.draw(); int titleImages = 0;
+        foreach (DrawBatch batch in Drawing.batches)
+            if (batch.image != null) { titleImages++; Check(batch.vertices.Count == 48, "title uses one textured quad"); }
+        Check(titleImages == 1, "title image survives drawing transforms");
         for (int mode = 0; mode < 4; mode++)
         {
             game.inGameState.rand.setSeed(900 + mode); game.startInGame(mode);
