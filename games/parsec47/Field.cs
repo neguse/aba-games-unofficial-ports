@@ -1,7 +1,7 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class Field {
 
   public const int TYPE_NUM = 4;
@@ -10,7 +10,7 @@ public class Field {
   public float aimZ;
   public float aimSpeed;
 
-  public static int displayListIdx;
+  public static Mesh[] meshes = new Mesh[1];
   public const int RING_NUM = 16;
   public const float RING_ANGLE_INT = 10;
   public float roll, yaw;
@@ -78,20 +78,24 @@ public class Field {
     }
   }
 
-  public void draw() {
-    Screen.setColorAlpha(r, g, b, 0.7f);
+  public void draw(float[] model, float[] color, Gfx.Blend blend) {
+    color = new float[] { r, g, b, 0.7f };
     float d = -RING_NUM * RING_ANGLE_INT / 2 + roll;
     for (int index0 = 0; index0 < RING_NUM; index0++) {
       for (int index1 = 1; index1 < 8; index1++) {
 	float sc = (float) index1 / 16 + 0.5f;
-	glPushMatrix();
-	glTranslatef(0, 0, z);
-	glRotatef(d, 1, 0, 0);
-	glRotatef(sin(yaw / 180 * PI) * yawYBase, 0, 1, 0);
-	glRotatef(sin(yaw / 180 * PI) * yawZBase, 0, 0, 1);
-	glScalef(1, 1, sc);
-	glCallList(displayListIdx);
-	glPopMatrix();
+	float[] parent1 = model;
+	model = Transform.Translate(model, 0, 0, z);
+	model = Transform.Rotate(model, d, 1, 0, 0);
+	model = Transform.Rotate(model, sin(yaw / 180 * PI) * yawYBase, 0, 1, 0);
+	model = Transform.Rotate(model, sin(yaw / 180 * PI) * yawZBase, 0, 0, 1);
+	model = Transform.Scale(model, 1, 1, sc);
+	{
+      Mesh shape1 = meshes[0];
+      Gfx.Draw(shape1.count, shape1.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+        new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+    }
+	model = parent1;
       }
       d += RING_ANGLE_INT;
     }
@@ -116,48 +120,48 @@ public class Field {
   public const float RING_RADIUS = 10;
   public const float RING_SIZE = 0.5f;
 
-  public static void writeOneRing() {
-    glBegin(GL_LINE_STRIP);
+  public static void appendRing(Mesh mesh, float[] color) {
+    int part1 = mesh.vertexCount;
     for (int index2 = 0; index2 <= GameMath.integer(RING_POS_NUM / 2) - 2; index2++) {
-      glVertex3f(ringPos[index2].x, RING_SIZE, ringPos[index2].y);
+      mesh.Vertex(ringPos[index2].x, RING_SIZE, ringPos[index2].y, color);
     }
     for (int index3 = GameMath.integer(RING_POS_NUM / 2) - 2; index3 >= 0; index3--) {
-      glVertex3f(ringPos[index3].x, -RING_SIZE, ringPos[index3].y);
+      mesh.Vertex(ringPos[index3].x, -RING_SIZE, ringPos[index3].y, color);
     }
-    glVertex3f(ringPos[0].x, RING_SIZE, ringPos[0].y);
-    glEnd();
-    glBegin(GL_LINE_STRIP);
-    glVertex3f(ringPos[GameMath.integer(RING_POS_NUM / 2) - 1].x, RING_SIZE, ringPos[GameMath.integer(RING_POS_NUM / 2) - 1].y);
-    glVertex3f(ringPos[GameMath.integer(RING_POS_NUM / 2)].x, RING_SIZE, ringPos[GameMath.integer(RING_POS_NUM / 2)].y);
-    glVertex3f(ringPos[GameMath.integer(RING_POS_NUM / 2)].x, -RING_SIZE, ringPos[GameMath.integer(RING_POS_NUM / 2)].y);
-    glVertex3f(ringPos[GameMath.integer(RING_POS_NUM / 2) - 1].x, -RING_SIZE, ringPos[GameMath.integer(RING_POS_NUM / 2) - 1].y);
-    glVertex3f(ringPos[GameMath.integer(RING_POS_NUM / 2) - 1].x, RING_SIZE, ringPos[GameMath.integer(RING_POS_NUM / 2) - 1].y);
-    glEnd();
-    glBegin(GL_LINE_STRIP);
+    mesh.Vertex(ringPos[0].x, RING_SIZE, ringPos[0].y, color);
+    mesh.LineStrip(part1, mesh.vertexCount - part1);
+    int part2 = mesh.vertexCount;
+    mesh.Vertex(ringPos[GameMath.integer(RING_POS_NUM / 2) - 1].x, RING_SIZE, ringPos[GameMath.integer(RING_POS_NUM / 2) - 1].y, color);
+    mesh.Vertex(ringPos[GameMath.integer(RING_POS_NUM / 2)].x, RING_SIZE, ringPos[GameMath.integer(RING_POS_NUM / 2)].y, color);
+    mesh.Vertex(ringPos[GameMath.integer(RING_POS_NUM / 2)].x, -RING_SIZE, ringPos[GameMath.integer(RING_POS_NUM / 2)].y, color);
+    mesh.Vertex(ringPos[GameMath.integer(RING_POS_NUM / 2) - 1].x, -RING_SIZE, ringPos[GameMath.integer(RING_POS_NUM / 2) - 1].y, color);
+    mesh.Vertex(ringPos[GameMath.integer(RING_POS_NUM / 2) - 1].x, RING_SIZE, ringPos[GameMath.integer(RING_POS_NUM / 2) - 1].y, color);
+    mesh.LineStrip(part2, mesh.vertexCount - part2);
+    int part3 = mesh.vertexCount;
     for (int index4 = GameMath.integer(RING_POS_NUM / 2) + 1;  index4 <= RING_POS_NUM - 1; index4++) {
-      glVertex3f(ringPos[index4].x, RING_SIZE, ringPos[index4].y);
+      mesh.Vertex(ringPos[index4].x, RING_SIZE, ringPos[index4].y, color);
     }
     for (int index5 = RING_POS_NUM - 1; index5 >= GameMath.integer(RING_POS_NUM / 2) + 1; index5--) {
-      glVertex3f(ringPos[index5].x, -RING_SIZE, ringPos[index5].y);
+      mesh.Vertex(ringPos[index5].x, -RING_SIZE, ringPos[index5].y, color);
     }
-    glVertex3f(ringPos[GameMath.integer(RING_POS_NUM / 2) + 1].x, RING_SIZE, ringPos[GameMath.integer(RING_POS_NUM / 2) + 1].y);
-    glEnd();
+    mesh.Vertex(ringPos[GameMath.integer(RING_POS_NUM / 2) + 1].x, RING_SIZE, ringPos[GameMath.integer(RING_POS_NUM / 2) + 1].y, color);
+    mesh.LineStrip(part3, mesh.vertexCount - part3);
   }
 
-  public static void createDisplayLists() {
+  public static void createMeshes() {
     float d = -RING_DEG * ((float) (GameMath.integer(RING_POS_NUM / 2)) - 0.5f);
     for (int index6 = 0; index6 < RING_POS_NUM; index6++, d += RING_DEG) {
       ringPos[index6] = new Vector();
       ringPos[index6].x = sin(d) * RING_RADIUS;
       ringPos[index6].y = cos(d) * RING_RADIUS;
     }
-    displayListIdx = glGenLists(1);
-    glNewList(displayListIdx, GL_COMPILE);
-    writeOneRing();
-    glEndList();
+    float[] color = null; Mesh mesh = null;
+    mesh = new Mesh("Field-ring");
+    meshes[0] = mesh;
+    appendRing(mesh, color);
   }
 
-  public static void deleteDisplayLists() {
-    glDeleteLists(displayListIdx, 1);
+  public static void deleteMeshes() {
+    meshes = new Mesh[1];
   }
 }

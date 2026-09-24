@@ -1,7 +1,7 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class P47GameManager {
 
   public bool nowait = false;
@@ -18,7 +18,6 @@ public class P47GameManager {
   public Pad pad;
   public const int ENEMY_MAX = 32;
   public P47PrefManager prefManager;
-  public P47Screen screen;
   public P47Rand rand;
   public Field field;
   public Ship ship;
@@ -49,12 +48,11 @@ public class P47GameManager {
   public void init() {
     pad = new Pad();
     prefManager = new P47PrefManager();
-    screen = new P47Screen();
     rand = new P47Rand();
-    Field.createDisplayLists();
+    Field.createMeshes();
     field = new Field();
     field.init();
-    Ship.createDisplayLists();
+    Ship.createMeshes();
     ship = new Ship();
     ship.init(pad, field, this);
     Particle particleClass = new Particle();
@@ -63,10 +61,10 @@ public class P47GameManager {
     Fragment fragmentClass = new Fragment();
     FragmentInitializer fi = new FragmentInitializer();
     fragments = new LuminousActorPool(128, fragmentClass, fi);
-    BulletActor.createDisplayLists();
+    BulletActor.createMeshes();
     BulletActorInitializer bi = new BulletActorInitializer(field, ship);
     bullets = new BulletActorPool(512, bi);
-    LetterRender.createDisplayLists();
+    LetterRender.createMeshes();
     Shot shotClass = new Shot();
     ShotInitializer shi = new ShotInitializer(field);
     shots = new ActorPool(32, shotClass, shi);
@@ -104,10 +102,10 @@ public class P47GameManager {
     barrageManager.unloadBulletMLs();
     title.close();
     SoundManager.close();
-    LetterRender.deleteDisplayLists();
-    Field.deleteDisplayLists();
-    Ship.deleteDisplayLists();
-    BulletActor.deleteDisplayLists();
+    LetterRender.deleteMeshes();
+    Field.deleteMeshes();
+    Ship.deleteMeshes();
+    BulletActor.deleteMeshes();
   }
 
   public void addScore(int sc) {
@@ -453,163 +451,179 @@ public class P47GameManager {
     cnt++;
   }
 
-  public void inGameDraw() {
-    field.draw();
+  public void inGameDraw(float[] model, float[] color, Gfx.Blend blend) {
+    field.draw(model, color, blend);
     P47Screen.setRetroColor(0.2f, 0.7f, 0.5f, 1);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    bonuses.draw();
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    Screen.setColorAlpha(Particle.R, Particle.G, Particle.B, 1);
-    glBegin(GL_LINES);
-    particles.draw();
-    glEnd();
+    blend = Gfx.Blend.Alpha;
+    bonuses.draw(model, color, blend, null);
+    blend = Gfx.Blend.Additive;
+    color = new float[] { Particle.R, Particle.G, Particle.B, 1 };
+    var mesh = new Mesh("inGameDraw-particles");
+    particles.draw(model, color, blend, mesh);
+    for (int vi = 0; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1);
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     P47Screen.setRetroColor(Fragment.R, Fragment.G, Fragment.B, 1);
-    fragments.draw();
+    fragments.draw(model, color, blend, null);
     P47Screen.setRetroZ(0);
-    ship.draw();
+    ship.draw(model, color, blend);
     P47Screen.setRetroColor(0.8f, 0.8f, 0.2f, 0.8f);
-    shots.draw();
+    shots.draw(model, color, blend, null);
     P47Screen.setRetroColor(1.0f, 0.8f, 0.5f, 1);
     if (mode == ROLL)
-      rolls.draw();
+      rolls.draw(model, color, blend, null);
     else
-      targetLocks.draw();
-    enemies.draw();
-    bullets.draw();
+      targetLocks.draw(model, color, blend, null);
+    enemies.draw(model, color, blend, null);
+    bullets.draw(model, color, blend, null);
   }
 
-  public void titleDraw() {
-    field.draw();
-    enemies.draw();
-    bullets.draw();
+  public void titleDraw(float[] model, float[] color, Gfx.Blend blend) {
+    field.draw(model, color, blend);
+    enemies.draw(model, color, blend, null);
+    bullets.draw(model, color, blend, null);
   }
 
-  public void gameoverDraw() {
-    field.draw();
-    Screen.setColorAlpha(Particle.R, Particle.G, Particle.B, 1);
-    glBegin(GL_LINES);
-    particles.draw();
-    glEnd();
+  public void gameoverDraw(float[] model, float[] color, Gfx.Blend blend) {
+    field.draw(model, color, blend);
+    color = new float[] { Particle.R, Particle.G, Particle.B, 1 };
+    var mesh = new Mesh("gameoverDraw-particles");
+    particles.draw(model, color, blend, mesh);
+    for (int vi = 0; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1);
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     P47Screen.setRetroColor(Fragment.R, Fragment.G, Fragment.B, 1);
-    fragments.draw();
+    fragments.draw(model, color, blend, null);
     P47Screen.setRetroZ(0);
-    enemies.draw();
-    bullets.draw();
+    enemies.draw(model, color, blend, null);
+    bullets.draw(model, color, blend, null);
   }
 
-  public void inGameDrawLuminous() {
-    glBegin(GL_LINES);
-    particles.drawLuminous();
-    fragments.drawLuminous();
-    glEnd();
+  public void inGameDrawLuminous(float[] model, float[] color, Gfx.Blend blend) {
+    var mesh = new Mesh("inGameDrawLuminous-particles");
+    particles.drawLuminous(model, color, blend, mesh);
+    fragments.drawLuminous(model, color, blend, mesh);
+    for (int vi = 0; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1);
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
-  public void titleDrawLuminous() {
+  public void titleDrawLuminous(float[] model, float[] color, Gfx.Blend blend) {
   }
 
-  public void gameoverDrawLuminous() {
-    glBegin(GL_LINES);
-    particles.drawLuminous();
-    fragments.drawLuminous();
-    glEnd();
+  public void gameoverDrawLuminous(float[] model, float[] color, Gfx.Blend blend) {
+    var mesh = new Mesh("gameoverDrawLuminous-particles");
+    particles.drawLuminous(model, color, blend, mesh);
+    fragments.drawLuminous(model, color, blend, mesh);
+    for (int vi = 0; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1);
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
-  public void drawBoard(int x, int y, int width, int height) {
-    Drawing.Color(0, 0, 0, 1);
-    glBegin(GL_QUADS);
-    glVertex2f(x, y);
-    glVertex2f(x + width, y);
-    glVertex2f(x + width, y + height);
-    glVertex2f(x, y + height);
-    glEnd();
+  public void drawBoard(float[] model, float[] color, Gfx.Blend blend, int x, int y, int width, int height) {
+    var mesh = new Mesh("P47GameManager-drawBoard" + "-" + x.ToString() + "-" + y.ToString());
+    color = new float[] { 0, 0, 0, 1 };
+    int part1 = mesh.vertexCount;
+    mesh.Vertex(x, y, 0, color);
+    mesh.Vertex(x + width, y, 0, color);
+    mesh.Vertex(x + width, y + height, 0, color);
+    mesh.Vertex(x, y + height, 0, color);
+    mesh.Quads(part1, mesh.vertexCount - part1);
+
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
-  public void drawSideBoards() {
-    glDisable(GL_BLEND);
-    drawBoard(0, 0, 160, 480);
-    drawBoard(480, 0, 160, 480);
-    glEnable(GL_BLEND);
+  public void drawSideBoards(float[] model, float[] color, Gfx.Blend blend) {
+    blend = Gfx.Blend.None;
+    drawBoard(model, color, blend, 0, 0, 160, 480);
+    drawBoard(model, color, blend, 480, 0, 160, 480);
+    blend = Gfx.Blend.Additive;
   }
 
-  public void drawScore() {
-    LetterRender.drawNum(score, 120, 28, 25, LetterRender.TO_UP);
-    LetterRender.drawNum(Bonus.bonusScore, 24, 20, 12, LetterRender.TO_UP);
+  public void drawScore(float[] model, float[] color, Gfx.Blend blend) {
+    LetterRender.drawNum(model, color, blend, score, 120, 28, 25, LetterRender.TO_UP);
+    LetterRender.drawNum(model, color, blend, Bonus.bonusScore, 24, 20, 12, LetterRender.TO_UP);
   }
 
-  public void drawLeft() {
+  public void drawLeft(float[] model, float[] color, Gfx.Blend blend) {
     if (left < 0)
       return;
-    LetterRender.drawString("LEFT", 520, 260, 25, LetterRender.TO_DOWN);
+    LetterRender.drawString(model, color, blend, "LEFT", 520, 260, 25, LetterRender.TO_DOWN);
     LetterRender.changeColor(LetterRender.RED);
-    LetterRender.drawNum(left, 520, 450, 25, LetterRender.TO_DOWN);
+    LetterRender.drawNum(model, color, blend, left, 520, 450, 25, LetterRender.TO_DOWN);
     LetterRender.changeColor(LetterRender.WHITE);
   }
 
-  public void drawParsec() {
+  public void drawParsec(float[] model, float[] color, Gfx.Blend blend) {
     int ps = stageManager.parsec;
     if (ps < 10)
-      LetterRender.drawNum(stageManager.parsec, 600, 26, 25, LetterRender.TO_DOWN);
+      LetterRender.drawNum(model, color, blend, stageManager.parsec, 600, 26, 25, LetterRender.TO_DOWN);
     else if (ps < 100)
-      LetterRender.drawNum(stageManager.parsec, 600, 68, 25, LetterRender.TO_DOWN);
+      LetterRender.drawNum(model, color, blend, stageManager.parsec, 600, 68, 25, LetterRender.TO_DOWN);
     else
-      LetterRender.drawNum(stageManager.parsec, 600, 110, 25, LetterRender.TO_DOWN);
+      LetterRender.drawNum(model, color, blend, stageManager.parsec, 600, 110, 25, LetterRender.TO_DOWN);
   }
 
-  public void drawBox(int x, int y, int w, int h) {
+  public void drawBox(float[] model, float[] color, Gfx.Blend blend, int x, int y, int w, int h) {
+    var mesh = new Mesh("P47GameManager-drawBox" + "-" + x.ToString() + "-" + y.ToString());
     if (w <= 0)
       return;
-    Screen.setColorAlpha(1, 1, 1, 0.5f);
-    P47Screen.drawBoxSolid(x, y, w, h);
-    Screen.setColorAlpha(1, 1, 1, 1);
-    P47Screen.drawBoxLine(x, y, w, h);
+    color = new float[] { 1, 1, 1, 0.5f };
+    P47Screen.appendBoxSolid(mesh, color, x, y, w, h);
+    color = new float[] { 1, 1, 1, 1 };
+    P47Screen.appendBoxLine(mesh, color, x, y, w, h);
+
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
-  public void drawBossShieldMeter() {
-    drawBox(165, 6, bossShield, 6);
+  public void drawBossShieldMeter(float[] model, float[] color, Gfx.Blend blend) {
+    drawBox(model, color, blend, 165, 6, bossShield, 6);
     int y = 24;
     for (int index5 = 0; index5 < BOSS_WING_NUM; index5++) {
       switch (index5 % 2) {
       case 0:
-	drawBox(165, y, bossWingShield[index5], 6);
+	drawBox(model, color, blend, 165, y, bossWingShield[index5], 6);
 	break;
       case 1:
-	drawBox(475 - bossWingShield[index5], y, bossWingShield[index5], 6);
+	drawBox(model, color, blend, 475 - bossWingShield[index5], y, bossWingShield[index5], 6);
 	y += 12;
 	break;
       }
     }
   }
 
-  public void drawSideInfo() {
-    drawSideBoards();
-    drawScore();
-    drawLeft();
-    drawParsec();
+  public void drawSideInfo(float[] model, float[] color, Gfx.Blend blend) {
+    drawSideBoards(model, color, blend);
+    drawScore(model, color, blend);
+    drawLeft(model, color, blend);
+    drawParsec(model, color, blend);
   }
 
-  public void inGameDrawStatus() {
-    drawSideInfo();
+  public void inGameDrawStatus(float[] model, float[] color, Gfx.Blend blend) {
+    drawSideInfo(model, color, blend);
     if (stageManager.bossSection)
-      drawBossShieldMeter();
+      drawBossShieldMeter(model, color, blend);
   }
 
-  public void titleDrawStatus() {
-    drawSideBoards();
-    drawScore();
-    title.draw();
+  public void titleDrawStatus(float[] model, float[] color, Gfx.Blend blend) {
+    drawSideBoards(model, color, blend);
+    drawScore(model, color, blend);
+    title.draw(model, color, blend);
   }
 
-  public void gameoverDrawStatus() {
-    drawSideInfo();
+  public void gameoverDrawStatus(float[] model, float[] color, Gfx.Blend blend) {
+    drawSideInfo(model, color, blend);
     if (cnt > 64) {
-      LetterRender.drawString("GAME OVER", 220, 200, 15, LetterRender.TO_RIGHT);
+      LetterRender.drawString(model, color, blend, "GAME OVER", 220, 200, 15, LetterRender.TO_RIGHT);
     }
   }
 
-  public void pauseDrawStatus() {
-    drawSideInfo();
+  public void pauseDrawStatus(float[] model, float[] color, Gfx.Blend blend) {
+    drawSideInfo(model, color, blend);
     if ((pauseCnt % 60) < 30)
-      LetterRender.drawString("PAUSE", 280, 220, 12, LetterRender.TO_RIGHT);
+      LetterRender.drawString(model, color, blend, "PAUSE", 280, 220, 12, LetterRender.TO_RIGHT);
   }
 
   public int screenShakeCnt;
@@ -625,50 +639,47 @@ public class P47GameManager {
       screenShakeCnt--;
   }
 
-  public void setEyepos() {
+  public float[] setEyepos() {
     float x = 0, y = 0;
     if (screenShakeCnt > 0) {
       x = rand.nextSignedFloat(screenShakeIntense * (screenShakeCnt + 10));
       y = rand.nextSignedFloat(screenShakeIntense * (screenShakeCnt + 10));
     }
-    glTranslatef(x, y, -field.eyeZ);
+    return Transform.Translate(Transform.Perspective(), x, y, -field.eyeZ);
   }
 
   public void draw() {
-    screen.clear();
-    glPushMatrix();
-    setEyepos();
+    float[] model = setEyepos();
+    float[] color = null; Gfx.Blend blend = Gfx.Blend.Additive;
     switch (state) {
     case IN_GAME:
     case PAUSE:
-      inGameDraw();
+      inGameDraw(model, color, blend);
       break;
     case TITLE_STATE:
-      titleDraw();
+      titleDraw(model, color, blend);
       break;
     case GAMEOVER:
-      gameoverDraw();
+      gameoverDraw(model, color, blend);
       break;
     default: break;
     }
-    glPopMatrix();
+    model = Transform.Ortho();
+    switch (state) {
+    case IN_GAME:
+      inGameDrawStatus(model, color, blend);
+      break;
+    case TITLE_STATE:
+      titleDrawStatus(model, color, blend);
+      break;
+    case GAMEOVER:
+      gameoverDrawStatus(model, color, blend);
+      break;
+    case PAUSE:
+      pauseDrawStatus(model, color, blend);
+      break;
+    default: break;
+    }
 
-    screen.viewOrthoFixed();
-    switch (state) {
-    case IN_GAME:
-      inGameDrawStatus();
-      break;
-    case TITLE_STATE:
-      titleDrawStatus();
-      break;
-    case GAMEOVER:
-      gameoverDrawStatus();
-      break;
-    case PAUSE:
-      pauseDrawStatus();
-      break;
-    default: break;
-    }
-    screen.viewPerspective();
   }
 }

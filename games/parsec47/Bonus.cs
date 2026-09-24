@@ -1,7 +1,7 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class Bonus: Actor {
 
   public static float rate;
@@ -134,7 +134,8 @@ public class Bonus: Actor {
     }
   }
 
-  public override void draw() {
+  public override void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+    var mesh = new Mesh("Bonus-draw" + "-" + meshKey);
     float retro=0;
     if (cnt < RETRO_CNT)
       retro = 1 - (float) cnt / RETRO_CNT;
@@ -145,26 +146,29 @@ public class Bonus: Actor {
     float oy = cos(d) * 0.3f;
     if (retro > 0) {
       P47Screen.setRetroParam(retro, 0.2f);
-      P47Screen.drawBoxRetro(pos.x - ox, pos.y - oy, BOX_SIZE / 2, BOX_SIZE / 2, 0);
-      P47Screen.drawBoxRetro(pos.x + ox, pos.y + oy, BOX_SIZE / 2, BOX_SIZE / 2, 0);
-      P47Screen.drawBoxRetro(pos.x - oy, pos.y + ox, BOX_SIZE / 2, BOX_SIZE / 2, 0);
-      P47Screen.drawBoxRetro(pos.x + oy, pos.y - ox, BOX_SIZE / 2, BOX_SIZE / 2, 0);
+      P47Screen.appendBoxRetro(mesh, pos.x - ox, pos.y - oy, BOX_SIZE / 2, BOX_SIZE / 2, 0);
+      P47Screen.appendBoxRetro(mesh, pos.x + ox, pos.y + oy, BOX_SIZE / 2, BOX_SIZE / 2, 0);
+      P47Screen.appendBoxRetro(mesh, pos.x - oy, pos.y + ox, BOX_SIZE / 2, BOX_SIZE / 2, 0);
+      P47Screen.appendBoxRetro(mesh, pos.x + oy, pos.y - ox, BOX_SIZE / 2, BOX_SIZE / 2, 0);
     } else {
       if (isInhaled)
-	Screen.setColorAlpha(0.8f, 0.6f, 0.4f, 0.7f);
+	color = new float[] { 0.8f, 0.6f, 0.4f, 0.7f };
       else if (isDown)
-	Screen.setColorAlpha(0.4f, 0.9f, 0.6f, 0.7f);
+	color = new float[] { 0.4f, 0.9f, 0.6f, 0.7f };
       else
-	Screen.setColorAlpha(0.8f, 0.9f, 0.5f, 0.7f);
-      P47Screen.drawBoxLine(pos.x - ox - BOX_SIZE / 2, pos.y - oy - BOX_SIZE / 2,
+	color = new float[] { 0.8f, 0.9f, 0.5f, 0.7f };
+      P47Screen.appendBoxLine(mesh, color, pos.x - ox - BOX_SIZE / 2, pos.y - oy - BOX_SIZE / 2,
 			    BOX_SIZE, BOX_SIZE);
-      P47Screen.drawBoxLine(pos.x + ox - BOX_SIZE / 2, pos.y + oy - BOX_SIZE / 2,
+      P47Screen.appendBoxLine(mesh, color, pos.x + ox - BOX_SIZE / 2, pos.y + oy - BOX_SIZE / 2,
 			    BOX_SIZE, BOX_SIZE);
-      P47Screen.drawBoxLine(pos.x - oy - BOX_SIZE / 2, pos.y + ox - BOX_SIZE / 2,
+      P47Screen.appendBoxLine(mesh, color, pos.x - oy - BOX_SIZE / 2, pos.y + ox - BOX_SIZE / 2,
 			    BOX_SIZE, BOX_SIZE);
-      P47Screen.drawBoxLine(pos.x + oy - BOX_SIZE / 2, pos.y - ox - BOX_SIZE / 2,
+      P47Screen.appendBoxLine(mesh, color, pos.x + oy - BOX_SIZE / 2, pos.y - ox - BOX_SIZE / 2,
 			    BOX_SIZE, BOX_SIZE);
     }
+
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 }
 

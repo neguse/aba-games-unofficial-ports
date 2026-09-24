@@ -57,7 +57,7 @@ subprocess.run([sys.executable, 'tools/compile_parsec47.py', str(p47)], check=Tr
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'parsec47',
                 '--output', str(target / 'game.lua')], check=True)
 shutil.copy2('games/parsec47/index.html', target / 'index.html')
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/title'], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
 shutil.copytree(p47 / 'sounds', target / 'audio', dirs_exist_ok=True)
 (target / 'LICENSE.txt').write_text((p47 / 'readme_e.txt').read_text() + '\n\n' + licenses)
 archive = Path('.cache/gr0_15.zip')
@@ -94,7 +94,7 @@ subprocess.run([sys.executable, 'tools/compile_titanion.py', str(ttn)], check=Tr
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'titanion',
                 '--output', str(target / 'game.lua')], check=True)
 shutil.copy2('games/titanion/index.html', target / 'index.html')
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/titanion/game'], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
 (target / 'audio').mkdir(exist_ok=True)
 for directory in ['chunks', 'musics']:
     for audio in (ttn / 'sounds' / directory).iterdir():

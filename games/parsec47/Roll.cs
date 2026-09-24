@@ -1,7 +1,7 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class Roll: Actor {
 
   public bool released;
@@ -77,16 +77,20 @@ public class Roll: Actor {
     cnt++;
   }
 
-  public override void draw() {
+  public override void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+    var mesh = new Mesh("Roll-draw" + "-" + meshKey);
     if (released)
       P47Screen.setRetroParam(1, 0.2f);
     else
       P47Screen.setRetroParam(0.5f, 0.2f);
     for (int index3 = 0; index3 < LENGTH; index3++) {
-      P47Screen.drawBoxRetro(pos[index3].x, pos[index3].y,
+      P47Screen.appendBoxRetro(mesh, pos[index3].x, pos[index3].y,
 			     BASE_SIZE * (LENGTH - index3),  BASE_SIZE * (LENGTH - index3),
 			     cnt * 0.1f);
     }
+
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 }
 

@@ -1,7 +1,7 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Drawing;
+using static Lub;
 public class BulletActor: Actor {
 
   public P47Bullet bullet;
@@ -12,7 +12,7 @@ public class BulletActor: Actor {
   public Field field;
   public Ship ship;
   public static int nextId;
-  public static int displayListIdx;
+  public static Mesh[] meshes = new Mesh[BULLET_COLOR_NUM * (BULLET_SHAPE_NUM + 1)];
   public bool isSimple;
   public bool isTop;
   public bool isVisible;
@@ -195,7 +195,8 @@ public class BulletActor: Actor {
   public const int BULLET_COLOR_NUM = 4;
   public static float[][][] shapePos = new float[][][] {new float[][] {new float[] {-0.5f, -0.5f}, new float[] {0.5f, -0.5f}, new float[] {0f, 1f}}, new float[][] {new float[] {0f, -1f}, new float[] {0.5f, 0f}, new float[] {0f, 1f}, new float[] {-0.5f, 0f}}, new float[][] {new float[] {-0.25f, -0.66f}, new float[] {0.25f, -0.66f}, new float[] {0.25f, 0.66f}, new float[] {-0.25f, 0.66f}}, new float[][] {new float[] {-0.5f, -0.5f}, new float[] {0.5f, -0.5f}, new float[] {0.5f, 0.5f}, new float[] {-0.5f, 0.5f}}, new float[][] {new float[] {-0.25f, -0.5f}, new float[] {0.25f, -0.5f}, new float[] {0.5f, -0.25f}, new float[] {0.5f, 0.25f}, new float[] {0.25f, 0.5f}, new float[] {-0.25f, 0.5f}, new float[] {-0.5f, 0.25f}, new float[] {-0.5f, -0.25f}}, new float[][] {new float[] {-0.66f, -0.46f}, new float[] {0f, 0.86f}, new float[] {0.66f, -0.46f}}, new float[][] {new float[] {-0.5f, -0.5f}, new float[] {0f, -0.5f}, new float[] {0.5f, 0f}, new float[] {0.5f, 0.5f}, new float[] {0f, 0.5f}, new float[] {-0.5f, 0f}}};
 
-  public void drawRetro(float d) {
+  public void drawRetro(float[] model, float[] color, Gfx.Blend blend, float d) {
+    var mesh = new Mesh("BulletActor-drawRetro" + "-" + meshKey);
     float rt = 1 - rtCnt / RETRO_CNT;
     P47Screen.setRetroParam(rt, 0.4f * bullet.bulletSize);
     P47Screen.setRetroColor(bulletColor[bullet.color][0],
@@ -209,15 +210,18 @@ public class BulletActor: Actor {
       x = tx * cos(d) - y * sin(d);
       y = tx * sin(d) + y * cos(d);
       if (index0 > 0) {
-	P47Screen.drawLineRetro(px, py, x, y);
+	P47Screen.appendLineRetro(mesh, px, py, x, y);
       } else {
 	fx = x; fy = y;
       }
     }
-    P47Screen.drawLineRetro(x, y, fx, fy);
+    P47Screen.appendLineRetro(mesh, x, y, fx, fy);
+
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
-  public override void draw() {
+  public override void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
     if (!isVisible)
       return;
     float d=0;
@@ -240,18 +244,32 @@ public class BulletActor: Actor {
       d = cnt * 0.08f;
       break;
     }
-    glPushMatrix();
-    glTranslatef(bullet.pos.x, bullet.pos.y, 0);
+    float[] parent1 = model;
+    model = Transform.Translate(model, bullet.pos.x, bullet.pos.y, 0);
     if (rtCnt >= RETRO_CNT) {
-      int di = displayListIdx + bullet.color * (BULLET_SHAPE_NUM + 1);
-      glCallList(di);
-      glRotatef(rtod(d), 0, 0, 1);
-      glScalef(bullet.bulletSize, bullet.bulletSize, 1);
-      glCallList(di + 1 + bullet.shape);
-    } else {
-      drawRetro(d);
+      int di = bullet.color * (BULLET_SHAPE_NUM + 1);
+      {
+      Mesh shape3 = meshes[di];
+      foreach (MeshRange range in shape3.ranges) {
+        Gfx.Blend material = range.material == 0 ? blend : (Gfx.Blend)range.material;
+        Gfx.Draw(range.count, shape3.Bindings(model, color, 1, material == Gfx.Blend.Additive, range.first / 3),
+          new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = material });
+      }
     }
-    glPopMatrix();
+      model = Transform.Rotate(model, rtod(d), 0, 0, 1);
+      model = Transform.Scale(model, bullet.bulletSize, bullet.bulletSize, 1);
+      {
+      Mesh shape6 = meshes[di + 1 + bullet.shape];
+      foreach (MeshRange range in shape6.ranges) {
+        Gfx.Blend material = range.material == 0 ? blend : (Gfx.Blend)range.material;
+        Gfx.Draw(range.count, shape6.Bindings(model, color, 1, material == Gfx.Blend.Additive, range.first / 3),
+          new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = material });
+      }
+    }
+    } else {
+      drawRetro(model, color, blend, d);
+    }
+    model = parent1;
   }
 
   public const float SHAPE_POINT_SIZE = 0.1f;
@@ -260,11 +278,11 @@ public class BulletActor: Actor {
   public const float SHAPE_BASE_COLOR_B = 0.7f;
   public static float[][] bulletColor = new float[][] {new float[] {1f, 0f, 0f}, new float[] {0.2f, 1f, 0.4f}, new float[] {0.3f, 0.3f, 1f}, new float[] {1f, 1f, 0f}};
 
-  public static void createDisplayLists() {
+  public static void createMeshes() {
     int idx = 0;
     float r=0, g=0, b=0;
     float size = 1.0f, sz=0, sz2=0;
-    displayListIdx = glGenLists(BULLET_COLOR_NUM * (BULLET_SHAPE_NUM + 1));
+    float[] color = null; int material = 0; Mesh mesh = null;
     for (int index1 = 0; index1 < BULLET_COLOR_NUM; index1++) {
       r = bulletColor[index1][0];
       g = bulletColor[index1][1];
@@ -273,167 +291,168 @@ public class BulletActor: Actor {
       g += (1 - g) * 0.5f;
       b += (1 - b) * 0.5f;
       for (int index2 = 0; index2 < BULLET_SHAPE_NUM + 1; index2++) {
-	glNewList(displayListIdx + idx, GL_COMPILE);
-	Screen.setColorAlpha(r, g, b, 1);
+	mesh = new Mesh("BulletActor-" + (idx).ToString());
+    meshes[idx] = mesh;
+	color = new float[] { r, g, b, 1 };
 	switch (index2) {
 	case 0:
-	  glBegin(GL_TRIANGLE_FAN);
-	  glVertex3f(-SHAPE_POINT_SIZE, -SHAPE_POINT_SIZE,  0);
-	  glVertex3f( SHAPE_POINT_SIZE, -SHAPE_POINT_SIZE,  0);
-	  glVertex3f( SHAPE_POINT_SIZE,  SHAPE_POINT_SIZE,  0);
-	  glVertex3f(-SHAPE_POINT_SIZE,  SHAPE_POINT_SIZE,  0);
-	  glEnd();
+	  int part1 = mesh.vertexCount; int face1 = mesh.count;
+	  mesh.Vertex(-SHAPE_POINT_SIZE, -SHAPE_POINT_SIZE,  0, color);
+	  mesh.Vertex( SHAPE_POINT_SIZE, -SHAPE_POINT_SIZE,  0, color);
+	  mesh.Vertex( SHAPE_POINT_SIZE,  SHAPE_POINT_SIZE,  0, color);
+	  mesh.Vertex(-SHAPE_POINT_SIZE,  SHAPE_POINT_SIZE,  0, color);
+	  mesh.Fan(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
 	  break;
 	case 1:
 	  sz = size/2;
-	  glDisable(GL_BLEND);
-	  glBegin(GL_LINE_LOOP);
-	  glVertex3f(-sz, -sz,  0);
-	  glVertex3f( sz, -sz,  0);
-	  glVertex3f( 0, size,  0);
-	  glEnd();
-	  glEnable(GL_BLEND);
-	  Screen.setColorAlpha(r, g, b, 0.55f);
-	  glBegin(GL_TRIANGLE_FAN);
-	  glVertex3f(-sz, -sz,  0);
-	  glVertex3f( sz, -sz,  0);
-	  Screen.setColorAlpha(SHAPE_BASE_COLOR_R, SHAPE_BASE_COLOR_G, SHAPE_BASE_COLOR_B, 0.55f);
-	  glVertex3f( 0, size,  0);
-	  glEnd();
+	  material = (int)Gfx.Blend.None;
+	  int part2 = mesh.vertexCount; int face2 = mesh.count;
+	  mesh.Vertex(-sz, -sz,  0, color);
+	  mesh.Vertex( sz, -sz,  0, color);
+	  mesh.Vertex( 0, size,  0, color);
+	  mesh.LineStrip(part2, mesh.vertexCount - part2, true); mesh.AddRange(face2, material);
+	  material = 0;
+	  color = new float[] { r, g, b, 0.55f };
+	  int part3 = mesh.vertexCount; int face3 = mesh.count;
+	  mesh.Vertex(-sz, -sz,  0, color);
+	  mesh.Vertex( sz, -sz,  0, color);
+	  color = new float[] { SHAPE_BASE_COLOR_R, SHAPE_BASE_COLOR_G, SHAPE_BASE_COLOR_B, 0.55f };
+	  mesh.Vertex( 0, size,  0, color);
+	  mesh.Fan(part3, mesh.vertexCount - part3); mesh.AddRange(face3, material);
 	  break;
 	case 2:
 	  sz = size/2;
-	  glDisable(GL_BLEND);
-	  glBegin(GL_LINE_LOOP);
-	  glVertex3f(  0, -size,  0);
-	  glVertex3f( sz,     0,  0);
-	  glVertex3f(  0,  size,  0);
-	  glVertex3f(-sz,     0,  0);
-	  glEnd();
-	  glEnable(GL_BLEND);
-	  Screen.setColorAlpha(r, g, b, 0.7f);
-	  glBegin(GL_TRIANGLE_FAN);
-	  glVertex3f(  0, -size,  0);
-	  glVertex3f( sz,     0,  0);
-	  Screen.setColorAlpha(SHAPE_BASE_COLOR_R, SHAPE_BASE_COLOR_G, SHAPE_BASE_COLOR_B, 0.55f);
-	  glVertex3f(  0,  size,  0);
-	  glVertex3f(-sz,     0,  0);
-	  glEnd();
+	  material = (int)Gfx.Blend.None;
+	  int part4 = mesh.vertexCount; int face4 = mesh.count;
+	  mesh.Vertex(  0, -size,  0, color);
+	  mesh.Vertex( sz,     0,  0, color);
+	  mesh.Vertex(  0,  size,  0, color);
+	  mesh.Vertex(-sz,     0,  0, color);
+	  mesh.LineStrip(part4, mesh.vertexCount - part4, true); mesh.AddRange(face4, material);
+	  material = 0;
+	  color = new float[] { r, g, b, 0.7f };
+	  int part5 = mesh.vertexCount; int face5 = mesh.count;
+	  mesh.Vertex(  0, -size,  0, color);
+	  mesh.Vertex( sz,     0,  0, color);
+	  color = new float[] { SHAPE_BASE_COLOR_R, SHAPE_BASE_COLOR_G, SHAPE_BASE_COLOR_B, 0.55f };
+	  mesh.Vertex(  0,  size,  0, color);
+	  mesh.Vertex(-sz,     0,  0, color);
+	  mesh.Fan(part5, mesh.vertexCount - part5); mesh.AddRange(face5, material);
 	  break;
 	case 3:
 	  sz = size/4; sz2 = size/3*2;
-	  glDisable(GL_BLEND);
-	  glBegin(GL_LINE_LOOP);
-	  glVertex3f(-sz, -sz2,  0);
-	  glVertex3f( sz, -sz2,  0);
-	  glVertex3f( sz,  sz2,  0);
-	  glVertex3f(-sz,  sz2,  0);
-	  glEnd();
-	  glEnable(GL_BLEND);
-	  Screen.setColorAlpha(r, g, b, 0.45f);
-	  glBegin(GL_TRIANGLE_FAN);
-	  glVertex3f(-sz, -sz2,  0);
-	  glVertex3f( sz, -sz2,  0);
-	  Screen.setColorAlpha(SHAPE_BASE_COLOR_R, SHAPE_BASE_COLOR_G, SHAPE_BASE_COLOR_B, 0.55f);
-	  glVertex3f( sz, sz2,  0);
-	  glVertex3f(-sz, sz2,  0);
-	  glEnd();
+	  material = (int)Gfx.Blend.None;
+	  int part6 = mesh.vertexCount; int face6 = mesh.count;
+	  mesh.Vertex(-sz, -sz2,  0, color);
+	  mesh.Vertex( sz, -sz2,  0, color);
+	  mesh.Vertex( sz,  sz2,  0, color);
+	  mesh.Vertex(-sz,  sz2,  0, color);
+	  mesh.LineStrip(part6, mesh.vertexCount - part6, true); mesh.AddRange(face6, material);
+	  material = 0;
+	  color = new float[] { r, g, b, 0.45f };
+	  int part7 = mesh.vertexCount; int face7 = mesh.count;
+	  mesh.Vertex(-sz, -sz2,  0, color);
+	  mesh.Vertex( sz, -sz2,  0, color);
+	  color = new float[] { SHAPE_BASE_COLOR_R, SHAPE_BASE_COLOR_G, SHAPE_BASE_COLOR_B, 0.55f };
+	  mesh.Vertex( sz, sz2,  0, color);
+	  mesh.Vertex(-sz, sz2,  0, color);
+	  mesh.Fan(part7, mesh.vertexCount - part7); mesh.AddRange(face7, material);
 	  break;
 	case 4:
 	  sz = size/2;
-	  glDisable(GL_BLEND);
-	  glBegin(GL_LINE_LOOP);
-	  glVertex3f(-sz, -sz,  0);
-	  glVertex3f( sz, -sz,  0);
-	  glVertex3f( sz,  sz,  0);
-	  glVertex3f(-sz,  sz,  0);
-	  glEnd();
-	  glEnable(GL_BLEND);
-	  Screen.setColorAlpha(r, g, b, 0.7f);
-	  glBegin(GL_TRIANGLE_FAN);
-	  glVertex3f(-sz, -sz,  0);
-	  glVertex3f( sz, -sz,  0);
-	  Screen.setColorAlpha(SHAPE_BASE_COLOR_R, SHAPE_BASE_COLOR_G, SHAPE_BASE_COLOR_B, 0.55f);
-	  glVertex3f( sz,  sz,  0);
-	  glVertex3f(-sz,  sz,  0);
-	  glEnd();
+	  material = (int)Gfx.Blend.None;
+	  int part8 = mesh.vertexCount; int face8 = mesh.count;
+	  mesh.Vertex(-sz, -sz,  0, color);
+	  mesh.Vertex( sz, -sz,  0, color);
+	  mesh.Vertex( sz,  sz,  0, color);
+	  mesh.Vertex(-sz,  sz,  0, color);
+	  mesh.LineStrip(part8, mesh.vertexCount - part8, true); mesh.AddRange(face8, material);
+	  material = 0;
+	  color = new float[] { r, g, b, 0.7f };
+	  int part9 = mesh.vertexCount; int face9 = mesh.count;
+	  mesh.Vertex(-sz, -sz,  0, color);
+	  mesh.Vertex( sz, -sz,  0, color);
+	  color = new float[] { SHAPE_BASE_COLOR_R, SHAPE_BASE_COLOR_G, SHAPE_BASE_COLOR_B, 0.55f };
+	  mesh.Vertex( sz,  sz,  0, color);
+	  mesh.Vertex(-sz,  sz,  0, color);
+	  mesh.Fan(part9, mesh.vertexCount - part9); mesh.AddRange(face9, material);
 	  break;
 	case 5:
 	  sz = size/2;
-	  glDisable(GL_BLEND);
-	  glBegin(GL_LINE_LOOP);
-	  glVertex3f(-sz/2, -sz,  0);
-	  glVertex3f( sz/2, -sz,  0);
-	  glVertex3f( sz,  -sz/2,  0);
-	  glVertex3f( sz,   sz/2,  0);
-	  glVertex3f( sz/2,  sz,  0);
-	  glVertex3f(-sz/2,  sz,  0);
-	  glVertex3f(-sz,   sz/2,  0);
-	  glVertex3f(-sz,  -sz/2,  0);
-	  glEnd();
-	  glEnable(GL_BLEND);
-	  Screen.setColorAlpha(r, g, b, 0.85f);
-	  glBegin(GL_TRIANGLE_FAN);
-	  glVertex3f(-sz/2, -sz,  0);
-	  glVertex3f( sz/2, -sz,  0);
-	  glVertex3f( sz,  -sz/2,  0);
-	  glVertex3f( sz,   sz/2,  0);
-	  Screen.setColorAlpha(SHAPE_BASE_COLOR_R, SHAPE_BASE_COLOR_G, SHAPE_BASE_COLOR_B, 0.55f);
-	  glVertex3f( sz/2,  sz,  0);
-	  glVertex3f(-sz/2,  sz,  0);
-	  glVertex3f(-sz,   sz/2,  0);
-	  glVertex3f(-sz,  -sz/2,  0);
-	  glEnd();
+	  material = (int)Gfx.Blend.None;
+	  int part10 = mesh.vertexCount; int face10 = mesh.count;
+	  mesh.Vertex(-sz/2, -sz,  0, color);
+	  mesh.Vertex( sz/2, -sz,  0, color);
+	  mesh.Vertex( sz,  -sz/2,  0, color);
+	  mesh.Vertex( sz,   sz/2,  0, color);
+	  mesh.Vertex( sz/2,  sz,  0, color);
+	  mesh.Vertex(-sz/2,  sz,  0, color);
+	  mesh.Vertex(-sz,   sz/2,  0, color);
+	  mesh.Vertex(-sz,  -sz/2,  0, color);
+	  mesh.LineStrip(part10, mesh.vertexCount - part10, true); mesh.AddRange(face10, material);
+	  material = 0;
+	  color = new float[] { r, g, b, 0.85f };
+	  int part11 = mesh.vertexCount; int face11 = mesh.count;
+	  mesh.Vertex(-sz/2, -sz,  0, color);
+	  mesh.Vertex( sz/2, -sz,  0, color);
+	  mesh.Vertex( sz,  -sz/2,  0, color);
+	  mesh.Vertex( sz,   sz/2,  0, color);
+	  color = new float[] { SHAPE_BASE_COLOR_R, SHAPE_BASE_COLOR_G, SHAPE_BASE_COLOR_B, 0.55f };
+	  mesh.Vertex( sz/2,  sz,  0, color);
+	  mesh.Vertex(-sz/2,  sz,  0, color);
+	  mesh.Vertex(-sz,   sz/2,  0, color);
+	  mesh.Vertex(-sz,  -sz/2,  0, color);
+	  mesh.Fan(part11, mesh.vertexCount - part11); mesh.AddRange(face11, material);
 	  break;
 	case 6:
 	  sz = size*2/3; sz2 = size/5;
-	  glDisable(GL_BLEND);
-	  glBegin(GL_LINE_STRIP);
-	  glVertex3f(-sz, -sz+sz2,  0);
-	  glVertex3f( 0, sz+sz2,  0);
-	  glVertex3f( sz, -sz+sz2,  0);
-	  glEnd();
-	  glEnable(GL_BLEND);
-	  Screen.setColorAlpha(r, g, b, 0.55f);
-	  glBegin(GL_TRIANGLE_FAN);
-	  glVertex3f(-sz, -sz+sz2,  0);
-	  glVertex3f( sz, -sz+sz2,  0);
-	  Screen.setColorAlpha(SHAPE_BASE_COLOR_R, SHAPE_BASE_COLOR_G, SHAPE_BASE_COLOR_B, 0.55f);
-	  glVertex3f( 0, sz+sz2,  0);
-	  glEnd();
+	  material = (int)Gfx.Blend.None;
+	  int part12 = mesh.vertexCount; int face12 = mesh.count;
+	  mesh.Vertex(-sz, -sz+sz2,  0, color);
+	  mesh.Vertex( 0, sz+sz2,  0, color);
+	  mesh.Vertex( sz, -sz+sz2,  0, color);
+	  mesh.LineStrip(part12, mesh.vertexCount - part12); mesh.AddRange(face12, material);
+	  material = 0;
+	  color = new float[] { r, g, b, 0.55f };
+	  int part13 = mesh.vertexCount; int face13 = mesh.count;
+	  mesh.Vertex(-sz, -sz+sz2,  0, color);
+	  mesh.Vertex( sz, -sz+sz2,  0, color);
+	  color = new float[] { SHAPE_BASE_COLOR_R, SHAPE_BASE_COLOR_G, SHAPE_BASE_COLOR_B, 0.55f };
+	  mesh.Vertex( 0, sz+sz2,  0, color);
+	  mesh.Fan(part13, mesh.vertexCount - part13); mesh.AddRange(face13, material);
 	  break;
 	case 7:
 	  sz = size/2;
-	  glDisable(GL_BLEND);
-	  glBegin(GL_LINE_LOOP);
-	  glVertex3f(-sz, -sz,  0);
-	  glVertex3f(  0, -sz,  0);
-	  glVertex3f( sz,   0,  0);
-	  glVertex3f( sz,  sz,  0);
-	  glVertex3f(  0,  sz,  0);
-	  glVertex3f(-sz,   0,  0);
-	  glEnd();
-	  glEnable(GL_BLEND);
-	  Screen.setColorAlpha(r, g, b, 0.85f);
-	  glBegin(GL_TRIANGLE_FAN);
-	  glVertex3f(-sz, -sz,  0);
-	  glVertex3f(  0, -sz,  0);
-	  glVertex3f( sz,   0,  0);
-	  Screen.setColorAlpha(SHAPE_BASE_COLOR_R, SHAPE_BASE_COLOR_G, SHAPE_BASE_COLOR_B, 0.55f);
-	  glVertex3f( sz,  sz,  0);
-	  glVertex3f(  0,  sz,  0);
-	  glVertex3f(-sz,   0,  0);
-	  glEnd();
+	  material = (int)Gfx.Blend.None;
+	  int part14 = mesh.vertexCount; int face14 = mesh.count;
+	  mesh.Vertex(-sz, -sz,  0, color);
+	  mesh.Vertex(  0, -sz,  0, color);
+	  mesh.Vertex( sz,   0,  0, color);
+	  mesh.Vertex( sz,  sz,  0, color);
+	  mesh.Vertex(  0,  sz,  0, color);
+	  mesh.Vertex(-sz,   0,  0, color);
+	  mesh.LineStrip(part14, mesh.vertexCount - part14, true); mesh.AddRange(face14, material);
+	  material = 0;
+	  color = new float[] { r, g, b, 0.85f };
+	  int part15 = mesh.vertexCount; int face15 = mesh.count;
+	  mesh.Vertex(-sz, -sz,  0, color);
+	  mesh.Vertex(  0, -sz,  0, color);
+	  mesh.Vertex( sz,   0,  0, color);
+	  color = new float[] { SHAPE_BASE_COLOR_R, SHAPE_BASE_COLOR_G, SHAPE_BASE_COLOR_B, 0.55f };
+	  mesh.Vertex( sz,  sz,  0, color);
+	  mesh.Vertex(  0,  sz,  0, color);
+	  mesh.Vertex(-sz,   0,  0, color);
+	  mesh.Fan(part15, mesh.vertexCount - part15); mesh.AddRange(face15, material);
 	  break;
 	}
-	glEndList();
+
 	idx++;
       }
     }
   }
 
-  public static void deleteDisplayLists() {
-    glDeleteLists(displayListIdx, BULLET_COLOR_NUM * (BULLET_SHAPE_NUM + 1));
+  public static void deleteMeshes() {
+    meshes = new Mesh[BULLET_COLOR_NUM * (BULLET_SHAPE_NUM + 1)];
   }
 }
 

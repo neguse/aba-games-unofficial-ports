@@ -1,5 +1,6 @@
 // Copyright 2003-2004 Kenta Cho. All rights reserved.
 using System;
+using static Lub;
 
 public static class GameMath
 {
@@ -62,11 +63,14 @@ public class VirtualBulletTarget : BulletTarget
 public interface ActorInitializer { }
 public abstract class Actor
 {
+    static int nextMesh;
+    public string meshKey;
+    public Actor() { meshKey = nextMesh.ToString(); nextMesh++; }
     public bool isExist;
     public abstract Actor newActor();
     public abstract void init(ActorInitializer initializer);
     public abstract void move();
-    public abstract void draw();
+    public abstract void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null);
 }
 
 public class ActorPool
@@ -100,6 +104,6 @@ public class ActorPool
         return actor[actorIdx];
     }
     public virtual void move() { foreach (var a in actor) if (a.isExist) a.move(); }
-    public void draw() { foreach (var a in actor) if (a.isExist) a.draw(); }
+    public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) { foreach (var a in actor) if (a.isExist) a.draw(model, color, blend, target); }
     public virtual void clear() { foreach (var a in actor) a.isExist = false; }
 }
