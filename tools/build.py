@@ -252,7 +252,7 @@ subprocess.run([sys.executable, 'tools/compile_mucade.py', str(mcd)], check=True
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'mu-cade',
                 '--output', str(target / 'game.lua')], check=True)
 shutil.copy2('games/mu-cade/index.html', target / 'index.html')
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/title'], check=True)
+subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
 (target / 'audio').mkdir(exist_ok=True)
 for path in (mcd / 'sounds').rglob('*'):
     if path.is_file():

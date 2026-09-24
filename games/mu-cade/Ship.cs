@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Ship : OdeActor, BulletTarget
 {
@@ -24,7 +24,6 @@ public class Ship : OdeActor, BulletTarget
     public static Rand rand;
     public RecordableTwinStickPad pad;
     public Field field;
-    public Screen screen;
     public ParticlePool particles;
     public ConnectedParticlePool connectedParticles;
     public GameManager gameManager;
@@ -64,12 +63,11 @@ public class Ship : OdeActor, BulletTarget
         rand.setSeed(seed);
     }
 
-    public Ship(World world, TwinStickPad pad, Field field, Screen screen, ParticlePool particles, ConnectedParticlePool connectedParticles, GameManager gameManager)
+    public Ship(World world, TwinStickPad pad, Field field, ParticlePool particles, ConnectedParticlePool connectedParticles, GameManager gameManager)
     {
         setWorld(world);
         this.pad = (RecordableTwinStickPad)pad;
         this.field = field;
-        this.screen = screen;
         this.particles = particles;
         this.connectedParticles = connectedParticles;
         this.gameManager = gameManager;
@@ -464,55 +462,59 @@ public class Ship : OdeActor, BulletTarget
 
     public virtual void recordLinePoints_0()
     {
-        glPushMatrix();
-        Screen.glTranslate_1_Vector3(_pos);
-        glMultMatrix(rot);
-        linePoint.beginRecord();
+        float[] model = Transform.Identity();
+        float[] parent1 = model;
+        model = Transform.Translate(model, _pos.x, _pos.y, _pos.z);
+        model = Transform.Multiply(model, rot);
+        linePoint.beginRecord(model);
         shape.recordLinePoints_1(linePoint);
         linePoint.endRecord();
-        glPopMatrix();
+        model = parent1;
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
-        shots.draw();
-        enhancedShots.draw();
+        shots.draw(model, tint, blend, key + "-draw-1");
+        enhancedShots.draw(model, tint, blend, key + "-draw-2");
         if (restartCnt > 0)
             return;
         for (int i = 0; i < tailNum; i++)
-            tails[i].draw();
-        linePoint.drawSpectrum();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        shape.drawShadow_1(linePoint);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        linePoint.draw();
-        glPushMatrix();
-        Screen.glTranslate_1_Vector3(_pos);
-        glMultMatrix(rot);
-        subShape.draw();
-        glPopMatrix();
+            tails[i].draw(model, tint, blend, key + "-draw-3" + "-" + i.ToString());
+        linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
+        blend = Gfx.Blend.Alpha;
+        shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", linePoint);
+        blend = Gfx.Blend.Additive;
+        linePoint.draw(model, tint, blend, key + "-draw-4");
+        float[] parent1 = model;
+        model = Transform.Translate(model, _pos.x, _pos.y, _pos.z);
+        model = Transform.Multiply(model, rot);
+        subShape.draw(model, tint, blend, key + "-draw-5");
+        model = parent1;
     }
 
-    public virtual void drawLeft(float x, float y)
+    public virtual void drawLeft(float[] model, float[] tint, Gfx.Blend blend, string key, float x, float y)
     {
-        glPushMatrix();
-        glTranslatef(x, y, 0);
-        glScalef(15, 15, 15);
-        glRotatef(180, 0, 0, 1);
-        linePoint.beginRecord();
+        float[] view = model;
+        model = Transform.Identity();
+        float[] parent1 = model;
+        model = Transform.Translate(model, x, y, 0);
+        model = Transform.Scale(model, 15, 15, 15);
+        model = Transform.Rotate(model, 180, 0, 0, 1);
+        linePoint.beginRecord(model);
         shape.recordLinePoints_1(linePoint);
         linePoint.endRecord();
-        glPopMatrix();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        shape.drawShadow_1(linePoint);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        linePoint.draw();
-        glPushMatrix();
-        glTranslatef(x, y, 0);
-        glScalef(15, 15, 15);
-        glRotatef(180, 0, 0, 1);
-        subShape.draw();
-        glPopMatrix();
+        model = parent1;
+        model = view;
+        blend = Gfx.Blend.Alpha;
+        shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", linePoint);
+        blend = Gfx.Blend.Additive;
+        linePoint.draw(model, tint, blend, key + "-draw-1");
+        float[] parent2 = model;
+        model = Transform.Translate(model, x, y, 0);
+        model = Transform.Scale(model, 15, 15, 15);
+        model = Transform.Rotate(model, 180, 0, 0, 1);
+        subShape.draw(model, tint, blend, key + "-draw-2");
+        model = parent2;
     }
 
     public virtual Vector3 pos()
@@ -682,23 +684,24 @@ public class ShipTail : OdeActor
 
     public virtual void recordLinePoints_0()
     {
-        glPushMatrix();
-        Screen.glTranslate_1_Vector3(_pos);
-        glMultMatrix(rot);
-        glScalef(size.x, size.y, size.z);
-        linePoint.beginRecord();
+        float[] model = Transform.Identity();
+        float[] parent1 = model;
+        model = Transform.Translate(model, _pos.x, _pos.y, _pos.z);
+        model = Transform.Multiply(model, rot);
+        model = Transform.Scale(model, size.x, size.y, size.z);
+        linePoint.beginRecord(model);
         shape.recordLinePoints_1(linePoint);
         linePoint.endRecord();
-        glPopMatrix();
+        model = parent1;
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
-        linePoint.drawSpectrum();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        shape.drawShadow_1(linePoint);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        linePoint.draw();
+        linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
+        blend = Gfx.Blend.Alpha;
+        shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", linePoint);
+        blend = Gfx.Blend.Additive;
+        linePoint.draw(model, tint, blend, key + "-draw-1");
     }
 
     public virtual Vector3 pos()

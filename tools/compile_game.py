@@ -11,14 +11,13 @@ parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanio
 parser.add_argument('--test', type=Path)
 parser.add_argument('--output', type=Path, default=Path('build/game.lua'))
 args = parser.parse_args()
-first = ['Core.cs', 'Rand.cs', 'Drawing.cs', 'PatternNumber.cs', 'Pattern.cs']
+first = ['Core.cs', 'Rand.cs', 'PatternNumber.cs', 'Pattern.cs']
 sources = [Path('game') / name for name in first]
 if args.game == 'tumiki':
-    sources = [p for p in sources if p.name != 'Drawing.cs']
-    sources += [p for p in sorted(Path('game').glob('*.cs')) if p.name not in first + ['TextureDrawing.cs']]
+    sources += [p for p in sorted(Path('game').glob('*.cs')) if p.name not in first]
     sources += [Path('build/GameData.cs'), Path('build/BarrageCode.cs')]
 elif args.game == 'parsec47':
-    sources = [p for p in sources if p.name != 'Drawing.cs'] + [Path('game/Mesh.cs'), Path('game/Transform.cs')]
+    sources += [Path('game/Mesh.cs'), Path('game/Transform.cs')]
     sources.append(Path('games/parsec47/P47Rand.cs'))
     sources += [p for p in sorted(Path('games/parsec47').glob('*.cs')) if p.name != 'P47Rand.cs']
     sources += sorted(Path('build/parsec47').glob('*.cs'))
@@ -70,18 +69,17 @@ if args.game == 'gear-toy-gear':
     sources += sorted(Path('build/gear-toy-gear').glob('*.cs'))
 if args.game == 'mu-cade':
     names = ['GameMath.cs', 'Rand.cs', 'Arrays.cs', 'Vector.cs', 'Actor.cs', 'OdeActor.cs', 'Shape.cs', 'Bullet.cs', 'Bulletimpl.cs', 'Spec.cs']
-    sources = [Path('game/PatternNumber.cs'), Path('game/Pattern.cs')] + [Path('games/mu-cade') / name for name in names]
+    sources = [Path('game/Mesh.cs'), Path('game/Transform.cs'), Path('game/PatternNumber.cs'), Path('game/Pattern.cs')] + [Path('games/mu-cade') / name for name in names]
     sources += sorted(Path('build/mu-cade').glob('*.cs'))
     sources += [p for p in sorted(Path('games/mu-cade').glob('*.cs')) if p.name not in names + ['OdeApi.cs']]
 if args.game == 'masashikun-hi':
     sources = [Path('games/masashikun-hi/Models.cs')]
     sources += [p for p in sorted(Path('games/masashikun-hi').glob('*.cs')) if p.name != 'Models.cs']
     sources += sorted(Path('build/masashikun-hi').glob('*.cs'))
-if args.game in ['mu-cade']:
-    sources = [Path('game/TextureDrawing.cs')] + [p for p in sources if p != Path('game/TextureDrawing.cs')]
 shader_source = 'public static class GameShaders {\n'
 for name, stage in [('vertex', 'vs'), ('fragment', 'fs')]:
-    shader_source += f'public static string {name} = {json.dumps(Path(f"shaders/mesh.{stage}.slang" if args.game in ["titanion", "parsec47", "tumiki", "torus-trooper", "a7xpg", "rrootage"] else f"games/{args.game}/game.{stage}.slang" if args.game in ["gunroar", "a7xpg", "rrootage", "noiz2sa", "wok", "mazer-mayhem", "gear-toy-gear", "masashikun-hi"] else f"shaders/title.{stage}.slang" if args.game in ["torus-trooper", "mu-cade"] else f"shaders/game.{stage}.slang").read_text())};\n'
+    prefix = 'shaders/mesh' if args.game in ['titanion', 'parsec47', 'tumiki', 'torus-trooper', 'a7xpg', 'rrootage', 'mu-cade'] else f'games/{args.game}/game'
+    shader_source += f'public static string {name} = {json.dumps(Path(f"{prefix}.{stage}.slang").read_text())};\n'
 shader_source += '}\n'
 Path('build/Shaders.cs').write_text(shader_source)
 sources.append(Path('build/Shaders.cs'))

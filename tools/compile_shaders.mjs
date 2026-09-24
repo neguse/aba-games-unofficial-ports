@@ -2,7 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const [lub, output, sourcePrefix = 'shaders/game'] = process.argv.slice(2);
+const [lub, output, sourcePrefix = 'shaders/mesh'] = process.argv.slice(2);
 const directory = resolve(lub, 'web/public/slang');
 const factory = (await import(pathToFileURL(`${directory}/slang-wasm.js`))).default;
 const main = await factory({ wasmBinary: await readFile(`${directory}/slang-wasm.wasm`) });

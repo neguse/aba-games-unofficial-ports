@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class CentBarrage
 {
@@ -1003,16 +1003,16 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
         enemy.addConnectedParticles_3_Single_Single_Boolean(state.deg - PI / 2, 1.5f * state.sizeScale.x);
     }
 
-    public override void drawSubShape(EnemyState state)
+    public override void drawSubShape(float[] model, float[] tint, Gfx.Blend blend, string key, EnemyState state)
     {
         if (state.isHead)
         {
-            glPushMatrix();
-            Screen.glTranslate_1_Vector3(state.pos);
-            glMultMatrix(state.rot);
-            glScalef(state.sizeScale.x, state.sizeScale.y, state.sizeScale.z);
-            subShape.draw();
-            glPopMatrix();
+            float[] parent1 = model;
+            model = Transform.Translate(model, state.pos.x, state.pos.y, state.pos.z);
+            model = Transform.Multiply(model, state.rot);
+            model = Transform.Scale(model, state.sizeScale.x, state.sizeScale.y, state.sizeScale.z);
+            subShape.draw(model, tint, blend, key + "-draw-1");
+            model = parent1;
         }
     }
 
@@ -1417,16 +1417,16 @@ public class CentBody : EnemySpec, ConnectedParticlesBodyAddable
         enemy.addConnectedParticles_3_Single_Single_Boolean(state.deg - PI / 2, 1.5f * state.sizeScale.x);
     }
 
-    public override void drawSubShape(EnemyState state)
+    public override void drawSubShape(float[] model, float[] tint, Gfx.Blend blend, string key, EnemyState state)
     {
         if (state.isHead)
         {
-            glPushMatrix();
-            Screen.glTranslate_1_Vector3(state.pos);
-            glMultMatrix(state.rot);
-            glScalef(state.sizeScale.x, state.sizeScale.y, state.sizeScale.z);
-            subShape.draw();
-            glPopMatrix();
+            float[] parent1 = model;
+            model = Transform.Translate(model, state.pos.x, state.pos.y, state.pos.z);
+            model = Transform.Multiply(model, state.rot);
+            model = Transform.Scale(model, state.sizeScale.x, state.sizeScale.y, state.sizeScale.z);
+            subShape.draw(model, tint, blend, key + "-draw-1");
+            model = parent1;
         }
     }
 

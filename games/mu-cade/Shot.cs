@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Shot : OdeActor
 {
@@ -84,24 +84,25 @@ public class Shot : OdeActor
 
     public virtual void recordLinePoints_0()
     {
-        glPushMatrix();
-        Screen.glTranslate_1_Vector(pos);
-        glRotatef(_deg * 180 / PI, 0, 0, 1);
-        linePoint.beginRecord();
+        float[] model = Transform.Identity();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, 0);
+        model = Transform.Rotate(model, _deg * 180 / PI, 0, 0, 1);
+        linePoint.beginRecord(model);
         shape.recordLinePoints_1(linePoint);
         linePoint.endRecord();
-        glPopMatrix();
+        model = parent1;
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         if (removeCnt > 0)
             return;
-        linePoint.drawSpectrum();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        shape.drawShadow_1(linePoint);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        linePoint.draw();
+        linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
+        blend = Gfx.Blend.Alpha;
+        shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", linePoint);
+        blend = Gfx.Blend.Additive;
+        linePoint.draw(model, tint, blend, key + "-draw-1");
     }
 
     public virtual float deg()
@@ -226,24 +227,25 @@ public class EnhancedShot : OdeActor
 
     public virtual void recordLinePoints_0()
     {
-        glPushMatrix();
-        Screen.glTranslate_1_Vector(pos);
-        glRotatef(_deg * 180 / PI, 0, 0, 1);
-        linePoint.beginRecord();
+        float[] model = Transform.Identity();
+        float[] parent1 = model;
+        model = Transform.Translate(model, pos.x, pos.y, 0);
+        model = Transform.Rotate(model, _deg * 180 / PI, 0, 0, 1);
+        linePoint.beginRecord(model);
         shape.recordLinePoints_1(linePoint);
         linePoint.endRecord();
-        glPopMatrix();
+        model = parent1;
     }
 
-    public override void draw()
+    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         if (removeCnt > 0)
             return;
-        linePoint.drawSpectrum();
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        shape.drawShadow_1(linePoint);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-        linePoint.draw();
+        linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
+        blend = Gfx.Blend.Alpha;
+        shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", linePoint);
+        blend = Gfx.Blend.Additive;
+        linePoint.draw(model, tint, blend, key + "-draw-1");
     }
 
     public virtual float deg()

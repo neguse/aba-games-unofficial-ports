@@ -2,30 +2,30 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Drawing;
+using static Lub;
 
 public class Letter
 {
-    public static DisplayList displayList;
+    public static Mesh[] meshes;
     public const float LETTER_WIDTH = 2.1f;
     public const float LETTER_HEIGHT = 3.0f;
     public const int LETTER_NUM = 44;
     public const int DISPLAY_LIST_NUM = LETTER_NUM;
     public static void init_0()
     {
-        displayList = new DisplayList(DISPLAY_LIST_NUM);
-        displayList.resetList();
+        meshes = new Mesh[DISPLAY_LIST_NUM];
+        float[] model = Transform.Identity(); float[] tint = null; Mesh mesh = null;
         for (int i = 0; i < LETTER_NUM; i++)
         {
-            displayList.newList();
-            setLetter(i);
-            displayList.endList();
+            mesh = new Mesh("letter-" + i.ToString()); meshes[i] = mesh;
+            appendLetter(mesh, model, tint, i);
+
         }
     }
 
     public static void close()
     {
-        displayList.close();
+        meshes = null;
     }
 
     public static float getWidth(int n, float s)
@@ -54,29 +54,32 @@ public class Letter
         return s * LETTER_HEIGHT;
     }
 
-    public static void drawLetter_1(int n)
+    public static void drawLetter_1(float[] model, float[] tint, Gfx.Blend blend, string key, int n)
     {
-        displayList.call(n);
+        { Mesh shape1 = meshes[n]; if (shape1.count > 0) Gfx.Draw(shape1.count, shape1.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
     }
 
-    public static void drawLetter_5(int n, float x, float y, float s, float d)
+    public static void drawLetter_5(float[] model, float[] tint, Gfx.Blend blend, string key, int n, float x, float y, float s, float d)
     {
-        glPushMatrix();
-        glTranslatef(x, y, 0);
-        glScalef(s, s, s);
-        glRotatef(d, 0, 0, 1);
-        displayList.call(n);
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, x, y, 0);
+        model = Transform.Scale(model, s, s, s);
+        model = Transform.Rotate(model, d, 0, 0, 1);
+        { Mesh shape2 = meshes[n]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        model = parent1;
     }
 
-    public static void drawLetterRev(int n, float x, float y, float s, float d)
+    public static void drawLetterRev(float[] model, float[] tint, Gfx.Blend blend, string key, int n, float x, float y, float s, float d)
     {
-        glPushMatrix();
-        glTranslatef(x, y, 0);
-        glScalef(s, -s, s);
-        glRotatef(d, 0, 0, 1);
-        displayList.call(n);
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, x, y, 0);
+        model = Transform.Scale(model, s, -s, s);
+        model = Transform.Rotate(model, d, 0, 0, 1);
+        { Mesh shape2 = meshes[n]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
+        model = parent1;
     }
 
     public static int convertCharToInt(string c){
@@ -86,7 +89,7 @@ public class Letter
         return idx>=0?idx+10:0;
     }
 
-    public static void drawString(string str, float lx, float y, float s, int d = LetterDirection.TO_RIGHT, bool rev = false, float od = 0)
+    public static void drawString(float[] model, float[] tint, Gfx.Blend blend, string key, string str, float lx, float y, float s, int d = LetterDirection.TO_RIGHT, bool rev = false, float od = 0)
     {
         lx += LETTER_WIDTH * s / 2;
         y += LETTER_HEIGHT * s / 2;
@@ -117,9 +120,9 @@ public class Letter
             {
                 idx = convertCharToInt(c);
                 if (rev)
-                    drawLetterRev(idx, x, y, s, ld);
+                    drawLetterRev(model, tint, blend, key + "-drawLetterRev-1" + "-" + character.ToString(), idx, x, y, s, ld);
                 else
-                    drawLetter_5(idx, x, y, s, ld);
+                    drawLetter_5(model, tint, blend, key + "-drawLetter_5-1" + "-" + character.ToString(), idx, x, y, s, ld);
             }
 
             if (od == 0)
@@ -148,7 +151,7 @@ public class Letter
         }
     }
 
-    public static void drawNum(int num, float lx, float y, float s, int dg = 0, int headChar = -1, int floatDigit = -1)
+    public static void drawNum(float[] model, float[] tint, Gfx.Blend blend, string key, int num, float lx, float y, float s, int dg = 0, int headChar = -1, int floatDigit = -1)
     {
         lx += LETTER_WIDTH * s / 2;
         y += LETTER_HEIGHT * s / 2;
@@ -161,12 +164,12 @@ public class Letter
         {
             if (fd <= 0)
             {
-                drawLetter_5(n % 10, x, y, s, ld);
+                drawLetter_5(model, tint, blend, key + "-drawLetter_5-1", n % 10, x, y, s, ld);
                 x -= s * LETTER_WIDTH;
             }
             else
             {
-                drawLetter_5(n % 10, x, y + s * LETTER_WIDTH * 0.25f, s * 0.5f, ld);
+                drawLetter_5(model, tint, blend, key + "-drawLetter_5-2", n % 10, x, y + s * LETTER_WIDTH * 0.25f, s * 0.5f, ld);
                 x -= s * LETTER_WIDTH * 0.5f;
             }
 
@@ -177,16 +180,16 @@ public class Letter
                 break;
             if (fd == 0)
             {
-                drawLetter_5(36, x, y + s * LETTER_WIDTH * 0.25f, s * 0.5f, ld);
+                drawLetter_5(model, tint, blend, key + "-drawLetter_5-3", 36, x, y + s * LETTER_WIDTH * 0.25f, s * 0.5f, ld);
                 x -= s * LETTER_WIDTH * 0.5f;
             }
         }
 
         if (headChar >= 0)
-            drawLetter_5(headChar, x + s * LETTER_WIDTH * 0.2f, y + s * LETTER_WIDTH * 0.2f, s * 0.6f, ld);
+            drawLetter_5(model, tint, blend, key + "-drawLetter_5-4", headChar, x + s * LETTER_WIDTH * 0.2f, y + s * LETTER_WIDTH * 0.2f, s * 0.6f, ld);
     }
 
-    public static void drawNumSign(int num, float lx, float ly, float s, int headChar = -1, int floatDigit = -1)
+    public static void drawNumSign(float[] model, float[] tint, Gfx.Blend blend, string key, int num, float lx, float ly, float s, int headChar = -1, int floatDigit = -1)
     {
         float x = lx;
         float y = ly;
@@ -196,12 +199,12 @@ public class Letter
         {
             if (fd <= 0)
             {
-                drawLetterRev(n % 10, x, y, s, 0);
+                drawLetterRev(model, tint, blend, key + "-drawLetterRev-1", n % 10, x, y, s, 0);
                 x -= s * LETTER_WIDTH;
             }
             else
             {
-                drawLetterRev(n % 10, x, y - s * LETTER_WIDTH * 0.25f, s * 0.5f, 0);
+                drawLetterRev(model, tint, blend, key + "-drawLetterRev-2", n % 10, x, y - s * LETTER_WIDTH * 0.25f, s * 0.5f, 0);
                 x -= s * LETTER_WIDTH * 0.5f;
             }
 
@@ -211,16 +214,16 @@ public class Letter
             fd--;
             if (fd == 0)
             {
-                drawLetterRev(36, x, y - s * LETTER_WIDTH * 0.25f, s * 0.5f, 0);
+                drawLetterRev(model, tint, blend, key + "-drawLetterRev-3", 36, x, y - s * LETTER_WIDTH * 0.25f, s * 0.5f, 0);
                 x -= s * LETTER_WIDTH * 0.5f;
             }
         }
 
         if (headChar >= 0)
-            drawLetterRev(headChar, x + s * LETTER_WIDTH * 0.2f, y - s * LETTER_WIDTH * 0.2f, s * 0.6f, 0);
+            drawLetterRev(model, tint, blend, key + "-drawLetterRev-4", headChar, x + s * LETTER_WIDTH * 0.2f, y - s * LETTER_WIDTH * 0.2f, s * 0.6f, 0);
     }
 
-    public static void drawTime(int time, float lx, float y, float s)
+    public static void drawTime(float[] model, float[] tint, Gfx.Blend blend, string key, int time, float lx, float y, float s)
     {
         int n = time;
         if (n < 0)
@@ -230,12 +233,12 @@ public class Letter
         {
             if (i != 4)
             {
-                drawLetter_5(n % 10, x, y, s, LetterDirection.TO_RIGHT);
+                drawLetter_5(model, tint, blend, key + "-drawLetter_5-1" + "-" + i.ToString(), n % 10, x, y, s, LetterDirection.TO_RIGHT);
                 n = integer(n / 10);
             }
             else
             {
-                drawLetter_5(n % 6, x, y, s, LetterDirection.TO_RIGHT);
+                drawLetter_5(model, tint, blend, key + "-drawLetter_5-2" + "-" + i.ToString(), n % 6, x, y, s, LetterDirection.TO_RIGHT);
                 n = integer(n / 6);
             }
 
@@ -244,10 +247,10 @@ public class Letter
                 switch (i)
                 {
                     case 3:
-                        drawLetter_5(41, x + s * 1.16f, y, s, LetterDirection.TO_RIGHT);
+                        drawLetter_5(model, tint, blend, key + "-drawLetter_5-3" + "-" + i.ToString(), 41, x + s * 1.16f, y, s, LetterDirection.TO_RIGHT);
                         break;
                     case 5:
-                        drawLetter_5(40, x + s * 1.16f, y, s, LetterDirection.TO_RIGHT);
+                        drawLetter_5(model, tint, blend, key + "-drawLetter_5-4" + "-" + i.ToString(), 40, x + s * 1.16f, y, s, LetterDirection.TO_RIGHT);
                         break;
                     default:
                         break;
@@ -265,7 +268,7 @@ public class Letter
         }
     }
 
-    public static void setLetter(int idx)
+    public static void appendLetter(Mesh mesh, float[] model, float[] tint, int idx)
     {
         float x = default(float), y = default(float), length = default(float), size = default(float), t = default(float);
         float deg = default(float);
@@ -284,34 +287,34 @@ public class Letter
             x = -x;
             y = y;
             deg %= 180;
-            drawSegment(x, y, size, length, deg);
+            appendSegment(mesh, model, tint, x, y, size, length, deg);
         }
     }
 
-    public static void drawSegment(float x, float y, float width, float height, float deg)
+    public static void appendSegment(Mesh mesh, float[] model, float[] tint, float x, float y, float width, float height, float deg)
     {
-        glPushMatrix();
-        glTranslatef(x - width / 2, y, 0);
-        glRotatef(deg, 0, 0, 1);
-        Screen.setColor(1, 1, 1, 0.5f);
-        glBegin(GL_TRIANGLE_FAN);
-        drawSegmentPart(width, height);
-        glEnd();
-        Screen.setColor(1, 1, 1);
-        glBegin(GL_LINE_LOOP);
-        drawSegmentPart(width, height);
-        glEnd();
-        glPopMatrix();
+        float[] parent1 = model;
+        model = Transform.Translate(model, x - width / 2, y, 0);
+        model = Transform.Rotate(model, deg, 0, 0, 1);
+        tint = new float[] { 1, 1, 1, 0.5f };
+        int part2 = mesh.vertexCount;
+        appendSegmentPart(mesh, model, tint, width, height);
+        mesh.Fan(part2, mesh.vertexCount - part2);
+        tint = new float[] { 1, 1, 1, 1 };
+        int part3 = mesh.vertexCount;
+        appendSegmentPart(mesh, model, tint, width, height);
+        mesh.LineStrip(part3, mesh.vertexCount - part3, true);
+        model = parent1;
     }
 
-    public static void drawSegmentPart(float width, float height)
+    public static void appendSegmentPart(Mesh mesh, float[] model, float[] tint, float width, float height)
     {
-        glVertex3f(-width / 2, 0, 0);
-        glVertex3f(-width / 3 * 1, -height / 2, 0);
-        glVertex3f(width / 3 * 1, -height / 2, 0);
-        glVertex3f(width / 2, 0, 0);
-        glVertex3f(width / 3 * 1, height / 2, 0);
-        glVertex3f(-width / 3 * 1, height / 2, 0);
+        mesh.Vertex(-width / 2, 0, 0, tint, model);
+        mesh.Vertex(-width / 3 * 1, -height / 2, 0, tint, model);
+        mesh.Vertex(width / 3 * 1, -height / 2, 0, tint, model);
+        mesh.Vertex(width / 2, 0, 0, tint, model);
+        mesh.Vertex(width / 3 * 1, height / 2, 0, tint, model);
+        mesh.Vertex(-width / 3 * 1, height / 2, 0, tint, model);
     }
 
     public static float[][][] spData = McdData.Letters();
