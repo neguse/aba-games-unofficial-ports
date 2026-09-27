@@ -41,7 +41,7 @@ int runtime = Lub.Run(() =>
         right.StickClick = phase == 960 || phase == 1200;
         long allocated = GC.GetAllocatedBytesForCurrentThread();
         long before = Stopwatch.GetTimestamp();
-        Game.OnFrame(dt, left, right, true);
+        Game.DrawInput(dt, left, right, true);
         double cpu = Stopwatch.GetElapsedTime(before).TotalMilliseconds;
         allocated = GC.GetAllocatedBytesForCurrentThread() - allocated;
         samples[frame] = new(elapsed, cpu, allocated, GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2), playing, game.ship.chargingShot != null, TtRender.FirstPerson);

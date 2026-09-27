@@ -3,6 +3,11 @@ using System.Reflection;
 public static class FrameTests
 {
     static void Check(bool value, string message) { if (!value) throw new Exception(message); }
+    static System.Numerics.Matrix4x4 Matrix(object value)
+    {
+        var m = (float[])value;
+        return new(m[0],m[1],m[2],m[3],m[4],m[5],m[6],m[7],m[8],m[9],m[10],m[11],m[12],m[13],m[14],m[15]);
+    }
     public static int Main()
     {
         Directory.SetCurrentDirectory(AppContext.BaseDirectory);
@@ -26,10 +31,10 @@ public static class FrameTests
                     TtRender.Draw(mesh, Transform.Translate(Transform.Identity(), 2, 0, 0), new float[] { 0, 1, 0, 1 }, 1, Lub.Gfx.Blend.Additive, Lub.Gfx.Cull.None);
                     var commands = (System.Collections.IList)typeof(TtRender).GetField("commands", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
                     var commandType = commands[0].GetType();
-                    var firstTint = (System.Numerics.Vector4)commandType.GetField("Tint").GetValue(commands[0]);
-                    var secondTint = (System.Numerics.Vector4)commandType.GetField("Tint").GetValue(commands[1]);
-                    Check(firstTint.X == 1 && firstTint.Y == 0 && secondTint.X == 0 && secondTint.Y == 1, "Batched draws must retain independent colors");
-                    Check(((System.Numerics.Matrix4x4)commandType.GetField("Model").GetValue(commands[0])).M41 == 1, "Deferred model must survive a later binding call");
+                    var firstTint = (float[])commandType.GetField("Tint").GetValue(commands[0]);
+                    var secondTint = (float[])commandType.GetField("Tint").GetValue(commands[1]);
+                    Check(firstTint[0] == 1 && firstTint[1] == 0 && secondTint[0] == 0 && secondTint[1] == 1, "Batched draws must retain independent colors");
+                    Check(((float[])commandType.GetField("Model").GetValue(commands[0]))[12] == 1, "Deferred model must survive a later binding call");
                     mesh.Clear();
                     Check(mesh.vertexCount == 0 && mesh.count == 0, "Dynamic mesh reuse clears geometry");
                     Check((int)typeof(TtRender).GetField("batchCount", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null) == 1, "Compatible adjacent draws share one batch");
@@ -39,7 +44,7 @@ public static class FrameTests
                     FrameControls.Read(game, null, new XrInput { Active = true, Primary = true });
                     Check(game.pad.buttons == PadButton.A, "A starts game");
                     game.startInGame();
-                    var world = (System.Numerics.Matrix4x4)typeof(TtRender).GetMethod("WorldView", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, [game.ship]);
+                    var world = Matrix(typeof(TtRender).GetMethod("WorldView", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, [game.ship]));
                     var point = System.Numerics.Vector3.Transform(System.Numerics.Vector3.Zero, world);
                     Check(float.IsFinite(point.X) && float.IsFinite(point.Y) && float.IsFinite(point.Z), "Camera coordinates must survive the tunnel's shared return vector");
                     Check(System.Numerics.Matrix4x4.Invert(world, out var inverse), "World camera must be invertible");
@@ -51,13 +56,13 @@ public static class FrameTests
                     TtRender.Recenter();
                     updateAnchor.Invoke(null, [rearPose, rearPose, false]);
                     updateAnchor.Invoke(null, [frontPose, frontPose, true]);
-                    var anchor = (System.Numerics.Matrix4x4)anchorField.GetValue(null);
+                    var anchor = Matrix(anchorField.GetValue(null));
                     Check(System.Numerics.Vector3.TransformNormal(-System.Numerics.Vector3.UnitZ, anchor).Z < -.99f, "An unfocused startup pose must not lock the game behind the player");
                     updateAnchor.Invoke(null, [rearPose, rearPose, true]);
-                    Check(anchor.Equals((System.Numerics.Matrix4x4)anchorField.GetValue(null)), "Head turns must retain the established game direction");
+                    Check(anchor.Equals(Matrix(anchorField.GetValue(null))), "Head turns must retain the established game direction");
                     TtRender.Recenter();
                     updateAnchor.Invoke(null, [rearPose, rearPose, true]);
-                    anchor = (System.Numerics.Matrix4x4)anchorField.GetValue(null);
+                    anchor = Matrix(anchorField.GetValue(null));
                     Check(System.Numerics.Vector3.TransformNormal(-System.Numerics.Vector3.UnitZ, anchor).Z > .99f, "Game start recenter adopts the player's current heading");
                     Check(anchor.Translation == new System.Numerics.Vector3(1, 2, 3), "Recenter adopts the current head position");
                     Console.WriteLine("PASS focused startup and game-start recenter");
@@ -77,7 +82,7 @@ public static class FrameTests
                         {
                             float angle = step * MathF.PI / 4;
                             game.ship._eyePos.x = game.ship._relPos.x = angle;
-                            world = (System.Numerics.Matrix4x4)typeof(TtRender).GetMethod("WorldView", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, [game.ship]);
+                            world = Matrix(typeof(TtRender).GetMethod("WorldView", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, [game.ship]));
                             var center = TrackPoint(game, angle, game.ship._relPos.y + 3);
                             var right = TrackPoint(game, angle - .01f, game.ship._relPos.y + 3);
                             var projected = System.Numerics.Vector3.Transform(center, world);

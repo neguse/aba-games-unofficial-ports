@@ -9,6 +9,7 @@ parser.add_argument('--lub', type=Path, required=True)
 parser.add_argument('--entry', default='Game')
 parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanion', 'a7xpg', 'torus-trooper', 'rrootage', 'noiz2sa', 'wok', 'mazer-mayhem', 'gear-toy-gear', 'mu-cade', 'masashikun-hi'], default='tumiki')
 parser.add_argument('--test', type=Path)
+parser.add_argument('--frame', action='store_true')
 parser.add_argument('--output', type=Path, default=Path('build/game.lua'))
 args = parser.parse_args()
 first = ['Core.cs', 'Rand.cs', 'PatternNumber.cs', 'Pattern.cs']
@@ -76,13 +77,23 @@ if args.game == 'masashikun-hi':
     sources = [Path('games/masashikun-hi/Models.cs')]
     sources += [p for p in sorted(Path('games/masashikun-hi').glob('*.cs')) if p.name != 'Models.cs']
     sources += sorted(Path('build/masashikun-hi').glob('*.cs'))
-shader_source = 'public static class GameShaders {\n'
-for name, stage in [('vertex', 'vs'), ('fragment', 'fs')]:
-    prefix = 'shaders/mesh' if args.game in ['titanion', 'parsec47', 'tumiki', 'torus-trooper', 'a7xpg', 'rrootage', 'mu-cade'] else f'games/{args.game}/game'
-    shader_source += f'public static string {name} = {json.dumps(Path(f"{prefix}.{stage}.slang").read_text())};\n'
-shader_source += '}\n'
-Path('build/Shaders.cs').write_text(shader_source)
-sources.append(Path('build/Shaders.cs'))
+if args.frame:
+    if args.game not in ['gear-toy-gear', 'torus-trooper']:
+        parser.error('--frame requires gear-toy-gear or torus-trooper')
+    excluded = ['Render.cs', 'Pad.cs'] if args.game == 'gear-toy-gear' else ['Game.cs', 'TtRender.cs']
+    sources = [p for p in sources if p.parent != Path('games') / args.game or p.name not in excluded]
+    sources.append(Path('games/frame/FrameMath.cs'))
+    sources += [p for p in sorted((Path('games') / args.game / 'frame').glob('*.cs')) if p.name != 'Program.cs']
+    if args.entry == 'Game' and args.game == 'gear-toy-gear':
+        args.entry = 'FrameApp'
+else:
+    shader_source = 'public static class GameShaders {\n'
+    for name, stage in [('vertex', 'vs'), ('fragment', 'fs')]:
+        prefix = 'shaders/mesh' if args.game in ['titanion', 'parsec47', 'tumiki', 'torus-trooper', 'a7xpg', 'rrootage', 'mu-cade'] else f'games/{args.game}/game'
+        shader_source += f'public static string {name} = {json.dumps(Path(f"{prefix}.{stage}.slang").read_text())};\n'
+    shader_source += '}\n'
+    Path('build/Shaders.cs').write_text(shader_source)
+    sources.append(Path('build/Shaders.cs'))
 if args.test:
     sources.append(args.test)
 compiler = args.lub / 'third_party/tcs/Transpiler/bin/Release/net10.0/Transpiler.dll'

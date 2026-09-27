@@ -1,17 +1,19 @@
+using System;
+using System.Collections.Generic;
 using static Lub;
 
 public static class FrameHost
 {
-    static readonly string[] names = [.. SoundManager.names.Select(Path.GetFileNameWithoutExtension), "tt1", "tt2", "tt3", "tt4"];
-    static readonly int[] sounds = new int[names.Length];
-    static readonly int[] channels = [0, 1, 1, 2, 3, 4, 4, 5, 6, 7];
-    static readonly int[] playing = Enumerable.Repeat(-1, 8).ToArray();
+    static readonly string[] names = new string[] { SoundManager.names[0].Replace(".wav", ""), SoundManager.names[1].Replace(".wav", ""), SoundManager.names[2].Replace(".wav", ""), SoundManager.names[3].Replace(".wav", ""), SoundManager.names[4].Replace(".wav", ""), SoundManager.names[5].Replace(".wav", ""), SoundManager.names[6].Replace(".wav", ""), SoundManager.names[7].Replace(".wav", ""), SoundManager.names[8].Replace(".wav", ""), SoundManager.names[9].Replace(".wav", ""), "tt1", "tt2", "tt3", "tt4" };
+    static readonly int[] sounds = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    static readonly int[] channels = new int[] { 0, 1, 1, 2, 3, 4, 4, 5, 6, 7 };
+    static readonly int[] playing = new int[] { -1, -1, -1, -1, -1, -1, -1, -1 };
     static readonly string[] soundKeys = new string[8];
     static int generation;
     static readonly List<float> noSamples = new();
     static readonly VoiceOpts voice = new();
-    static readonly string saveRoot = Path.Combine(Environment.GetEnvironmentVariable("XDG_DATA_HOME") ??
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local/share"), "torus-trooper");
+    static readonly string saveRoot = (Environment.GetEnvironmentVariable("XDG_DATA_HOME") ??
+        Environment.GetEnvironmentVariable("HOME") + "/.local/share") + "/torus-trooper";
     static int music = -1;
     static float fade = -1;
     static bool audioStarted;
@@ -19,20 +21,20 @@ public static class FrameHost
     public static bool Available() => true;
     public static void Load()
     {
-        string scores = Path.Combine(saveRoot, "scores.txt");
-        if (File.Exists(scores))
+        Io.LoadText(saveRoot + "/scores.txt", out var scores, out _, out _, out _);
+        if (scores != null)
         {
-            Game.manager.prefManager.load(File.ReadAllText(scores));
+            Game.manager.prefManager.load(scores);
             Game.manager.titleManager.start();
         }
-        string replay = Path.Combine(saveRoot, "replay.txt");
-        if (File.Exists(replay))
+        Io.LoadText(saveRoot + "/replay.txt", out var text, out _, out _, out _);
+        if (text != null)
         {
             var data = new ReplayData();
-            string text = File.ReadAllText(replay);
             if (data.decode(text))
             {
-                Game.savedReplay = savedReplay = text;
+                Game.savedReplay = text;
+                savedReplay = text;
                 Game.manager.inGameState._replayData = data;
                 Game.manager.startTitle();
             }
@@ -40,10 +42,7 @@ public static class FrameHost
     }
     static void Save(string name, string text)
     {
-        Directory.CreateDirectory(saveRoot);
-        string path = Path.Combine(saveRoot, name + ".txt");
-        File.WriteAllText(path + ".tmp", text);
-        File.Move(path + ".tmp", path, true);
+        Io.SaveText(saveRoot + "/" + name + ".txt", text);
     }
     public static void SaveReplay()
     {
@@ -57,10 +56,10 @@ public static class FrameHost
         {
             if (sounds[i] != 0) { Audio.Snd(names[i], noSamples, 1, 48000, 1); continue; }
             Io.LoadBytes("audio/" + names[i] + ".wav", out var encoded, out _, out var status, out var error);
-            if (status == Io.Status.Error) throw new IOException(error);
+            if (status == Io.Status.Error) { Console.WriteLine(error); Lub.Quit(); return; }
             if (encoded == null) continue;
             Audio.Decode(encoded, out var pcm, out int count, out int rate);
-            if (pcm == null) throw new IOException("Cannot decode " + names[i]);
+            if (pcm == null) { Console.WriteLine("Cannot decode " + names[i]); Lub.Quit(); return; }
             sounds[i] = Audio.SndBytes(names[i], pcm, count, rate, 1);
         }
         if (!audioStarted && sounds[0] != 0)
@@ -76,7 +75,7 @@ public static class FrameHost
         if (music >= 0 && sounds[music] != 0)
         {
             voice.Loop = true;
-            voice.Volume = fade < 0 ? 1 : MathF.Max(0, fade / 2);
+            voice.Volume = fade < 0 ? 1 : Math.Max(0, fade / 2);
             Audio.Voice("music", sounds[music], voice);
             if (fade >= 0) { fade -= dt; if (fade <= 0) music = -1; }
         }
@@ -98,7 +97,8 @@ public static class FrameHost
             case "sound.play":
                 int index = int.Parse(payload);
                 playing[channels[index]] = index;
-                soundKeys[channels[index]] = "se" + channels[index] + "-" + generation++;
+                soundKeys[channels[index]] = "se" + channels[index] + "-" + generation;
+                generation++;
                 break;
         }
     }
