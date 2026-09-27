@@ -85,6 +85,28 @@ int rendered = 0;
 bool verified = false;
 int runtime = Lub.Run(null, null, dt =>
 {
+    if (rendered == 0)
+    {
+        var batchFrame = new GtgFrame { Technique = "LetterTech", DepthEnabled = false };
+        var shape = new CubeShape(batchFrame, 1, 1, 1);
+        GtgRender.Begin();
+        Shape.BeginAddInstance();
+        Shape.AddInstance(new Vector3(1, 2, 3), 1, Quaternion.Identity, new Vector4(1, 0, 0, 1)); shape.Draw();
+        Shape.BeginAddInstance();
+        Shape.AddInstance(new Vector3(4, 5, 6), 1, Quaternion.Identity, new Vector4(0, 1, 0, 1)); shape.Draw();
+        var flags = BindingFlags.NonPublic | BindingFlags.Static;
+        var used = typeof(GtgRender).GetField("used", flags);
+        Near((int)used.GetValue(null), 1, 0);
+        var commands = (System.Collections.IList)typeof(GtgRender).GetField("commands", flags).GetValue(null);
+        var command = commands[0];
+        var data = (List<float>)command.GetType().GetField("Data").GetValue(command);
+        Near(data[132], 1); Near(data[144], 4); Near(data[140], 1); Near(data[153], 1);
+        Near(((DrawOpts)command.GetType().GetField("Options").GetValue(command)).InstanceCount.Value, 2, 0);
+        batchFrame.ViewMatrix.M[12] = 1;
+        shape.Draw();
+        Near((int)used.GetValue(null), 2, 0);
+        Console.WriteLine("PASS adjacent instance batching preserves data and view changes");
+    }
     var shader = Lub.Gfx.UseShader("gtg-sampler-test", vertex, fragment, 1);
     var source = Lub.Gfx.UseTexture("source", 1, 1, Lub.Gfx.PixelFormat.Rgba8, new List<int> { 64, 128, 192, 255 }, 1);
     var target = Lub.Gfx.UseTexture("target", 4, 4, Lub.Gfx.PixelFormat.Rgba8, null, 1, new TextureOpts { Target = true });

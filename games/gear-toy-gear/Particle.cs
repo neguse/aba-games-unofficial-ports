@@ -131,7 +131,7 @@ public class ParticlePool : ActorPool<Particle>
 
     public override void DrawT(Particle a)
     {
-        Shape.AddInstance((a.Pos).Copy(), a.Scale, (a.Orientation).Copy(), (a.Color).Copy());
+        Shape.AddInstance(a.Pos, a.Scale, a.Orientation, a.Color);
     }
 }
 

@@ -90,6 +90,14 @@ public static class GtgRender
         command.Geometry = shape.Geometry;
         command.Count = primitives * 3;
         command.Options.InstanceCount = instances;
+        if (used < 2) return;
+        var previous = commands[used - 2];
+        if (previous.Pass != command.Pass || previous.Geometry != command.Geometry || previous.Count != command.Count ||
+            previous.Options.Depth != command.Options.Depth) return;
+        for (int i = 0; i < 132; i++) if (previous.Data[i] != command.Data[i]) return;
+        for (int i = 132; i < command.Data.Count; i++) previous.Data.Add(command.Data[i]);
+        previous.Options.InstanceCount += instances;
+        used--;
     }
     public static void Composite(GtgFrame frame)
     {
