@@ -30,8 +30,8 @@ for source in ['samples/boot.lua', 'third_party/lume/lume.lua']:
     destination = output / source
     destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(lub / source, destination)
-for library in native.glob('*.so*'):
-    shutil.copy2(library, output / 'native' / library.name)
+for name in ['liblub.so', 'libopenxr_loader.so.1', 'libSDL3.so.0', 'libslang-compiler.so.0.2026.8.1']:
+    shutil.copy2(native / name, output / 'native' / name)
 (output / 'audio').mkdir(exist_ok=True)
 volumes = dict(re.findall(r'Sound\s*\{\s*Name = (\w+);\s*Volume = ([-\d]+)',
                           (original / 'Content/Audio/Gtg.xap').read_text()))
@@ -40,7 +40,8 @@ for path in (original / 'Content/Audio').glob('*.wav'):
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(path), '-af', f'volume={gain}',
                     '-c:a', 'pcm_s16le', str(output / 'audio' / path.name)], check=True)
 shutil.copy2(lub / 'LICENSE', output / 'native/LICENSE-lub.txt')
-shutil.copy2(lub / 'THIRD_PARTY_LICENSES.md', output / 'native/THIRD_PARTY_LICENSES.md')
+subprocess.run([sys.executable, str(lub / 'tools/package-frame-licenses.py'),
+                str(output / 'native')], check=True)
 for component, source in [('SDL', 'third_party/SDL/LICENSE.txt'), ('OpenXR', 'third_party/openxr/LICENSE'),
                            ('Slang', 'third_party/slang/LICENSE')]:
     shutil.copy2(lub / source, output / 'native' / f'LICENSE-{component}.txt')
