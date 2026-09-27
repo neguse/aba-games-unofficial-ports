@@ -5,4 +5,4 @@ export LUB_BACKEND=openxr
 export SDL_VIDEO_DRIVER=dummy
 export LUB_NATIVE_LIB="$PWD/native/liblub.so"
 export LD_LIBRARY_PATH="$PWD/native${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-exec ./TorusTrooper "$@"
+exec taskset -c 2-7 ./TorusTrooper "$@"
