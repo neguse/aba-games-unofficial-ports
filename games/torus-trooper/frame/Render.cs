@@ -44,9 +44,9 @@ public static class TtRender
     {
         float angle = FirstPerson ? ship._relPos.x : ship._eyePos.x;
         float y = ship._relPos.y - (FirstPerson ? 0 : 3);
-        float height = FirstPerson ? 1.5f : 5;
+        float height = FirstPerson ? 1.5f : 8;
         var from = TrackPosition(ship.tunnel, angle, y, height);
-        var to = TrackPosition(ship.tunnel, angle, y + 6, height);
+        var to = TrackPosition(ship.tunnel, angle, y + 6, FirstPerson ? height : 5);
         var surface = TrackPosition(ship.tunnel, angle, y, 0);
         var up = NVector3.Normalize(from - surface);
         return Matrix4x4.CreateLookAt(from, to, up) * Matrix4x4.CreateScale(.05f);
