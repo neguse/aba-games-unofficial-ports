@@ -1,0 +1,173 @@
+name: Frame release
+
+on:
+  pull_request:
+    branches: [release/frame]
+  push:
+    tags: ['frame-v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frame-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 120
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: neguse/lub
+          ref: 81d28ec2be7b056b8532b160e2a0c343db9c488e
+          submodules: recursive
+          path: .cache/lub
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.111
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build python3 ffmpeg unzip libvulkan-dev \
+            libasound2-dev libpulse-dev libpipewire-0.3-dev \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
+            libxfixes-dev libxi-dev libxss-dev libxtst-dev \
+            libxkbcommon-dev libwayland-dev libdecor-0-dev \
+            libdrm-dev libgbm-dev libgl1-mesa-dev libegl1-mesa-dev \
+            libdbus-1-dev libudev-dev
+      - name: Download original assets
+        run: |
+          mkdir -p .cache/originals
+          cd .cache/originals
+          curl -fL --retry 3 https://abagames.sakura.ne.jp/xna/gtg/GearToyGear0_1.zip -o GearToyGear0_1.zip
+          curl -fL --retry 3 https://abagames.sakura.ne.jp/windows/tt0_22.zip -o tt0_22.zip
+          sha256sum --check <<'EOF'
+          b068c6b1dd5a7bfcc65830ba6fe946dbc6182ac720c58d6b3518546b5f22f04a  GearToyGear0_1.zip
+          6fcbb3de9ac5cfce38253f71257143631a978c625b041c8527d18ddb5c8813fa  tt0_22.zip
+          EOF
+          unzip -q GearToyGear0_1.zip
+          unzip -q tt0_22.zip
+      - name: Build pinned Lub and tcs
+        working-directory: .cache/lub
+        run: |
+          test "$(git -C third_party/tcs rev-parse HEAD)" = 3b41b79e7bc9b753e52ca57fbed55aa61d6dfd53
+          dotnet build third_party/tcs/Transpiler/Transpiler.csproj -c Release
+          timeout 7200 bash scripts/build-release.sh --target lub
+          timeout 7200 bash scripts/build-release.sh --target lub_shared --no-configure
+      - name: Build both games
+        run: |
+          mkdir -p build/frame/native
+          cp -L .cache/lub/build-release-linux/lub build/frame/native/
+          cp -L .cache/lub/build-release-linux/liblub.so build/frame/native/
+          cp -L .cache/lub/build-release-linux/third_party/SDL/libSDL3.so.0 build/frame/native/
+          cp -L .cache/lub/build-release-linux/third_party/openxr/src/loader/libopenxr_loader.so.1 build/frame/native/
+          cp -L .cache/lub/third_party/slang/lib/libslang-compiler.so.0.2026.8.1 build/frame/native/
+          python3 tools/build_gtg_frame.py --lub .cache/lub \
+            --original .cache/originals/GearToyGear/GearToyGear --native build/frame/native
+          mv build/frame/publish build/frame/GearToyGear
+          python3 tools/build_tt_frame.py --lub .cache/lub \
+            --original .cache/originals/tt --native build/frame/native
+          mv build/frame/publish build/frame/TorusTrooper
+      - name: Package and inspect ZIPs
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          from pathlib import Path
+          import re
+          import stat
+          from zipfile import ZipFile, ZIP_DEFLATED
+
+          root = Path('build/frame')
+          native = {'lub', 'liblub.so', 'libSDL3.so.0', 'libopenxr_loader.so.1',
+                    'libslang-compiler.so.0.2026.8.1', 'LICENSE-lub.txt', 'LICENSE-SDL.txt',
+                    'LICENSE-OpenXR.txt', 'LICENSE-Slang.txt', 'THIRD_PARTY_NOTICES.txt'}
+          licenses = {'LICENSE.txt', 'DOTNET-LICENSE.TXT', 'DOTNET-THIRD-PARTY-NOTICES.TXT'}
+          patterns = {
+              'private key': rb'-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----',
+              'access token': rb'(?<![A-Za-z0-9_])(?:gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{40,}|AKIA[A-Z0-9]{16}|xox[baprs]-[0-9A-Za-z-]{15,})',
+              'personal home path': rb'(?:/home/(?!runner/)[^/\s\x00]+/|/Users/[^/\s\x00]+/|[A-Za-z]:\\Users\\[^\\\s\x00]+\\)',
+              'local network address': rb'(?<![0-9.])192\.168\.[0-9]{1,3}\.[0-9]{1,3}(?![0-9.])',
+          }
+          for game in ('GearToyGear', 'TorusTrooper'):
+              directory = root / game
+              required = licenses | {game, game + '.dll', 'Lub.dll', 'TinySystem.dll',
+                                     game + '.deps.json', game + '.runtimeconfig.json', 'run.sh',
+                                     'game.lua', 'samples/boot.lua', 'third_party/lume/lume.lua'}
+              required |= {'native/' + name for name in native}
+              required |= {'game.vs.slang', 'game.fs.slang'} if game == 'GearToyGear' else {'mesh.vs.slang', 'mesh.fs.slang', 'README-original.txt'}
+              files = {p.relative_to(directory).as_posix(): p for p in directory.rglob('*') if p.is_file()}
+              if not required <= files.keys() or not any(n.startswith('audio/') for n in files):
+                  raise SystemExit(f'{game}: missing required files')
+              for name, path in files.items():
+                  permitted = name in required or (
+                      '/' not in name and (path.suffix in {'.dll', '.pdb', '.so'} or name == 'createdump')
+                  ) or (path.parent == directory / 'audio' and path.suffix == '.wav')
+                  if not permitted or path.is_symlink() or path.stat().st_size == 0:
+                      raise SystemExit(f'{game}: unexpected or empty file: {name}')
+                  data = path.read_bytes()
+                  if data.startswith(b'\x7fELF') and int.from_bytes(data[18:20], 'little') != 183:
+                      raise SystemExit(f'{game}: non-ARM64 ELF: {name}')
+                  if name in {'run.sh', game, 'native/lub'} and not path.stat().st_mode & stat.S_IXUSR:
+                      raise SystemExit(f'{game}: missing executable permission: {name}')
+                  views = [data, b'\n'.join(s[::2] for s in re.findall(rb'(?:[ -~]\x00){5,}', data))]
+                  for label, pattern in patterns.items():
+                      if any(re.search(pattern, view) for view in views):
+                          raise SystemExit(f'{game}: {label} detected in {name}')
+              archive = root / (game + '-steam-frame-arm64.zip')
+              with ZipFile(archive, 'w', ZIP_DEFLATED) as z:
+                  for name, path in sorted(files.items()):
+                      z.write(path, game + '/' + name)
+              with ZipFile(archive) as z:
+                  if z.testzip() is not None or len(z.namelist()) != len(files):
+                      raise SystemExit(f'{game}: ZIP integrity check failed')
+                  for name in ('run.sh', game, 'native/lub'):
+                      if not (z.getinfo(game + '/' + name).external_attr >> 16) & stat.S_IXUSR:
+                          raise SystemExit(f'{game}: ZIP lost executable permission')
+              print(hashlib.sha256(archive.read_bytes()).hexdigest(), archive.name)
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        id: upload
+        with:
+          name: steam-frame-zips
+          path: build/frame/*-steam-frame-arm64.zip
+          compression-level: 0
+          if-no-files-found: error
+
+  release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/frame-v')
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.build.outputs.artifact-id }}
+          merge-multiple: true
+          path: assets
+      - name: Create release with both ZIPs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          cat > notes.md <<EOF
+          Steam Frame 本体で動作する GearToyGear / Torus Trooper。
+
+          遊びたいゲームの ZIP を展開し、run.sh を「Steam に追加」して起動してください。
+          [操作・ビルド手順と依存バージョン](https://github.com/${GH_REPO}/blob/${RELEASE_TAG}/README.md)
+          EOF
+          gh release create "$RELEASE_TAG" --verify-tag --draft \
+            --title "Steam Frame ${RELEASE_TAG}" --notes-file notes.md \
+            assets/GearToyGear-steam-frame-arm64.zip assets/TorusTrooper-steam-frame-arm64.zip
+          gh release edit "$RELEASE_TAG" --draft=false
