@@ -205,7 +205,7 @@ public class Particle : LuminousActor
             mesh.Fan(part2, mesh.vertexCount - part2);
         }
 
-        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+        if (mesh.count > 0) TtRender.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
     }
 
@@ -219,7 +219,7 @@ public class Particle : LuminousActor
         mesh.Vertex(sp.x, sp.y, sp.z, tint);
         for (int vi = part1; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1);
 
-        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+        if (mesh.count > 0) TtRender.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
     }
 
@@ -244,7 +244,7 @@ public class Particle : LuminousActor
         mesh.Vertex(-width, 0, -height, tint);
         mesh.Vertex(width, 0, -height, tint);
         mesh.Fan(part3, mesh.vertexCount - part3);
-        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+        if (mesh.count > 0) TtRender.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
         model = parent1;
     }
@@ -265,7 +265,7 @@ public class Particle : LuminousActor
         mesh.Vertex(sp.x - SIZE, sp.y - SIZE, sp.z, tint);
         mesh.Fan(part1, mesh.vertexCount - part1);
 
-        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+        if (mesh.count > 0) TtRender.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
     }
 }

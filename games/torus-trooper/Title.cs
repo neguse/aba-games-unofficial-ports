@@ -227,7 +227,7 @@ public class TitleManager
         part1.Vertex(640, 480, 0, tint);
         part1.Vertex(450 + (640 - 450) * rcr, 480, 0, tint);
         part1.Quads(0, part1.vertexCount - 0);
-        if (part1.count > 0) Gfx.Draw(part1.count, part1.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+        if (part1.count > 0) TtRender.Draw(part1.count, part1.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
         blend = Gfx.Blend.Additive;
         model = Transform.LookAt(Transform.Perspective(10000), 0, 0, -1, 0, 0, 0, 0, 1, 0);
@@ -238,11 +238,11 @@ public class TitleManager
         model = Transform.Rotate(model, cnt * 0.2f, 0, 0, 1);
         blend = Gfx.Blend.None;
         tint = new float[] { 0, 0, 0, 1 };
-        { Mesh shape3 = meshes[1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+        { Mesh shape3 = meshes[1]; if (shape3.count > 0) TtRender.Draw(shape3.count, shape3.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
         blend = Gfx.Blend.Additive;
         tint = new float[] { 1, 1, 1, 0.5f };
-        { Mesh shape4 = meshes[0]; if (shape4.count > 0) Gfx.Draw(shape4.count, shape4.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+        { Mesh shape4 = meshes[0]; if (shape4.count > 0) TtRender.Draw(shape4.count, shape4.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
         model = parent2;
     }
@@ -256,7 +256,7 @@ public class TitleManager
         model = Transform.Rotate(model, -20, 0, 0, 1);
         model = Transform.Scale(model, 128, 64, 1);
         lineWidth = 2;
-        { Mesh shape2 = meshes[2]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+        { Mesh shape2 = meshes[2]; if (shape2.count > 0) TtRender.Draw(shape2.count, shape2.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
         lineWidth = 1;
         model = parent1;
@@ -269,7 +269,7 @@ public class TitleManager
             logo.Vertex(470, 428, 0, new float[] { 0, 1, 0, 1 });
             logo.Quads(0, 4);
         }
-        Gfx.Draw(logo.count, logo.Bindings(model, new float[] { 1, 1, 1, 1 }, lineWidth, blend == Gfx.Blend.Additive, 0, TtData.title),
+        TtRender.Draw(logo.count, logo.Bindings(model, new float[] { 1, 1, 1, 1 }, lineWidth, blend == Gfx.Blend.Additive, 0, TtData.title),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
         float cx = 0, cy = 0;
         for (int i = 0; i < Ship.GRADE_NUM; i++)
@@ -313,7 +313,7 @@ public class TitleManager
                 part3.Vertex(l2cx + 29, l2cy - 7, 0, tint);
                 part3.Vertex(ecx + 29, ecy - 7, 0, tint);
                 for (int vi = 0; vi + 1 < part3.vertexCount; vi += 2) part3.Line(vi, vi + 1);
-        if (part3.count > 0) Gfx.Draw(part3.count, part3.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+        if (part3.count > 0) TtRender.Draw(part3.count, part3.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
             }
         }
@@ -354,7 +354,7 @@ public class TitleManager
         model = Transform.Translate(model, x, y, 0);
         model = Transform.Rotate(model, -20, 0, 0, 1);
         model = Transform.Scale(model, s * 2, s, 1);
-        { Mesh shape2 = meshes[2]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
+        { Mesh shape2 = meshes[2]; if (shape2.count > 0) TtRender.Draw(shape2.count, shape2.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
         model = parent1;
     }
