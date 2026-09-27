@@ -5,8 +5,7 @@ Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 int seconds = args.Length > 0 ? int.Parse(args[0]) : 60;
 int grade = args.Length > 1 ? int.Parse(args[1]) : 2;
 int level = args.Length > 2 ? int.Parse(args[2]) : 10;
-using var samples = new StreamWriter("frames.csv");
-samples.WriteLine("frame,seconds,cpuMs,allocated,gen0,gen1,gen2,game,charge,first");
+var samples = new Sample[checked((seconds + 30) * 160)];
 var left = new XrInput { Active = true };
 var right = new XrInput { Active = true };
 int frame = 0, playingFrames = 0;
@@ -45,10 +44,9 @@ int runtime = Lub.Run(() =>
         Game.OnFrame(dt, left, right, true);
         double cpu = Stopwatch.GetElapsedTime(before).TotalMilliseconds;
         allocated = GC.GetAllocatedBytesForCurrentThread() - allocated;
-        samples.WriteLine($"{frame},{elapsed:F6},{cpu:F6},{allocated},{GC.CollectionCount(0)},{GC.CollectionCount(1)},{GC.CollectionCount(2)},{playing},{game.ship.chargingShot != null},{TtRender.FirstPerson}");
+        samples[frame] = new(elapsed, cpu, allocated, GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2), playing, game.ship.chargingShot != null, TtRender.FirstPerson);
         if (frame++ % 1440 == 0)
         {
-            samples.Flush();
             Console.WriteLine($"BENCH frame={frame} seconds={elapsed:F2} playing={playing} grade={grade} level={level}");
         }
         if (elapsed >= seconds)
@@ -60,4 +58,15 @@ int runtime = Lub.Run(() =>
     }
     catch (Exception e) { Console.Error.WriteLine(e); result = 1; Quit(); }
 }, Game.OnQuit, []);
+using (var output = new StreamWriter("frames.csv"))
+{
+    output.WriteLine("frame,seconds,cpuMs,allocated,gen0,gen1,gen2,game,charge,first");
+    for (int i = 0; i < frame; i++)
+    {
+        var s = samples[i];
+        output.WriteLine($"{i},{s.Seconds:F6},{s.Cpu:F6},{s.Allocated},{s.Gen0},{s.Gen1},{s.Gen2},{s.Playing},{s.Charge},{s.First}");
+    }
+}
 return runtime == 0 ? result : runtime;
+
+readonly record struct Sample(double Seconds, double Cpu, long Allocated, int Gen0, int Gen1, int Gen2, bool Playing, bool Charge, bool First);
