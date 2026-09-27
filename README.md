@@ -5,7 +5,7 @@ GearToyGear と Torus Trooper を Steam Frame 本体で実行する。
 
 ## ダウンロード
 
-[Releases](https://github.com/neguse/tsumiki/releases) から遊びたいゲームの ZIP を選ぶ。
+[Releases](https://github.com/neguse/aba-games-unofficial-ports/releases) から遊びたいゲームの ZIP を選ぶ。
 1 件の Release に両ゲームの ZIP を添付する。
 
 - `GearToyGear-steam-frame-arm64.zip`
@@ -42,7 +42,7 @@ Torus Trooper のタイトルでは、左スティックの左右で難易度、
 
 配布版のコードは、利用する Release のタグから参照する。
 Frame 版の開発ブランチは
-[`release/frame`](https://github.com/neguse/tsumiki/tree/release/frame)。
+[`release/frame`](https://github.com/neguse/aba-games-unofficial-ports/tree/release/frame)。
 ゲームのソースは [GearToyGear](games/gear-toy-gear/) と
 [Torus Trooper](games/torus-trooper/) にあり、各 `frame/` が Frame 用の起動・描画・入力を担当する。
 
