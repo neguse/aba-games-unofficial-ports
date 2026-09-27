@@ -53,8 +53,9 @@ LUB_NATIVE_LIB=/path/to/host/liblub.so dotnet run \
 
 The title uses the left stick for difficulty and level selection. Head
 movement controls only the view. Right stick tilt, grip and D-pad have no
-gameplay assignment. Initial head position and horizontal facing place
-the scene in the room. Third person is the default: the camera sits behind
+gameplay assignment. Head position and horizontal facing place the scene
+when the application first gains focus and when a game starts from the title.
+Third person is the default: the camera sits behind
 and inward from the ship, with lateral tracking lag to show dodges. First
 person sits near the ship and follows its circumferential position directly.
 Both views use the track's inward normal as up, preserving steering direction

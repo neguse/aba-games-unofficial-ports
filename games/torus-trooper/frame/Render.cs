@@ -58,7 +58,8 @@ public static class TtRender
             1 - height / tunnel.getRadius(y));
         return new NVector3(p.x, p.y, p.z);
     }
-    public static void Present(Ship ship, XrView left, XrView right)
+    public static void Recenter() { anchored = false; }
+    static void UpdateAnchor(XrView left, XrView right, bool focused)
     {
         if (!anchored)
         {
@@ -68,8 +69,12 @@ public static class TtRender
                 (left.Position[0] + right.Position[0]) * .5f,
                 (left.Position[1] + right.Position[1]) * .5f,
                 (left.Position[2] + right.Position[2]) * .5f);
-            anchored = true;
+            anchored = focused;
         }
+    }
+    public static void Present(Ship ship, XrView left, XrView right)
+    {
+        UpdateAnchor(left, right, Xr.Focused());
         var world = WorldView(ship);
         var hud = Matrix4x4.CreateScale(1.2f, .9f, 0) * Matrix4x4.CreateTranslation(0, 0, -2);
         for (int eye = 0; eye < 2; eye++)

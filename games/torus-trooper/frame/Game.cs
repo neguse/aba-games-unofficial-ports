@@ -35,6 +35,7 @@ public static class Game
             return;
         }
         FrameControls.Read(manager, Xr.GetInput(0), Xr.GetInput(1));
+        bool wasTitle = manager.state == manager.titleState;
         if (Xr.Focused())
         {
             elapsed += Math.Min(dt, .1f);
@@ -44,6 +45,7 @@ public static class Game
                 elapsed -= .016f;
             }
         }
+        if (wasTitle && manager.state == manager.inGameState) TtRender.Recenter();
         shader = Gfx.UseShader("tt-xr", vertex, fragment, 1);
         if (shader == null) return;
         TtRender.Begin();
