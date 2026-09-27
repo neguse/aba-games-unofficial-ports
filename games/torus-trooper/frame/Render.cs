@@ -19,7 +19,7 @@ public static class TtRender
     static int used;
     static bool anchored;
     static Matrix4x4 anchor;
-    static NVector3 gameUp = -NVector3.UnitY;
+    public static bool FirstPerson;
     public static bool Hud;
     public static void Begin() { used = 0; Hud = false; }
     static Matrix4x4 From(float[] m) => new(m[0],m[1],m[2],m[3],m[4],m[5],m[6],m[7],m[8],m[9],m[10],m[11],m[12],m[13],m[14],m[15]);
@@ -42,15 +42,21 @@ public static class TtRender
     }
     static Matrix4x4 WorldView(Ship ship)
     {
-        var position = ship.tunnel.getPos_1_Vector3(new Vector3(ship._eyePos.x, -1.1f + ship._relPos.y * .3f, 30));
-        var from = new NVector3(position.x,position.y,position.z);
-        var target = ship.tunnel.getPos_1_Vector3(new Vector3(ship._eyePos.x, 4.9f + ship._relPos.y * .6f, 0));
-        var to = new NVector3(target.x,target.y,target.z);
-        var forwardGame = NVector3.Normalize(to - from);
-        var up = gameUp - forwardGame * NVector3.Dot(gameUp, forwardGame);
-        if (up.LengthSquared() < .0001f) up = NVector3.Cross(forwardGame, NVector3.UnitX);
-        gameUp = NVector3.Normalize(up);
-        return Matrix4x4.CreateLookAt(from, to, gameUp) * Matrix4x4.CreateScale(.05f);
+        float angle = FirstPerson ? ship._relPos.x : ship._eyePos.x;
+        float y = ship._relPos.y - (FirstPerson ? 0 : 3);
+        float height = FirstPerson ? 1.5f : 5;
+        var from = TrackPosition(ship.tunnel, angle, y, height);
+        var to = TrackPosition(ship.tunnel, angle, y + 6, height);
+        var surface = TrackPosition(ship.tunnel, angle, y, 0);
+        var up = NVector3.Normalize(from - surface);
+        return Matrix4x4.CreateLookAt(from, to, up) * Matrix4x4.CreateScale(.05f);
+    }
+    static NVector3 TrackPosition(Tunnel tunnel, float angle, float y, float height)
+    {
+        var index = tunnel.calcIndex(y);
+        var p = tunnel.getPos_4_Single_Single_Int32_Single(angle, index.y, GameMath.integer(index.x),
+            1 - height / tunnel.getRadius(y));
+        return new NVector3(p.x, p.y, p.z);
     }
     public static void Present(Ship ship, XrView left, XrView right)
     {

@@ -1,7 +1,8 @@
 # Torus Trooper on Steam Frame
 
 Standalone Linux ARM64, CoreCLR .NET 10, OpenXR and Vulkan. Requires lub's
-`vr/frame` branch with the eye-pose API (commit `9eeca7b` or later).
+`vr/frame` branch with the eye-pose and `XrInput.StickClick` APIs
+(commit `e54ef44` or later).
 
 ## Build
 
@@ -48,10 +49,16 @@ LUB_NATIVE_LIB=/path/to/host/liblub.so dotnet run \
 | Pause / resume | Menu |
 | Return to title | B while paused |
 | Toggle replay at title | B |
+| Switch third / first person | Right stick click |
 
 The title uses the left stick for difficulty and level selection. Head
-movement controls only the view. Right stick, grip and D-pad have no
+movement controls only the view. Right stick tilt, grip and D-pad have no
 gameplay assignment. Initial head position and horizontal facing place
-the scene in the room. The VR camera omits automatic roll, screen shake
-and replay zoom. Simulation advances in 16 ms steps; geometry is built
-once per display frame and submitted to both eyes.
+the scene in the room. Third person is the default: the camera sits behind
+and inward from the ship, with lateral tracking lag to show dodges. First
+person sits near the ship and follows its circumferential position directly.
+Both views use the track's inward normal as up, preserving steering direction
+around the tunnel. Ship banking, screen shake and replay zoom do not alter
+the view. Switching changes only the camera; it preserves simulation,
+controls and head tracking. Simulation advances in 16 ms steps; geometry is
+built once per display frame and submitted to both eyes.

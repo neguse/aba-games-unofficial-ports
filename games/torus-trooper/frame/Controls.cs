@@ -1,10 +1,13 @@
 public static class FrameControls
 {
     static int directions;
-    static bool shoot, charge;
+    static bool shoot, charge, viewPressed;
     static bool Held(bool held, float value) => value >= (held ? .25f : .4f);
     public static void Read(GameManager manager, XrInput left, XrInput right)
     {
+        bool view = right?.Active == true && right.StickClick;
+        if (view && !viewPressed) TtRender.FirstPerson = !TtRender.FirstPerson;
+        viewPressed = view;
         int next = 0;
         if (left?.Active == true)
         {

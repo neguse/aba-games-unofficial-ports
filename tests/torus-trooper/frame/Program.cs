@@ -29,6 +29,42 @@ public static class FrameTests
                     Check(float.IsFinite(point.X) && float.IsFinite(point.Y) && float.IsFinite(point.Z), "Camera coordinates must survive the tunnel's shared return vector");
                     Check(System.Numerics.Matrix4x4.Invert(world, out var inverse), "World camera must be invertible");
                     Console.WriteLine("PASS finite world camera transform");
+                    Check(!TtRender.FirstPerson, "Third person is the default");
+                    FrameControls.Read(game, null, new XrInput { Active = true, StickClick = true });
+                    Check(TtRender.FirstPerson && game.pad.buttons == 0 && !game.pad.pause && !game.pad.escape, "Right stick click changes only the view");
+                    FrameControls.Read(game, null, new XrInput { Active = true, StickClick = true });
+                    Check(TtRender.FirstPerson, "Holding the stick button must not repeat");
+                    FrameControls.Read(game, new XrInput { Active = true, StickClick = true }, null);
+                    Check(TtRender.FirstPerson, "Left stick click must not change the view");
+                    FrameControls.Read(game, null, new XrInput { Active = true, StickClick = true });
+                    Check(!TtRender.FirstPerson, "Second press returns to third person");
+                    for (int mode = 0; mode < 2; mode++)
+                    {
+                        TtRender.FirstPerson = mode == 1;
+                        for (int step = 0; step < 8; step++)
+                        {
+                            float angle = step * MathF.PI / 4;
+                            game.ship._eyePos.x = game.ship._relPos.x = angle;
+                            world = (System.Numerics.Matrix4x4)typeof(TtRender).GetMethod("WorldView", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, [game.ship]);
+                            var center = TrackPoint(game, angle, game.ship._relPos.y + 3);
+                            var right = TrackPoint(game, angle - .01f, game.ship._relPos.y + 3);
+                            var projected = System.Numerics.Vector3.Transform(center, world);
+                            var projectedRight = System.Numerics.Vector3.Transform(right, world);
+                            Check(projected.Z < 0 && projectedRight.X / -projectedRight.Z > projected.X / -projected.Z, "Right must remain screen-right around the entire tunnel in both views");
+                            System.Numerics.Matrix4x4.Invert(world, out inverse);
+                            var camera = System.Numerics.Vector3.Transform(System.Numerics.Vector3.Zero, inverse);
+                            var at = System.Numerics.Vector3.Transform(TrackPoint(game, angle, game.ship._relPos.y), world);
+                            if (mode == 0)
+                            {
+                                Check(at.Z < 0 && at.Y < 0 && MathF.Abs(at.Y / at.Z) < .7f, "Third-person ship stays visible below center");
+                                Check(System.Numerics.Vector3.Distance(camera, TrackPoint(game, angle, game.ship._relPos.y)) > 10, "Chase camera remains behind the ship");
+                            }
+                            else Check(System.Numerics.Vector3.Distance(camera, TrackPoint(game, angle, game.ship._relPos.y)) < 3, "First person stays near the ship");
+                        }
+                    }
+                    TtRender.FirstPerson = false;
+                    game.ship._eyePos.x = game.ship._relPos.x = 0;
+                    Console.WriteLine("PASS camera switching and full-circle steering visibility");
                     FrameControls.Read(game, new XrInput { Active = true, StickX = -.5f, StickY = .5f, Trigger = .8f }, new XrInput { Active = true, Trigger = .8f, Secondary = true });
                     Check(game.pad.directions == (PadDir.LEFT | PadDir.UP), "Steering and acceleration");
                     Check(game.pad.buttons == PadButton.ANY && !game.pad.escape, "Charge and fire with no accidental exit");
@@ -47,5 +83,10 @@ public static class FrameTests
             return runtime == 0 ? result : runtime;
         }
         finally { if (Directory.Exists(saves)) Directory.Delete(saves, true); }
+    }
+    static System.Numerics.Vector3 TrackPoint(GameManager game, float angle, float y)
+    {
+        var p = game.tunnel.getPos_1_Vector(new Vector(angle, y));
+        return new System.Numerics.Vector3(p.x, p.y, p.z);
     }
 }
