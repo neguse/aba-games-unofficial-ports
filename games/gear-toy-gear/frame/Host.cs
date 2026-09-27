@@ -1,15 +1,14 @@
-using System.Globalization;
+using System;
+using System.Collections.Generic;
 using static Lub;
 
 public static class FrameHost
 {
-    static readonly string[] names = [.. Sound.names, "Gtg1", "Gtg2", "Gtg3"];
-    static readonly int[] sounds = new int[names.Length];
-    static readonly Queue<(string, string)> messages = new();
-    static readonly Dictionary<int, (int sound, float pan)> loops = new();
-    static readonly string savePath = Path.Combine(
-        Environment.GetEnvironmentVariable("XDG_DATA_HOME") ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local/share"),
-        "gear-toy-gear", "scores.txt");
+    static readonly string[] names = new string[] { Sound.names[0], Sound.names[1], Sound.names[2], Sound.names[3], Sound.names[4], Sound.names[5], Sound.names[6], Sound.names[7], "Gtg1", "Gtg2", "Gtg3" };
+    static readonly int[] sounds = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    static readonly Dictionary<int, FrameSoundLoop> loops = new();
+    static readonly string savePath = (Environment.GetEnvironmentVariable("XDG_DATA_HOME") ??
+        Environment.GetEnvironmentVariable("HOME") + "/.local/share") + "/gear-toy-gear/scores.txt";
     static int music = -1;
     static float musicVolume = 1;
     static readonly List<float> noSamples = new();
@@ -18,11 +17,6 @@ public static class FrameHost
     static bool audioStarted;
 
     public static bool Available() => true;
-    public static void Poll(out string topic, out string payload)
-    {
-        if (messages.TryDequeue(out var message)) (topic, payload) = message;
-        else (topic, payload) = (null, null);
-    }
     public static void Begin()
     {
         for (int i = 0; i < names.Length; i++)
@@ -33,10 +27,10 @@ public static class FrameHost
                 continue;
             }
             Io.LoadBytes("audio/" + names[i] + ".wav", out var encoded, out _, out var status, out var error);
-            if (status == Io.Status.Error) throw new IOException(error);
+            if (status == Io.Status.Error) { Console.WriteLine(error); Lub.Quit(); return; }
             if (encoded == null) continue;
             Audio.Decode(encoded, out var pcm, out int channels, out int rate);
-            if (pcm == null) throw new IOException("Cannot decode " + names[i]);
+            if (pcm == null) { Console.WriteLine("Cannot decode " + names[i]); Lub.Quit(); return; }
             sounds[i] = Audio.SndBytes(names[i], pcm, channels, rate, 1);
         }
         if (!audioStarted && sounds[0] != 0)
@@ -54,48 +48,49 @@ public static class FrameHost
             voice.Volume = musicVolume;
             Audio.Voice("music", sounds[music], voice);
         }
-        foreach (var (id, loop) in loops)
+        foreach (var pair in loops)
         {
-            if (sounds[loop.sound] == 0) continue;
-            voice.Pan = loop.pan;
+            int id = pair.Key;
+            var loop = pair.Value;
+            if (sounds[loop.Sound] == 0) continue;
+            voice.Pan = loop.Pan;
             voice.Volume = 1;
-            Audio.Voice("cue" + id, sounds[loop.sound], voice);
+            Audio.Voice("cue" + id, sounds[loop.Sound], voice);
         }
     }
     static float Pan(string[] parts, int start)
     {
-        float x = float.Parse(parts[start], CultureInfo.InvariantCulture);
-        float z = float.Parse(parts[start + 2], CultureInfo.InvariantCulture);
-        return x / MathF.Max(1, MathF.Sqrt(x * x + z * z));
+        float x = float.Parse(parts[start]);
+        float z = float.Parse(parts[start + 2]);
+        return x / Math.Max(1, (float)Math.Sqrt(x * x + z * z));
     }
     public static void Send(string topic, string payload)
     {
         switch (topic)
         {
             case "ready":
-                messages.Enqueue(("seed", System.Random.Shared.Next().ToString(CultureInfo.InvariantCulture)));
+                Game.frame.Seed(TinySystem.Random.Next());
                 break;
             case "scores.load":
-                if (File.Exists(savePath)) messages.Enqueue(("scores", File.ReadAllText(savePath)));
+                Io.LoadText(savePath, out var scores, out _, out _, out _);
+                if (scores != null) Game.frame.LoadScores(scores);
                 break;
             case "scores.save":
-                Directory.CreateDirectory(Path.GetDirectoryName(savePath));
-                File.WriteAllText(savePath + ".tmp", payload);
-                File.Move(savePath + ".tmp", savePath, true);
+                Io.SaveText(savePath, payload);
                 break;
             case "quit": Lub.Quit(); break;
             case "music.loop": music = 8 + int.Parse(payload); musicVolume = 1; break;
             case "music.stop": music = -1; break;
-            case "music.volume": musicVolume = float.Parse(payload, CultureInfo.InvariantCulture); break;
+            case "music.volume": musicVolume = float.Parse(payload); break;
             case "sound.play":
                 int sound = int.Parse(payload);
                 if (sounds[sound] != 0) Audio.Play(sounds[sound]);
                 break;
             case "spatial.play":
-                var parts = payload.Split(',');
+                var parts = payload.Split(",");
                 int id = int.Parse(parts[0]), index = int.Parse(parts[1]);
                 float pan = Pan(parts, 3);
-                if (parts[2] == "1") loops[id] = (index, pan);
+                if (parts[2] == "1") loops[id] = new FrameSoundLoop { Sound = index, Pan = pan };
                 else if (sounds[index] != 0)
                 {
                     oneShot.Pan = pan;
@@ -103,11 +98,13 @@ public static class FrameHost
                 }
                 break;
             case "spatial.update":
-                var update = payload.Split(',');
+                var update = payload.Split(",");
                 int key = int.Parse(update[0]);
-                if (loops.TryGetValue(key, out var loop)) loops[key] = (loop.sound, Pan(update, 1));
+                if (loops.TryGetValue(key, out var loop)) loop.Pan = Pan(update, 1);
                 break;
             case "spatial.stop": loops.Remove(int.Parse(payload)); break;
         }
     }
 }
+
+sealed class FrameSoundLoop { public int Sound; public float Pan; }

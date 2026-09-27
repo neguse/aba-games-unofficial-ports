@@ -15,8 +15,8 @@ public class Pad
     static Vector2 Stick(XrInput hand)
     {
         if (hand?.Active != true) return new Vector2();
-        float length = MathF.Sqrt(hand.StickX * hand.StickX + hand.StickY * hand.StickY);
-        float scale = length > .15f ? MathF.Min(1, (length - .15f) / .85f) / length : 0;
+        float length = (float)System.Math.Sqrt(hand.StickX * hand.StickX + hand.StickY * hand.StickY);
+        float scale = length > .15f ? System.Math.Min(1, (length - .15f) / .85f) / length : 0;
         return new Vector2(hand.StickX * scale, hand.StickY * scale);
     }
     public Vector2 ThumbStickLeft => Stick(left);

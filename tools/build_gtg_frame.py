@@ -14,7 +14,7 @@ args = parser.parse_args()
 lub, original, native = args.lub.resolve(), args.original.resolve(), args.native.resolve()
 root = Path(__file__).resolve().parent.parent
 output = root / 'build/frame/publish'
-for name in ['liblub.so', 'libopenxr_loader.so.1', 'libSDL3.so.0', 'libslang-compiler.so.0.2026.8.1']:
+for name in ['lub', 'liblub.so', 'libopenxr_loader.so.1', 'libSDL3.so.0', 'libslang-compiler.so.0.2026.8.1']:
     header = (native / name).read_bytes()[:20]
     if header[:4] != b'\x7fELF' or int.from_bytes(header[18:20], 'little') != 183:
         parser.error(f'{name} must be a Linux ARM64 library')
@@ -22,7 +22,14 @@ subprocess.run([sys.executable, 'tools/compile_gear.py', str(original)], cwd=roo
 subprocess.run(['dotnet', 'publish', 'games/gear-toy-gear/frame/GearToyGear.csproj',
                 '-c', 'Release', '-r', 'linux-arm64', '--self-contained', 'true',
                 f'-p:LubRoot={lub}', '-o', str(output)], cwd=root, check=True)
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(lub),
+                '--game', 'gear-toy-gear', '--frame', '--output', str(output / 'game.lua')], cwd=root, check=True)
 (output / 'native').mkdir(exist_ok=True)
+shutil.copy2(native / 'lub', output / 'native/lub')
+for source in ['samples/boot.lua', 'third_party/lume/lume.lua']:
+    destination = output / source
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(lub / source, destination)
 for library in native.glob('*.so*'):
     shutil.copy2(library, output / 'native' / library.name)
 (output / 'audio').mkdir(exist_ok=True)

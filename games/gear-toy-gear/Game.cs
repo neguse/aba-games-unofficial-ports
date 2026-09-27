@@ -21,7 +21,7 @@ public static class Game
     {
         while (Host.Available())
         {
-            Host.Poll(out string topic, out string payload);
+            Lub.Host.Poll(out string topic, out string payload);
             if (topic == null)
                 break;
             if (topic == "input")

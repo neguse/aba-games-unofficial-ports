@@ -5,4 +5,8 @@ export LUB_BACKEND=openxr
 export SDL_VIDEO_DRIVER=dummy
 export LUB_NATIVE_LIB="$PWD/native/liblub.so"
 export LD_LIBRARY_PATH="$PWD/native${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-exec ./GearToyGear "$@"
+case "${LUB_RUNTIME:-coreclr}" in
+    coreclr) exec ./GearToyGear "$@" ;;
+    lua) exec ./native/lub game.lua "$@" ;;
+    *) echo "LUB_RUNTIME must be coreclr or lua" >&2; exit 2 ;;
+esac

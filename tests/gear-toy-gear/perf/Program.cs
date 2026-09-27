@@ -23,7 +23,7 @@ int runtime = Lub.Run(() =>
     Game.OnInit();
     while (FrameHost.Available())
     {
-        FrameHost.Poll(out string topic, out _);
+        Lub.Host.Poll(out string topic, out _);
         if (topic == null) break;
     }
     Game.frame.Seed(1234);
@@ -55,7 +55,7 @@ int runtime = Lub.Run(() =>
         right.Primary = frame % 144 < 30;
         long allocated = GC.GetAllocatedBytesForCurrentThread();
         long before = Stopwatch.GetTimestamp();
-        FrameApp.Draw(dt, left, right, true);
+        FrameApp.DrawInput(dt, left, right, true);
         double cpu = Stopwatch.GetElapsedTime(before).TotalMilliseconds;
         allocated = GC.GetAllocatedBytesForCurrentThread() - allocated;
         samples[frame] = new(elapsed, cpu, allocated, GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2), playing, Stage.Rank, Stage.GameSpeed, bullets.Count, particles.Count);
