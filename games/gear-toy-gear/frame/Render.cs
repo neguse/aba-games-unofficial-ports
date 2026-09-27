@@ -12,6 +12,7 @@ public static class GtgRender
     static readonly TextureOpts target = new() { Target = true };
     static readonly PassOpts passOpts = new() { ClearColor = new float[4] };
     static ShaderRef shader;
+    static string vertex, fragment;
     static TextureRef blank;
     static int version, used, pass;
     static bool anchored;
@@ -23,8 +24,16 @@ public static class GtgRender
             while (eye.Count < 16) eye.Add(0);
         used = 0;
         version++;
-        Io.LoadText("game.vs.slang", out var vertex, out _, out _, out _);
-        Io.LoadText("game.fs.slang", out var fragment, out _, out _, out _);
+        if (vertex == null)
+        {
+            Io.LoadText("game.vs.slang", out var source, out _, out _, out _);
+            vertex = source;
+        }
+        if (fragment == null)
+        {
+            Io.LoadText("game.fs.slang", out var source, out _, out _, out _);
+            fragment = source;
+        }
         if (vertex == null || fragment == null) return false;
         shader = Gfx.UseShader("gtg-xr", vertex, fragment, 1);
         blank = Gfx.UseTexture("blank", 1, 1, Gfx.PixelFormat.Rgba8, transparent, 1);
