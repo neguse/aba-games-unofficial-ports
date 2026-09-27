@@ -25,8 +25,12 @@ public static class Game
         FrameHost.Load();
     }
     public static void OnFrame(float dt)
+        => OnFrame(dt, Xr.GetInput(0), Xr.GetInput(1), Xr.Focused());
+    public static void OnFrame(float dt, XrInput leftInput, XrInput rightInput, bool focused)
     {
+        if (profile) Profiler.BeginScope("tt.audio.begin");
         FrameHost.Begin();
+        if (profile) Profiler.EndScope("tt.audio.begin");
         var left = Xr.GetView(0, .05f, 500);
         var right = Xr.GetView(1, .05f, 500);
         if (left == null || right == null)
@@ -34,9 +38,10 @@ public static class Game
             report = Stopwatch.GetTimestamp(); frames = 0;
             return;
         }
-        FrameControls.Read(manager, Xr.GetInput(0), Xr.GetInput(1));
+        FrameControls.Read(manager, leftInput, rightInput);
         bool wasTitle = manager.state == manager.titleState;
-        if (Xr.Focused())
+        if (profile) Profiler.BeginScope("tt.update");
+        if (focused)
         {
             elapsed += Math.Min(dt, .1f);
             while (elapsed >= .016f)
@@ -46,14 +51,23 @@ public static class Game
             }
         }
         if (wasTitle && manager.state == manager.inGameState) TtRender.Recenter();
+        if (profile) Profiler.EndScope("tt.update");
+        if (profile) Profiler.BeginScope("tt.shader");
         shader = Gfx.UseShader("tt-xr", vertex, fragment, 1);
+        if (profile) Profiler.EndScope("tt.shader");
         if (shader == null) return;
+        if (profile) Profiler.BeginScope("tt.geometry");
         TtRender.Begin();
         manager.state.draw(Transform.Identity(), null, Gfx.Blend.Additive, Gfx.Cull.None, 1);
         TtRender.Hud = true;
         manager.state.drawFront(Transform.Ortho(), null, Gfx.Blend.Additive, Gfx.Cull.None, 1);
+        if (profile) Profiler.EndScope("tt.geometry");
+        if (profile) Profiler.BeginScope("tt.submit");
         TtRender.Present(manager.ship, left, right);
-        FrameHost.End(Xr.Focused(), dt);
+        if (profile) Profiler.EndScope("tt.submit");
+        if (profile) Profiler.BeginScope("tt.audio.end");
+        FrameHost.End(focused, dt);
+        if (profile) Profiler.EndScope("tt.audio.end");
         if (!profile) return;
         frames++;
         double seconds = Stopwatch.GetElapsedTime(report).TotalSeconds;

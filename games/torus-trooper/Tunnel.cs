@@ -517,6 +517,7 @@ public class Slice
 {
     static int nextMesh;
     public string meshKey;
+    Mesh drawMesh;
     public const float SLICE_DEPTH = 5;
     public static float lineR, lineG, lineB;
     public static float polyR, polyG, polyB;
@@ -534,6 +535,7 @@ public class Slice
     public Slice()
     {
         meshKey = nextMesh.ToString(); nextMesh++;
+        drawMesh = new Mesh("Tunnel-draw-" + meshKey);
         _state = new SliceState();
         _centerPos = new Vector3();
         pointPos = new Vector3[SliceState.MAX_POINT_NUM];
@@ -588,7 +590,8 @@ public class Slice
 
     public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, Slice prevSlice, float lineBn, float polyBn, float lightBn, Tunnel tunnel)
     {
-        var mesh = new Mesh("Tunnel-draw" + "-" + meshKey);
+        var mesh = drawMesh;
+        mesh.Clear();
         float pi = _pointFrom;
         float width = _state.courseWidth;
         float prevPi = 0;
@@ -663,8 +666,7 @@ public class Slice
             appendSideLight(mesh, model, tint, getRightEdgeDeg() + 0.07f, lightBn);
         }
 
-        if (mesh.count > 0) TtRender.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
-            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
+        if (mesh.count > 0) TtRender.Draw(mesh, model, tint, lineWidth, blend, cull);
         if ((_state.ring != null))
             if (lightBn > 0.2f)
                 _state.ring.draw(model, tint, blend, cull, lineWidth, lightBn * 0.7f, tunnel);
@@ -1282,8 +1284,7 @@ public class Ring
         model = Transform.Rotate(model, cnt * 1.0f, 0, 0, 1);
         model = Transform.Rotate(model, d1, 0, 1, 0);
         model = Transform.Rotate(model, d2, 1, 0, 0);
-        { Mesh shape2 = meshes[0]; if (shape2.count > 0) TtRender.Draw(shape2.count, shape2.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
-            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
+        { Mesh shape2 = meshes[0]; if (shape2.count > 0) TtRender.Draw(shape2, model, tint, lineWidth, blend, cull); }
         model = parent1;
         if (type == 1)
         {
@@ -1292,8 +1293,7 @@ public class Ring
             model = Transform.Rotate(model, cnt * -1.0f, 0, 0, 1);
             model = Transform.Rotate(model, d1, 0, 1, 0);
             model = Transform.Rotate(model, d2, 1, 0, 0);
-            { Mesh shape4 = meshes[1]; if (shape4.count > 0) TtRender.Draw(shape4.count, shape4.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
-            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
+            { Mesh shape4 = meshes[1]; if (shape4.count > 0) TtRender.Draw(shape4, model, tint, lineWidth, blend, cull); }
             model = parent3;
         }
 
