@@ -7,6 +7,7 @@ public static class Game
     public static GameManager manager;
     public static string savedReplay = "";
     public static ShaderRef shader;
+    static string vertex, fragment;
     static float elapsed;
     static readonly bool profile = Environment.GetEnvironmentVariable("LUB_PROFILE") == "1";
     public static void OnInit()
@@ -42,8 +43,16 @@ public static class Game
         if (wasTitle && manager.state == manager.inGameState) TtRender.Recenter();
         if (profile) Profiler.EndScope("tt.update");
         if (profile) Profiler.BeginScope("tt.shader");
-        Io.LoadText("mesh.vs.slang", out var vertex, out _, out _, out _);
-        Io.LoadText("mesh.fs.slang", out var fragment, out _, out _, out _);
+        if (vertex == null)
+        {
+            Io.LoadText("mesh.vs.slang", out var source, out _, out _, out _);
+            vertex = source;
+        }
+        if (fragment == null)
+        {
+            Io.LoadText("mesh.fs.slang", out var source, out _, out _, out _);
+            fragment = source;
+        }
         if (vertex == null || fragment == null) { if (profile) Profiler.EndScope("tt.shader"); return; }
         shader = Gfx.UseShader("tt-xr", vertex, fragment, 1);
         if (profile) Profiler.EndScope("tt.shader");
