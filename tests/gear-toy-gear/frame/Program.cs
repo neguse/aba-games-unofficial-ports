@@ -75,3 +75,41 @@ finally
 {
     if (Directory.Exists(saveDirectory)) Directory.Delete(saveDirectory, true);
 }
+
+Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+var parameters = new List<float>(new float[144]); parameters[33] = 6;
+var vertex = File.ReadAllText("game.vs.slang");
+var fragment = File.ReadAllText("game.fs.slang");
+var readback = Lub.Gfx.Readback("sampler-test");
+int rendered = 0;
+bool verified = false;
+int runtime = Lub.Run(null, null, dt =>
+{
+    var shader = Lub.Gfx.UseShader("gtg-sampler-test", vertex, fragment, 1);
+    var source = Lub.Gfx.UseTexture("source", 1, 1, Lub.Gfx.PixelFormat.Rgba8, new List<int> { 64, 128, 192, 255 }, 1);
+    var target = Lub.Gfx.UseTexture("target", 4, 4, Lub.Gfx.PixelFormat.Rgba8, null, 1, new TextureOpts { Target = true });
+    var bindings = new Dictionary<string, object>
+    {
+        ["surface"] = source,
+        ["vertices"] = Lub.Gfx.UseBuffer("vertices", Lub.Gfx.BufferType.Storage, new List<float>(new float[24]), 1),
+        ["parameters"] = Lub.Gfx.UseBuffer("parameters", Lub.Gfx.BufferType.Storage, parameters, 1),
+        ["eye"] = Lub.Gfx.UseBuffer("eye", Lub.Gfx.BufferType.Storage, new List<float>(new float[16]), 1)
+    };
+    Lub.Gfx.BeginPass(new PassOpts { Target = target, ClearColor = [0, 0, 0, 0] });
+    Lub.Gfx.Draw(3, bindings, new DrawOpts { Shader = shader, Depth = false, Cull = Lub.Gfx.Cull.None, Blend = Lub.Gfx.Blend.None });
+    Lub.Gfx.EndPass();
+    Lub.Gfx.ReadTexture(readback, target, rendered++ == 0 ? 1 : null, out var status, out var bytes,
+        out int width, out int height, out _, out _, out _, out _, out var error);
+    if (error != null) throw new Exception(error);
+    if (status == Lub.Gfx.ReadbackStatus.Ready)
+    {
+        if (width != 4 || height != 4) throw new Exception("Sampler readback size");
+        var pixel = bytes.AsSpan();
+        Near(pixel[0], 64, 1); Near(pixel[1], 128, 1); Near(pixel[2], 192, 1); Near(pixel[3], 255, 1);
+        verified = true;
+        Lub.Quit();
+    }
+    if (rendered >= 120) Lub.Quit();
+}, null, ["--backend", "vulkan"]);
+if (runtime != 0 || !verified) throw new Exception("Native texture sampler did not render");
+Console.WriteLine("PASS native texture sampler readback");

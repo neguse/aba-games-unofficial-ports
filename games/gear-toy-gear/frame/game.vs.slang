@@ -6,7 +6,7 @@ struct Output {float4 position:SV_Position;float4 color:COLOR0;float depth:TEXCO
 float4 transform(float4 p,uint start){return p.x*parameters[start]+p.y*parameters[start+1]+p.z*parameters[start+2]+p.w*parameters[start+3];}
 float3 rotate(float3 v,float4 q){return (2*q.w*q.w-1)*v+2*dot(v,q.xyz)*q.xyz+2*q.w*cross(q.xyz,v);}
 [shader("vertex")]
-Output vs_main(uint id:SV_VertexID,uint instance:SV_InstanceID){
+Output vs_main(uint id:LUB_VERTEX_ID,uint instance:LUB_INSTANCE_ID){
  Output o=(Output)0;uint mode=(uint)parameters[8].y;o.mode=mode;
  if(mode>=6){o.uv=float2(id==1?2:0,id==2?2:0);o.position=float4(o.uv.x*2-1,1-o.uv.y*2,0,1);return o;}
  Vertex v=vertices[id];float4 p0=parameters[33+instance*3],p1=parameters[34+instance*3],p2=parameters[35+instance*3];
