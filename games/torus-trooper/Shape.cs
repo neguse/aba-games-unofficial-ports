@@ -344,8 +344,7 @@ public class ShipShape : Collidable, Drawable
 
     public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        { Mesh shape1 = meshes[0]; if (shape1.count > 0) Gfx.Draw(shape1.count, shape1.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
-            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
+        { Mesh shape1 = meshes[0]; if (shape1.count > 0) TtRender.Draw(shape1, model, tint, lineWidth, blend, cull); }
     }
 
     public Vector collision() {
@@ -562,8 +561,7 @@ public class BitShape : Drawable
 
     public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        { Mesh shape1 = meshes[0]; if (shape1.count > 0) Gfx.Draw(shape1.count, shape1.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
-            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
+        { Mesh shape1 = meshes[0]; if (shape1.count > 0) TtRender.Draw(shape1, model, tint, lineWidth, blend, cull); }
     }
 }
 
@@ -846,8 +844,7 @@ public class BulletShape : Drawable
 
     public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        { Mesh shape1 = meshes[0]; if (shape1.count > 0) Gfx.Draw(shape1.count, shape1.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
-            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
+        { Mesh shape1 = meshes[0]; if (shape1.count > 0) TtRender.Draw(shape1, model, tint, lineWidth, blend, cull); }
     }
 }
 
@@ -935,8 +932,7 @@ public class ShotShape : Collidable, Drawable
 
     public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        { Mesh shape1 = meshes[0]; if (shape1.count > 0) Gfx.Draw(shape1.count, shape1.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
-            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
+        { Mesh shape1 = meshes[0]; if (shape1.count > 0) TtRender.Draw(shape1, model, tint, lineWidth, blend, cull); }
     }
 
     public Vector collision() {

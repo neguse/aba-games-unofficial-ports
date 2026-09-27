@@ -6,6 +6,7 @@ using static Lub;
 
 public class Particle : LuminousActor
 {
+    Mesh sparkMesh, starMesh, fragmentMesh, luminousMesh;
     public const float GRAVITY = 0.02f;
     public const float SIZE = 0.3f;
     public static Rand rand = new Rand();
@@ -180,7 +181,9 @@ public class Particle : LuminousActor
 
     public void drawSpark(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        var mesh = new Mesh("Particle-drawSpark" + "-" + meshKey);
+        if (sparkMesh == null) sparkMesh = new Mesh("Particle-drawSpark-" + meshKey);
+        var mesh = sparkMesh;
+        mesh.Clear();
         int part1 = mesh.vertexCount;
         tint = new float[] { r, g, b, 0.5f };
         mesh.Vertex(psp.x, psp.y, psp.z, tint);
@@ -205,13 +208,14 @@ public class Particle : LuminousActor
             mesh.Fan(part2, mesh.vertexCount - part2);
         }
 
-        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
-            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
+        if (mesh.count > 0) TtRender.Draw(mesh, model, tint, lineWidth, blend, cull);
     }
 
     public void drawStar(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        var mesh = new Mesh("Particle-drawStar" + "-" + meshKey);
+        if (starMesh == null) starMesh = new Mesh("Particle-drawStar-" + meshKey);
+        var mesh = starMesh;
+        mesh.Clear();
         int part1 = mesh.vertexCount;
         tint = new float[] { r, g, b, 1 };
         mesh.Vertex(psp.x, psp.y, psp.z, tint);
@@ -219,13 +223,14 @@ public class Particle : LuminousActor
         mesh.Vertex(sp.x, sp.y, sp.z, tint);
         for (int vi = part1; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1);
 
-        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
-            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
+        if (mesh.count > 0) TtRender.Draw(mesh, model, tint, lineWidth, blend, cull);
     }
 
     public void drawFragment(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        var mesh = new Mesh("Particle-drawFragment" + "-" + meshKey);
+        if (fragmentMesh == null) fragmentMesh = new Mesh("Particle-drawFragment-" + meshKey);
+        var mesh = fragmentMesh;
+        mesh.Clear();
         float[] parent1 = model;
         model = Transform.Translate(model, sp.x, sp.y, sp.z);
         model = Transform.Rotate(model, d1, 0, 0, 1);
@@ -244,14 +249,15 @@ public class Particle : LuminousActor
         mesh.Vertex(-width, 0, -height, tint);
         mesh.Vertex(width, 0, -height, tint);
         mesh.Fan(part3, mesh.vertexCount - part3);
-        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
-            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
+        if (mesh.count > 0) TtRender.Draw(mesh, model, tint, lineWidth, blend, cull);
         model = parent1;
     }
 
     public override void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        var mesh = new Mesh("Particle-drawLuminous" + "-" + meshKey);
+        if (luminousMesh == null) luminousMesh = new Mesh("Particle-drawLuminous-" + meshKey);
+        var mesh = luminousMesh;
+        mesh.Clear();
         if ((lumAlp < 0.2f) || (type != ParticlePType.SPARK))
             return;
         int part1 = mesh.vertexCount;
@@ -265,8 +271,7 @@ public class Particle : LuminousActor
         mesh.Vertex(sp.x - SIZE, sp.y - SIZE, sp.z, tint);
         mesh.Fan(part1, mesh.vertexCount - part1);
 
-        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
-            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
+        if (mesh.count > 0) TtRender.Draw(mesh, model, tint, lineWidth, blend, cull);
     }
 }
 

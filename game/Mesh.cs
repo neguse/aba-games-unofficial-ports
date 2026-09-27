@@ -23,6 +23,11 @@ public class Mesh
     public string key;
     BufferRef vertexBuffer, faceBuffer;
     public Mesh(string key) { this.key = key; }
+    public void Clear()
+    {
+        vertices.Clear(); faces.Clear(); ranges.Clear();
+        vertexBuffer = null; faceBuffer = null;
+    }
     public int vertexCount { get { return vertices.Count / 8; } }
     public int count { get { return faces.Count / 4 * 3; } }
     public void Vertex(float x, float y, float z, float[] color, float[] transform = null, bool inheritColor = false)

@@ -55,8 +55,7 @@ public class Letter
         model = Transform.Translate(model, x, y, 0);
         model = Transform.Scale(model, s, s, s);
         model = Transform.Rotate(model, d, 0, 0, 1);
-        { Mesh shape2 = meshes[n + c * LETTER_NUM]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
-            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
+        { Mesh shape2 = meshes[n + c * LETTER_NUM]; if (shape2.count > 0) TtRender.Draw(shape2, model, tint, lineWidth, blend, cull); }
         model = parent1;
     }
 
@@ -66,8 +65,7 @@ public class Letter
         model = Transform.Translate(model, x, y, 0);
         model = Transform.Scale(model, s, -s, s);
         model = Transform.Rotate(model, d, 0, 0, 1);
-        { Mesh shape2 = meshes[n + c * LETTER_NUM]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive),
-            new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend }); }
+        { Mesh shape2 = meshes[n + c * LETTER_NUM]; if (shape2.count > 0) TtRender.Draw(shape2, model, tint, lineWidth, blend, cull); }
         model = parent1;
     }
 
