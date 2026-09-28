@@ -3,11 +3,12 @@ struct Input {float4 position:SV_Position;float4 color:COLOR0;float depth:TEXCOO
 [shader("fragment")]
 float4 fs_main(Input input):SV_Target {
  uint mode=input.mode;
+ if(mode<6 && input.color.a<=0)discard;
  if(mode==6)return LUB_SAMPLE_LOD(surface,input.uv);
  if(mode==7){
   float2 offsets[12]={float2(-.3,-.4),float2(-.8,-.1),float2(-.7,.5),float2(-.2,.6),float2(1,-.1),float2(.5,-.5),float2(.5,.8),float2(.2,-.9),float2(.5,.1),float2(.9,.4),float2(-.3,-1),float2(-.8,-.6)};
   float4 sum=LUB_SAMPLE_LOD(surface,input.uv);for(int i=0;i<12;i++)sum+=LUB_SAMPLE_LOD(surface,input.uv+.01*offsets[i]);return sum/5;
  }
- if(mode==0)return float4(input.color.rgb*((input.normal.x+2)/3),input.color.a*(.75+sin(input.uv.x+input.uv.y)*.25)*(1-smoothstep(32,640,input.depth)));
+ if(mode==0){float4 color=float4(input.color.rgb*((input.normal.x+2)/3),input.color.a*(.75+sin(input.uv.x+input.uv.y)*.25)*(1-smoothstep(32,640,input.depth)));if(color.a<=0)discard;return color;}
  return input.color;
 }

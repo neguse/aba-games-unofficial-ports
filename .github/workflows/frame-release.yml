@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: neguse/lub
-          ref: 81d28ec2be7b056b8532b160e2a0c343db9c488e
+          ref: d7ba92aa629e4bc43862d0525f01529ceb9874b4
           submodules: recursive
           path: .cache/lub
           persist-credentials: false
@@ -109,7 +109,7 @@ jobs:
                                      game + '.deps.json', game + '.runtimeconfig.json', 'run.sh',
                                      'game.lua', 'samples/boot.lua', 'third_party/lume/lume.lua'}
               required |= {'native/' + name for name in native}
-              required |= {'game.vs.slang', 'game.fs.slang'} if game != 'TorusTrooper' else {'mesh.vs.slang', 'mesh.fs.slang', 'README-original.txt'}
+              required |= {'game.vs.slang', 'game.fs.slang', 'scene.output.slang'} if game != 'TorusTrooper' else {'mesh.vs.slang', 'mesh.fs.slang', 'README-original.txt'}
               files = {p.relative_to(directory).as_posix(): p for p in directory.rglob('*') if p.is_file()}
               if not required <= files.keys() or not any(n.startswith('audio/') for n in files):
                   raise SystemExit(f'{game}: missing required files')

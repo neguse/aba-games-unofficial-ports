@@ -88,6 +88,7 @@ int runtime = Lub.Run(null, null, dt =>
 {
     if (rendered == 0)
     {
+        RenderingTests.Run();
         var batchFrame = new GtgFrame { Technique = "LetterTech", DepthEnabled = false };
         var shape = new CubeShape(batchFrame, 1, 1, 1);
         GtgRender.Begin();

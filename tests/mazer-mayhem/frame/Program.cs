@@ -151,6 +151,8 @@ try
         if (!frame.IsInGame || player.IsInGameover) throw new Exception("replay/restart failed");
         Console.WriteLine($"PASS MM variable time {hz}: physics, movement, turn, fire, bullet, slowdown, replay, pause, dash, hyper, gameover/restart");
     }
+    Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+    RenderingTests.Run();
     passed = true;
 }
 finally
