@@ -65,10 +65,10 @@ public static class TtRender
     static float[] WorldView(Ship ship)
     {
         float angle = FirstPerson ? ship._relPos.x : ship._eyePos.x;
-        float y = ship._relPos.y - (FirstPerson ? 0 : 3);
+        float y = FirstPerson ? ship._relPos.y : ship._relPos.y * .3f - 3;
         float height = FirstPerson ? 1.5f : 8;
         TrackPosition(from, ship.tunnel, angle, y, height);
-        TrackPosition(to, ship.tunnel, angle, y + 6, FirstPerson ? height : 5);
+        TrackPosition(to, ship.tunnel, angle, y + 6 + (FirstPerson ? 0 : ship._relPos.y * .3f), FirstPerson ? height : 5);
         TrackPosition(surface, ship.tunnel, angle, y, 0);
         float length = 0;
         for (int i = 0; i < 3; i++) { up[i] = from[i] - surface[i]; length += up[i] * up[i]; }

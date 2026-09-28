@@ -79,9 +79,11 @@ public static class FrameTests
                     for (int mode = 0; mode < 2; mode++)
                     {
                         TtRender.FirstPerson = mode == 1;
-                        for (int step = 0; step < 8; step++)
+                        float[] distances = new float[8];
+                        for (int step = 0; step < 24; step++)
                         {
-                            float angle = step * MathF.PI / 4;
+                            float angle = (step % 8) * MathF.PI / 4;
+                            game.ship._relPos.y = (step / 8) * 5;
                             game.ship._eyePos.x = game.ship._relPos.x = angle;
                             world = Matrix(typeof(TtRender).GetMethod("WorldView", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, [game.ship]));
                             var center = TrackPoint(game, angle, game.ship._relPos.y + 3);
@@ -95,14 +97,18 @@ public static class FrameTests
                             if (mode == 0)
                             {
                                 Check(at.Z < 0 && at.Y < 0 && MathF.Abs(at.Y / at.Z) < .7f, "Third-person ship stays visible below center");
-                                Check(System.Numerics.Vector3.Distance(camera, TrackPoint(game, angle, game.ship._relPos.y)) > 10, "Chase camera remains behind the ship");
+                                float distance = System.Numerics.Vector3.Distance(camera, TrackPoint(game, angle, game.ship._relPos.y));
+                                Check(distance > 10, "Chase camera remains behind the ship");
+                                if (step >= 8) Check(distance > distances[step % 8] * 1.15f, "Acceleration must visibly increase third-person camera distance");
+                                distances[step % 8] = distance;
                             }
                             else Check(System.Numerics.Vector3.Distance(camera, TrackPoint(game, angle, game.ship._relPos.y)) < 3, "First person stays near the ship");
                         }
                     }
                     TtRender.FirstPerson = false;
                     game.ship._eyePos.x = game.ship._relPos.x = 0;
-                    Console.WriteLine("PASS camera switching and full-circle steering visibility");
+                    game.ship._relPos.y = 0;
+                    Console.WriteLine("PASS camera switching, acceleration distance and full-circle steering visibility");
                     FrameControls.Read(game, new XrInput { Active = true, StickX = -.5f, StickY = .5f, Trigger = .8f }, new XrInput { Active = true, Trigger = .8f, Secondary = true });
                     Check(game.pad.directions == (PadDir.LEFT | PadDir.UP), "Steering and acceleration");
                     Check(game.pad.buttons == PadButton.ANY && !game.pad.escape, "Charge and fire with no accidental exit");
