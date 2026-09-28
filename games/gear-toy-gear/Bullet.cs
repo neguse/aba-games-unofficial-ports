@@ -54,8 +54,8 @@ public class BulletPool : ActorPool<Bullet>
 
     public override bool UpdateT(Bullet a)
     {
-        a.Orientation *= rollQuaternion;
-        a.Pos += a.Vel * Stage.GameSpeed;
+        a.Orientation *= GameMath.Rotation(rollQuaternion);
+        a.Pos += (a.Vel * Stage.GameSpeed) * SimulationTime.Step;
         if (pillars.CheckHit((a.Pos).Copy()))
         {
             particles.AddintVector3Vector3floatfloatfloatfloatfloatfloat(16, (a.Pos).Copy(), (a.Vel).Copy(), 0.5f, 10, 0.4f, 1.0f, 0.8f, 0.6f);

@@ -38,7 +38,7 @@ public class PatternBody
 
 public abstract class PatternWorld
 {
-    public int Turn;
+    public float Turn;
     public abstract float RandomValue();
     public abstract void Fire(PatternBody parent, float direction, float speed, int program, float[] args);
     public abstract void Vanish(PatternBody body);
@@ -47,17 +47,17 @@ public abstract class PatternWorld
 public class PatternTween
 {
     public bool Active;
-    public int Start, End;
+    public float Start, End;
     public float First, Last, Slope;
 
-    public void Set(int start, int term, float first, float last)
+    public void Set(float start, int term, float first, float last)
     {
         Start = start; End = start + term; First = first; Last = last;
         Slope = term == 0 ? 0 : (last - first) / term;
         Active = true;
     }
 
-    public float Value(int turn)
+    public float Value(float turn)
     {
         if (turn >= End) { Active = false; return Last; }
         return First + Slope * (turn - Start);
@@ -66,8 +66,9 @@ public class PatternTween
 
 public class PatternState
 {
-    public int Program, Pc, Term, Resume;
-    public int Wake = -1;
+    public int Program, Pc, Term;
+    public float Resume;
+    public float Wake = -1;
     public bool Done;
     public float[] Args = new float[2];
     public float[] Values = new float[2];

@@ -43,7 +43,7 @@ public class HomingLaserPool : ActorPool<HomingLaser>
 
     public override bool UpdateT(HomingLaser a)
     {
-        a.Pos += a.Vel * Stage.GameSpeedSqrt;
+        a.Pos += (a.Vel * Stage.GameSpeedSqrt) * SimulationTime.Step;
         if (pillars.CheckHit((a.Pos).Copy()))
         {
             particles.AddintVector3Vector3floatfloatfloatfloatfloatfloat(24, (a.Pos).Copy(), (a.Vel).Copy(), 0.5f, 10, 0.8f, 1.0f, 0.4f, 0.7f);
@@ -55,10 +55,10 @@ public class HomingLaserPool : ActorPool<HomingLaser>
             tt = 1;
         float tx = a.Pos.X + a.Vel.X * tt;
         float ty = a.Pos.Y + a.Vel.Y * tt;
-        a.Vel.X += (player.Pos.X + player.Vel.X * tt - tx) * (0.05f / tt);
-        a.Vel.Y += (player.Pos.Y + player.Vel.Y * tt - ty) * (0.05f / tt);
-        lasers.AddVector3Vector3floatint((a.Pos).Copy(), (a.Vel).Copy(), a.Vel.Length() * 0.8f, 25);
-        particles.AddintVector3Vector3floatfloatfloatfloatfloatfloat(6, (a.Pos).Copy(), (a.Vel).Copy(), 0.1f, 15, 0.4f, 1, 0.2f, 0.8f);
+        a.Vel.X += ((player.Pos.X + player.Vel.X * tt - tx) * (0.05f / tt)) * SimulationTime.Step;
+        a.Vel.Y += ((player.Pos.Y + player.Vel.Y * tt - ty) * (0.05f / tt)) * SimulationTime.Step;
+        if (SimulationTime.Emit) lasers.AddVector3Vector3floatint((a.Pos).Copy(), (a.Vel).Copy(), a.Vel.Length() * 0.8f, 25);
+        if (SimulationTime.Emit) particles.AddintVector3Vector3floatfloatfloatfloatfloatfloat(6, (a.Pos).Copy(), (a.Vel).Copy(), 0.1f, 15, 0.4f, 1, 0.2f, 0.8f);
         if (a.Pos.Z > -10 && Vector3.Distance((a.Pos).Copy(), (player.Pos).Copy()) < 5.0f)
         {
             player.Destroy();

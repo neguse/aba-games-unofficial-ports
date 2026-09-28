@@ -314,6 +314,7 @@ public class ShipShape : Collidable, Drawable
 
     public void addParticles(Vector pos, ParticlePool particles)
     {
+        if (!SimulationTime.Emit) return;
         foreach (float rx in rocketX)
         {
             Particle pt = particles.getInstance();

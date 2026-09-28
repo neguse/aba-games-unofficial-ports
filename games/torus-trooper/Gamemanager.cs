@@ -6,6 +6,15 @@ using static Lub;
 
 public class GameManager
 {
+    readonly SimulationClock clock = new SimulationClock();
+    Action advanceUpdate;
+    Func<float> replayStep;
+    public void Advance(float seconds)
+    {
+        if (state == titleState && titleState.replayData != null)
+            clock.AdvanceReplay(seconds, .016f, replayStep, advanceUpdate);
+        else clock.Advance(seconds, .016f, advanceUpdate);
+    }
     public Pad pad;
     public PrefManager prefManager;
     public Tunnel tunnel;
@@ -26,6 +35,8 @@ public class GameManager
     public bool escPressed;
     public void init_0()
     {
+        advanceUpdate = () => move();
+        replayStep = () => ((RecordablePad)pad).padRecord.NextStep();
         BarrageManager.load();
         Letter.init_0();
         Shot.init_0();
@@ -84,12 +95,14 @@ public class GameManager
         if (fromGameover)
             saveLastReplay();
         titleState.setReplayData(inGameState.replayData);
+        clock.Reset();
         state = titleState;
         startState();
     }
 
     public void startInGame()
     {
+        clock.Reset();
         state = inGameState;
         startState();
     }
@@ -237,14 +250,14 @@ public class InGameState : GameState
     public GameManager gameManager;
     public int score;
     public int nextExtend;
-    public int time;
+    public float time;
     public int nextBeepTime;
-    public int startBgmCnt;
+    public float startBgmCnt;
     public string timeChangedMsg;
-    public int timeChangedShowCnt;
-    public int gameOverCnt;
+    public float timeChangedShowCnt;
+    public float gameOverCnt;
     public bool btnPressed;
-    public int pauseCnt;
+    public float pauseCnt;
     public bool pausePressed;
     public ReplayData _replayData;
     public InGameState(Tunnel tunnel, Ship ship, ShotPool shots, BulletActorPool bullets, EnemyPool enemies, ParticlePool particles, FloatLetterPool floatLetters, StageManager stageManager, Pad pad, PrefManager prefManager, GameManager gameManager) : base(tunnel, ship, shots, bullets, enemies, particles, floatLetters, stageManager)
@@ -343,13 +356,13 @@ public class InGameState : GameState
 
         if (pauseCnt > 0)
         {
-            pauseCnt++;
+            pauseCnt += SimulationTime.Step;
             return;
         }
 
         if (startBgmCnt > 0)
         {
-            startBgmCnt--;
+            startBgmCnt -= SimulationTime.Step;
             if (startBgmCnt <= 0)
                 SoundManager.nextBgm();
         }
@@ -375,7 +388,7 @@ public class InGameState : GameState
                 prefManager.save();
             }
 
-            gameOverCnt++;
+            gameOverCnt += SimulationTime.Step;
             int btn = pad.getButtonState();
             if (((btn & PadButton.A) != 0))
             {
@@ -404,9 +417,9 @@ public class InGameState : GameState
 
     public void decrementTime()
     {
-        time = time - (17);
+        time = time - (17 * SimulationTime.Step);
         if (timeChangedShowCnt >= 0)
-            timeChangedShowCnt--;
+            timeChangedShowCnt -= SimulationTime.Step;
         if ((Ship.replayMode) && (time < 0))
             if (!(ship.isGameOver))
                 ship.isGameOver = true;
@@ -441,9 +454,9 @@ public class InGameState : GameState
         Letter.drawString(model, tint, blend, cull, lineWidth, "/", 510, 40, 7);
         Letter.drawNum(model, tint, blend, cull, lineWidth, nextExtend - score, 615, 40, 7);
         if (time > BEEP_START_TIME)
-            Letter.drawTime(model, tint, blend, cull, lineWidth, time, 220, 24, 15);
+            Letter.drawTime(model, tint, blend, cull, lineWidth, GameMath.integer(time), 220, 24, 15);
         else
-            Letter.drawTime(model, tint, blend, cull, lineWidth, time, 220, 24, 15, 1);
+            Letter.drawTime(model, tint, blend, cull, lineWidth, GameMath.integer(time), 220, 24, 15, 1);
         if ((timeChangedShowCnt >= 0) && ((timeChangedShowCnt % 64) > 32))
             Letter.drawString(model, tint, blend, cull, lineWidth, timeChangedMsg, 250, 24, 7, LetterDirection.TO_RIGHT, 1);
         Letter.drawString(model, tint, blend, cull, lineWidth, "LEVEL", 20, 410, 8, LetterDirection.TO_RIGHT, 1);
@@ -535,7 +548,7 @@ public class TitleState : GameState
     public EnemyPool passedEnemies;
     public InGameState inGameState;
     public ReplayData replayData;
-    public int gameOverCnt;
+    public float gameOverCnt;
     public TitleState(Tunnel tunnel, Ship ship, ShotPool shots, BulletActorPool bullets, EnemyPool enemies, ParticlePool particles, FloatLetterPool floatLetters, StageManager stageManager, Pad pad, TitleManager titleManager, EnemyPool passedEnemies, InGameState inGameState) : base(tunnel, ship, shots, bullets, enemies, particles, floatLetters, stageManager)
     {
         this.pad = pad;
@@ -603,7 +616,7 @@ public class TitleState : GameState
     {
         if (ship.isGameOver)
         {
-            gameOverCnt++;
+            gameOverCnt += SimulationTime.Step;
             if (gameOverCnt > 120)
             {
                 clearAll();

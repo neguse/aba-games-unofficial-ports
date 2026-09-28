@@ -13,7 +13,7 @@ public class BulletActor : Actor
     public Tunnel tunnel;
     public Ship ship;
     public Vector ppos;
-    public int cnt;
+    public float cnt;
     public bool isSimple;
     public bool isTop;
     public bool isAimTop;
@@ -21,9 +21,9 @@ public class BulletActor : Actor
     public bool shouldBeRemoved;
     public bool isWait;
     public int postWait;
-    public int waitCnt;
+    public float waitCnt;
     public bool isMorphSeed;
-    public int disapCnt;
+    public float disapCnt;
     public override void init_1(List<object> args)
     {
         tunnel = (Tunnel)args[0];
@@ -151,7 +151,7 @@ public class BulletActor : Actor
 
         if ((isWait) && (waitCnt > 0))
         {
-            waitCnt--;
+            waitCnt -= SimulationTime.Step;
             if (shouldBeRemoved)
                 removeForced();
             return;
@@ -190,8 +190,8 @@ public class BulletActor : Actor
         float d = atan2(mx, my);
         float r = 1 - fabs(sin(d)) * 0.999f;
         r = r * ((ship.speed * 5));
-        bullet.pos.x = bullet.pos.x + (mx * r);
-        bullet.pos.y = bullet.pos.y + (my * r);
+        bullet.pos.x = bullet.pos.x + (mx * r * SimulationTime.Step);
+        bullet.pos.y = bullet.pos.y + (my * r * SimulationTime.Step);
         if (bullet.pos.x >= PI * 2)
             bullet.pos.x = bullet.pos.x - (PI * 2);
         else if (bullet.pos.x < 0)
@@ -204,10 +204,10 @@ public class BulletActor : Actor
                 startDisappear();
         }
 
-        cnt++;
+        cnt += SimulationTime.Step;
         if (disapCnt > 0)
         {
-            disapCnt++;
+            disapCnt += SimulationTime.Step;
             if (disapCnt > DISAPPEAR_FRAMES)
                 removeForced();
         }

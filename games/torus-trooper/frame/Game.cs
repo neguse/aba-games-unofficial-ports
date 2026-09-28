@@ -8,7 +8,6 @@ public static class Game
     public static string savedReplay = "";
     public static ShaderRef shader;
     static string vertex, fragment;
-    static float elapsed;
     static readonly bool profile = Environment.GetEnvironmentVariable("LUB_PROFILE") == "1";
     public static void OnInit()
     {
@@ -32,14 +31,7 @@ public static class Game
         bool wasTitle = manager.state == manager.titleState;
         if (profile) Profiler.BeginScope("tt.update");
         if (focused)
-        {
-            elapsed += Math.Min(dt, .1f);
-            while (elapsed >= .016f)
-            {
-                manager.move();
-                elapsed -= .016f;
-            }
-        }
+            manager.Advance(dt);
         if (wasTitle && manager.state == manager.inGameState) TtRender.Recenter();
         if (profile) Profiler.EndScope("tt.update");
         if (profile) Profiler.BeginScope("tt.shader");

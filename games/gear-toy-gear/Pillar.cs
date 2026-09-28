@@ -69,19 +69,19 @@ public class PillarPool : ActorPool<Pillar>
     {
         if (a.AngleRate != 0)
         {
-            a.Angle += a.AngleRate * Stage.GameSpeedSqrt;
+            a.Angle += (a.AngleRate * Stage.GameSpeedSqrt) * SimulationTime.Step;
             a.Pos.X = (float)Math.Sin(a.Angle) * a.Radius;
             a.Pos.Y = (float)Math.Cos(a.Angle) * a.Radius;
-            a.Orientation *= a.Roll;
+            a.Orientation *= GameMath.Rotation(a.Roll);
         }
 
-        a.Pos.Z += Stage.PlayerDepthSpeed;
+        a.Pos.Z += (Stage.PlayerDepthSpeed) * SimulationTime.Step;
         if (a.Pos.Z > -BASE_THICKNESS * a.Scale && a.Pos.Z < BASE_THICKNESS * a.Scale + Stage.PlayerDepthSpeed)
         {
             Vector3 pp = (player.Pos).Copy();
             Vector3 po = (-player.Vel).Copy();
             po.Z = Stage.PlayerDepthSpeed;
-            po /= 5;
+            po *= SimulationTime.Step / 5;
             for (int i = 0; i < 4; i++)
             {
                 float ox = a.Pos.X - pp.X;
@@ -98,12 +98,12 @@ public class PillarPool : ActorPool<Pillar>
         {
             if (a.AppearanceTicks < 30)
             {
-                a.Scale += (a.TargetScale - a.Scale) * 0.1f;
-                if (a.AppearanceTicks == 0)
+                a.Scale += (a.TargetScale - a.Scale) * SimulationTime.Blend(0.1f);
+                if (a.AppearanceTicks < SimulationTime.Step)
                     a.Scale = a.TargetScale;
             }
 
-            a.AppearanceTicks--;
+            a.AppearanceTicks -= SimulationTime.Step;
         }
 
         return (a.Pos.Z < Field.FrontDepth);
@@ -149,7 +149,7 @@ public class Pillar : ActorCopy
     public float Angle;
     public float AngleRate;
     public float TargetScale;
-    public int AppearanceTicks;
+    public float AppearanceTicks;
     public Pillar Copy()
     {
         return new Pillar

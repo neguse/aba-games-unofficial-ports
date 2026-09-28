@@ -135,26 +135,26 @@ public class MiddleEnemyPool : ActorPool<MiddleEnemy>
     {
         if (a.AngleRate != 0)
         {
-            a.Orientation *= rollQuaternion;
-            a.Angle += a.AngleRate * Stage.GameSpeedSqrt;
+            a.Orientation *= GameMath.Rotation(rollQuaternion);
+            a.Angle += (a.AngleRate * Stage.GameSpeedSqrt) * SimulationTime.Step;
             a.BasePos.X = (float)Math.Sin(a.Angle) * a.Radius;
             a.BasePos.Y = (float)Math.Cos(a.Angle) * a.Radius;
         }
 
         if (!a.HasTargetZ)
         {
-            a.BasePos.Z += Stage.GameSpeedSqrt * 0.5f;
+            a.BasePos.Z += (Stage.GameSpeedSqrt * 0.5f) * SimulationTime.Step;
         }
         else
         {
-            a.BasePos.Z += (a.TargetZ + (float)Math.Sin(a.Ticks * 0.1f) * 50.0f - a.BasePos.Z) * 0.02f;
+            a.BasePos.Z += (a.TargetZ + (float)Math.Sin(a.Ticks * 0.1f) * 50.0f - a.BasePos.Z) * SimulationTime.Blend(0.02f);
         }
 
-        a.Ticks++;
+        a.Ticks += SimulationTime.Step;
         a.Pos = (a.BasePos + a.ShakeOffset).Copy();
-        a.ShakeOffset *= 0.9f;
+        a.ShakeOffset *= SimulationTime.Decay(0.9f);
         if (a.Pos.Z < Field.FireBoundaryDepth * 2 && a.TurretCount < MiddleEnemy.TurretMaxCount)
-            a.FireTicks -= Stage.GameSpeed;
+            a.FireTicks -= Stage.GameSpeed * SimulationTime.Step;
         if (a.FireTicks <= 0)
         {
             Vector3 tp = new Vector3(a.BasePos.X, a.BasePos.Y, 0);
@@ -183,9 +183,7 @@ public class MiddleEnemyPool : ActorPool<MiddleEnemy>
                 }
             }
 
-            a.FireTicks = a.FireInterval;
-            if (a.IsFireInvervalAffectedWithCount)
-                a.FireTicks *= actorCount;
+            a.FireTicks = SimulationTime.Repeat(a.FireTicks, a.FireInterval * (a.IsFireInvervalAffectedWithCount ? actorCount : 1));
         }
 
         switch (a.Weapon)
@@ -333,7 +331,7 @@ public class MiddleEnemy : ActorCopy
     public float Scale;
     public Quaternion Orientation = new Quaternion();
     public Vector4 Color = new Vector4();
-    public int Ticks;
+    public float Ticks;
     public int[] TurretIndexes = GtgArrays.Make(TurretMaxCount, () => 0);
     public int TurretCount;
     public int Shield;

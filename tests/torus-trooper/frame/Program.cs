@@ -22,6 +22,7 @@ public static class FrameTests
                 {
                     TtRender.Begin();
                     TtVerification.Main();
+                    DeltaTimeTests.Run();
                     result = (int)typeof(TtVerification).GetField("failures", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
                     var game = new GameManager(); game.init_0(); game.start();
                     var mesh = new Mesh("frame-binding-test");

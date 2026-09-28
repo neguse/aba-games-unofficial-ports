@@ -4,6 +4,8 @@ using static Lub;
 public static class Game
 {
     public static GtgFrame frame;
+    public static bool VariableTime;
+    static readonly bool profile = Environment.GetEnvironmentVariable("LUB_PROFILE") == "1";
     static float elapsed;
     public static void OnInit()
     {
@@ -40,6 +42,15 @@ public static class Game
 
             if (topic == "scores")
                 frame.LoadScores(payload);
+        }
+
+        if (VariableTime)
+        {
+            if (profile) Profiler.BeginScope("gtg.update");
+            frame.Advance(dt);
+            if (profile) Profiler.EndScope("gtg.update");
+            frame.Draw();
+            return;
         }
 
         elapsed += Math.Min(dt, 0.1f);

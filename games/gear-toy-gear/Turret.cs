@@ -61,7 +61,7 @@ public class TurretPool : ActorPool<Turret>
         if (isInTube)
         {
             a.IsInTube = true;
-            a.Vel += (a.TargetVel - a.Vel) * 0.2f;
+            a.Vel += (a.TargetVel - a.Vel) * SimulationTime.Blend(0.2f);
         }
         else
         {
@@ -71,7 +71,7 @@ public class TurretPool : ActorPool<Turret>
 
         if (a.SourcePos.Z > Field.FireBoundaryDepth * 2)
             return false;
-        a.Pos += a.Vel * Stage.GameSpeedSqrt;
+        a.Pos += (a.Vel * Stage.GameSpeedSqrt) * SimulationTime.Step;
         if (!a.HasLaser)
             return true;
         if (a.Cue == null)
@@ -84,7 +84,7 @@ public class TurretPool : ActorPool<Turret>
             a.Cue.Play();
         }
 
-        a.LaserLength += a.LaserSpeed * Stage.GameSpeed;
+        a.LaserLength += (a.LaserSpeed * Stage.GameSpeed) * SimulationTime.Step;
         Vector3 v = (a.Pos - a.SourcePos).Copy();
         v.Normalize();
         Vector3 p = (a.SourcePos).Copy();
@@ -97,7 +97,7 @@ public class TurretPool : ActorPool<Turret>
             if (p.X * p.X + p.Y * p.Y > Tube.Radius * Tube.Radius || pillars.CheckHit((p).Copy()))
             {
                 a.LaserLength = l;
-                particles.AddintVector3Vector3floatfloatfloatfloatfloatfloat(4, (p).Copy(), (v).Copy(), 0.2f, 15, 0.2f, 1, 0.4f, 0.8f);
+                if (SimulationTime.Emit) particles.AddintVector3Vector3floatfloatfloatfloatfloatfloat(4, (p).Copy(), (v).Copy(), 0.2f, 15, 0.2f, 1, 0.4f, 0.8f);
                 a.Emitter.Position = (p).Copy();
                 break;
             }
@@ -108,7 +108,7 @@ public class TurretPool : ActorPool<Turret>
             }
 
             lasers.AddVector3Vector3float((p).Copy(), (v).Copy(), LaserBaseLength * 0.8f);
-            if (i % 12 == 0)
+            if (SimulationTime.Emit && i % 12 == 0)
                 particles.AddintVector3Vector3floatfloatfloatfloatfloatfloat(1, (p).Copy(), (v).Copy(), 0.1f, 7, 0.2f, 1, 0.4f, 0.8f);
             p += v;
             i++;

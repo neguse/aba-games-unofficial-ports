@@ -75,7 +75,7 @@ public class ActorPools
 
     public void Update()
     {
-        shadowDepthOffset -= Stage.PlayerDepthSpeed;
+        shadowDepthOffset -= Stage.PlayerDepthSpeed * SimulationTime.Step;
         gameState.Update();
         stage.Update();
         field.Update();

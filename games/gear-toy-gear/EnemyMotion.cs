@@ -18,26 +18,29 @@ public class EnemyMotion : ActorCopy
         Angle = Type.AppearingAngle;
         VelZ = 0;
         Ticks = 0;
+        float step = SimulationTime.Step;
+        SimulationTime.Step = 1;
         Update();
+        SimulationTime.Step = step;
         Pos.X = TargetPos.X;
         Pos.Y = TargetPos.Y;
     }
 
     public void Update()
     {
-        Angle += Type.AngleSpeed.GetValue(Ticks);
+        Angle += Type.AngleSpeed.GetValue(Ticks) * SimulationTime.Step;
         float r = Type.Radius.GetValue(Ticks);
         TargetPos.X = (float)Math.Sin(Angle) * r;
         TargetPos.Y = (float)Math.Cos(Angle) * r;
-        Pos.X += (TargetPos.X - Pos.X) * Type.TargetVelRatio;
-        Pos.Y += (TargetPos.Y - Pos.Y) * Type.TargetVelRatio;
+        Pos.X += (TargetPos.X - Pos.X) * SimulationTime.Blend(Type.TargetVelRatio);
+        Pos.Y += (TargetPos.Y - Pos.Y) * SimulationTime.Blend(Type.TargetVelRatio);
         if (Type.TargetZ > Pos.Z)
-            VelZ += Type.VelZSpeed;
+            VelZ += Type.VelZSpeed * SimulationTime.Step;
         else
-            VelZ -= Type.VelZSpeed;
-        VelZ *= Type.VelZSpeedDecayRate;
-        Pos.Z += VelZ;
-        Ticks += Stage.GameSpeedSqrt;
+            VelZ -= Type.VelZSpeed * SimulationTime.Step;
+        VelZ *= SimulationTime.Decay(Type.VelZSpeedDecayRate);
+        Pos.Z += VelZ * SimulationTime.Step;
+        Ticks += Stage.GameSpeedSqrt * SimulationTime.Step;
     }
 
     public EnemyMotion Copy()

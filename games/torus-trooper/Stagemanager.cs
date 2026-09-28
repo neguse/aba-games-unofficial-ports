@@ -39,11 +39,11 @@ public class StageManager
     public int bossSpecIdx;
     public float _level;
     public int grade;
-    public int bossModeEndCnt;
+    public float bossModeEndCnt;
     public bool _middleBossZone;
     public int tunnelColorPolyIdx, tunnelColorLineIdx;
     public const int TUNNEL_COLOR_CHANGE_INTERVAL = 60;
-    public int tunnelColorChangeCnt;
+    public float tunnelColorChangeCnt;
     public StageManager(Tunnel tunnel, EnemyPool enemies, Ship ship)
     {
         this.tunnel = tunnel;
@@ -155,7 +155,7 @@ public class StageManager
                 }
             }
 
-            nextBossAppDist = nextBossAppDist - (ship.speed);
+            nextBossAppDist = nextBossAppDist - (ship.speed * SimulationTime.Step);
             if ((bossNum > 0) && (nextBossAppDist <= 0))
             {
                 addEnemy(bossShipSpec[bossSpecIdx], Ship.IN_SIGHT_DEPTH_DEFAULT * 4, rand);
@@ -182,7 +182,7 @@ public class StageManager
 
             if (bossModeEndCnt >= 0)
             {
-                bossModeEndCnt--;
+                bossModeEndCnt -= SimulationTime.Step;
                 ship.clearVisibleBullets();
                 if (bossModeEndCnt < 0)
                 {
@@ -192,14 +192,14 @@ public class StageManager
             }
         }
 
-        nextSmallAppDist = nextSmallAppDist - (ship.speed);
+        nextSmallAppDist = nextSmallAppDist - (ship.speed * SimulationTime.Step);
         if (nextSmallAppDist <= 0)
         {
             addEnemy(smallShipSpec[rand.nextInt(smallShipSpec.Count)], Ship.IN_SIGHT_DEPTH_DEFAULT * (4 + rand.nextFloat(0.5f)), rand);
             setNextSmallAppDist();
         }
 
-        nextMiddleAppDist = nextMiddleAppDist - (ship.speed);
+        nextMiddleAppDist = nextMiddleAppDist - (ship.speed * SimulationTime.Step);
         if (nextMiddleAppDist <= 0)
         {
             addEnemy(middleShipSpec[rand.nextInt(middleShipSpec.Count)], Ship.IN_SIGHT_DEPTH_DEFAULT * (4 + rand.nextFloat(0.5f)), rand);
@@ -208,14 +208,14 @@ public class StageManager
 
         if (tunnelColorChangeCnt > 0)
         {
-            tunnelColorChangeCnt--;
+            tunnelColorChangeCnt -= SimulationTime.Step;
             if (Slice.darkLine)
             {
-                Slice.darkLineRatio = Slice.darkLineRatio + (1.0f / TUNNEL_COLOR_CHANGE_INTERVAL);
+                Slice.darkLineRatio = Slice.darkLineRatio + (SimulationTime.Step / TUNNEL_COLOR_CHANGE_INTERVAL);
             }
             else
             {
-                Slice.darkLineRatio = Slice.darkLineRatio - (1.0f / TUNNEL_COLOR_CHANGE_INTERVAL);
+                Slice.darkLineRatio = Slice.darkLineRatio - (SimulationTime.Step / TUNNEL_COLOR_CHANGE_INTERVAL);
                 float cRatio = (float)tunnelColorChangeCnt / TUNNEL_COLOR_CHANGE_INTERVAL;
                 int cpIdxPrev = (tunnelColorPolyIdx - 1) % TUNNEL_COLOR_PATTERN_POLY.Length;
                 int cpIdxNow = tunnelColorPolyIdx % TUNNEL_COLOR_PATTERN_POLY.Length;
@@ -549,7 +549,7 @@ public class ShipSpec
 
     public float changeSpeed(float sp, float aim)
     {
-        return sp + ((aim - sp) * SPEED_CHANGE_RATIO);
+        return sp + ((aim - sp) * SimulationTime.Blend(SPEED_CHANGE_RATIO));
     }
 
     public bool getRangeOfMovement(Vector range, Vector p, Tunnel tunnel)
@@ -599,16 +599,16 @@ public class ShipSpec
             bk = bankMax;
         else if (bk < -bankMax)
             bk = -bankMax;
-        return bank + ((bk - bank) * 0.1f);
+        return bank + ((bk - bank) * SimulationTime.Blend(0.1f));
     }
 
     public float handleLimitY(Vector pos, float limitY)
     {
         if (pos.y > limitY)
-            pos.y = pos.y + ((limitY - pos.y) * 0.05f);
+            pos.y = pos.y + ((limitY - pos.y) * SimulationTime.Blend(0.05f));
         else
-            limitY = limitY + ((pos.y - limitY) * 0.05f);
-        return limitY - 0.01f;
+            limitY = limitY + ((pos.y - limitY) * SimulationTime.Blend(0.05f));
+        return limitY - 0.01f * SimulationTime.Step;
     }
 
     public float createBaseBank(Rand rand)
@@ -616,7 +616,7 @@ public class ShipSpec
         return rand.nextSignedFloat(baseBank);
     }
 
-    public float getBitOffset(Vector ofs, float deg, int idx, int cnt)
+    public float getBitOffset(Vector ofs, float deg, int idx, float cnt)
     {
         switch (bitType)
         {

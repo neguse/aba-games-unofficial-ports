@@ -58,16 +58,19 @@ public class RecordablePad : Pad
 public class PadRecord
 {
     public List<int> data = new List<int>(), lengths = new List<int>();
+    public List<float> steps = new List<float>();
     public int index, remaining;
+    public float NextStep() => index < steps.Count ? steps[index] : 1;
     public void add(int value)
     {
         int last = data.Count - 1;
-        if ((last >= 0) && (data[last] == value))
+        if ((last >= 0) && (data[last] == value) && steps[last] == SimulationTime.Step)
             lengths[last]++;
         else
         {
             data.Add(value);
             lengths.Add(1);
+            steps.Add(SimulationTime.Step);
         }
     }
 
@@ -95,28 +98,36 @@ public class PadRecord
 
     public string encode()
     {
-        string s = "";
+        string[] rows = new string[data.Count];
         for (int i = 0; i < data.Count; i++)
-            s = s + (lengths[i].ToString() + "/" + data[i].ToString() + ";");
-        return s;
+            rows[i] = lengths[i].ToString() + "/" + data[i].ToString() + "/" + steps[i].ToString() + ";";
+        return string.Join("", rows);
     }
 
     public bool decode(string text)
     {
-        if (text.Length == 0 || text.Length > 2000000 || text.Substring(text.Length - 1) != ";")
+        if (text.Length == 0 || text.Length > 32000000 || text.Substring(text.Length - 1) != ";")
             return false;
         string[] rows = text.Split(";");
         data.Clear();
         lengths.Clear();
+        steps.Clear();
         reset();
         for (int i = 0; i < rows.Length - 1; i++)
         {
             string[] p = rows[i].Split("/");
-            if (p.Length != 2)
+            if (p.Length != 2 && p.Length != 3)
                 return false;
             int n = GameMath.parseNonnegative(p[0]), v = GameMath.parseNonnegative(p[1]);
             if ((((n <= 0) || (n > 1000000)) || (v < 0)) || (v > 63))
                 return false;
+            float step = 1;
+            if (p.Length == 3)
+            {
+                step = SimulationTime.ParseStep(p[2]);
+                if (!(step > 0) || step > 1) return false;
+            }
+            steps.Add(step);
             lengths.Add(n);
             data.Add(v);
         }
@@ -132,7 +143,7 @@ public class ReplayData
     public int grade, seed;
     public void save(string name)
     {
-        Game.savedReplay = "1|" + seed.ToString() + "|" + GameMath.integer(level).ToString() + "|" + grade.ToString() + "|" + padRecord.encode();
+        Game.savedReplay = "2|" + seed.ToString() + "|" + GameMath.integer(level).ToString() + "|" + grade.ToString() + "|" + padRecord.encode();
         if (Lub.Host.Available())
             Lub.Host.Send("replay.save", Game.savedReplay);
     }
@@ -145,7 +156,7 @@ public class ReplayData
     public bool decode(string text)
     {
         string[] p = text.Split("|");
-        if ((p.Length != 5) || (p[0] != "1"))
+        if ((p.Length != 5) || (p[0] != "1" && p[0] != "2"))
             return false;
         string seedText = p[1];
         if (seedText.Length == 0 || seedText.Length > 11) return false;

@@ -35,7 +35,7 @@ public static class TtVerification
         int score = state.score;
         shot.addScore(100, new Vector()); shot.addScore(100, new Vector());
         Check(state.score == score + 300 && shot.multiplier == 3, "piercing multiplier increases per kill");
-        g.pad.pause = true; g.move(); int time = state.time;
+        g.pad.pause = true; g.move(); float time = state.time;
         for (int i = 0; i < 10; i++) g.move();
         Check(state.time == time && state.pauseCnt > 0, "pause freezes time");
         g.pad.pause = false; g.move(); g.pad.pause = true; g.move(); g.pad.pause = false;

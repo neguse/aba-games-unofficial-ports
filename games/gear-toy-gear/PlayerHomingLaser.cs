@@ -56,8 +56,8 @@ public class PlayerHomingLaserPool : ActorPool<PlayerHomingLaser>
 
     public void UpdatePlayerHomingLaserint(PlayerHomingLaser a, int index)
     {
-        a.Pos += a.Vel;
-        a.Vel.Z += (-a.Speed - a.Vel.Z) * 0.05f;
+        a.Pos += (a.Vel) * SimulationTime.Step;
+        a.Vel.Z += (-a.Speed - a.Vel.Z) * SimulationTime.Blend(0.05f);
         Vector3 ep = new Vector3();
         if (a.IsAimingMiddleEnemy)
             ep = (middleEnemies.Get(a.EnemyIndex).Pos).Copy();
@@ -70,11 +70,11 @@ public class PlayerHomingLaserPool : ActorPool<PlayerHomingLaser>
             tt = 100;
         float tx = a.Pos.X + a.Vel.X * tt;
         float ty = a.Pos.Y + a.Vel.Y * tt;
-        a.Vel.X += (ep.X - a.Pos.X) * (0.2f / tt);
-        a.Vel.Y += (ep.Y - a.Pos.Y) * (0.2f / tt);
-        a.Pos.X += (ep.X - a.Pos.X) * (1.0f / tt);
-        a.Pos.Y += (ep.Y - a.Pos.Y) * (1.0f / tt);
-        lasers.AddPlayer((a.Pos).Copy(), (a.Vel).Copy(), a.Vel.Length() * 0.8f, 40);
+        a.Vel.X += ((ep.X - a.Pos.X) * (0.2f / tt)) * SimulationTime.Step;
+        a.Vel.Y += ((ep.Y - a.Pos.Y) * (0.2f / tt)) * SimulationTime.Step;
+        a.Pos.X += (ep.X - a.Pos.X) * SimulationTime.Blend(1.0f / tt);
+        a.Pos.Y += (ep.Y - a.Pos.Y) * SimulationTime.Blend(1.0f / tt);
+        if (SimulationTime.Emit) lasers.AddPlayer((a.Pos).Copy(), (a.Vel).Copy(), a.Vel.Length() * 0.8f, 40);
         if (a.Pos.Z <= ep.Z)
         {
             if (a.IsAimingMiddleEnemy)

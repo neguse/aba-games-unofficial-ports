@@ -91,7 +91,7 @@ public class ParticlePool : ActorPool<Particle>
     public override bool UpdateT(Particle a)
     {
         a.PPos = (a.Pos).Copy();
-        a.Pos += a.Vel;
+        a.Pos += a.Vel * SimulationTime.Step;
         if (a.Pos.X * a.Pos.X + a.Pos.Y * a.Pos.Y > Tube.Radius * Tube.Radius)
         {
             Vector3 nv = new Vector3(-a.Pos.X, -a.Pos.Y, 0);
@@ -102,8 +102,8 @@ public class ParticlePool : ActorPool<Particle>
             }
         }
 
-        a.BaseScale += (a.TargetScale - a.BaseScale) * 0.1f;
-        Vector3 v = (a.Pos - a.PPos).Copy();
+        a.BaseScale += (a.TargetScale - a.BaseScale) * SimulationTime.Blend(0.1f);
+        Vector3 v = ((a.Pos - a.PPos) / SimulationTime.Step).Copy();
         float vl = v.Length();
         a.Orientation.X = -v.Y;
         a.Orientation.Y = v.X;
@@ -113,10 +113,10 @@ public class ParticlePool : ActorPool<Particle>
         if (vl > 10)
             vl = 10;
         a.Scale = vl * a.BaseScale * 0.1f;
-        a.Vel.Z -= 0.1f;
-        a.Vel *= 0.98f;
-        a.TargetScale *= 0.98f;
-        a.Color.W *= 0.99f;
+        a.Vel.Z -= 0.1f * SimulationTime.Step;
+        a.Vel *= SimulationTime.Decay(0.98f);
+        a.TargetScale *= SimulationTime.Decay(0.98f);
+        a.Color.W *= SimulationTime.Decay(0.99f);
         int li = 4 - GameMath.integer((float)((a.Pos.Z / 32)));
         if (li >= 0 && li < lightColors.Length)
         {

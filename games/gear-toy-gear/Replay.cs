@@ -5,6 +5,7 @@ public class Replay
     public int RandomSeed;
     List<ReplayData> data = new List<ReplayData>();
     int cursor;
+    public float NextStep() => cursor < data.Count ? data[cursor].Step : 1;
     public void StartRecord()
     {
         data.Clear();
@@ -44,12 +45,14 @@ public class Replay
 
 public class ReplayData : ActorCopy
 {
+    public float Step = 1;
     public Vector2 Stick = new Vector2();
     public float LeftTrigger, RightTrigger;
     public ReplayData Copy()
     {
         return new ReplayData
         {
+            Step = Step,
             Stick = Stick.Copy(),
             LeftTrigger = LeftTrigger,
             RightTrigger = RightTrigger

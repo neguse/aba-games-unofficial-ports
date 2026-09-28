@@ -23,8 +23,8 @@ public class Shot : Actor
     public ParticlePool particles;
     public Ship ship;
     public Vector pos;
-    public int chargeCnt, chargeSeCnt;
-    public int cnt;
+    public float chargeCnt, chargeSeCnt;
+    public float cnt;
     public float range;
     public float size, trgSize;
     public bool chargeShot;
@@ -151,26 +151,26 @@ public class Shot : Actor
         {
             if (chargeCnt < MAX_CHARGE)
             {
-                chargeCnt++;
+                chargeCnt = Math.Min(MAX_CHARGE, chargeCnt + SimulationTime.Step);
                 trgSize = (SIZE_MIN + chargeCnt * SIZE_RATIO) * 0.33f;
             }
 
-            if ((chargeSeCnt % 52) == 0)
+            if (SimulationTime.Period(chargeSeCnt + 51, 52))
                 SoundManager.playSe("charge.wav");
-            chargeSeCnt++;
+            chargeSeCnt += SimulationTime.Step;
         }
         else
         {
-            pos.x = pos.x + (sin(deg) * SPEED);
-            pos.y = pos.y + (cos(deg) * SPEED);
-            range = range - (SPEED);
+            pos.x = pos.x + (sin(deg) * SPEED * SimulationTime.Step);
+            pos.y = pos.y + (cos(deg) * SPEED * SimulationTime.Step);
+            range = range - (SPEED * SimulationTime.Step);
             if (range <= 0)
                 remove();
             else if (range < 10)
-                trgSize = trgSize * (0.75f);
+                trgSize = trgSize * SimulationTime.Decay(0.75f);
         }
 
-        size = size + ((trgSize - size) * 0.1f);
+        size = size + ((trgSize - size) * SimulationTime.Blend(0.1f));
         shape.size = size;
         if (!(inCharge))
         {
@@ -179,7 +179,7 @@ public class Shot : Actor
             enemies.checkShotHit(pos, shape, this);
         }
 
-        if ((starShell) || (chargeCnt > MAX_CHARGE * CHARGE_RELEASE_RATIO))
+        if (SimulationTime.Emit && ((starShell) || (chargeCnt > MAX_CHARGE * CHARGE_RELEASE_RATIO)))
         {
             int pn = 1;
             if (chargeShot)
@@ -192,7 +192,7 @@ public class Shot : Actor
             }
         }
 
-        cnt++;
+        cnt += SimulationTime.Step;
     }
 
     public void addScore(int sc, Vector pos)

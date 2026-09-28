@@ -2,6 +2,18 @@ using System;
 
 public static class GameMath
 {
+    public static Quaternion Rotation(Quaternion rotation)
+    {
+        if (SimulationTime.Step == 1) return rotation;
+        float w = Math.Max(-1, Math.Min(1, rotation.W));
+        float angle = (float)Math.Atan2(Math.Sqrt(rotation.X * rotation.X + rotation.Y * rotation.Y + rotation.Z * rotation.Z), w);
+        float sine = (float)Math.Sin(angle);
+        if (Math.Abs(sine) < .000001f) return rotation;
+        float scale = (float)Math.Sin(angle * SimulationTime.Step) / sine;
+        return new Quaternion(rotation.X * scale, rotation.Y * scale, rotation.Z * scale,
+            (float)Math.Cos(angle * SimulationTime.Step));
+    }
+
     public static int integer(float value)
     {
         return (int)(value < 0 ? Math.Ceiling(value) : Math.Floor(value));

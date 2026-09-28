@@ -41,8 +41,8 @@ public class ShotPool : ActorPool<Shot>
 
     public override bool UpdateT(Shot a)
     {
-        a.Orientation *= rollQuaternion;
-        a.Pos += a.Vel;
+        a.Orientation *= GameMath.Rotation(rollQuaternion);
+        a.Pos += (a.Vel) * SimulationTime.Step;
         if (a.Pos.X * a.Pos.X + a.Pos.Y * a.Pos.Y > Tube.Radius * Tube.Radius)
         {
             particles.AddintVector3Vector3floatfloatfloatfloatfloatfloat(4, (a.Pos).Copy(), (a.Vel).Copy(), 0.75f, 10, 1.0f, 0.5f, 1.0f, 0.8f);

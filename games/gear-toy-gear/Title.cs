@@ -7,7 +7,7 @@ public class Title
     private Pad pad;
     private Record record;
     private bool isButtonPressed;
-    private int ticks;
+    private float ticks;
     private GearShape shape;
     private GearData[] data;
     public Title(GtgFrame frame, Pad pad, Record record)
@@ -54,7 +54,7 @@ public class Title
             isButtonPressed = false;
         }
 
-        ticks++;
+        ticks += SimulationTime.Step;
     }
 
     public void Draw()
@@ -72,7 +72,7 @@ public class Title
         shape.Draw();
         if (ticks % 60 < 30)
             Letter.AddstringVector3floatQuaternionfloat("PRESS BUTTON", new Vector3(-20, -14, 0), 0.7f, (Quaternion.Identity).Copy(), 1);
-        int rc = ticks / 30;
+        int rc = (int)(ticks / 30);
         if (rc > 10)
             rc = 10;
         float y = 14;

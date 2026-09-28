@@ -1187,7 +1187,7 @@ public class Ring
     public int _idx;
     static int nextMesh;
     public Mesh[] meshes;
-    public int cnt;
+    public float cnt;
     public int clr;
     public int type;
     public Ring(int idx, SliceState ss, int type = 0)
@@ -1267,7 +1267,7 @@ public class Ring
 
     public void move()
     {
-        cnt++;
+        cnt += SimulationTime.Step;
     }
 
     public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, float a, Tunnel tunnel)
