@@ -5,6 +5,9 @@ public static class MmRender
 {
     static readonly List<MmDrawCommand> commands = new();
     static readonly List<float>[] eyes = new List<float>[] { new(), new() };
+    static readonly Vector3 zeroNormal = new();
+    static readonly Vector2 zeroUv = new();
+    static readonly Color white = new(255, 255, 255, 255);
     static readonly PassOpts pass = new() { ClearColor = new float[] { 210 / 255f, 210 / 255f, 210 / 255f, 1 } };
     static readonly float[] anchor = new float[16], eyeView = new float[16], projection = new float[16], matrix = new float[16];
     static ShaderRef shader;
@@ -51,7 +54,7 @@ public static class MmRender
             for (int i = 0; i < count; i++)
             {
                 var v = vertices[indices[i]];
-                Vertex(shape.data, v.Position, Vector3.Zero, v.Color, Vector2.Zero);
+                Vertex(shape.data, v.Position, zeroNormal, v.Color, zeroUv);
             }
 
             shape.meshVersion = meshVersion;
@@ -68,7 +71,7 @@ public static class MmRender
             for (int i = 0; i < count; i++)
             {
                 var v = vertices[indices[i]];
-                Vertex(shape.data, v.Position, v.Normal, new Color(255, 255, 255, 255), v.TextureCoordinate);
+                Vertex(shape.data, v.Position, v.Normal, white, v.TextureCoordinate);
             }
 
             shape.meshVersion = meshVersion;

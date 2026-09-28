@@ -63,21 +63,20 @@ public class ParticlePool : ActorPool<Particle>
         }
 
         Vector3 bv = new Vector3(sz, 0, 0);
-        Vector3 v1 = new Vector3();
-        Vector3 v2 = new Vector3();
-        v2 = (Vector3.TransformVector3Quaternion((bv).Copy(), (a.Dir).Copy())).Copy();
-        Vector3 tp = (a.Pos - a.Vel * 10).Copy();
+        Matrix rotation = Matrix.CreateFromQuaternion(a.Dir);
+        Vector3 v2 = Vector3.TransformVector3Matrix(bv, rotation);
+        Vector3 tp = a.Pos - a.Vel * 10;
         for (int i = 0; i < 4; i++)
         {
-            v1 = (v2).Copy();
-            bv = (Vector3.TransformVector3Matrix((bv).Copy(), (vertexRotate).Copy())).Copy();
-            v2 = (Vector3.TransformVector3Quaternion((bv).Copy(), (a.Dir).Copy())).Copy();
-            shape.AddVector3bytebytebytebyte((a.Pos + v1).Copy(), a.R, a.G, a.B, al);
-            shape.AddVector3bytebytebytebyte((a.Pos + v2).Copy(), a.R, a.G, a.B, al);
-            shape.AddVector3bytebytebytebyte((tp).Copy(), a.R, a.G, a.B, 0);
-            shape.AddVector3bytebytebytebyte((a.Pos + v1 * 2).Copy(), a.Er, a.Eg, a.Eb, al);
-            shape.AddVector3bytebytebytebyte((a.Pos + v2 * 2).Copy(), a.Er, a.Eg, a.Eb, al);
-            shape.AddVector3bytebytebytebyte((tp).Copy(), a.Er, a.Eg, a.Eb, 0);
+            Vector3 v1 = v2;
+            bv = Vector3.TransformVector3Matrix(bv, vertexRotate);
+            v2 = Vector3.TransformVector3Matrix(bv, rotation);
+            shape.AddVector3bytebytebytebyte(a.Pos + v1, a.R, a.G, a.B, al);
+            shape.AddVector3bytebytebytebyte(a.Pos + v2, a.R, a.G, a.B, al);
+            shape.AddVector3bytebytebytebyte(tp, a.R, a.G, a.B, 0);
+            shape.AddVector3bytebytebytebyte(a.Pos + v1 * 2, a.Er, a.Eg, a.Eb, al);
+            shape.AddVector3bytebytebytebyte(a.Pos + v2 * 2, a.Er, a.Eg, a.Eb, al);
+            shape.AddVector3bytebytebytebyte(tp, a.Er, a.Eg, a.Eb, 0);
         }
     }
 

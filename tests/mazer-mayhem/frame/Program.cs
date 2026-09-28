@@ -43,6 +43,26 @@ try
     if (!pad.ButtonBack || !pad.ButtonStart || pad.ButtonA) throw new Exception("pause mapping");
     Pad.Read(null, null);
     Near(pad.ThumbStickLeft.Length(), 0, 0, "disconnected stick");
+    var particleFrame = new MmFrame(); particleFrame.LoadContent();
+    var particlePool = Field<ParticlePool>(particleFrame, "particles");
+    var particle = new Particle { Pos = new Vector3(2, 3, 4), Vel = new Vector3(1, 0, 0),
+        Dir = Quaternion.Identity, Cnt = 32, Size = .5f, R = 100, G = 150, B = 200 };
+    particlePool.Add(particle); particlePool.Update(); particlePool.ClearAll();
+    for (int i = 0; i < 256; i++) particlePool.Add(particle);
+    long particleBytes = GC.GetAllocatedBytesForCurrentThread();
+    particlePool.Update();
+    particleBytes = GC.GetAllocatedBytesForCurrentThread() - particleBytes;
+    if (particleBytes > 600 * 1024) throw new Exception($"particle update allocated {particleBytes} bytes");
+    var vertices = Field<TriangleListShape>(particlePool, "shape").Verts;
+    Near(vertices[0].Position.X, 3.45f, .00001f, "particle first vertex x");
+    Near(vertices[0].Position.Z, 3.95f, .00001f, "particle first vertex z");
+    Near(vertices[1].Position.X, 2.95f, .00001f, "particle rotated vertex x");
+    Near(vertices[1].Position.Z, 3.45f, .00001f, "particle rotated vertex z");
+    Near(vertices[2].Position.X, -6.55f, .00001f, "particle trail x");
+    Near(vertices[2].Position.Z, 4.45f, .00001f, "particle trail z");
+    if (vertices[0].Color.R != 100 || vertices[0].Color.A != 80 || vertices[2].Color.A != 0)
+        throw new Exception("particle vertex colors");
+    Console.WriteLine($"PASS particle geometry and allocation: {particleBytes} bytes for 256 particles");
     foreach (int hz in new[] { 60, 90, 120, 144, 0 })
     {
         var clock = new SimulationClock();
