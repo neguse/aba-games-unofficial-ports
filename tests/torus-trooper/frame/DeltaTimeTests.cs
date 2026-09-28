@@ -85,5 +85,32 @@ static class DeltaTimeTests
         var loaded = new PadRecord();
         if (!loaded.decode(longRecord.encode()) || loaded.steps.Count != 200000)
             throw new Exception("long variable-time replay");
+        var particles = new GameManager(); particles.init_0(); particles.start(); particles.startInGame();
+        particles.ship._speed = .6f;
+        foreach (int type in new[] { ParticlePType.STAR, ParticlePType.JET, ParticlePType.SPARK })
+        {
+            float? referenceLength = null, referenceMirror = null;
+            foreach (int hz in new[] { 0, 60, 90, 120, 144 })
+            {
+                Particle.setRandSeed(123);
+                var p = particles.particles.getInstanceForced();
+                p.set_12(new Vector(0, 12), type == ParticlePType.STAR ? -12 : 2, 0, 0, 0, 1, 1, 1, 100, type);
+                p.inCourse = type != ParticlePType.STAR;
+                var clock = new SimulationClock();
+                if (hz == 0) { p.move(); p.move(); }
+                else foreach (float dt in Schedule(hz, .032)) clock.Advance(dt, .016f, p.move);
+                float length = MathF.Sqrt(MathF.Pow(p.sp.x - p.psp.x, 2) + MathF.Pow(p.sp.y - p.psp.y, 2) + MathF.Pow(p.sp.z - p.psp.z, 2));
+                referenceLength ??= length;
+                Near(length, referenceLength.Value, referenceLength.Value * .03f, $"particle trail {type}/{hz}");
+                if (p.inCourse)
+                {
+                    float mirror = MathF.Sqrt(MathF.Pow(p.rsp.x - p.rpsp.x, 2) + MathF.Pow(p.rsp.y - p.rpsp.y, 2) + MathF.Pow(p.rsp.z - p.rpsp.z, 2));
+                    referenceMirror ??= mirror;
+                    Near(mirror, referenceMirror.Value, referenceMirror.Value * .03f, $"reflected trail {type}/{hz}");
+                }
+            }
+        }
+        particles.close();
+        Console.WriteLine("PASS original particle trail lengths at 60/90/120/144 Hz");
     }
 }

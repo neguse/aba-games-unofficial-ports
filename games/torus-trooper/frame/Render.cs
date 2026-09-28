@@ -11,6 +11,10 @@ public static class TtRender
     static readonly List<int> white = new() { 255, 255, 255, 255 };
     static readonly TextureOpts textureOptions = new() { Filter = Gfx.Filter.Linear, Wrap = Gfx.Wrap.Repeat };
     static readonly PassOpts pass = new() { ClearColor = new float[] { 0, 0, 0, 1 } };
+    static readonly TextureOpts sceneOptions = new() { Target = true, Filter = Gfx.Filter.Nearest };
+    static readonly DrawOpts outputOptions = new() { Depth = false, Blend = Gfx.Blend.None, Cull = Gfx.Cull.None };
+    static readonly Dictionary<string, object> outputBindings = new();
+    static string outputSource;
     static int used, batchCount, version;
     static bool anchored;
     static readonly float[] anchor = new float[16], world = new float[16], projection = new float[16];
@@ -95,6 +99,14 @@ public static class TtRender
     }
     public static void Present(Ship ship, XrView left, XrView right)
     {
+        if (outputSource == null)
+        {
+            Io.LoadText("mesh.output.slang", out var source, out _, out _, out _);
+            outputSource = source;
+        }
+        if (outputSource == null) return;
+        outputOptions.Shader = Gfx.UseShader("tt-output", outputSource, outputSource, 1);
+        if (outputOptions.Shader == null) return;
         UpdateAnchor(left, right, Xr.Focused());
         WorldView(ship);
         var vertexBuffer = Gfx.UseBuffer("tt-vertices", Gfx.BufferType.Storage, vertices, version);
@@ -119,7 +131,8 @@ public static class TtRender
             }
             var drawBuffer = Gfx.UseBuffer(eye == 0 ? "tt-left-draws" : "tt-right-draws", Gfx.BufferType.Storage, data, version);
             Xr.SelectEye(eye);
-            pass.Target = Gfx.MainTex;
+            var scene = Gfx.UseTexture(eye == 0 ? "tt-left-scene" : "tt-right-scene", view.Width, view.Height, Gfx.PixelFormat.Rgba8, null, 1, sceneOptions);
+            pass.Target = scene;
             Gfx.BeginPass(pass);
             for (int i = 0; i < batchCount; i++)
             {
@@ -132,6 +145,11 @@ public static class TtRender
                 batch.Viewport[0] = view.Width; batch.Viewport[1] = view.Height;
                 Gfx.Draw(batch.Count, batch.Bindings, batch.Options);
             }
+            Gfx.EndPass();
+            pass.Target = Gfx.MainTex;
+            Gfx.BeginPass(pass);
+            outputBindings["scene"] = scene;
+            Gfx.Draw(3, outputBindings, outputOptions);
             Gfx.EndPass();
         }
     }

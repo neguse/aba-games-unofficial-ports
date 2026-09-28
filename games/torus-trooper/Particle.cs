@@ -137,6 +137,18 @@ public class Particle : LuminousActor
 
         lumAlp = lumAlp * SimulationTime.Decay(0.98f);
         calcScreenPos();
+        if (SimulationTime.Step != 1)
+        {
+            psp.x = sp.x + (psp.x - sp.x) / SimulationTime.Step;
+            psp.y = sp.y + (psp.y - sp.y) / SimulationTime.Step;
+            psp.z = sp.z + (psp.z - sp.z) / SimulationTime.Step;
+            if (inCourse)
+            {
+                rpsp.x = rsp.x + (rpsp.x - rsp.x) / SimulationTime.Step;
+                rpsp.y = rsp.y + (rpsp.y - rsp.y) / SimulationTime.Step;
+                rpsp.z = rsp.z + (rpsp.z - rsp.z) / SimulationTime.Step;
+            }
+        }
     }
 
     public void calcScreenPos()
