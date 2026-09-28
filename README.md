@@ -22,6 +22,7 @@ GearToyGear・Torus Trooper・Mazer Mayhem を Steam Frame 本体で実行する
 
 3ゲームを `~/.local/share/aba-games-unofficial-ports/` に配置し、ゲーム名でSteamに登録する。
 更新時もゲームを終了して同じ導入ファイルを開く。セーブデータと既存のSteam登録は維持する。
+以前ZIPから手動で登録したゲームがある場合は、Steamに別の項目が追加される。
 `XDG_DATA_HOME` を設定している場合は、その配下に配置する。
 
 ZIP には ARM64 の .NET ランタイムと必要なライブラリを含む。
