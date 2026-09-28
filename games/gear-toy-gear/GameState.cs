@@ -16,9 +16,9 @@ public class GameState
     private int extendScore, nextExtendScoreOffset;
     private int left;
     private bool storedIsInGameOver;
-    private int gameOverTicks;
+    private float gameOverTicks;
     private bool isButtonPressed;
-    private int ticks;
+    private float ticks;
     private bool isAccelPressed;
     private int bgmIndex, bgmIndexChange;
     private Random random;
@@ -118,7 +118,7 @@ public class GameState
 
     public void Update()
     {
-        ticks++;
+        ticks += SimulationTime.Step;
         if (!isAccelPressed && ticks > 480)
             isAccelPressed = true;
         if (!storedIsInGameOver)
@@ -145,7 +145,7 @@ public class GameState
             isButtonPressed = false;
         }
 
-        gameOverTicks--;
+        gameOverTicks -= SimulationTime.Step;
         if (gameOverTicks <= 0)
             frame.StartTitle();
     }

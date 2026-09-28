@@ -10,7 +10,7 @@ public class Camera
     public Rand rand;
     public Vector3 _cameraPos, cameraTrg, cameraVel;
     public Vector3 _lookAtPos, lookAtOfs;
-    public int lookAtCnt, changeCnt, moveCnt;
+    public float lookAtCnt, changeCnt, moveCnt;
     public float _deg;
     public float _zoom;
     public float zoomTrg, zoomMin;
@@ -41,7 +41,7 @@ public class Camera
 
     public void move()
     {
-        changeCnt--;
+        changeCnt -= SimulationTime.Step;
         if (changeCnt < 0)
         {
             type = rand.nextInt(2);
@@ -85,8 +85,8 @@ public class Camera
             zoomMin = 1.0f - rand.nextFloat(0.9f);
         }
 
-        lookAtCnt--;
-        if (lookAtCnt == ZOOM_CNT)
+        lookAtCnt -= SimulationTime.Step;
+        if (SimulationTime.Crossed(lookAtCnt, ZOOM_CNT))
         {
             lookAtOfs.x = rand.nextSignedFloat(0.4f);
             lookAtOfs.y = rand.nextSignedFloat(3);
@@ -97,7 +97,9 @@ public class Camera
             lookAtCnt = 32 + rand.nextInt(48);
         }
 
-        cameraTrg.opAddAssign(cameraVel);
+        cameraTrg.x += cameraVel.x * SimulationTime.Step;
+        cameraTrg.y += cameraVel.y * SimulationTime.Step;
+        cameraTrg.z += cameraVel.z * SimulationTime.Step;
         float cox = 0, coy = 0, coz = 0;
         switch (type)
         {
@@ -115,7 +117,7 @@ public class Camera
                     od = od - (PI * 2);
                 while (od < -PI)
                     od = od + (PI * 2);
-                _deg = _deg + (od * 0.2f);
+                _deg = _deg + (od * SimulationTime.Blend(0.2f));
                 break;
         }
 
@@ -126,9 +128,9 @@ public class Camera
             cox = cox + (PI * 2);
         coy = coy - (cameraPos.y);
         coz = coz - (cameraPos.z);
-        _cameraPos.x = _cameraPos.x + (cox * 0.12f);
-        _cameraPos.y = _cameraPos.y + (coy * 0.12f);
-        _cameraPos.z = _cameraPos.z + (coz * 0.12f);
+        _cameraPos.x = _cameraPos.x + (cox * SimulationTime.Blend(0.12f));
+        _cameraPos.y = _cameraPos.y + (coy * SimulationTime.Blend(0.12f));
+        _cameraPos.z = _cameraPos.z + (coz * SimulationTime.Blend(0.12f));
         float ofsRatio = 0;
         if (lookAtCnt <= ZOOM_CNT)
             ofsRatio = 1.0f + fabs(zoomTrg - _zoom) * 2.5f;
@@ -143,26 +145,26 @@ public class Camera
         float loz = lookAtOfs.z * ofsRatio - _lookAtPos.z;
         if (lookAtCnt <= ZOOM_CNT)
         {
-            _zoom = _zoom + ((zoomTrg - _zoom) * 0.16f);
-            _lookAtPos.x = _lookAtPos.x + (lox * 0.2f);
-            _lookAtPos.y = _lookAtPos.y + (loy * 0.2f);
-            _lookAtPos.z = _lookAtPos.z + (loz * 0.2f);
+            _zoom = _zoom + ((zoomTrg - _zoom) * SimulationTime.Blend(0.16f));
+            _lookAtPos.x = _lookAtPos.x + (lox * SimulationTime.Blend(0.2f));
+            _lookAtPos.y = _lookAtPos.y + (loy * SimulationTime.Blend(0.2f));
+            _lookAtPos.z = _lookAtPos.z + (loz * SimulationTime.Blend(0.2f));
         }
         else
         {
-            _lookAtPos.x = _lookAtPos.x + (lox * 0.1f);
-            _lookAtPos.y = _lookAtPos.y + (lox * 0.1f);
-            _lookAtPos.z = _lookAtPos.z + (loz * 0.1f);
+            _lookAtPos.x = _lookAtPos.x + (lox * SimulationTime.Blend(0.1f));
+            _lookAtPos.y = _lookAtPos.y + (lox * SimulationTime.Blend(0.1f));
+            _lookAtPos.z = _lookAtPos.z + (loz * SimulationTime.Blend(0.1f));
         }
 
-        lookAtOfs.opMulAssign(0.985f);
+        lookAtOfs.opMulAssign(SimulationTime.Decay(0.985f));
         if (fabs(lookAtOfs.x) < 0.04f)
             lookAtOfs.x = 0;
         if (fabs(lookAtOfs.y) < 0.3f)
             lookAtOfs.y = 0;
         if (fabs(lookAtOfs.z) < 1)
             lookAtOfs.z = 0;
-        moveCnt--;
+        moveCnt -= SimulationTime.Step;
         if (moveCnt < 0)
         {
             moveCnt = 15 + rand.nextInt(15);

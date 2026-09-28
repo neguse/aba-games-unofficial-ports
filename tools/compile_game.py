@@ -77,6 +77,9 @@ if args.game == 'masashikun-hi':
     sources = [Path('games/masashikun-hi/Models.cs')]
     sources += [p for p in sorted(Path('games/masashikun-hi').glob('*.cs')) if p.name != 'Models.cs']
     sources += sorted(Path('build/masashikun-hi').glob('*.cs'))
+if args.game in ['gear-toy-gear', 'torus-trooper']:
+    sources.append(Path('game/SimulationTime.cs'))
+
 if args.frame:
     if args.game not in ['gear-toy-gear', 'torus-trooper']:
         parser.error('--frame requires gear-toy-gear or torus-trooper')

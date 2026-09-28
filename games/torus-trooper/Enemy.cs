@@ -17,11 +17,11 @@ public class Enemy : Actor
     public Vector pos;
     public Vector ppos;
     public Vector flipMv;
-    public int flipMvCnt;
+    public float flipMvCnt;
     public float speed;
     public float d1, d2;
     public float baseBank;
-    public int cnt;
+    public float cnt;
     public float bank;
     public BulletActor topBullet;
     public int shield, firstShield;
@@ -29,7 +29,7 @@ public class Enemy : Actor
     public bool highOrder;
     public float limitY;
     public List<BulletActor> bitBullet = new List<BulletActor>();
-    public int bitCnt;
+    public float bitCnt;
     public Vector bitOffset;
     public bool passed;
     public EnemyPool passedEnemies;
@@ -116,12 +116,12 @@ public class Enemy : Actor
         ppos.y = pos.y;
         if (ship.isBossModeEnd)
         {
-            speed = speed + ((0 - speed) * 0.05f);
+            speed = speed + ((0 - speed) * SimulationTime.Blend(0.05f));
             flipMvCnt = 0;
         }
         else if (!(ship.hasCollision()))
         {
-            speed = speed + ((1.5f - speed) * 0.15f);
+            speed = speed + ((1.5f - speed) * SimulationTime.Blend(0.15f));
         }
 
         if (spec.hasLimitY)
@@ -133,7 +133,7 @@ public class Enemy : Actor
         float my = speed - ship.speed;
         if ((passed) && (my > 0))
             my = 0;
-        pos.y = pos.y + (my);
+        pos.y = pos.y + (my * SimulationTime.Step);
         if (!(passed))
             if (spec.hasLimitY)
                 limitY = spec.handleLimitY(pos, limitY);
@@ -169,16 +169,17 @@ public class Enemy : Actor
 
         if (!(steer))
         {
-            bank = bank + ((baseBank - bank) * 0.2f);
+            bank = bank + ((baseBank - bank) * SimulationTime.Blend(0.2f));
         }
 
-        bank = bank * (0.9f);
-        pos.x = pos.x + (bank * 0.08f * (SliceState.DEFAULT_RAD / tunnel.getRadius(pos.y)));
+        bank = bank * SimulationTime.Decay(0.9f);
+        pos.x = pos.x + (bank * 0.08f * (SliceState.DEFAULT_RAD / tunnel.getRadius(pos.y)) * SimulationTime.Step);
         if (flipMvCnt > 0)
         {
-            flipMvCnt--;
-            pos.opAddAssign(flipMv);
-            flipMv.opMulAssign(0.95f);
+            flipMvCnt -= SimulationTime.Step;
+            pos.x += flipMv.x * SimulationTime.Step;
+            pos.y += flipMv.y * SimulationTime.Step;
+            flipMv.opMulAssign(SimulationTime.Decay(0.95f));
         }
 
         if (pos.x < 0)
@@ -217,8 +218,8 @@ public class Enemy : Actor
                 bm = 1;
             else if (bm < -1)
                 bm = -1;
-            speed = speed * ((1 - fabs(bm)));
-            bank = bank + (bm);
+            speed = speed * SimulationTime.Decay(1 - fabs(bm));
+            bank = bank + (bm * SimulationTime.Step);
             float lo = fabs(pos.x - sl.getLeftEdgeDeg());
             if (lo > PI)
                 lo = PI * 2 - lo;
@@ -231,8 +232,8 @@ public class Enemy : Actor
                 pos.x = sl.getLeftEdgeDeg();
         }
 
-        d1 = d1 + ((sl.d1 - d1) * 0.1f);
-        d2 = d2 + ((sl.d2 - d2) * 0.1f);
+        d1 = d1 + ((sl.d1 - d1) * SimulationTime.Blend(0.1f));
+        d2 = d2 + ((sl.d2 - d2) * SimulationTime.Blend(0.1f));
         if ((!(passed)) && (!((topBullet != null))))
         {
             Barrage tbb = spec.barrage;
@@ -293,7 +294,7 @@ public class Enemy : Actor
         }
 
         damaged = false;
-        bitCnt++;
+        bitCnt += SimulationTime.Step;
     }
 
     public void checkBulletInRange(BulletActor ba)

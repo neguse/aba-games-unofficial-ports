@@ -10,7 +10,16 @@ public class GtgFrame
     private Pad pad;
     private Title title;
     private ActorPools actors;
-    private int storedPauseTicks;
+    private float storedPauseTicks;
+    readonly SimulationClock clock = new SimulationClock();
+    Action advanceUpdate;
+    Func<float> replayStep;
+    public void Advance(float seconds)
+    {
+        if (state == FrameGameState.Title && replay.IsAvailable)
+            clock.AdvanceReplay(seconds, 1f / 60, replayStep, advanceUpdate);
+        else clock.Advance(seconds, 1f / 60, advanceUpdate);
+    }
     private FrameGameState state;
     private bool backPressed;
     private bool startPressed;
@@ -24,6 +33,8 @@ public class GtgFrame
 
     public void LoadContent()
     {
+        advanceUpdate = () => Update();
+        replayStep = () => replay.NextStep();
         screenWidth = 640;
         screenHeight = 480;
         ProjMatrix = (Matrix.CreatePerspectiveFieldOfView((float)Math.PI / 2, 640f / 480f, .1f, 100000)).Copy();
@@ -41,6 +52,7 @@ public class GtgFrame
 
     public void StartTitle()
     {
+        clock.Reset();
         state = FrameGameState.Title;
         Start(replay.RandomSeed);
         if (replay.IsAvailable)
@@ -53,6 +65,7 @@ public class GtgFrame
 
     public void StartGame()
     {
+        clock.Reset();
         state = FrameGameState.InGame;
         int randomSeed = random.Next();
         replay.RandomSeed = randomSeed;
@@ -129,7 +142,7 @@ public class GtgFrame
                 }
 
                 if (storedPauseTicks >= 0)
-                    storedPauseTicks++;
+                    storedPauseTicks += SimulationTime.Step;
                 UpdateInGame();
                 break;
         }
@@ -232,7 +245,7 @@ public class GtgFrame
     {
         get
         {
-            return storedPauseTicks;
+            return (int)storedPauseTicks;
         }
     }
 

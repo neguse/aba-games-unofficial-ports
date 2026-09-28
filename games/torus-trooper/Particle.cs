@@ -19,7 +19,7 @@ public class Particle : LuminousActor
     public Vector icp;
     public float r, g, b;
     public float lumAlp;
-    public int cnt;
+    public float cnt;
     public bool inCourse;
     public int type;
     public float d1, d2, md1, md2;
@@ -81,7 +81,7 @@ public class Particle : LuminousActor
 
     public override void move()
     {
-        cnt--;
+        cnt -= SimulationTime.Step;
         if ((cnt < 0) || (pos.y < -2))
         {
             exists = false;
@@ -98,19 +98,21 @@ public class Particle : LuminousActor
             rpsp.z = rsp.z;
         }
 
-        pos.opAddAssign(vel);
+        pos.x += vel.x * SimulationTime.Step;
+        pos.y += vel.y * SimulationTime.Step;
+        pos.z += vel.z * SimulationTime.Step;
         if (type == ParticlePType.FRAGMENT)
-            pos.y = pos.y - (ship.speed / 2);
+            pos.y = pos.y - (ship.speed / 2 * SimulationTime.Step);
         else if (type == ParticlePType.SPARK)
-            pos.y = pos.y - (ship.speed * 0.33f);
+            pos.y = pos.y - (ship.speed * 0.33f * SimulationTime.Step);
         else
-            pos.y = pos.y - (ship.speed);
+            pos.y = pos.y - (ship.speed * SimulationTime.Step);
         if (type != ParticlePType.STAR)
         {
             if (type == ParticlePType.FRAGMENT)
-                vel.z = vel.z - (GRAVITY / 2);
+                vel.z = vel.z - (GRAVITY / 2 * SimulationTime.Step);
             else
-                vel.z = vel.z - (GRAVITY);
+                vel.z = vel.z - (GRAVITY * SimulationTime.Step);
             if ((inCourse) && (pos.z < 0))
             {
                 if (type == ParticlePType.FRAGMENT)
@@ -125,15 +127,15 @@ public class Particle : LuminousActor
 
         if (type == ParticlePType.FRAGMENT)
         {
-            d1 = d1 + (md1);
-            d2 = d2 + (md2);
-            md1 = md1 * (0.98f);
-            md2 = md2 * (0.98f);
-            width = width * (0.98f);
-            height = height * (0.98f);
+            d1 = d1 + (md1 * SimulationTime.Step);
+            d2 = d2 + (md2 * SimulationTime.Step);
+            md1 = md1 * SimulationTime.Decay(0.98f);
+            md2 = md2 * SimulationTime.Decay(0.98f);
+            width = width * SimulationTime.Decay(0.98f);
+            height = height * SimulationTime.Decay(0.98f);
         }
 
-        lumAlp = lumAlp * (0.98f);
+        lumAlp = lumAlp * SimulationTime.Decay(0.98f);
         calcScreenPos();
     }
 

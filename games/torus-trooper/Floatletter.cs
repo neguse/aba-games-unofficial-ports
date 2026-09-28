@@ -13,7 +13,7 @@ public class FloatLetter : Actor
     public float d;
     public float size;
     public string msg;
-    public int cnt;
+    public float cnt;
     public float alpha;
     public static void setRandSeed(int seed)
     {
@@ -43,14 +43,14 @@ public class FloatLetter : Actor
 
     public override void move()
     {
-        pos.x = pos.x + (mx * pos.y);
-        pos.y = pos.y + (my);
-        pos.z = pos.z - (0.03f * pos.y);
-        cnt--;
+        pos.x = pos.x + (mx * pos.y * SimulationTime.Step);
+        pos.y = pos.y + (my * SimulationTime.Step);
+        pos.z = pos.z - (0.03f * pos.y * SimulationTime.Step);
+        cnt -= SimulationTime.Step;
         if (cnt < 0)
             exists = false;
         if (alpha >= 0.03f)
-            alpha = alpha - (0.03f);
+            alpha = alpha - (0.03f * SimulationTime.Step);
     }
 
     public override void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)

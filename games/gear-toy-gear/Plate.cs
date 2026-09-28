@@ -37,24 +37,24 @@ public class PlatePool : ActorPool<Plate>
 
     public override bool UpdateT(Plate a)
     {
-        a.Z += (a.TargetZ - a.Z) * 0.05f;
-        a.Radius += (a.TargetRadius - a.Radius) * 0.05f;
-        a.Angle += 0.01f;
+        a.Z += (a.TargetZ - a.Z) * SimulationTime.Blend(0.05f);
+        a.Radius += (a.TargetRadius - a.Radius) * SimulationTime.Blend(0.05f);
+        a.Angle += 0.01f * SimulationTime.Step;
         if (a.Ticks >= 100)
         {
-            a.Alpha += (1 - a.Alpha) * 0.1f;
-            a.Number += GameMath.integer((float)(((a.TargetNumber - a.Number) * 0.1f)));
-            if (a.Ticks == 100)
+            a.Alpha += (1 - a.Alpha) * SimulationTime.Blend(0.1f);
+            if (SimulationTime.Emit) a.Number += GameMath.integer((float)(((a.TargetNumber - a.Number) * 0.1f)));
+            if (a.Ticks - SimulationTime.Step < 100)
                 a.Number = a.TargetNumber;
         }
 
         if (a.Ticks <= 20)
         {
-            a.Alpha += (0 - a.Alpha) * 0.1f;
-            a.Angle += 0.05f + 0.1f / a.Ticks;
+            a.Alpha += (0 - a.Alpha) * SimulationTime.Blend(0.1f);
+            a.Angle += (0.05f + 0.1f / Math.Max(a.Ticks, 1)) * SimulationTime.Step;
         }
 
-        a.Ticks--;
+        a.Ticks -= SimulationTime.Step;
         return a.Ticks > 0;
     }
 
@@ -90,7 +90,7 @@ public class Plate : ActorCopy
     public float Radius, TargetRadius;
     public float Angle;
     public float Z, TargetZ;
-    public int Ticks;
+    public float Ticks;
     public int Number, TargetNumber;
     public float Alpha;
     public float Scale;

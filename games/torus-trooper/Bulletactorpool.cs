@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class BulletActorPool : ActorPool<BulletActor>
 {
-    public int cnt;
+    public float cnt;
     public TtWorld world;
     public BulletActorPool(int count, List<object> args) : base(count, args, () => new BulletActor())
     {
@@ -56,7 +56,7 @@ public class BulletActorPool : ActorPool<BulletActor>
     public override void move()
     {
         base.move();
-        cnt++;
+        cnt += SimulationTime.Step;
     }
 
     public override void clear()

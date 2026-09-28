@@ -64,23 +64,23 @@ public class EnemyPool : ActorPool<Enemy>
         a.PPos = (a.Pos).Copy();
         a.Motion.Update();
         a.Pos = (a.Motion.Pos).Copy();
-        Vector3 vel = ((a.Pos - a.PPos)).Copy();
+        Vector3 vel = ((a.Pos - a.PPos) / SimulationTime.Step).Copy();
         if (pillars.CheckHit((a.Pos).Copy()))
         {
             particles.AddintVector3Vector3floatfloatfloatfloatfloatfloat(40, (a.Pos).Copy(), (vel * 2).Copy(), 0.75f, a.Scale * 1.5f, 0.8f, 0.4f, 0.2f, 0.7f);
             return false;
         }
 
-        a.Ticks++;
+        a.Ticks += SimulationTime.Step;
         if (a.Pos.Z < Field.FireBoundaryDepth)
-            a.FireTicks -= Stage.GameSpeed;
+            a.FireTicks -= Stage.GameSpeed * SimulationTime.Step;
         if (a.FireTicks <= 0)
         {
             Fire(a);
-            a.FireTicks = a.Type.FireInterval;
+            a.FireTicks = SimulationTime.Repeat(a.FireTicks, a.Type.FireInterval);
         }
 
-        a.Roll += 10.0f / a.FireTicks;
+        a.Roll += 10.0f / Math.Max(a.FireTicks, .001f) * SimulationTime.Step;
         a.Orientation = (Quaternion.CreateFromYawPitchRoll(vel.X * 0.3f, vel.Y * 0.3f, a.Roll)).Copy();
         return (a.Pos.Z < Field.FrontDepth && a.Pos.Z > Field.BackDepth);
     }
@@ -116,7 +116,7 @@ public class EnemyPool : ActorPool<Enemy>
     public void Hit(int i)
     {
         particles.AddintVector3floatfloatfloatfloatfloatfloatfloat(20, (Actors[(i)].Pos).Copy(), 2, 20, Actors[(i)].Scale * 3, 1, 0.75f, 0.5f, 0.8f);
-        Vector3 vel = ((Actors[(i)].Pos - Actors[(i)].PPos)).Copy();
+        Vector3 vel = ((Actors[(i)].Pos - Actors[(i)].PPos) / SimulationTime.Step).Copy();
         vel *= (2 + (float)random.NextDouble() * 2);
         particles.AddintVector3Vector3floatfloatfloatfloatfloatfloat(80, (Actors[(i)].Pos).Copy(), (vel).Copy(), 0.5f, Actors[(i)].Scale * 2, 1, 0.75f, 0.5f, 0.6f);
         gameState.AddScoreint(100);
@@ -167,7 +167,7 @@ public class Enemy : ActorCopy
     public float Scale;
     public Quaternion Orientation = new Quaternion();
     public Vector4 Color = new Vector4();
-    public int Ticks;
+    public float Ticks;
     public EnemyMotion Motion = new EnemyMotion();
     public Vector3 PPos = new Vector3();
     public float FireInterval;

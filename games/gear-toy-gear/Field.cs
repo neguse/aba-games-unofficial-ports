@@ -67,8 +67,8 @@ public class Tube : ActorCopy
 
     public void Update()
     {
-        orientation *= roll;
-        pos.Z += Stage.PlayerDepthSpeed;
+        orientation *= GameMath.Rotation(roll);
+        pos.Z += (Stage.PlayerDepthSpeed) * SimulationTime.Step;
         if (pos.Z > Field.FrontDepth)
             pos.Z -= Height * 2 * 1.1f * Field.TubeCount;
     }

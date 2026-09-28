@@ -62,18 +62,18 @@ public class Ship : BulletTarget
     public const int FIRE_INTERVAL = 2;
     public const int STAR_SHELL_INTERVAL = 7;
     public float regenerativeCharge;
-    public int fireCnt;
+    public float fireCnt;
     public const float GUNPOINT_WIDTH = 0.05f;
     public int fireShotCnt;
-    public int sideFireCnt;
+    public float sideFireCnt;
     public int sideFireShotCnt;
     public Vector gunpointPos;
     public int rank;
     public int bossAppRank, bossAppNum, zoneEndRank;
     public bool _inBossMode;
     public bool _isBossModeEnd;
-    public int cnt;
-    public int screenShakeCnt;
+    public float cnt;
+    public float screenShakeCnt;
     public float screenShakeIntense;
     public Camera camera;
     public bool btnPressed;
@@ -178,7 +178,7 @@ public class Ship : BulletTarget
 
     public void move()
     {
-        cnt++;
+        cnt += SimulationTime.Step;
         int btn = 0, dir = 0;
         if (!(replayMode))
         {
@@ -214,7 +214,7 @@ public class Ship : BulletTarget
                 btn = dir;
             }
 
-            _speed = _speed * (0.9f);
+            _speed = _speed * SimulationTime.Decay(0.9f);
             clearVisibleBullets();
             if (cnt < -INVINCIBLE_CNT)
                 cnt = -RESTART_CNT;
@@ -226,7 +226,7 @@ public class Ship : BulletTarget
                 btn = dir;
             }
 
-            _relPos.y = _relPos.y * (0.99f);
+            _relPos.y = _relPos.y * SimulationTime.Decay(0.99f);
             clearVisibleBullets();
         }
 
@@ -237,7 +237,7 @@ public class Ship : BulletTarget
         }
         else
         {
-            float chargeAcceleration = regenerativeCharge * 0.1f;
+            float chargeAcceleration = regenerativeCharge * SimulationTime.Blend(0.1f);
             _speed = _speed + (chargeAcceleration);
             aimSpeed = aimSpeed + (chargeAcceleration);
             regenerativeCharge = regenerativeCharge - (chargeAcceleration);
@@ -245,17 +245,17 @@ public class Ship : BulletTarget
 
         if (_speed < aimSpeed)
         {
-            _speed = _speed + ((aimSpeed - _speed) * 0.015f);
+            _speed = _speed + ((aimSpeed - _speed) * SimulationTime.Blend(0.015f));
         }
         else
         {
             if (((btn & PadButton.B) != 0))
-                regenerativeCharge = regenerativeCharge - ((aimSpeed - _speed) * 0.05f);
-            _speed = _speed + ((aimSpeed - _speed) * 0.05f);
+                regenerativeCharge = regenerativeCharge - ((aimSpeed - _speed) * SimulationTime.Blend(0.05f));
+            _speed = _speed + ((aimSpeed - _speed) * SimulationTime.Blend(0.05f));
         }
 
-        _pos.y = _pos.y + (_speed);
-        tunnelOfs = tunnelOfs + (_speed);
+        _pos.y = _pos.y + (_speed * SimulationTime.Step);
+        tunnelOfs = tunnelOfs + (_speed * SimulationTime.Step);
         int tmv = GameMath.integer(tunnelOfs);
         tunnel.goToNextSlice(tmv);
         addScore(tmv);
@@ -273,39 +273,45 @@ public class Ship : BulletTarget
         pos3.x = sp.x;
         pos3.y = sp.y;
         pos3.z = sp.z;
-        if (((dir & PadDir.RIGHT) != 0))
-            bank = bank + ((-bankMax - bank) * 0.1f);
-        if (((dir & PadDir.LEFT) != 0))
-            bank = bank + ((bankMax - bank) * 0.1f);
+        if (SimulationTime.Variable)
+        {
+            float targetBank = (dir & PadDir.LEFT) != 0 ? bankMax : (dir & PadDir.RIGHT) != 0 ? -bankMax : 0;
+            bank = SimulationTime.FollowAndDecay(bank, targetBank, targetBank == 0 ? 0 : .1f, .9f);
+        }
+        else
+        {
+            if (((dir & PadDir.RIGHT) != 0)) bank = bank + ((-bankMax - bank) * 0.1f);
+            if (((dir & PadDir.LEFT) != 0)) bank = bank + ((bankMax - bank) * 0.1f);
+        }
         bool overAccel = false;
         if (((dir & PadDir.UP) != 0))
         {
             if (_relPos.y < RELPOS_MAX_Y)
             {
-                _relPos.y = _relPos.y + (RELPOS_Y_MOVE);
+                _relPos.y = _relPos.y + (RELPOS_Y_MOVE * SimulationTime.Step);
             }
             else
             {
-                targetSpeed = targetSpeed + (ACCEL_RATIO[grade]);
+                targetSpeed = targetSpeed + (ACCEL_RATIO[grade] * SimulationTime.Step);
                 if (((!(((btn & PadButton.B) != 0))) && (!(_inBossMode))) && (!(_isBossModeEnd)))
                     overAccel = true;
             }
         }
 
         if ((((dir & PadDir.DOWN) != 0)) && (_relPos.y > 0))
-            _relPos.y = _relPos.y - (RELPOS_Y_MOVE);
+            _relPos.y = _relPos.y - (RELPOS_Y_MOVE * SimulationTime.Step);
         float acc = _relPos.y * (SPEED_MAX[grade] - SPEED_DEFAULT[grade]) / RELPOS_MAX_Y + SPEED_DEFAULT[grade];
         if (overAccel)
-            targetSpeed = targetSpeed + ((acc - targetSpeed) * 0.001f);
+            targetSpeed = targetSpeed + ((acc - targetSpeed) * SimulationTime.Blend(0.001f));
         else if (targetSpeed < acc)
-            targetSpeed = targetSpeed + ((acc - targetSpeed) * 0.005f);
+            targetSpeed = targetSpeed + ((acc - targetSpeed) * SimulationTime.Blend(0.005f));
         else
-            targetSpeed = targetSpeed + ((acc - targetSpeed) * 0.03f);
+            targetSpeed = targetSpeed + ((acc - targetSpeed) * SimulationTime.Blend(0.03f));
         _inSightDepth = IN_SIGHT_DEPTH_DEFAULT * (1 + _relPos.y / RELPOS_MAX_Y);
         if (_speed > SPEED_MAX[grade])
             _inSightDepth = _inSightDepth + (IN_SIGHT_DEPTH_DEFAULT * (_speed - SPEED_MAX[grade]) / SPEED_MAX[grade] * 3.0f);
-        bank = bank * (0.9f);
-        _pos.x = _pos.x + (bank * 0.08f * (SliceState.DEFAULT_RAD / tunnel.getRadius(_relPos.y)));
+        if (!SimulationTime.Variable) bank = bank * 0.9f;
+        _pos.x = _pos.x + (bank * 0.08f * (SliceState.DEFAULT_RAD / tunnel.getRadius(_relPos.y)) * SimulationTime.Step);
         if (_pos.x < 0)
             _pos.x = _pos.x + (PI * 2);
         else if (_pos.x >= PI * 2)
@@ -316,7 +322,7 @@ public class Ship : BulletTarget
             ox = ox - (PI * 2);
         else if (ox < -PI)
             ox = ox + (PI * 2);
-        _eyePos.x = _eyePos.x + (ox * 0.1f);
+        _eyePos.x = _eyePos.x + (ox * SimulationTime.Blend(0.1f));
         if (_eyePos.x < 0)
             _eyePos.x = _eyePos.x + (PI * 2);
         else if (_eyePos.x >= PI * 2)
@@ -330,8 +336,8 @@ public class Ship : BulletTarget
                 bm = 1;
             else if (bm < -1)
                 bm = -1;
-            _speed = _speed * ((1 - fabs(bm)));
-            bank = bank + (bm);
+            _speed = _speed * SimulationTime.Decay(1 - fabs(bm));
+            bank = bank + (bm * SimulationTime.Step);
             float lo = fabs(pos.x - sl.getLeftEdgeDeg());
             if (lo > PI)
                 lo = PI * 2 - lo;
@@ -345,8 +351,8 @@ public class Ship : BulletTarget
             _relPos.x = _pos.x;
         }
 
-        d1 = d1 + ((sl.d1 - d1) * 0.05f);
-        d2 = d2 + ((sl.d2 - d2) * 0.05f);
+        d1 = d1 + ((sl.d1 - d1) * SimulationTime.Blend(0.05f));
+        d2 = d2 + ((sl.d2 - d2) * SimulationTime.Blend(0.05f));
         if (((btn & PadButton.B) != 0))
         {
             if (!((chargingShot != null)))
@@ -367,7 +373,7 @@ public class Ship : BulletTarget
             {
                 if (fireCnt <= 0)
                 {
-                    fireCnt = FIRE_INTERVAL;
+                    fireCnt = SimulationTime.Repeat(fireCnt, FIRE_INTERVAL);
                     Shot shot = shots.getInstance();
                     if ((shot != null))
                     {
@@ -384,7 +390,7 @@ public class Ship : BulletTarget
 
                 if (sideFireCnt <= 0)
                 {
-                    sideFireCnt = 99999;
+                    sideFireCnt = SimulationTime.Repeat(sideFireCnt, 99999);
                     Shot shot = shots.getInstance();
                     if ((shot != null))
                     {
@@ -408,7 +414,7 @@ public class Ship : BulletTarget
         }
 
         if (fireCnt > 0)
-            fireCnt--;
+            fireCnt -= SimulationTime.Step;
         int ssc = 99999;
         if (speed > SPEED_DEFAULT[grade] * 1.33f)
         {
@@ -418,14 +424,14 @@ public class Ship : BulletTarget
         if (sideFireCnt > ssc)
             sideFireCnt = ssc;
         if (sideFireCnt > 0)
-            sideFireCnt--;
+            sideFireCnt -= SimulationTime.Step;
         rocketPos.x = _relPos.x - bank * 0.1f;
         rocketPos.y = _relPos.y;
         if ((chargingShot != null))
             chargingShot.update(rocketPos);
         if (cnt >= -INVINCIBLE_CNT)
             shape.addParticles(rocketPos, particles);
-        nextStarAppDist = nextStarAppDist - (speed);
+        if (SimulationTime.Emit) nextStarAppDist -= speed;
         if (nextStarAppDist <= 0)
         {
             for (int i = 0; i < 5; i++)
@@ -442,7 +448,7 @@ public class Ship : BulletTarget
         }
 
         if (screenShakeCnt > 0)
-            screenShakeCnt--;
+            screenShakeCnt -= SimulationTime.Step;
         if (replayMode)
             camera.move();
     }

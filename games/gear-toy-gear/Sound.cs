@@ -27,7 +27,7 @@ public class Sound
         cue.Play();
     }
 
-    int fadeoutCnt = -1;
+    float fadeoutCnt = -1;
     public void Initialize()
     {
     }
@@ -36,7 +36,7 @@ public class Sound
     {
         if (fadeoutCnt > 0)
         {
-            fadeoutCnt--;
+            fadeoutCnt = Math.Max(0, fadeoutCnt - SimulationTime.Step);
             if (Host.Available())
                 Host.Send("music.volume", (fadeoutCnt / 120f).ToString());
             if (fadeoutCnt == 0)

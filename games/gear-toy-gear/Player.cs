@@ -24,9 +24,9 @@ public class Player
     private Quaternion shotOrientation = new Quaternion();
     private Shape shape;
     private Shape edgeShape;
-    private int fireTicks, fireAngleTicks;
-    private int homingLaserFireTicks;
-    private int invincibleTicks;
+    private float fireTicks, fireAngleTicks;
+    private float homingLaserFireTicks;
+    private float invincibleTicks;
     private PlayerData[] data;
     private float depthSpeed;
     private bool isInReplay;
@@ -73,7 +73,7 @@ public class Player
         Vel = (Vector3.Zero).Copy();
         {
             fireAngleTicks = 0;
-            fireTicks = fireAngleTicks;
+            fireTicks = 1;
         }
 
         homingLaserFireTicks = 0;
@@ -101,23 +101,7 @@ public class Player
 
     public void Update()
     {
-        if (gameState.IsInGameOver)
-        {
-            Stage.GameSpeed += (1 - Stage.GameSpeed) * 0.1f;
-            return;
-        }
-
-        if (invincibleTicks >= 0)
-        {
-            invincibleTicks--;
-            if (invincibleTicks > invincibleDuration)
-            {
-                Stage.GameSpeed += (1 - Stage.GameSpeed) * 0.1f;
-                return;
-            }
-        }
-
-        ReplayData rd = new ReplayData();
+        ReplayData rd = new ReplayData { Step = SimulationTime.Step };
         if (isInReplay && replay.HasNext())
             rd = (replay.Get()).Copy();
         Vector2 stick = new Vector2();
@@ -131,24 +115,6 @@ public class Player
             rd.Stick = (stick).Copy();
         }
 
-        float sa = (float)Math.Atan2(stick.X, stick.Y);
-        float sl = stick.Length();
-        if (sl > 1)
-            sl = 1;
-        sl *= speed * Stage.GameSpeedSqrt;
-        Pos.X += (float)Math.Sin(sa) * sl;
-        Pos.Y += (float)Math.Cos(sa) * sl;
-        float td = Pos.X * Pos.X + Pos.Y * Pos.Y;
-        if (td > Tube.Radius * 0.9f * Tube.Radius * 0.9f)
-        {
-            td = (float)Math.Sqrt(td);
-            td = Tube.Radius * 0.9f / td;
-            Pos.X *= td;
-            Pos.Y *= td;
-        }
-
-        Vel = (Pos - ppos).Copy();
-        ppos = (Pos).Copy();
         float lt;
         if (isInReplay)
         {
@@ -160,13 +126,6 @@ public class Player
             if (pad.ButtonL || pad.ButtonA)
                 lt = 1;
             rd.LeftTrigger = lt;
-        }
-
-        if (lt > 0)
-        {
-            depthSpeed += (1 - pad.LeftTrigger - depthSpeed) * 0.2f;
-            if (depthSpeed < 1)
-                depthSpeed = 1;
         }
 
         float rt;
@@ -182,22 +141,63 @@ public class Player
             rd.RightTrigger = rt;
         }
 
+        if (!isInReplay) replay.Add(rd);
+        if (gameState.IsInGameOver)
+        {
+            Stage.GameSpeed += (1 - Stage.GameSpeed) * SimulationTime.Blend(0.1f);
+            return;
+        }
+
+        if (invincibleTicks >= 0)
+        {
+            invincibleTicks -= SimulationTime.Step;
+            if (invincibleTicks > invincibleDuration)
+            {
+                Stage.GameSpeed += (1 - Stage.GameSpeed) * SimulationTime.Blend(0.1f);
+                return;
+            }
+        }
+
+        float sa = (float)Math.Atan2(stick.X, stick.Y);
+        float sl = stick.Length();
+        if (sl > 1)
+            sl = 1;
+        sl *= speed * Stage.GameSpeedSqrt * SimulationTime.Step;
+        Pos.X += (float)Math.Sin(sa) * sl;
+        Pos.Y += (float)Math.Cos(sa) * sl;
+        float td = Pos.X * Pos.X + Pos.Y * Pos.Y;
+        if (td > Tube.Radius * 0.9f * Tube.Radius * 0.9f)
+        {
+            td = (float)Math.Sqrt(td);
+            td = Tube.Radius * 0.9f / td;
+            Pos.X *= td;
+            Pos.Y *= td;
+        }
+
+        Vel = ((Pos - ppos) / SimulationTime.Step).Copy();
+        ppos = (Pos).Copy();
+        if (lt > 0)
+        {
+            float brake = SimulationTime.Variable ? lt : pad.LeftTrigger;
+            depthSpeed += (1 - brake - depthSpeed) * SimulationTime.Blend(0.2f);
+            if (depthSpeed < 1)
+                depthSpeed = 1;
+        }
+
         if (rt > 0)
         {
-            depthSpeed += rt * accel;
+            depthSpeed += rt * accel * SimulationTime.Step;
             if (depthSpeed > 1.25f)
                 gameState.OnAccelPressed();
         }
 
-        depthSpeed += (1 - depthSpeed) * 0.005f;
-        Stage.GameSpeed += (depthSpeed - Stage.GameSpeed) * 0.05f;
-        if (!isInReplay)
-            replay.Add(rd);
-        fireTicks--;
-        fireAngleTicks++;
+        depthSpeed += (1 - depthSpeed) * SimulationTime.Blend(0.005f);
+        Stage.GameSpeed += (depthSpeed - Stage.GameSpeed) * SimulationTime.Blend(0.05f);
+        fireTicks -= SimulationTime.Step;
+        fireAngleTicks += SimulationTime.Step;
         if (fireTicks <= 0)
         {
-            fireTicks = fireInterval;
+            fireTicks = SimulationTime.Repeat(fireTicks, fireInterval);
             shots.Add((shotOrientation).Copy());
             float fa = fireAngleTicks * 0.02f;
             float foa = 0;
@@ -209,7 +209,7 @@ public class Player
             }
         }
 
-        homingLaserFireTicks--;
+        homingLaserFireTicks = Math.Max(0, homingLaserFireTicks) - SimulationTime.Step;
         if (homingLaserFireTicks <= 0)
         {
             int ei;
@@ -218,7 +218,7 @@ public class Player
             {
                 homingLasers.Add(false, ei, 12.0f, fireAngleTicks * 1.0f);
                 sound.PlaySe("PlayerLaser");
-                homingLaserFireTicks = homingLaserFireInterval;
+                homingLaserFireTicks = SimulationTime.Repeat(homingLaserFireTicks, homingLaserFireInterval);
             }
             else
             {
@@ -227,7 +227,7 @@ public class Player
                 {
                     homingLasers.Add(true, ei, 8.0f, fireAngleTicks * 1.0f);
                     sound.PlaySe("PlayerLaser");
-                    homingLaserFireTicks = homingLaserFireInterval;
+                    homingLaserFireTicks = SimulationTime.Repeat(homingLaserFireTicks, homingLaserFireInterval);
                 }
             }
         }

@@ -16,11 +16,11 @@ public class TitleManager
     static int nextMesh;
     public Mesh[] meshes;
     public Mesh logo;
-    public int cnt;
+    public float cnt;
     public int grade, level;
     public bool dirPressed, btnPressed;
-    public int keyRepeatCnt;
-    public int replayCnt;
+    public float keyRepeatCnt;
+    public float replayCnt;
     public bool _replayMode;
     public float _replayChangeRatio;
     public TitleManager(PrefManager pm, Pad p, Ship s, GameManager gm)
@@ -91,10 +91,10 @@ public class TitleManager
                 }
                 else
                 {
-                    keyRepeatCnt++;
+                    keyRepeatCnt += SimulationTime.Step;
                     if (keyRepeatCnt >= AUTO_REPEAT_START_TIME)
                     {
-                        if (keyRepeatCnt % AUTO_REPEAT_CNT == 0)
+                        if (SimulationTime.Period(keyRepeatCnt - SimulationTime.Step, AUTO_REPEAT_CNT))
                         {
                             mv = (GameMath.integer(keyRepeatCnt / AUTO_REPEAT_START_TIME)) * (GameMath.integer(keyRepeatCnt / AUTO_REPEAT_START_TIME));
                         }
@@ -196,16 +196,16 @@ public class TitleManager
             btnPressed = false;
         }
 
-        cnt++;
+        cnt += SimulationTime.Step;
         if (_replayMode)
         {
             if (replayCnt < REPLAY_CHANGE_DURATION)
-                replayCnt++;
+                replayCnt = Math.Min(REPLAY_CHANGE_DURATION, replayCnt + SimulationTime.Step);
         }
         else
         {
             if (replayCnt > 0)
-                replayCnt--;
+                replayCnt = Math.Max(0, replayCnt - SimulationTime.Step);
         }
 
         _replayChangeRatio = (float)replayCnt / REPLAY_CHANGE_DURATION;

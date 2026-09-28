@@ -29,6 +29,7 @@ public class LaserPool : ActorPool<Laser>
         a.Color.Z = 0.5f;
         a.Color.W = 0.75f;
         a.Ticks = 1;
+        a.SingleStep = true;
         AddT(a);
     }
 
@@ -72,10 +73,11 @@ public class LaserPool : ActorPool<Laser>
 
     public override bool UpdateT(Laser a)
     {
-        a.Pos += a.Vel;
-        a.Vel *= 0.8f;
-        a.Color.W *= 0.95f;
-        a.Ticks--;
+        if (a.SingleStep) return false;
+        a.Pos += (a.Vel) * SimulationTime.Step;
+        a.Vel *= SimulationTime.Decay(0.8f);
+        a.Color.W *= SimulationTime.Decay(0.95f);
+        a.Ticks -= SimulationTime.Step;
         return a.Ticks > 0;
     }
 
@@ -96,7 +98,8 @@ public class Laser : ActorCopy
     public float Scale;
     public Quaternion Orientation = new Quaternion();
     public Vector4 Color = new Vector4();
-    public int Ticks;
+    public float Ticks;
+    public bool SingleStep;
     public Vector3 Vel = new Vector3();
     public Laser Copy()
     {
@@ -107,6 +110,7 @@ public class Laser : ActorCopy
             Orientation = Orientation.Copy(),
             Color = Color.Copy(),
             Ticks = Ticks,
+            SingleStep = SingleStep,
             Vel = Vel.Copy()
         };
     }

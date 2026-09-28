@@ -29,7 +29,7 @@ public class Stage
     private PillarPool pillars;
     private Player player;
     private GameState gameState;
-    private int ticks;
+    private float ticks;
     private float enemyTicks, enemyTicksBase, enemyFormCount, enemyFormCountBase, enemyFormTicks, enemyFormTicksBase, middleEnemyTicks, middleEnemyTicksBase;
     private float pillarTicks, pillarTicksRate;
     private EnemyType enemyType = new EnemyType();
@@ -37,7 +37,7 @@ public class Stage
     private MiddleEnemyWeaponType middleEnemyWeaponType;
     private int middleEnemyFireInterval;
     private StagePillarType pillarType;
-    private int stageTicks;
+    private float stageTicks;
     private float targetBackgroundR, targetBackgroundG, targetBackgroundB;
     private float targetRank;
     private int stageCount;
@@ -120,12 +120,12 @@ public class Stage
 
     public void Update()
     {
-        stageTicks--;
+        stageTicks -= SimulationTime.Step;
         if (isBossStage)
         {
-            if (stageTicks >= 420)
+            if (stageTicks + SimulationTime.Step > 420)
             {
-                if (stageTicks == 420)
+                if (SimulationTime.Crossed(stageTicks, 420))
                     AddBosses();
             }
             else if (middleEnemies.Count <= 0 || stageTicks <= 120)
@@ -142,17 +142,17 @@ public class Stage
 
         if (stageTicks <= 0)
             GoToNextStage();
-        if (stageTicks == 30)
+        if (SimulationTime.Crossed(stageTicks, 30))
         {
             targetBackgroundR = CreateBackgroundColor();
             targetBackgroundG = CreateBackgroundColor();
             targetBackgroundB = CreateBackgroundColor();
         }
 
-        BackgroundR += (targetBackgroundR - BackgroundR) * 0.1f;
-        BackgroundG += (targetBackgroundG - BackgroundG) * 0.1f;
-        BackgroundB += (targetBackgroundB - BackgroundB) * 0.1f;
-        enemyTicks -= GameSpeed;
+        BackgroundR += (targetBackgroundR - BackgroundR) * SimulationTime.Blend(0.1f);
+        BackgroundG += (targetBackgroundG - BackgroundG) * SimulationTime.Blend(0.1f);
+        BackgroundB += (targetBackgroundB - BackgroundB) * SimulationTime.Blend(0.1f);
+        enemyTicks -= GameSpeed * SimulationTime.Step;
         if (enemyTicks <= 0 || (enemyTicks < 9999 && enemies.Count <= 0))
         {
             enemyMotionType.AppearingAngle = (float)(Stage.Random.NextDouble() * Math.PI * 2);
@@ -163,16 +163,16 @@ public class Stage
 
         if (enemyFormCount > 0)
         {
-            enemyFormTicks -= GameSpeed;
+            enemyFormTicks -= GameSpeed * SimulationTime.Step;
             if (enemyFormTicks <= 0)
             {
                 enemies.Add((enemyType).Copy(), (enemyMotionType).Copy());
                 enemyFormCount--;
-                enemyFormTicks = enemyFormTicksBase;
+                enemyFormTicks = SimulationTime.Repeat(enemyFormTicks, enemyFormTicksBase);
             }
         }
 
-        middleEnemyTicks -= GameSpeed;
+        middleEnemyTicks -= GameSpeed * SimulationTime.Step;
         if (middleEnemyTicks <= 0)
         {
             float ea = (float)(Random.NextDouble() * Math.PI * 2);
@@ -183,20 +183,20 @@ public class Stage
             }
 
             middleEnemies.Add(Tube.Radius * 0.8f, ea, ar, middleEnemyWeaponType, middleEnemyFireInterval);
-            middleEnemyTicks = middleEnemyTicksBase * ((float)Random.NextDouble() + 1);
+            middleEnemyTicks = SimulationTime.Repeat(middleEnemyTicks, middleEnemyTicksBase * ((float)Random.NextDouble() + 1));
         }
 
-        pillarTicks -= GameSpeed;
+        pillarTicks -= GameSpeed * SimulationTime.Step;
         if (pillarTicks <= 0)
         {
             AddPillars();
-            pillarTicks = basePillarInterval[((int)pillarType)] * ((float)Random.NextDouble() * 3 + 1) * pillarTicksRate;
+            pillarTicks = SimulationTime.Repeat(pillarTicks, basePillarInterval[((int)pillarType)] * ((float)Random.NextDouble() * 3 + 1) * pillarTicksRate);
         }
 
-        ticks++;
+        ticks += SimulationTime.Step;
         PlayerDepthSpeed = playerDepthSpeedBase * GameSpeed;
         gameState.Multiplier = GameMath.integer((float)(((GameSpeed - 1) * 32))) + 1;
-        gameState.AddScoreint(1);
+        if (SimulationTime.Emit) gameState.AddScoreint(1);
     }
 
     public void Draw()

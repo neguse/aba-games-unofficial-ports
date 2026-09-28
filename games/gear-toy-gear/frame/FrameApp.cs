@@ -2,7 +2,7 @@ global using Host = FrameHost;
 
 public static class FrameApp
 {
-    public static void OnInit() => Game.OnInit();
+    public static void OnInit() { Game.VariableTime = true; Game.OnInit(); }
     public static void OnQuit() => Game.OnQuit();
     public static void OnFrame(float dt) => Draw(dt);
     public static void Draw(float dt)

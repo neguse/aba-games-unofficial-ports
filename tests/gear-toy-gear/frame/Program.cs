@@ -70,6 +70,7 @@ try
         for (int i = 0; i < actual.Length; i++) Near(actual[i], recording[tick - 1][i]);
     }
     Console.WriteLine("PASS Frame input, 300 original-game updates, 600 analog replay updates");
+    DeltaTimeTests.Run();
 }
 finally
 {
