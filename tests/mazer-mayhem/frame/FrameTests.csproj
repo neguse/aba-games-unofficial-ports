@@ -7,6 +7,7 @@
     <BaseOutputPath>../../../build/mm-frame-tests/</BaseOutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../frame/RenderingReadback.cs" />
     <ProjectReference Include="../../../games/mazer-mayhem/frame/MazerMayhem.csproj" />
   </ItemGroup>
 </Project>
