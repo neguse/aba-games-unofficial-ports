@@ -19,42 +19,42 @@ public abstract class Shape
     public abstract void Draw();
     public void DrawVector3(Vector3 pos)
     {
-        m = (Matrix.CreateTranslationVector3((pos).Copy())).Copy();
-        frame.WorldMatrix = (m).Copy();
+        m = Matrix.CreateTranslationVector3(pos);
+        frame.WorldMatrix = m;
         Draw();
     }
 
     public void DrawVector3Quaternion(Vector3 pos, Quaternion dir)
     {
-        m = (Matrix.CreateFromQuaternion((dir).Copy())).Copy();
-        m *= Matrix.CreateTranslationVector3((pos).Copy());
-        frame.WorldMatrix = (m).Copy();
+        m = Matrix.CreateFromQuaternion(dir);
+        m *= Matrix.CreateTranslationVector3(pos);
+        frame.WorldMatrix = m;
         Draw();
     }
 
     public void DrawVector3float(Vector3 pos, float size)
     {
-        m = (Matrix.CreateScalefloat(size)).Copy();
-        m *= Matrix.CreateTranslationVector3((pos).Copy());
-        frame.WorldMatrix = (m).Copy();
+        m = Matrix.CreateScalefloat(size);
+        m *= Matrix.CreateTranslationVector3(pos);
+        frame.WorldMatrix = m;
         Draw();
     }
 
     public void DrawVector3Quaternionfloat(Vector3 pos, Quaternion dir, float size)
     {
-        m = (Matrix.CreateScalefloat(size)).Copy();
-        m *= Matrix.CreateFromQuaternion((dir).Copy());
-        m *= Matrix.CreateTranslationVector3((pos).Copy());
-        frame.WorldMatrix = (m).Copy();
+        m = Matrix.CreateScalefloat(size);
+        m *= Matrix.CreateFromQuaternion(dir);
+        m *= Matrix.CreateTranslationVector3(pos);
+        frame.WorldMatrix = m;
         Draw();
     }
 
     public void DrawVector3Quaternionfloatfloatfloat(Vector3 pos, Quaternion dir, float xs, float ys, float zs)
     {
-        m = (Matrix.CreateScalefloatfloatfloat(xs, ys, zs)).Copy();
-        m *= Matrix.CreateFromQuaternion((dir).Copy());
-        m *= Matrix.CreateTranslationVector3((pos).Copy());
-        frame.WorldMatrix = (m).Copy();
+        m = Matrix.CreateScalefloatfloatfloat(xs, ys, zs);
+        m *= Matrix.CreateFromQuaternion(dir);
+        m *= Matrix.CreateTranslationVector3(pos);
+        frame.WorldMatrix = m;
         Draw();
     }
 }
@@ -109,7 +109,10 @@ public abstract class PrimitiveListShape : PrimitiveShape
         Verts[(index)].Position.X = p.X;
         Verts[(index)].Position.Y = p.Y;
         Verts[(index)].Position.Z = p.Z;
-        Verts[(index)].Color = new Color(r, g, b, a);
+        Verts[(index)].Color.R = r;
+        Verts[(index)].Color.G = g;
+        Verts[(index)].Color.B = b;
+        Verts[(index)].Color.A = a;
         index++;
     }
 

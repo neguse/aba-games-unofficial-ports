@@ -4,6 +4,7 @@ using static Lub;
 public static class Game
 {
     public static MmFrame frame;
+    public static bool VariableTime;
     static float elapsed;
     public static void OnInit()
     {
@@ -21,7 +22,7 @@ public static class Game
     {
         while (Host.Available())
         {
-            Host.Poll(out string topic, out string payload);
+            Lub.Host.Poll(out string topic, out string payload);
             if (topic == null)
                 break;
             if (topic == "input")
@@ -40,6 +41,13 @@ public static class Game
 
             if (topic == "scores")
                 frame.LoadScores(payload);
+        }
+
+        if (VariableTime)
+        {
+            frame.Advance(dt);
+            frame.Render();
+            return;
         }
 
         elapsed += Math.Min(dt, 0.1f);

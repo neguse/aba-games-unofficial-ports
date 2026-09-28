@@ -4,6 +4,11 @@ public class Replay
 {
     public bool IsAvailable;
     public int RandomSeed;
+    int playbackIndex;
+    public float NextStep() => playbackIndex < data.Count ? data[playbackIndex].Step : 1;
+    public bool NextEmit() => playbackIndex < data.Count ? data[playbackIndex].Emit : true;
+    public float NextSeconds() => playbackIndex < data.Count ? data[playbackIndex].Seconds : 1f / 60;
+    public void SetPlaybackIndex(int value) { playbackIndex = value; }
     public List<ReplayData> data = new List<ReplayData>();
     public void StartRecord()
     {
@@ -18,6 +23,7 @@ public class Replay
 
     public ReplayCursor GetEnumerator()
     {
+        playbackIndex = 0;
         return new ReplayCursor(this);
     }
 }
@@ -34,6 +40,7 @@ public class ReplayCursor
     public bool MoveNext()
     {
         index++;
+        replay.SetPlaybackIndex(index + 1);
         return index < replay.data.Count;
     }
 
@@ -48,6 +55,8 @@ public class ReplayCursor
 
 public class ReplayData
 {
+    public float Step = 1, Seconds = 1f / 60;
+    public bool Emit = true;
     public Vector2 Stick = new Vector2();
     public float LeftTrigger, RightTrigger;
     public bool ButtonA;
@@ -64,6 +73,9 @@ public class ReplayData
     {
         return new ReplayData
         {
+            Step = Step,
+            Seconds = Seconds,
+            Emit = Emit,
             Stick = Stick.Copy(),
             LeftTrigger = LeftTrigger,
             RightTrigger = RightTrigger,

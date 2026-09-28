@@ -37,14 +37,14 @@ public class Player
     private int storedAreaX, storedAreaY;
     private Vector2 areaOfs = new Vector2();
     private int fireCnt, shotCnt;
-    private int cnt;
+    private float cnt;
     private QuadListShape shadowShape;
     private Vector2 dashVel = new Vector2();
-    private int dashCnt;
+    private float dashCnt;
     private bool aPressed;
     private float multiplier;
     private float baseMultiplier;
-    private int bonusCnt;
+    private float bonusCnt;
     private int score;
     private int left;
     private int nextExtendScore;
@@ -55,15 +55,15 @@ public class Player
     private float baseRank;
     private float hyperRank;
     private QuadListShape stateShape;
-    private int restartCnt;
-    private int blinkCnt;
+    private float restartCnt;
+    private float blinkCnt;
     private int blinkInterval;
     private bool hasShape;
     private float velZ;
-    private int gameoverCnt;
-    private int turnMessageCnt;
-    private int hyperMessageCnt;
-    private int dashMessageCnt;
+    private float gameoverCnt;
+    private float turnMessageCnt;
+    private float hyperMessageCnt;
+    private float dashMessageCnt;
     private int dashNumCnt;
     private bool isPlayedBonusGetSe;
     private bool isInReplay;
@@ -223,10 +223,30 @@ public class Player
 
     public void Update()
     {
+        if (SimulationTime.Variable)
+        {
+            if (isInReplay)
+            {
+                if (!replayDataEnumerator.MoveNext()) { frame.StartTitle(); return; }
+                replayData = replayDataEnumerator.Current;
+            }
+            else
+            {
+                replayData.Clear();
+                replayData.Step = SimulationTime.Step;
+                replayData.Seconds = frame.StepSeconds;
+                replayData.Emit = SimulationTime.Emit;
+                replayData.Stick = pad.ThumbStickLeft.Copy();
+                replayData.LeftTrigger = pad.ButtonL ? 1 : pad.LeftTrigger;
+                replayData.RightTrigger = pad.ButtonR ? 1 : pad.RightTrigger;
+                replayData.ButtonA = pad.ButtonA;
+                replay.Add(replayData);
+            }
+        }
         isPlayedBonusGetSe = false;
         if (gameoverCnt > 0)
         {
-            gameoverCnt++;
+            gameoverCnt += SimulationTime.Step;
             if (gameoverCnt > 600)
             {
                 RecordScore();
@@ -254,13 +274,13 @@ public class Player
 
         if (restartCnt >= 0)
         {
-            restartCnt--;
+            restartCnt -= SimulationTime.Step;
             if (restartCnt > invincibleInterval)
                 return;
-            blinkCnt--;
+            blinkCnt -= SimulationTime.Step;
             if (blinkCnt < 0)
             {
-                blinkInterval = restartCnt / 8;
+                blinkInterval = (int)restartCnt / 8;
                 blinkCnt = blinkInterval;
             }
 
@@ -270,7 +290,8 @@ public class Player
         }
 
         Vector2 left = new Vector2();
-        if (!isInReplay)
+        if (SimulationTime.Variable) left = replayData.Stick.Copy();
+        else if (!isInReplay)
         {
             replayData.Clear();
             left = (pad.ThumbStickLeft).Copy();
@@ -313,27 +334,27 @@ public class Player
         if (tr != 0)
         {
             turnMessageCnt = 99999;
-            deg += turnSpeed * tr;
+            deg += turnSpeed * tr * SimulationTime.Step;
         }
 
-        tiresDeg += MathUtil.NormalizeDeg(deg - tiresDeg) * 0.1f;
+        tiresDeg += MathUtil.NormalizeDeg(deg - tiresDeg) * SimulationTime.Blend(0.1f);
         tiresDeg = MathUtil.NormalizeDeg(tiresDeg);
         Vector2 vel = (Vector2.Transform((left).Copy(), (Matrix.CreateFromYawPitchRoll(0, 0, -deg)).Copy())).Copy();
         vel *= 0.5f;
-        velZ -= 0.03f;
-        storedPos.Z += velZ;
+        velZ -= 0.03f * SimulationTime.Step;
+        storedPos.Z += velZ * SimulationTime.Step;
         if (storedPos.Z < 1.0f && velZ < 0)
         {
             storedPos.Z = 1.0f;
             velZ *= -0.6f;
         }
 
-        dashCnt--;
+        dashCnt -= SimulationTime.Step;
         if (!storedIsInHyper && multiplier >= 1.0f)
         {
             if (trl > 0.75f && trr > 0.75f)
             {
-                hyperStartCnt++;
+                if (SimulationTime.Emit) hyperStartCnt++;
                 if (hyperStartCnt >= 3)
                 {
                     storedIsInHyper = true;
@@ -368,7 +389,7 @@ public class Player
         {
             ba = pad.ButtonA;
             replayData.ButtonA = ba;
-            replay.Add(replayData);
+            if (!SimulationTime.Variable) replay.Add(replayData);
         }
         else
         {
@@ -402,19 +423,19 @@ public class Player
             aPressed = false;
         }
 
-        dashMessageCnt++;
+        dashMessageCnt += SimulationTime.Step;
         vel += dashVel;
-        dashVel *= 0.9f;
+        dashVel *= SimulationTime.Decay(0.9f);
         if (walls.CheckHit((storedPos).Copy()))
         {
             vel.X += (storedPos.X - walls.HitPos.X) * walls.HitDistRatio * 2;
             vel.Y += (storedPos.Y - walls.HitPos.Y) * walls.HitDistRatio * 2;
-            storedPos.Z += 0.1f;
+            storedPos.Z += 0.1f * SimulationTime.Step;
         }
 
         Vector2 pp2 = (storedPos2).Copy();
-        storedPos.X += vel.X;
-        storedPos.Y += vel.Y;
+        storedPos.X += vel.X * SimulationTime.Step;
+        storedPos.Y += vel.Y * SimulationTime.Step;
         Vector3 v = Vector3.FromVector2((vel).Copy(), 0);
         stage.CheckWallHit(storedPos, v);
         storedPos2.X = storedPos.X;
@@ -458,9 +479,9 @@ public class Player
         if (isAreaChenged)
             stage.SetFloorShape(storedAreaX, storedAreaY);
         field.SetOffset((storedPos2).Copy(), deg);
-        blurVel += (vel - blurVel) * 0.1f;
-        fireCnt--;
-        if (fireCnt <= 0 && ba && storedPos.Z < 10.0f)
+        blurVel += (vel - blurVel) * SimulationTime.Blend(0.1f);
+        if (SimulationTime.Emit) fireCnt--;
+        if (SimulationTime.Emit && fireCnt <= 0 && ba && storedPos.Z < 10.0f)
         {
             float od = (shotCnt % 8) * 0.05f * ((shotCnt % 2) * 2 - 1);
             Fire(deg - od / 4);
@@ -473,24 +494,24 @@ public class Player
                 sound.PlaySe("Shot");
         }
 
-        cnt++;
-        turnMessageCnt++;
-        baseRank += 0.001f;
+        cnt += SimulationTime.Step;
+        turnMessageCnt += SimulationTime.Step;
+        baseRank += 0.001f * SimulationTime.Step;
         if (storedIsInHyper)
         {
-            hyperRank += 0.00002f * multiplier * (1 + baseRank);
-            baseRank += 0.00001f * multiplier;
-            multiplier += (baseMultiplier - multiplier) * 0.02f * (1 - (float)bonusCnt / bonusCntLength);
-            baseMultiplier -= 0.1f;
+            hyperRank += 0.00002f * multiplier * (1 + baseRank) * SimulationTime.Step;
+            baseRank += 0.00001f * multiplier * SimulationTime.Step;
+            multiplier += (baseMultiplier - multiplier) * SimulationTime.Blend(0.02f * (1 - (float)bonusCnt / bonusCntLength));
+            baseMultiplier -= 0.1f * SimulationTime.Step;
             if (bonusCnt > 0)
-                bonusCnt--;
+                bonusCnt -= SimulationTime.Step;
             if (multiplier <= 1.0f)
                 EndHyperMode();
         }
         else
         {
             if (multiplier >= 100.0f)
-                hyperMessageCnt++;
+                hyperMessageCnt += SimulationTime.Step;
         }
 
         if (HasCollision)
@@ -675,13 +696,13 @@ public class Player
     {
         bv.X = blurVel.X;
         bv.Y = blurVel.Y;
-        int br = 5;
+        float br = 5;
         if (dashCnt > 0)
             br += dashCnt;
         frame.Velocity = (bv * br).Copy();
         if (!hasShape)
             return;
-        if (storedIsInHyper && (cnt % 2) == 0)
+        if (storedIsInHyper && (cnt % 2) < 1)
         {
             frame.EffectColor = new Vector4(1, 0.5f, 0.5f, 1);
             frame.BlurColor = new Vector4(1.0f, 0.5f, 0.5f, 0.2f);

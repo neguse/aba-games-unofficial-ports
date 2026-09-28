@@ -49,10 +49,10 @@ public class BulletPool : ActorPool<Bullet>
         float sp = a.Speed;
         if (a.Cnt < 30)
             sp = sp * a.Cnt / 30;
-        a.Pos += a.Vel * sp;
+        a.Pos += a.Vel * sp * SimulationTime.Step;
         a.Pos2.X = a.Pos.X;
         a.Pos2.Y = a.Pos.Y;
-        a.Cnt++;
+        a.Cnt += SimulationTime.Step;
         if (!a.IsTop && (a.Pos.Z <= 0 || a.Pos.Z > 2.0f || a.Cnt >= 300 || !field.Contains((a.Pos2).Copy()) || walls.CheckHit((a.Pos).Copy())))
         {
             AddRemovedParticles(a);
@@ -61,7 +61,7 @@ public class BulletPool : ActorPool<Bullet>
         }
 
         a.HasCollision = (a.Pos.Z <= 2.0f);
-        a.Dir *= dirVel;
+        a.Dir *= MmTime.Rotation(dirVel);
         sp *= 20.0f;
         a.BlurVel.X = a.Vel.X * sp;
         a.BlurVel.Y = a.Vel.Y * sp;
@@ -269,7 +269,7 @@ public class Bullet : Actor
     public bool IsTop;
     public Quaternion Dir = new Quaternion();
     public bool HasCollision;
-    public int Cnt;
+    public float Cnt;
     public int BallId;
     public float Size;
     public float BlurLength;
@@ -573,6 +573,7 @@ public class Firing
 
     public bool Update(Vector3 p, float d, float s, float vz, Firing firing, BallAppearance appearance, BulletPool bullets, TurretPool turrets, BallPool balls, int bid, int id)
     {
+        if (!SimulationTime.Emit) return true;
         cnt++;
         if (cnt < 0)
             return true;

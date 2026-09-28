@@ -32,16 +32,16 @@ public class ParticlePool : ActorPool<Particle>
 
     public override void UpdateT(Particle a)
     {
-        a.Cnt--;
+        a.Cnt -= SimulationTime.Step;
         if (a.Cnt <= 0)
         {
             RemoveT(a);
             return;
         }
 
-        a.Vel *= 0.95f;
-        a.Vel.Z -= 0.05f;
-        a.Pos += a.Vel;
+        a.Vel *= SimulationTime.Decay(0.95f);
+        a.Vel.Z -= 0.05f * SimulationTime.Step;
+        a.Pos += a.Vel * SimulationTime.Step;
         if (a.Pos.Z < 0 && a.Vel.Z < 0)
             a.Vel.Z *= -1;
         AddShape(a);
@@ -63,21 +63,20 @@ public class ParticlePool : ActorPool<Particle>
         }
 
         Vector3 bv = new Vector3(sz, 0, 0);
-        Vector3 v1 = new Vector3();
-        Vector3 v2 = new Vector3();
-        v2 = (Vector3.TransformVector3Quaternion((bv).Copy(), (a.Dir).Copy())).Copy();
-        Vector3 tp = (a.Pos - a.Vel * 10).Copy();
+        Matrix rotation = Matrix.CreateFromQuaternion(a.Dir);
+        Vector3 v2 = Vector3.TransformVector3Matrix(bv, rotation);
+        Vector3 tp = a.Pos - a.Vel * 10;
         for (int i = 0; i < 4; i++)
         {
-            v1 = (v2).Copy();
-            bv = (Vector3.TransformVector3Matrix((bv).Copy(), (vertexRotate).Copy())).Copy();
-            v2 = (Vector3.TransformVector3Quaternion((bv).Copy(), (a.Dir).Copy())).Copy();
-            shape.AddVector3bytebytebytebyte((a.Pos + v1).Copy(), a.R, a.G, a.B, al);
-            shape.AddVector3bytebytebytebyte((a.Pos + v2).Copy(), a.R, a.G, a.B, al);
-            shape.AddVector3bytebytebytebyte((tp).Copy(), a.R, a.G, a.B, 0);
-            shape.AddVector3bytebytebytebyte((a.Pos + v1 * 2).Copy(), a.Er, a.Eg, a.Eb, al);
-            shape.AddVector3bytebytebytebyte((a.Pos + v2 * 2).Copy(), a.Er, a.Eg, a.Eb, al);
-            shape.AddVector3bytebytebytebyte((tp).Copy(), a.Er, a.Eg, a.Eb, 0);
+            Vector3 v1 = v2;
+            bv = Vector3.TransformVector3Matrix(bv, vertexRotate);
+            v2 = Vector3.TransformVector3Matrix(bv, rotation);
+            shape.AddVector3bytebytebytebyte(a.Pos + v1, a.R, a.G, a.B, al);
+            shape.AddVector3bytebytebytebyte(a.Pos + v2, a.R, a.G, a.B, al);
+            shape.AddVector3bytebytebytebyte(tp, a.R, a.G, a.B, 0);
+            shape.AddVector3bytebytebytebyte(a.Pos + v1 * 2, a.Er, a.Eg, a.Eb, al);
+            shape.AddVector3bytebytebytebyte(a.Pos + v2 * 2, a.Er, a.Eg, a.Eb, al);
+            shape.AddVector3bytebytebytebyte(tp, a.Er, a.Eg, a.Eb, 0);
         }
     }
 
@@ -98,7 +97,7 @@ public class Particle : Actor
 {
     public Vector3 Pos = new Vector3();
     public Vector3 Vel = new Vector3();
-    public int Cnt;
+    public float Cnt;
     public byte R, G, B, Er, Eg, Eb;
     public Quaternion Dir = new Quaternion();
     public float Size;

@@ -1,6 +1,7 @@
 // Copyright 2008 Kenta Cho. Some rights reserved.
 using System;
 using System.Collections.Generic;
+using static Lub;
 
 public class MmFrame
 {
@@ -25,8 +26,49 @@ public class MmFrame
     private BoardPool playerBoards;
     private BoardPool ballBoards;
     private Stage stage;
-    private int cnt;
-    private int storedPauseCnt;
+    private float cnt;
+    float phase, replaySeconds;
+    public float StepSeconds;
+    public void Advance(float seconds)
+    {
+        if (!(seconds > 0)) return;
+        float remaining = Math.Min(seconds, .1f);
+        if (state == MmFrameGameState.Title && replay.IsAvailable)
+        {
+            replaySeconds += remaining;
+            while (replaySeconds + .00001f >= replay.NextSeconds())
+            {
+                StepSeconds = replay.NextSeconds();
+                replaySeconds -= StepSeconds;
+                AdvanceStep(replay.NextStep(), true);
+                if (state != MmFrameGameState.Title) break;
+            }
+        }
+        else
+        {
+            while (remaining > .0000001f)
+            {
+                float step = Math.Min(remaining / Interval(), 1);
+                StepSeconds = step * Interval();
+                remaining -= StepSeconds;
+                AdvanceStep(step, false);
+            }
+        }
+        SimulationTime.Step = 1;
+        SimulationTime.Emit = true;
+        SimulationTime.Variable = false;
+    }
+    void AdvanceStep(float step, bool playback)
+    {
+        SimulationTime.Step = step;
+        phase += step;
+        bool emit = phase >= 1 - .0001f;
+        if (emit) phase -= 1;
+        SimulationTime.Emit = playback ? replay.NextEmit() : emit;
+        SimulationTime.Variable = true;
+        Update();
+    }
+    private float storedPauseCnt;
     private MmFrameGameState state;
     private List<List<string>> stageData;
     private Title title;
@@ -84,6 +126,7 @@ public class MmFrame
 
     public void StartTitle()
     {
+        phase = 0; replaySeconds = 0;
         state = MmFrameGameState.Title;
         randomSeed = replay.RandomSeed;
         Start();
@@ -96,6 +139,7 @@ public class MmFrame
 
     public void StartInGame()
     {
+        phase = 0; replaySeconds = 0;
         state = MmFrameGameState.InGame;
         randomSeed = random.Next();
         replay.RandomSeed = randomSeed;
@@ -164,7 +208,7 @@ public class MmFrame
             bPressed = false;
         }
 
-        cnt++;
+        cnt += SimulationTime.Step;
         switch (state)
         {
             case MmFrameGameState.Title:
@@ -177,7 +221,7 @@ public class MmFrame
                 if (replay.IsAvailable)
                     UpdateInGame();
                 else
-                    field.Deg += 0.002f;
+                    field.Deg += 0.002f * SimulationTime.Step;
                 title.Update();
                 break;
             case MmFrameGameState.InGame:
@@ -204,7 +248,7 @@ public class MmFrame
                 }
 
                 if (storedPauseCnt >= 0)
-                    storedPauseCnt++;
+                    storedPauseCnt += SimulationTime.Step;
                 UpdateInGame();
                 break;
         }
@@ -232,7 +276,10 @@ public class MmFrame
         UpdateActors(1);
         UpdateActors(2);
         if (storedPauseCnt < 0)
+        {
             player.Update();
+            if (SimulationTime.Variable) field.UpdateScreenOffset();
+        }
     }
 
     public void UpdateActors(int threadId)
@@ -373,8 +420,10 @@ public class MmFrame
         }
     }
 
+    public bool Hud;
     public void LookAt(Vector3 from, Vector3 to, Vector3 up)
     {
+        Hud = from.X == 0 && from.Y == 0 && from.Z == -1 && to.X == 0 && to.Y == 0 && to.Z == 0;
         storedViewMatrix = (Matrix.CreateLookAt((from).Copy(), (to).Copy(), (up).Copy())).Copy();
     }
 
@@ -437,7 +486,7 @@ public class MmFrame
     {
         get
         {
-            return storedPauseCnt;
+            return (int)storedPauseCnt;
         }
     }
 
@@ -478,8 +527,8 @@ public class MmFrame
     public void Exit()
     {
         MmPreference.Save(record);
-        if (Lub.Host.Available())
-            Lub.Host.Send("quit", "");
+        if (Host.Available())
+            Host.Send("quit", "");
     }
 
     public float Interval()

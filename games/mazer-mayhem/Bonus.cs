@@ -34,23 +34,23 @@ public class BonusPool : ActorPool<Bonus>
 
     public override void UpdateT(Bonus a)
     {
-        a.Cnt--;
+        a.Cnt -= SimulationTime.Step;
         if (a.Cnt <= 0)
         {
             RemoveT(a);
             return;
         }
 
-        a.Vel *= 0.98f;
-        a.Vel.Z -= 0.02f;
-        a.Pos += a.Vel;
+        a.Vel *= SimulationTime.Decay(0.98f);
+        a.Vel.Z -= 0.02f * SimulationTime.Step;
+        a.Pos += a.Vel * SimulationTime.Step;
         if (a.Pos.Z < 1 && a.Vel.Z < 0)
             a.Vel.Z *= -1;
         float d = Math.Abs(player.Pos.X - a.Pos.X) + Math.Abs(player.Pos.Y - a.Pos.Y) + 1.0f;
         if (a.InhauledCnt > 0 && player.IsStarted)
         {
-            a.InhauledCnt++;
-            a.Pos += (player.Pos - a.Pos) * a.InhauledCnt * 0.01f;
+            a.InhauledCnt += SimulationTime.Step;
+            a.Pos += (player.Pos - a.Pos) * MmTime.Follow(a.InhauledCnt * 0.01f);
             if (d < 5.0f)
             {
                 player.GetBonus((a.Pos).Copy());
@@ -63,8 +63,8 @@ public class BonusPool : ActorPool<Bonus>
             a.InhauledCnt = 1;
         }
 
-        a.Dir *= dirVel;
-        a.BlurVel += (a.Vel - a.BlurVel) * 0.1f;
+        a.Dir *= MmTime.Rotation(dirVel);
+        a.BlurVel += (a.Vel - a.BlurVel) * SimulationTime.Blend(0.1f);
     }
 
     public override void DrawT(Bonus a)
@@ -92,9 +92,9 @@ public class Bonus : Actor
     public Vector3 Pos = new Vector3();
     public Vector3 Vel = new Vector3();
     public Quaternion Dir = new Quaternion();
-    public int Cnt;
+    public float Cnt;
     public Vector3 BlurVel = new Vector3();
-    public int InhauledCnt;
+    public float InhauledCnt;
     private int storedId;
     public void Clear()
     {

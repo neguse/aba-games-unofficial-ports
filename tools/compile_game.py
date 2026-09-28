@@ -63,6 +63,7 @@ if args.game == 'mazer-mayhem':
     sources = [Path('game/PatternNumber.cs')] + [Path('games/mazer-mayhem') / name for name in names]
     sources += [p for p in sorted(Path('games/mazer-mayhem').glob('*.cs')) if p.name not in names]
     sources += sorted(Path('build/mazer-mayhem').glob('*.cs'))
+    sources.append(Path('game/SimulationTime.cs'))
 if args.game == 'gear-toy-gear':
     names = ['Arrays.cs', 'Math.cs', 'GameMath.cs', 'Random.cs', 'Actor.cs', 'PrimitiveShape.cs']
     sources = [Path('game/PatternNumber.cs')] + [Path('games/gear-toy-gear') / name for name in names]
@@ -81,13 +82,13 @@ if args.game in ['gear-toy-gear', 'torus-trooper']:
     sources.append(Path('game/SimulationTime.cs'))
 
 if args.frame:
-    if args.game not in ['gear-toy-gear', 'torus-trooper']:
-        parser.error('--frame requires gear-toy-gear or torus-trooper')
-    excluded = ['Render.cs', 'Pad.cs'] if args.game == 'gear-toy-gear' else ['Game.cs', 'TtRender.cs']
+    if args.game not in ['gear-toy-gear', 'torus-trooper', 'mazer-mayhem']:
+        parser.error('--frame requires gear-toy-gear, torus-trooper or mazer-mayhem')
+    excluded = ['Render.cs', 'Pad.cs'] if args.game in ['gear-toy-gear', 'mazer-mayhem'] else ['Game.cs', 'TtRender.cs']
     sources = [p for p in sources if p.parent != Path('games') / args.game or p.name not in excluded]
     sources.append(Path('games/frame/FrameMath.cs'))
     sources += [p for p in sorted((Path('games') / args.game / 'frame').glob('*.cs')) if p.name != 'Program.cs']
-    if args.entry == 'Game' and args.game == 'gear-toy-gear':
+    if args.entry == 'Game' and args.game in ['gear-toy-gear', 'mazer-mayhem']:
         args.entry = 'FrameApp'
 else:
     shader_source = 'public static class GameShaders {\n'

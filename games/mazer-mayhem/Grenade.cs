@@ -36,22 +36,22 @@ public class GrenadePool : ActorPool<Grenade>
     {
         if (a.BurstCnt > 0)
         {
-            a.BurstCnt++;
+            a.BurstCnt += SimulationTime.Step;
             if (a.BurstCnt > 20)
             {
                 RemoveT(a);
                 return;
             }
 
-            balls.CheckHitGrenade((a.Pos2).Copy(), 6.0f + a.BurstCnt * 0.5f);
+            if (SimulationTime.Emit) balls.CheckHitGrenade((a.Pos2).Copy(), 6.0f + a.BurstCnt * 0.5f);
             DrawBurstVector2floatintfloat((a.Pos2).Copy(), 4.0f, 6, (float)a.BurstCnt / 10.0f);
             DrawBurstVector2floatintfloat((a.Pos2).Copy(), 8.0f, 8, (float)(a.BurstCnt - 5) / 10.0f);
             DrawBurstVector2floatintfloat((a.Pos2).Copy(), 12.0f, 10, (float)(a.BurstCnt - 10) / 10.0f);
         }
         else
         {
-            a.Pos += a.Vel;
-            a.Vel *= 0.98f;
+            a.Pos += a.Vel * SimulationTime.Step;
+            a.Vel *= SimulationTime.Decay(0.98f);
             if (a.Pos.Z <= 0)
             {
                 a.BurstCnt = 1;
@@ -63,9 +63,9 @@ public class GrenadePool : ActorPool<Grenade>
                 return;
             }
 
-            a.Vel.Z -= 0.05f;
-            a.Dir *= dirVel;
-            a.BlurVel += (a.Vel - a.BlurVel) * 0.1f;
+            a.Vel.Z -= 0.05f * SimulationTime.Step;
+            a.Dir *= MmTime.Rotation(dirVel);
+            a.BlurVel += (a.Vel - a.BlurVel) * SimulationTime.Blend(0.1f);
         }
     }
 
@@ -87,8 +87,11 @@ public class GrenadePool : ActorPool<Grenade>
             p3.X = p.X + (float)Math.Sin(d) * r;
             p3.Y = p.Y + (float)Math.Cos(d) * r;
             DrawPillar(p3.X, p3.Y, h);
-            pt.Set((p3).Copy(), (Quaternion.CreateFromYawPitchRoll(0, 0.5f, -d)).Copy(), 2, 20, 50, 0, 0, 250, 150, 50, 0.5f);
-            particles.Add(pt);
+            if (SimulationTime.Emit)
+            {
+                pt.Set((p3).Copy(), (Quaternion.CreateFromYawPitchRoll(0, 0.5f, -d)).Copy(), 2, 20, 50, 0, 0, 250, 150, 50, 0.5f);
+                particles.Add(pt);
+            }
             d += (float)Math.PI * 2 / n;
         }
     }
@@ -140,7 +143,7 @@ public class Grenade : Actor
     public Vector3 Vel = new Vector3();
     public Quaternion Dir = new Quaternion();
     public Vector3 BlurVel = new Vector3();
-    public int BurstCnt;
+    public float BurstCnt;
     private int storedId;
     public void Clear()
     {
