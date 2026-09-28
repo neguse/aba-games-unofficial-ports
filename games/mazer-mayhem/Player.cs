@@ -235,6 +235,7 @@ public class Player
                 replayData.Clear();
                 replayData.Step = SimulationTime.Step;
                 replayData.Seconds = frame.StepSeconds;
+                replayData.Emit = SimulationTime.Emit;
                 replayData.Stick = pad.ThumbStickLeft.Copy();
                 replayData.LeftTrigger = pad.ButtonL ? 1 : pad.LeftTrigger;
                 replayData.RightTrigger = pad.ButtonR ? 1 : pad.RightTrigger;

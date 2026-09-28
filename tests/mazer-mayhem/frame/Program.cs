@@ -23,7 +23,7 @@ static float[] Snapshot(MmFrame frame)
 {
     var player = Field<Player>(frame, "player");
     return [player.Pos.X, player.Pos.Y, player.Pos.Z, Field<float>(player, "deg"), Field<float>(player, "baseRank"),
-        Field<int>(player, "score"), Field<int>(player, "left"), Field<BallPool>(frame, "balls").Length(), Field<BulletPool>(frame, "bullets").Length()];
+        Field<int>(player, "score"), Field<int>(player, "left"), Field<int>(player, "shotCnt"), Field<ShotPool>(frame, "shots").Length(), Field<BallPool>(frame, "balls").Length(), Field<BulletPool>(frame, "bullets").Length()];
 }
 var saveDirectory = Path.Combine(Path.GetTempPath(), "mm-test-" + Guid.NewGuid());
 Environment.SetEnvironmentVariable("XDG_DATA_HOME", saveDirectory);
@@ -92,6 +92,21 @@ try
         foreach (float dt in Schedule(90, 15)) { frame.Advance(dt); field.SetEyePosition(); }
         actual = Snapshot(frame);
         for (int i = 0; i < saved.Length; i++) Near(actual[i], saved[i], .00001f, $"combat replay {hz} field {i}");
+        frame.Seed(5); frame.StartInGame();
+        Pad.Read(new XrInput { Active = true, StickY = .2f }, new XrInput { Active = true, Primary = true });
+        foreach (float dt in Schedule(hz, 1)) frame.Advance(dt);
+        Pad.Read(null, new XrInput { Active = true, Menu = true }); frame.Advance(1f / 144);
+        Pad.Read(null, null);
+        foreach (float dt in Schedule(hz, 1.123)) frame.Advance(dt);
+        Pad.Read(null, new XrInput { Active = true, Menu = true }); frame.Advance(1f / 144);
+        Pad.Read(new XrInput { Active = true, StickY = .2f }, new XrInput { Active = true, Primary = true });
+        foreach (float dt in Schedule(hz, 1)) frame.Advance(dt);
+        saved = Snapshot(frame);
+        double recordedSeconds = Field<Replay>(frame, "replay").data.Sum(value => (double)value.Seconds);
+        frame.StartTitle(); Pad.Read(null, null);
+        foreach (float dt in Schedule(120, recordedSeconds)) frame.Advance(dt);
+        actual = Snapshot(frame);
+        for (int i = 0; i < saved.Length; i++) Near(actual[i], saved[i], .00001f, $"paused replay {hz} field {i}");
         frame.StartInGame(); Pad.Read(null, null); frame.Advance(1f / 60);
         var beforePause = Snapshot(frame);
         Pad.Read(null, new XrInput { Active = true, Menu = true }); frame.Advance(1f / 60);

@@ -40,7 +40,7 @@ public class MmFrame
             {
                 StepSeconds = replay.NextSeconds();
                 replaySeconds -= StepSeconds;
-                AdvanceStep(replay.NextStep());
+                AdvanceStep(replay.NextStep(), true);
                 if (state != MmFrameGameState.Title) break;
             }
         }
@@ -51,19 +51,20 @@ public class MmFrame
                 float step = Math.Min(remaining / Interval(), 1);
                 StepSeconds = step * Interval();
                 remaining -= StepSeconds;
-                AdvanceStep(step);
+                AdvanceStep(step, false);
             }
         }
         SimulationTime.Step = 1;
         SimulationTime.Emit = true;
         SimulationTime.Variable = false;
     }
-    void AdvanceStep(float step)
+    void AdvanceStep(float step, bool playback)
     {
         SimulationTime.Step = step;
         phase += step;
-        SimulationTime.Emit = phase >= 1 - .0001f;
-        if (SimulationTime.Emit) phase -= 1;
+        bool emit = phase >= 1 - .0001f;
+        if (emit) phase -= 1;
+        SimulationTime.Emit = playback ? replay.NextEmit() : emit;
         SimulationTime.Variable = true;
         Update();
     }
