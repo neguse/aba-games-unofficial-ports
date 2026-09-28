@@ -88,6 +88,7 @@ int runtime = Lub.Run(null, null, dt =>
 {
     if (rendered == 0)
     {
+        RenderingTests.Run();
         var batchFrame = new GtgFrame { Technique = "LetterTech", DepthEnabled = false };
         var shape = new CubeShape(batchFrame, 1, 1, 1);
         GtgRender.Begin();
@@ -114,6 +115,7 @@ int runtime = Lub.Run(null, null, dt =>
     var bindings = new Dictionary<string, object>
     {
         ["surface"] = source,
+        ["surfaceAlpha"] = Lub.Gfx.UseTexture("source-alpha", 1, 1, Lub.Gfx.PixelFormat.R8, [255], 1),
         ["vertices"] = Lub.Gfx.UseBuffer("vertices", Lub.Gfx.BufferType.Storage, new List<float>(new float[24]), 1),
         ["parameters"] = Lub.Gfx.UseBuffer("parameters", Lub.Gfx.BufferType.Storage, parameters, 1),
         ["eye"] = Lub.Gfx.UseBuffer("eye", Lub.Gfx.BufferType.Storage, new List<float>(new float[16]), 1)

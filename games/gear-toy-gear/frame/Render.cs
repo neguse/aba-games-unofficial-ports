@@ -11,8 +11,13 @@ public static class GtgRender
     static readonly List<int> transparent = new() { 0, 0, 0, 0 };
     static readonly TextureOpts target = new() { Target = true };
     static readonly PassOpts passOpts = new() { ClearColor = new float[4] };
-    static ShaderRef shader;
-    static string vertex, fragment;
+    static readonly DrawOpts outputOptions = new() { Depth = false, Blend = Gfx.Blend.None, Cull = Gfx.Cull.None };
+    static readonly PassOpts outputPass = new();
+    static readonly Dictionary<string, object> outputBindings = new();
+    static string outputSource;
+    static readonly List<TextureRef> layerTargets = new();
+    static ShaderRef shader, layerShader;
+    static string vertex, fragment, layerFragment;
     static TextureRef blank;
     static int version, used, pass;
     static bool anchored;
@@ -33,11 +38,15 @@ public static class GtgRender
         {
             Io.LoadText("game.fs.slang", out var source, out _, out _, out _);
             fragment = source;
+            layerFragment = "#define GTG_ALPHA_TARGET\n" + source;
         }
         if (vertex == null || fragment == null) return false;
         shader = Gfx.UseShader("gtg-xr", vertex, fragment, 1);
+        layerShader = Gfx.UseShader("gtg-xr-layer", vertex, layerFragment, 1);
         blank = Gfx.UseTexture("blank", 1, 1, Gfx.PixelFormat.Rgba8, transparent, 1);
-        return shader != null && blank != null;
+        if (blank == null) return false;
+        if (layerTargets.Count == 0) { layerTargets.Add(blank); layerTargets.Add(blank); }
+        return shader != null && layerShader != null;
     }
     public static void BeginMain() { pass = 2; }
     public static void BeginEdge() { pass = 0; }
@@ -55,7 +64,7 @@ public static class GtgRender
         used++;
         command.Pass = pass;
         command.Mode = mode;
-        command.Options.Shader = shader;
+        command.Options.Shader = pass < 2 ? layerShader : shader;
         command.Options.Depth = mode < 6 && frame.DepthEnabled;
         command.Options.DepthWrite = mode < 6 && frame.DepthEnabled;
         var data = command.Data;
@@ -118,6 +127,10 @@ public static class GtgRender
     }
     public static void Present(XrView left, XrView right)
     {
+        if (outputSource == null) { Io.LoadText("scene.output.slang", out var source, out _, out _, out _); outputSource = source; }
+        if (outputSource == null) return;
+        outputOptions.Shader = Gfx.UseShader("scene-output", outputSource, outputSource, 1);
+        if (outputOptions.Shader == null) return;
         if (!anchored)
         {
             FrameMath.Anchor(anchor, left, right);
@@ -139,11 +152,20 @@ public static class GtgRender
             for (int i = 0; i < 16; i++) values[i] = matrix[i];
             var eyeBuffer = Gfx.UseBuffer(eye == 0 ? "left" : "right", Gfx.BufferType.Storage, values, version);
             var edge = Gfx.UseTexture(eye == 0 ? "edgeL" : "edgeR", view.Width, view.Height, Gfx.PixelFormat.Rgba8, null, 1, target);
-            var bloom = Gfx.UseTexture(eye == 0 ? "bloomL" : "bloomR", view.Width / 2, view.Height / 2, Gfx.PixelFormat.Rgba8, null, 1, target);
+            var bloom = Gfx.UseTexture(eye == 0 ? "bloomL" : "bloomR", view.Width, view.Height, Gfx.PixelFormat.Rgba8, null, 1, target);
+            var edgeAlpha = Gfx.UseTexture(eye == 0 ? "edgeAlphaL" : "edgeAlphaR", view.Width, view.Height, Gfx.PixelFormat.R8, null, 1, target);
+            var bloomAlpha = Gfx.UseTexture(eye == 0 ? "bloomAlphaL" : "bloomAlphaR", view.Width, view.Height, Gfx.PixelFormat.R8, null, 1, target);
+            var scene = Gfx.UseTexture(eye == 0 ? "sceneL" : "sceneR", view.Width, view.Height, Gfx.PixelFormat.Rgba8, null, 1, target);
+            var depth = Gfx.UseTexture(eye == 0 ? "depthL" : "depthR", view.Width, view.Height, Gfx.PixelFormat.Depth24Stencil8, null, 1, target);
             Xr.SelectEye(eye);
             for (int layer = 0; layer < 3; layer++)
             {
-                passOpts.Target = layer == 0 ? edge : layer == 1 ? bloom : Gfx.MainTex;
+                layerTargets[0] = layer == 0 ? edge : bloom;
+                layerTargets[1] = layer == 0 ? edgeAlpha : bloomAlpha;
+                passOpts.Targets = layer < 2 ? layerTargets : null;
+                passOpts.Target = layer == 2 ? scene : null;
+                passOpts.DepthTarget = depth;
+                passOpts.ClearDepth = 1;
                 passOpts.ClearColor[0] = layer == 2 ? Stage.BackgroundR : 0;
                 passOpts.ClearColor[1] = layer == 2 ? Stage.BackgroundG : 0;
                 passOpts.ClearColor[2] = layer == 2 ? Stage.BackgroundB : 0;
@@ -155,10 +177,16 @@ public static class GtgRender
                     if (command.Pass != layer) continue;
                     command.Bindings["eye"] = eyeBuffer;
                     command.Bindings["surface"] = command.Mode == 6 ? edge : command.Mode == 7 ? bloom : blank;
+                    command.Bindings["surfaceAlpha"] = command.Mode == 6 ? edgeAlpha : command.Mode == 7 ? bloomAlpha : blank;
                     Gfx.Draw(command.Count, command.Bindings, command.Options);
                 }
                 Gfx.EndPass();
             }
+            outputPass.Target = Gfx.MainTex;
+            Gfx.BeginPass(outputPass);
+            outputBindings["scene"] = scene;
+            Gfx.Draw(3, outputBindings, outputOptions);
+            Gfx.EndPass();
         }
     }
 }
