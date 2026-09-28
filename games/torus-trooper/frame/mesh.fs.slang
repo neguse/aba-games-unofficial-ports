@@ -23,12 +23,13 @@ float4 sampleTitle(float2 uv, float2 dx, float2 dy, DrawData draw) {
     if (options.y > 0) color.rgb *= color.a;
     return color;
 }
-struct Input { float4 color : COLOR0; nointerpolation uint premultiply : TEXCOORD1; nointerpolation uint drawIndex : TEXCOORD2; float4 position : SV_Position; };
+struct Input { float4 color : COLOR0; nointerpolation uint premultiply : TEXCOORD1; nointerpolation uint drawIndex : TEXCOORD2; noperspective float2 line : TEXCOORD3; float4 position : SV_Position; };
 [shader("fragment")]
 float4 fs_main(Input input) : SV_Target {
     float2 dx = ddx(input.color.xy), dy = ddy(input.color.xy);
     if ((input.premultiply >> 1) > 0) return sampleTitle(input.color.xy, dx, dy, draws[input.drawIndex]);
     float4 color = input.color;
+    if (input.line.y > 0) color.a *= saturate(input.line.y - abs(input.line.x));
     if ((input.premultiply & 1) != 0) color.rgb *= color.a;
     return color;
 }
