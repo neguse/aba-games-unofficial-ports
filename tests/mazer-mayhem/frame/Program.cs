@@ -52,7 +52,7 @@ try
     long particleBytes = GC.GetAllocatedBytesForCurrentThread();
     particlePool.Update();
     particleBytes = GC.GetAllocatedBytesForCurrentThread() - particleBytes;
-    if (particleBytes > 600 * 1024) throw new Exception($"particle update allocated {particleBytes} bytes");
+    if (particleBytes > 400 * 1024) throw new Exception($"particle update allocated {particleBytes} bytes");
     var vertices = Field<TriangleListShape>(particlePool, "shape").Verts;
     Near(vertices[0].Position.X, 3.45f, .00001f, "particle first vertex x");
     Near(vertices[0].Position.Z, 3.95f, .00001f, "particle first vertex z");
