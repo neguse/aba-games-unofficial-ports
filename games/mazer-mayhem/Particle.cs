@@ -32,16 +32,16 @@ public class ParticlePool : ActorPool<Particle>
 
     public override void UpdateT(Particle a)
     {
-        a.Cnt--;
+        a.Cnt -= SimulationTime.Step;
         if (a.Cnt <= 0)
         {
             RemoveT(a);
             return;
         }
 
-        a.Vel *= 0.95f;
-        a.Vel.Z -= 0.05f;
-        a.Pos += a.Vel;
+        a.Vel *= SimulationTime.Decay(0.95f);
+        a.Vel.Z -= 0.05f * SimulationTime.Step;
+        a.Pos += a.Vel * SimulationTime.Step;
         if (a.Pos.Z < 0 && a.Vel.Z < 0)
             a.Vel.Z *= -1;
         AddShape(a);
@@ -98,7 +98,7 @@ public class Particle : Actor
 {
     public Vector3 Pos = new Vector3();
     public Vector3 Vel = new Vector3();
-    public int Cnt;
+    public float Cnt;
     public byte R, G, B, Er, Eg, Eb;
     public Quaternion Dir = new Quaternion();
     public float Size;

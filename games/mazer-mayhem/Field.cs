@@ -43,10 +43,15 @@ public class Field
         }
     }
 
-    public void SetEyePosition()
+    public void UpdateScreenOffset()
     {
         screenOffset.X = Offset.X + (float)Math.Sin(Deg) * 8.0f;
         screenOffset.Y = Offset.Y + (float)Math.Cos(Deg) * 8.0f;
+    }
+
+    public void SetEyePosition()
+    {
+        UpdateScreenOffset();
         Vector3 to = new Vector3(screenOffset.X, screenOffset.Y, 0);
         Vector2 rs = (pad.ThumbStickRight).Copy();
         viewPitch += (rs.Y - viewPitch) * 0.1f;
@@ -64,11 +69,11 @@ public class Field
         float r = o.Length() - 5;
         if (r > 0)
         {
-            Offset.X += (p.X - Offset.X) * (r * 0.01f);
-            Offset.Y += (p.Y - Offset.Y) * (r * 0.01f);
+            Offset.X += (p.X - Offset.X) * MmTime.Follow(r * 0.01f);
+            Offset.Y += (p.Y - Offset.Y) * MmTime.Follow(r * 0.01f);
         }
 
-        Deg += MathUtil.NormalizeDeg(d - Deg) * 0.1f;
+        Deg += MathUtil.NormalizeDeg(d - Deg) * SimulationTime.Blend(0.1f);
         Deg = MathUtil.NormalizeDeg(Deg);
     }
 

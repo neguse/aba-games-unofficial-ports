@@ -41,7 +41,7 @@ public class BallPool : ActorPool<Ball>
 
     public override void UpdateT(Ball a)
     {
-        a.Cnt++;
+        a.Cnt += SimulationTime.Step;
         if (!field.Contains((a.Pos2).Copy()))
         {
             if (a.IsSub)
@@ -88,7 +88,7 @@ public class BallPool : ActorPool<Ball>
                 break;
             case BallMovementMovementMode.Stay:
                 fr = (tr - a.Movement.Range) * a.Movement.Speed * 0.25f;
-                a.Movement.StayCnt--;
+                a.Movement.StayCnt -= SimulationTime.Step;
                 if (a.Movement.StayCnt <= 0)
                     a.Movement.Mode = BallMovementMovementMode.Away;
                 break;
@@ -103,10 +103,10 @@ public class BallPool : ActorPool<Ball>
         }
 
         a.State.AddMasslessForce(new Vector3((float)Math.Sin(td) * fr, (float)Math.Cos(td) * fr, 0));
-        a.State.Velocity *= 0.98f;
+        a.State.Velocity *= SimulationTime.Decay(0.98f);
         if (a.IsSub)
         {
-            a.State.Radius -= a.Hardness;
+            a.State.Radius -= a.Hardness * SimulationTime.Step;
             if (a.State.Radius < 0.25f)
             {
                 RemoveT(a);
@@ -136,7 +136,7 @@ public class BallPool : ActorPool<Ball>
 
         a.Pos2.X = a.State.Pos.X;
         a.Pos2.Y = a.State.Pos.Y;
-        a.BlurVelocity += (a.State.Velocity - a.BlurVelocity) * 0.1f;
+        a.BlurVelocity += (a.State.Velocity - a.BlurVelocity) * SimulationTime.Blend(0.1f);
     }
 
     public void UpdateTurrets()
@@ -146,7 +146,7 @@ public class BallPool : ActorPool<Ball>
         {
             if (a.TurretActivateCnt >= 0)
             {
-                a.TurretActivateCnt--;
+                a.TurretActivateCnt -= SimulationTime.Step;
                 if (a.TurretActivateCnt < 0)
                 {
                     turrets.Deactivate(a.TurretId);
@@ -494,14 +494,14 @@ public class Ball : Actor
     public Appearance Appearance = new Appearance();
     public bool IsActivated;
     public BallMovement Movement = new BallMovement();
-    public int Cnt;
+    public float Cnt;
     public int DamageFlashInterval;
     public int Score;
     public int ParentBallId;
     public bool IsSub;
     public int RootBallId;
     public int NextBallId;
-    public int TurretActivateCnt;
+    public float TurretActivateCnt;
     public int TurretActivateInterval;
     private int storedId;
     public void Clear()
@@ -617,7 +617,7 @@ public class BallMovement
     public float Speed;
     public int StayDuration;
     public BallMovementMovementMode Mode;
-    public int StayCnt;
+    public float StayCnt;
     public int BulletId;
     public void Clear()
     {

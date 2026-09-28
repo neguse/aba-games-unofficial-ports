@@ -65,6 +65,20 @@ public class CircleParticle
     {
         if (IsFixed)
             return;
+        if (SimulationTime.Step != 1)
+        {
+            float step = SimulationTime.Step;
+            float decay = SimulationTime.Decay(Engine.Damping);
+            float sum = (1 - decay) / (1 - Engine.Damping);
+            Vector3 velocity = Velocity;
+            Vector3 acceleration = forces * Engine.DeltaTime;
+            Pos += velocity * (Engine.Damping * sum) + acceleration * (Engine.Damping / (1 - Engine.Damping) * (step - Engine.Damping * sum));
+            Velocity = velocity * decay + acceleration * (Engine.Damping * sum);
+            forces.X = 0; forces.Y = 0; forces.Z = 0;
+            Rotation *= MmTime.Rotation(AngleRate);
+            AngleRate = Quaternion.Lerp(AngleRate, Quaternion.Identity, SimulationTime.Blend(0.01f));
+            return;
+        }
         Vector3 temp = (Pos).Copy();
         forces *= Engine.DeltaTime;
         Vector3 nv = (Velocity + forces).Copy();
@@ -243,7 +257,7 @@ public class SpringConstraint
     {
         float deltaLength = Vector3.Distance((p1).Copy(), (p2).Copy());
         float diff = (deltaLength - restLength) / (deltaLength * (invMass1 + invMass2) + 0.0001f);
-        Vector3 dmds = ((p1 - p2) * (diff * stiffness)).Copy();
+        Vector3 dmds = ((p1 - p2) * (diff * SimulationTime.Blend(stiffness))).Copy();
         p1.Set(p1 - (dmds * invMass1));
         p2.Set(p2 + dmds * invMass2);
     }

@@ -50,12 +50,15 @@ jobs:
           cd .cache/originals
           curl -fL --retry 3 https://abagames.sakura.ne.jp/xna/gtg/GearToyGear0_1.zip -o GearToyGear0_1.zip
           curl -fL --retry 3 https://abagames.sakura.ne.jp/windows/tt0_22.zip -o tt0_22.zip
+          curl -fL --retry 3 https://abagames.sakura.ne.jp/xna/mm/Mm0_14.zip -o Mm0_14.zip
           sha256sum --check <<'EOF'
           b068c6b1dd5a7bfcc65830ba6fe946dbc6182ac720c58d6b3518546b5f22f04a  GearToyGear0_1.zip
           6fcbb3de9ac5cfce38253f71257143631a978c625b041c8527d18ddb5c8813fa  tt0_22.zip
+          286e6081a0d887c1f75069298174ab9bb43d43daa8d0f5288a744d9f9d58d533  Mm0_14.zip
           EOF
           unzip -q GearToyGear0_1.zip
           unzip -q tt0_22.zip
+          unzip -q Mm0_14.zip
       - name: Build pinned Lub and tcs
         working-directory: .cache/lub
         run: |
@@ -63,7 +66,7 @@ jobs:
           dotnet build third_party/tcs/Transpiler/Transpiler.csproj -c Release
           timeout 7200 bash scripts/build-release.sh --target lub
           timeout 7200 bash scripts/build-release.sh --target lub_shared --no-configure
-      - name: Build both games
+      - name: Build games
         run: |
           mkdir -p build/frame/native
           cp -L .cache/lub/build-release-linux/lub build/frame/native/
@@ -77,6 +80,9 @@ jobs:
           python3 tools/build_tt_frame.py --lub .cache/lub \
             --original .cache/originals/tt --native build/frame/native
           mv build/frame/publish build/frame/TorusTrooper
+          python3 tools/build_mm_frame.py --lub .cache/lub \
+            --original .cache/originals/Mm/Mm --native build/frame/native
+          mv build/mm-frame/publish build/frame/MazerMayhem
       - name: Package and inspect ZIPs
         run: |
           python3 - <<'PY'
@@ -97,13 +103,13 @@ jobs:
               'personal home path': rb'(?:/home/(?!runner/)[^/\s\x00]+/|/Users/[^/\s\x00]+/|[A-Za-z]:\\Users\\[^\\\s\x00]+\\)',
               'local network address': rb'(?<![0-9.])192\.168\.[0-9]{1,3}\.[0-9]{1,3}(?![0-9.])',
           }
-          for game in ('GearToyGear', 'TorusTrooper'):
+          for game in ('GearToyGear', 'TorusTrooper', 'MazerMayhem'):
               directory = root / game
               required = licenses | {game, game + '.dll', 'Lub.dll', 'TinySystem.dll',
                                      game + '.deps.json', game + '.runtimeconfig.json', 'run.sh',
                                      'game.lua', 'samples/boot.lua', 'third_party/lume/lume.lua'}
               required |= {'native/' + name for name in native}
-              required |= {'game.vs.slang', 'game.fs.slang'} if game == 'GearToyGear' else {'mesh.vs.slang', 'mesh.fs.slang', 'README-original.txt'}
+              required |= {'game.vs.slang', 'game.fs.slang'} if game != 'TorusTrooper' else {'mesh.vs.slang', 'mesh.fs.slang', 'README-original.txt'}
               files = {p.relative_to(directory).as_posix(): p for p in directory.rglob('*') if p.is_file()}
               if not required <= files.keys() or not any(n.startswith('audio/') for n in files):
                   raise SystemExit(f'{game}: missing required files')
@@ -155,19 +161,19 @@ jobs:
           artifact-ids: ${{ needs.build.outputs.artifact-id }}
           merge-multiple: true
           path: assets
-      - name: Create release with both ZIPs
+      - name: Create release with ZIPs
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           cat > notes.md <<EOF
-          Steam Frame 本体で動作する GearToyGear / Torus Trooper。
+          Steam Frame 本体で動作する GearToyGear / Torus Trooper / Mazer Mayhem。
 
           遊びたいゲームの ZIP を展開し、run.sh を「Steam に追加」して起動してください。
           [操作・ビルド手順と依存バージョン](https://github.com/${GH_REPO}/blob/${RELEASE_TAG}/README.md)
           EOF
           gh release create "$RELEASE_TAG" --verify-tag --draft \
             --title "Steam Frame ${RELEASE_TAG}" --notes-file notes.md \
-            assets/GearToyGear-steam-frame-arm64.zip assets/TorusTrooper-steam-frame-arm64.zip
+            assets/GearToyGear-steam-frame-arm64.zip assets/TorusTrooper-steam-frame-arm64.zip assets/MazerMayhem-steam-frame-arm64.zip
           gh release edit "$RELEASE_TAG" --draft=false

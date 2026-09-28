@@ -11,15 +11,15 @@ public class BoardPool : ActorPool<Board>
 
     public override void UpdateT(Board a)
     {
-        a.Cnt--;
+        a.Cnt -= SimulationTime.Step;
         if (a.Cnt <= 0)
         {
             RemoveT(a);
             return;
         }
 
-        a.Pos += a.Vel;
-        a.Vel *= 0.95f;
+        a.Pos += a.Vel * SimulationTime.Step;
+        a.Vel *= SimulationTime.Decay(0.95f);
     }
 
     public QuadListShape GetShape(int id)
@@ -77,7 +77,7 @@ public class Board : Actor
 {
     public Vector3 Pos = new Vector3();
     public Vector3 Vel = new Vector3();
-    public int Cnt;
+    public float Cnt;
     public QuadListShape Shape;
     private int storedId;
     public void Clear()

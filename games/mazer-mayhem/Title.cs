@@ -6,7 +6,7 @@ public class Title
     private MmFrame frame;
     private Pad pad;
     private Record record;
-    private int cnt;
+    private float cnt;
     private bool sPressed;
     private QuadListShape shape;
     private BlurNormalTextureCubeListShape ballShape;
@@ -36,8 +36,8 @@ public class Title
 
     public void Update()
     {
-        cnt++;
-        ballDir *= dirVel;
+        cnt += SimulationTime.Step;
+        ballDir *= MmTime.Rotation(dirVel);
         if (pad.ButtonStart || pad.ButtonA || pad.ButtonL || pad.ButtonR)
         {
             if (!sPressed)

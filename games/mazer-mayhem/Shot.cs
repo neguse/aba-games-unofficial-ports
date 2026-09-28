@@ -38,7 +38,7 @@ public class ShotPool : ActorPool<Shot>
 
     public override void UpdateT(Shot a)
     {
-        a.Pos += a.Vel;
+        a.Pos += a.Vel * SimulationTime.Step;
         a.Pos2.X = a.Pos.X;
         a.Pos2.Y = a.Pos.Y;
         if (!field.ContainsInner((a.Pos2).Copy()))
@@ -84,7 +84,7 @@ public class ShotPool : ActorPool<Shot>
             return;
         }
 
-        a.BlurVel += (a.Vel - a.BlurVel) * 0.1f;
+        a.BlurVel += (a.Vel - a.BlurVel) * SimulationTime.Blend(0.1f);
         AddShape(a);
     }
 

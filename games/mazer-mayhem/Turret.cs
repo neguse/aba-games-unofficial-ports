@@ -161,7 +161,7 @@ public class Turret : Actor
                 p.Y += (float)Math.Cos(Deg) * r;
                 if (BulletId >= 0)
                     bullets.UpdateTopBullet(BulletId, (p).Copy(), Deg + FiringDeg, vz);
-                Deg += DegVel;
+                Deg += DegVel * SimulationTime.Step;
                 break;
             case TurretTurretType.AimRoll:
                 Deg = d + DegOfs;

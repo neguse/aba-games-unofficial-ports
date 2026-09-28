@@ -21,7 +21,7 @@ public class Stage
     private QuadListShape floorShape;
     private float appearanceCnt;
     private float appearanceCntDec;
-    private int appearanceWaitCnt;
+    private float appearanceWaitCnt;
     private int bgmIndex;
     private int bgmIndexOfs;
     public static void SetRandomSeed(Int32 s)
@@ -66,7 +66,7 @@ public class Stage
     {
         if (appearanceWaitCnt > 0)
         {
-            appearanceWaitCnt--;
+            appearanceWaitCnt -= SimulationTime.Step;
             if (appearanceWaitCnt <= 0)
             {
                 if (!player.IsInGameover && frame.IsInGame)
@@ -81,8 +81,8 @@ public class Stage
             return;
         }
 
-        appearanceCnt -= appearanceCntDec / (balls.Length() + 0.1f);
-        appearanceCntDec += 0.0075f;
+        appearanceCnt -= appearanceCntDec / (balls.Length() + 0.1f) * SimulationTime.Step;
+        appearanceCntDec += 0.0075f * SimulationTime.Step;
         if (appearanceCntDec > 30.0f)
         {
             appearanceCntDec = -10000.0f;
@@ -476,13 +476,13 @@ if(noBallAppearance==null)noBallAppearance=new BallAppearance();
         if ((HasWalls[(0)] && y <= -1 + WallWidth && v.Y < 0) || (HasWalls[(2)] && y >= 1 - WallWidth && v.Y > 0))
         {
             v.Y *= -1;
-            p.Y += v.Y;
+            p.Y += v.Y * SimulationTime.Step;
         }
 
         if ((HasWalls[(3)] && x <= -1 + WallWidth && v.X < 0) || (HasWalls[(1)] && x >= 1 - WallWidth && v.X > 0))
         {
             v.X *= -1;
-            p.X += v.X;
+            p.X += v.X * SimulationTime.Step;
         }
     }
 
