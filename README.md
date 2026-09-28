@@ -5,7 +5,9 @@ GearToyGear・Torus Trooper・Mazer Mayhem を Steam Frame 本体で実行する
 
 ## ダウンロード
 
-[Releases](https://github.com/neguse/aba-games-unofficial-ports/releases) から遊びたいゲームの ZIP を選ぶ。
+[![Click to Install](https://img.shields.io/badge/Click_to_Install-Steam_Frame-1b2838?style=for-the-badge&logo=steam)](https://github.com/neguse/aba-games-unofficial-ports/releases/latest/download/Install-ABA-Games.desktop)
+
+手動で展開する場合は、[Releases](https://github.com/neguse/aba-games-unofficial-ports/releases) から遊びたいゲームの ZIP を選ぶ。
 1 件の Release に各ゲームの ZIP を添付する。
 
 - `GearToyGear-steam-frame-arm64.zip`
@@ -14,9 +16,14 @@ GearToyGear・Torus Trooper・Mazer Mayhem を Steam Frame 本体で実行する
 
 ## 導入
 
-1. Steam Frame 上で ZIP をダウンロードし、ゲームごとに別のフォルダへ展開する。
-2. ファイルマネージャーで展開先の `run.sh` を右クリックし、「Steam に追加」を選ぶ。
-3. Steam ライブラリから登録したゲームを起動する。
+1. Steam Frame のデスクトップで上のボタンを押し、`Install-ABA-Games.desktop` をダウンロードする。
+2. ダウンロードしたファイルを開き、実行を許可する。
+3. 完了画面が出たら、Steam ライブラリからゲームを起動する。
+
+3ゲームを `~/.local/share/aba-games-unofficial-ports/` に配置し、ゲーム名でSteamに登録する。
+更新時もゲームを終了して同じ導入ファイルを開く。セーブデータと既存のSteam登録は維持する。
+以前ZIPから手動で登録したゲームがある場合は、Steamに別の項目が追加される。
+`XDG_DATA_HOME` を設定している場合は、その配下に配置する。
 
 ZIP には ARM64 の .NET ランタイムと必要なライブラリを含む。
 保存先は `~/.local/share/gear-toy-gear/`・`~/.local/share/torus-trooper/`・`~/.local/share/mazer-mayhem/`。

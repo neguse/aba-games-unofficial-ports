@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Install ABA Games
+Name[ja]=ABA Games をインストール
+Comment=Install or update GearToyGear, Torus Trooper and Mazer Mayhem on Steam Frame
+Exec=bash -o pipefail -c "curl -fsSL --retry 2 'https://github.com/neguse/aba-games-unofficial-ports/releases/latest/download/install_frame.py' | python3 || zenity --error --title='ABA Games' --text='インストーラを取得できませんでした。もう一度お試しください。'"
+Icon=applications-games
+Terminal=false
+Categories=Game;
