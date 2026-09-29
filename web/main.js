@@ -18,6 +18,7 @@ let musicGain;
 let musicVersion = 0;
 let muted = false;
 let xr;
+let compiled;
 const buffers = new Map();
 const channels = new Map();
 const spatialSounds = new Map();
@@ -26,7 +27,7 @@ const musicNames = config.music || ['we_are_tumiki_fighters', 'just_over_the_hor
 const soundNames = config.sounds || ['ship_shot', 'stuck', 'stuck_bonus', 'stuck_destroyed', 'ship_destroyed', 'enemy_damaged', 'small_enemy_destroyed', 'enemy_destroyed', 'boss_destroyed', 'extend', 'warning', 'propeller', 'stuck_bonus_pushin'];
 const soundChannels = config.channels || [0, 1, 2, 3, 2, 4, 5, 6, 6, 7, 7, 7, 2];
 
-function send(topic, payload) { queue.push({ topic, payload }); }
+function send(topic, payload) { if (!config.compiled) queue.push({ topic, payload }); }
 function input() {
     let mask = 0;
     for (const key of pressed) mask |= controls.get(key) || 0;
@@ -40,6 +41,7 @@ function initAudio() {
     volume.connect(audio.destination);
 }
 function unlockAudio() {
+    if (config.compiled) { compiled?.unlockAudio(); return; }
     initAudio();
     if (audio.state === 'suspended') audio.resume();
 }
@@ -74,7 +76,8 @@ document.querySelector('#sound').onclick = event => {
     unlockAudio(); muted = !muted;
     event.currentTarget.textContent = muted ? '音：オフ' : '音：オン';
     event.currentTarget.setAttribute('aria-pressed', String(muted));
-    volume.gain.value = muted ? 0 : 1;
+    if (config.compiled) compiled?.volume(window.Module, muted ? 0 : 1);
+    else volume.gain.value = muted ? 0 : 1;
     canvas.focus();
 };
 async function buffer(name, extension) {
@@ -224,11 +227,15 @@ async function boot() {
     const device = await adapter.requestDevice({ requiredFeatures });
     device.addEventListener('uncapturederror', event => fail(event.error));
     device.lost.then(info => fail(new Error(`描画が停止しました。ページを再読み込みしてください。 ${info.message}`)));
-    const [codeResponse, shadersResponse] = await Promise.all([fetch('game.lua'), fetch('shaders.json')]);
-    if (!codeResponse.ok || !shadersResponse.ok) throw new Error('ゲームデータを読み込めませんでした。');
-    const code = await codeResponse.text();
+    const [codeResponse, shadersResponse] = await Promise.all([config.compiled ? null : fetch('game.lua'), fetch('shaders.json')]);
+    if ((!config.compiled && !codeResponse.ok) || !shadersResponse.ok) throw new Error('ゲームデータを読み込めませんでした。');
+    const code = codeResponse ? await codeResponse.text() : null;
     const shaders = await shadersResponse.json();
-    window.slangCompile = async (_source, entry) => shaders[entry] || { error: `Unknown shader: ${entry}` };
+    window.slangCompile = async (source, entry) => (Array.isArray(shaders)
+        ? shaders.find(shader => shader.entry === entry && source.replaceAll('\r', '').endsWith(shader.source.replaceAll('\r', '')))
+        : shaders[entry]) || { error: `Unknown shader: ${entry}` };
+    compiled = config.compiled ? await import('./compiled.js') : null;
+    const files = compiled ? await compiled.assets() : null;
     window._canvasWidth = 640; window._canvasHeight = 480;
     const module = {
         canvas, preinitializedWebGPUDevice: device, webgpuAdapter: adapter,
@@ -236,7 +243,7 @@ async function boot() {
         arguments: ['game.lua'],
         print: text => console.log(text),
         printErr: text => /error|failed|abort/i.test(text) ? fail(new Error(text)) : console.info(text),
-        preRun: [() => {
+        preRun: config.compiled ? [() => compiled.prepare(module, files, config.saves)] : [() => {
             module.addRunDependency('game-files');
             const remove = module.removeRunDependency;
             module.removeRunDependency = function(id) {
@@ -249,10 +256,16 @@ async function boot() {
             };
         }],
     };
+    if (config.compiled) module.onRuntimeInitialized = () => {
+        xr?.ready(); status.hidden = true;
+        compiled.volume(module, muted ? 0 : 1);
+        if (!document.activeElement?.closest('.game-selection')) canvas.focus();
+    };
     window.Module = module;
     if (config.webxr) {
-        const { createTorusXR } = await import('./torus-webxr.js');
-        xr = await createTorusXR({ canvas, button: document.querySelector('#vr'), send, unlockAudio, report: fail });
+        const { createXR } = await import(new URL('xr.js', location.href));
+        xr = await createXR({ canvas, button: document.querySelector('#vr'), getModule: () => module,
+            maxDimension: 1536, unlockAudio, report: fail });
     }
     const script = document.createElement('script'); script.src = `${config.wasm || 'wasm/'}lub.js`;
     script.onerror = () => fail(new Error('実行環境を読み込めませんでした。'));

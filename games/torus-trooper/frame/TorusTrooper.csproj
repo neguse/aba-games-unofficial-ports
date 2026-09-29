@@ -10,7 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="$(LubRoot)/dotnet/Lub/Lub.csproj" />
     <ProjectReference Include="$(LubRoot)/third_party/tcs/TinySystem/TinySystem.csproj" />
-    <Compile Include="../*.cs" Exclude="../Game.cs;../TtRender.cs" />
+    <Compile Include="../*.cs" />
     <Compile Include="../../frame/FrameMath.cs" />
     <Compile Include="../../../game/SimulationTime.cs" />
     <Compile Include="../../../game/Mesh.cs;../../../game/Transform.cs;../../../game/Pattern.cs;../../../game/PatternNumber.cs;../../../build/torus-trooper/*.cs" />

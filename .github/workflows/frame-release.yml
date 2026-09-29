@@ -2,7 +2,7 @@ name: Frame release
 
 on:
   pull_request:
-    branches: [release/frame]
+    branches: [release/frame, codex/torus-webxr]
   push:
     tags: ['frame-v*']
 
@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: neguse/lub
-          ref: 81d28ec2be7b056b8532b160e2a0c343db9c488e
+          ref: 0f6732c444cb8f14ad8851b4ef2f79dc5b8c249f
           submodules: recursive
           path: .cache/lub
           persist-credentials: false
@@ -62,7 +62,7 @@ jobs:
       - name: Build pinned Lub and tcs
         working-directory: .cache/lub
         run: |
-          test "$(git -C third_party/tcs rev-parse HEAD)" = 3b41b79e7bc9b753e52ca57fbed55aa61d6dfd53
+          test "$(git -C third_party/tcs rev-parse HEAD)" = 2d551b8f3b14d0224317b58118db21904a602c88
           dotnet build third_party/tcs/Transpiler/Transpiler.csproj -c Release
           timeout 7200 bash scripts/build-release.sh --target lub
           timeout 7200 bash scripts/build-release.sh --target lub_shared --no-configure
@@ -78,7 +78,8 @@ jobs:
             --original .cache/originals/GearToyGear/GearToyGear --native build/frame/native
           mv build/frame/publish build/frame/GearToyGear
           python3 tools/build_tt_frame.py --lub .cache/lub \
-            --original .cache/originals/tt --native build/frame/native
+            --original .cache/originals/tt --native build/frame/native \
+            --runtime both --tcs .cache/lub/third_party/tcs
           mv build/frame/publish build/frame/TorusTrooper
           python3 tools/build_mm_frame.py --lub .cache/lub \
             --original .cache/originals/Mm/Mm --native build/frame/native
@@ -109,6 +110,8 @@ jobs:
               required = licenses | {game, game + '.dll', 'Lub.dll', 'TinySystem.dll',
                                      game + '.deps.json', game + '.runtimeconfig.json', 'run.sh',
                                      'game.lua', 'samples/boot.lua', 'third_party/lume/lume.lua'}
+              if game == 'TorusTrooper':
+                  required |= {'TorusTrooper-c', 'LICENSE-tcs.txt'}
               required |= {'native/' + name for name in native}
               required |= {'game.vs.slang', 'game.fs.slang', 'scene.output.slang'} if game != 'TorusTrooper' else {'mesh.vs.slang', 'mesh.fs.slang', 'mesh.output.slang', 'README-original.txt'}
               files = {p.relative_to(directory).as_posix(): p for p in directory.rglob('*') if p.is_file()}
@@ -123,7 +126,7 @@ jobs:
                   data = path.read_bytes()
                   if data.startswith(b'\x7fELF') and int.from_bytes(data[18:20], 'little') != 183:
                       raise SystemExit(f'{game}: non-ARM64 ELF: {name}')
-                  if name in {'run.sh', game, 'native/lub'} and not path.stat().st_mode & stat.S_IXUSR:
+                  if name in {'run.sh', game, 'TorusTrooper-c', 'native/lub'} and not path.stat().st_mode & stat.S_IXUSR:
                       raise SystemExit(f'{game}: missing executable permission: {name}')
                   views = [data, b'\n'.join(s[::2] for s in re.findall(rb'(?:[ -~]\x00){5,}', data))]
                   for label, pattern in patterns.items():
