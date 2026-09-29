@@ -132,8 +132,6 @@ target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_torus.py', str(tt)], check=True)
 subprocess.run([sys.executable, 'tools/compile_torus_web.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
                 '--emsdk', str(args.emsdk), '--original', str(tt), '--output', str(target)], check=True)
-(target / 'LICENSE.txt').write_text((tt / 'readme_e.txt').read_text() + '\n\n' + licenses
-                                    + '\n\ntcs2c runtime\n---\n' + (args.tcs / 'LICENSE').read_text())
 archive = Path('.cache/rr0_24.zip')
 if not archive.exists():
     urllib.request.urlretrieve('https://abagames.sakura.ne.jp/windows/rr0_24.zip', archive)

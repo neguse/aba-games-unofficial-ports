@@ -53,5 +53,9 @@ for path in (args.original / 'sounds').rglob('*'):
 (output / 'assets.json').write_text(json.dumps(files), encoding='utf-8')
 shutil.copy2(lub / 'web/xr.mjs', output / 'xr.js')
 shutil.copy2(root / 'games/torus-trooper/index.html', output / 'index.html')
+(output / 'LICENSE.txt').write_text((args.original / 'readme_e.txt').read_text()
+    + '\n\n' + (root / 'LICENSE').read_text() + '\n\nlub\n---\n' + (lub / 'LICENSE').read_text()
+    + '\n\n' + (lub / 'THIRD_PARTY_LICENSES.md').read_text()
+    + '\n\ntcs2c runtime\n---\n' + (args.tcs / 'LICENSE').read_text(), encoding='utf-8')
 for name in ['main.js', 'compiled.js', 'style.css']:
     shutil.copy2(root / 'web' / name, output.parent / name)
