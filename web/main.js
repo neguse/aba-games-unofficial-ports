@@ -17,6 +17,7 @@ let music;
 let musicGain;
 let musicVersion = 0;
 let muted = false;
+let xr;
 const buffers = new Map();
 const channels = new Map();
 const spatialSounds = new Map();
@@ -158,10 +159,12 @@ function fail(error) { status.hidden = false; status.textContent = String(error?
 window.lubHost = { queue, onMessage(topic, bytes) {
     const text = decoder.decode(bytes);
     if (topic === 'ready') {
+        xr?.ready();
         status.hidden = true;
         if (!document.activeElement?.closest('.game-selection')) canvas.focus();
         if (config.seed) send('seed', String(crypto.getRandomValues(new Uint32Array(1))[0] & 0x7fffffff));
     }
+    if (topic === 'xr.present') xr?.present();
     if (topic === 'scores.load') {
         try { send('scores', localStorage.getItem(config.scores || 'tumiki-scores-v1') || ''); } catch { send('scores', ''); }
     }
@@ -247,6 +250,10 @@ async function boot() {
         }],
     };
     window.Module = module;
+    if (config.webxr) {
+        const { createTorusXR } = await import('./torus-webxr.js');
+        xr = await createTorusXR({ canvas, button: document.querySelector('#vr'), send, unlockAudio, report: fail });
+    }
     const script = document.createElement('script'); script.src = `${config.wasm || 'wasm/'}lub.js`;
     script.onerror = () => fail(new Error('実行環境を読み込めませんでした。'));
     document.body.append(script);

@@ -25,11 +25,17 @@ public static class Game
 
     public static void OnFrame(float dt)
     {
+        bool wasFocused = TtRender.Active && TtRender.Focused;
         while (Host.Available())
         {
             Host.Poll(out string topic, out string payload);
             if (topic == null)
                 break;
+            if (topic.StartsWith("xr."))
+            {
+                TtRender.Receive(topic, payload);
+                if (topic != "xr.frame") { elapsed = 0; dt = 0; }
+            }
             if (topic == "scores")
             {
                 manager.prefManager.load(payload);
@@ -67,6 +73,9 @@ public static class Game
             }
         }
 
+        if (TtRender.Active && !TtRender.Focused) return;
+        if (TtRender.Active && !wasFocused) dt = 0;
+        if (TtRender.Active) TtRender.ApplyInput(manager);
         elapsed = elapsed + (Math.Min(dt, 0.1f));
         while (elapsed >= 0.016f)
         {
@@ -79,6 +88,11 @@ public static class Game
             shader != null && shaderSource == source ? (int?)shader.Version : null);
         shaderSource = source;
         if (shader == null) return;
+        if (TtRender.Active)
+        {
+            TtRender.Present(manager);
+            return;
+        }
         Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = new float[] { 0, 0, 0, 1 } });
         manager.draw();
         Gfx.EndPass();
