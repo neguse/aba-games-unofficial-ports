@@ -12,6 +12,8 @@ import zipfile
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--lub', type=Path, required=True)
+parser.add_argument('--tcs', type=Path, required=True)
+parser.add_argument('--emsdk', type=Path, required=True)
 parser.add_argument('--original', type=Path)
 args = parser.parse_args()
 original = args.original
@@ -128,15 +130,8 @@ tt = Path('.cache/original/tt')
 target = dist / 'torus-trooper'
 target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_torus.py', str(tt)], check=True)
-subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'torus-trooper',
-                '--output', str(target / 'game.lua')], check=True)
-shutil.copy2('games/torus-trooper/index.html', target / 'index.html')
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
-(target / 'audio').mkdir(exist_ok=True)
-for directory in ['chunks', 'musics']:
-    for audio in (tt / 'sounds' / directory).iterdir():
-        shutil.copy2(audio, target / 'audio' / audio.name)
-(target / 'LICENSE.txt').write_text((tt / 'readme_e.txt').read_text() + '\n\n' + licenses)
+subprocess.run([sys.executable, 'tools/compile_torus_web.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
+                '--emsdk', str(args.emsdk), '--original', str(tt), '--output', str(target)], check=True)
 archive = Path('.cache/rr0_24.zip')
 if not archive.exists():
     urllib.request.urlretrieve('https://abagames.sakura.ne.jp/windows/rr0_24.zip', archive)

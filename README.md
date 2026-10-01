@@ -53,14 +53,14 @@ Mazer Mayhem は倍率をためて両トリガーを同時に引くとハイパ�
 Frame 版の開発ブランチは
 [`release/frame`](https://github.com/neguse/aba-games-unofficial-ports/tree/release/frame)。
 ゲームのソースは [GearToyGear](games/gear-toy-gear/)・
-[Torus Trooper](games/torus-trooper/)・[Mazer Mayhem](games/mazer-mayhem/) にあり、各 `frame/` が Frame 用の起動・描画・入力を担当する。
+[Torus Trooper](games/torus-trooper/)・[Mazer Mayhem](games/mazer-mayhem/) にある。Torus Trooperの描画・入力はWebXRと共通で、`frame/`にはネイティブ起動とビルド設定を置く。
 
 ## 依存バージョン
 
 | 依存 | 使用コミット／バージョン |
 | --- | --- |
-| Lub | [`81d28ec2be7b056b8532b160e2a0c343db9c488e`](https://github.com/neguse/lub/tree/81d28ec2be7b056b8532b160e2a0c343db9c488e) |
-| tcs | [`3b41b79e7bc9b753e52ca57fbed55aa61d6dfd53`](https://github.com/neguse/tcs/tree/3b41b79e7bc9b753e52ca57fbed55aa61d6dfd53)（Lub のサブモジュール） |
+| Lub | [`5471ced7e32097b8f9df20b35493c6026ca0446c`](https://github.com/neguse/lub/tree/5471ced7e32097b8f9df20b35493c6026ca0446c) |
+| tcs | [`2d551b8f3b14d0224317b58118db21904a602c88`](https://github.com/neguse/tcs/tree/2d551b8f3b14d0224317b58118db21904a602c88)（Lub のサブモジュール） |
 | .NET SDK | 10 |
 | Slang | 2026.8.1 Linux ARM64 公式バイナリ |
 
@@ -75,7 +75,7 @@ CMake、Ninja、Vulkan 開発ライブラリ、zip を使用する。
 
 ```sh
 git clone https://github.com/neguse/lub.git ../lub-frame
-git -C ../lub-frame checkout --detach 81d28ec2be7b056b8532b160e2a0c343db9c488e
+git -C ../lub-frame checkout --detach 5471ced7e32097b8f9df20b35493c6026ca0446c
 git -C ../lub-frame submodule update --init --recursive
 dotnet build ../lub-frame/third_party/tcs/Transpiler/Transpiler.csproj -c Release
 (
@@ -121,6 +121,14 @@ mv build/mm-frame/publish build/frame/MazerMayhem
   zip -r MazerMayhem-steam-frame-arm64.zip MazerMayhem
 )
 ```
+
+Torus Trooperは`--runtime coreclr`（既定）、`--runtime tcs2c`、`--runtime both`で
+実行方式を選ぶ。tcs2cを含む場合は`--tcs ../lub-frame/third_party/tcs`を指定し、
+GCCまたはClangでCをビルドする（`--cc`でコンパイラーを指定できる）。
+両方を含む配布物では`LUB_RUNTIME=coreclr ./run.sh`または
+`LUB_RUNTIME=tcs2c ./run.sh`で起動する。ゲーム・描画・操作のC#とシェーダーは、
+WebXR版も同じものを使う。
+
 
 ## 原作とライセンス
 

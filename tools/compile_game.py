@@ -38,10 +38,11 @@ if args.game == 'a7xpg':
     sources += sorted(Path('games/a7xpg').glob('*.cs'))
     sources += sorted(Path('build/a7xpg').glob('*.cs'))
 if args.game == 'torus-trooper':
-    sources = [Path('games/torus-trooper') / name for name in ['GameMath.cs', 'Rand.cs', 'Vector.cs', 'Actor.cs']]
+    sources = [Path('games/torus-trooper') / name for name in ['GameMath.cs', 'Rand.cs', 'Vector.cs', 'Actor.cs', 'Soundmanager.cs']]
     sources += [Path('game/Mesh.cs'), Path('game/Transform.cs'), Path('game/PatternNumber.cs'), Path('game/Pattern.cs')]
-    sources += [p for p in sorted(Path('games/torus-trooper').glob('*.cs')) if p.name not in ['GameMath.cs', 'Rand.cs', 'Vector.cs', 'Actor.cs']]
+    sources += [p for p in sorted(Path('games/torus-trooper').glob('*.cs')) if p.name not in ['GameMath.cs', 'Rand.cs', 'Vector.cs', 'Actor.cs', 'Soundmanager.cs']]
     sources += sorted(Path('build/torus-trooper').glob('*.cs'))
+    if not args.frame: sources.append(Path('games/frame/FrameMath.cs'))
 if args.game == 'rrootage':
     sources = [Path('games/rrootage') / name for name in ['GameMath.cs', 'Rand.cs', 'Arrays.cs', 'Constants.cs', 'Models.cs']]
     sources += [Path('game/Mesh.cs'), Path('game/Transform.cs'), Path('game/PatternNumber.cs'), Path('game/Pattern.cs')]
@@ -84,7 +85,7 @@ if args.game in ['gear-toy-gear', 'torus-trooper']:
 if args.frame:
     if args.game not in ['gear-toy-gear', 'torus-trooper', 'mazer-mayhem']:
         parser.error('--frame requires gear-toy-gear, torus-trooper or mazer-mayhem')
-    excluded = ['Render.cs', 'Pad.cs'] if args.game in ['gear-toy-gear', 'mazer-mayhem'] else ['Game.cs', 'TtRender.cs']
+    excluded = ['Render.cs', 'Pad.cs'] if args.game in ['gear-toy-gear', 'mazer-mayhem'] else []
     sources = [p for p in sources if p.parent != Path('games') / args.game or p.name not in excluded]
     sources.append(Path('games/frame/FrameMath.cs'))
     sources += [p for p in sorted((Path('games') / args.game / 'frame').glob('*.cs')) if p.name != 'Program.cs']
