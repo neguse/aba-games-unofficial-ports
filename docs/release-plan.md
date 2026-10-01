@@ -22,6 +22,11 @@
   WebはCIがなく、手元から`wrangler deploy`している。
 - lubの固定が二重。Webは`tools/setup_lub.sh`で`58e0072`、FrameはワークフローとREADMEで`81d28ec`。
   未マージの`codex/torus-webxr-c`は両方を`5471ced`（tcs `2d551b8`）に揃えている。
+- その`5471ced`はlubの`codex/shared-webxr`、tcs `2d551b8`はtcsの`codex/shared-xr-runtime`にしかなく、
+  どちらもmaster未マージ（2026-10-02時点）。OpenXR・Frame ARM64・`tcs_host.c`・`web/xr.mjs`・tcs2cのゲーム対応は
+  全部この側枝にある。lub masterはその後21コミット（SDL 3.4.16、WebGPU修正）、tcs masterは9コミット進んでいる。
+  ローカルで試したマージの衝突はlubが`scripts/native-gate.sh`と`src/backend_webgpu.c`の3箇所、
+  tcsが`Transpiler/IlExport.cs`の2箇所で、いずれも小さい。
 - ゲームロジックは共有済み。差分はGTG・MMの`frame/Render.cs`・`frame/Pad.cs`、
   TTの`frame/Game.cs`・`frame/Render.cs`・`frame/Controls.cs`のみ。
   `codex/torus-webxr-c`はTTについてこれを解消し、WebXRをlubの`web/xr.mjs`へ寄せ、Web版TTをtcs2c wasmで作る。
@@ -74,7 +79,9 @@ installerが参照する`releases/latest`は変えない。
    完了条件: `main`が既定で、PRのCIが`main`向けに動く。
 
 2. **lub固定の一本化とTTのtcs2c化**
-   `codex/torus-webxr-c`を仕上げてマージする。`docs/web.md`の`b1bd350`を揃える。
+   先にtcsの`codex/shared-xr-runtime`をtcs masterへ、lubの`codex/shared-webxr`をlub masterへマージし、
+   lubのサブモジュールをマージ後のtcsへ進める。以後の`lub.lock`はmaster上のコミットだけを指す。
+   `codex/torus-webxr-c`はそのlubに合わせて仕上げてマージする。`docs/web.md`の`b1bd350`を揃える。
    `tools/lub.lock`を作り、`setup_lub.sh`・ワークフロー・READMEをそこから読む。
    lubの`audio.c`にstb_vorbisを足してoggを復号できるようにし、TTのwav変換を外す。
    lubが`58e0072`から`5471ced`へ進むので、13作品の`check_game.py`・`check_patterns.py`・ブラウザテストを全部回す。
