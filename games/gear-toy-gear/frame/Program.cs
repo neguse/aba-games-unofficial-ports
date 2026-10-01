@@ -7,8 +7,8 @@ float leftTrigger = 0, rightTrigger = 0;
 bool profile = Environment.GetEnvironmentVariable("LUB_PROFILE") == "1";
 return Lub.Run(FrameApp.OnInit, null, dt =>
 {
-    var left = Lub.Xr.GetInput(0);
-    var right = Lub.Xr.GetInput(1);
+    var left = Lub.Xr.Input(0);
+    var right = Lub.Xr.Input(1);
     FrameApp.DrawInput(dt, left, right, Lub.Xr.Focused());
     if (!profile) return;
     leftTrigger = MathF.Max(leftTrigger, left?.Trigger ?? 0);

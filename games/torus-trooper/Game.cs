@@ -20,15 +20,15 @@ public static class Game
         FrameHost.Load();
     }
     public static void OnFrame(float dt)
-        => DrawInput(dt, Xr.GetInput(0), Xr.GetInput(1), Xr.Focused());
+        => DrawInput(dt, Xr.Input(0), Xr.Input(1), Xr.Focused());
     public static void DrawInput(float dt, XrInput leftInput, XrInput rightInput, bool focused)
     {
         if (profile) Profiler.BeginScope("tt.audio.begin");
         FrameHost.Begin();
         if (profile) Profiler.EndScope("tt.audio.begin");
-        var left = Xr.GetView(0, .05f, 500);
-        var right = Xr.GetView(1, .05f, 500);
-        bool immersive = leftInput != null || rightInput != null;
+        var left = Xr.View(0, .05f, 500);
+        var right = Xr.View(1, .05f, 500);
+        bool immersive = Xr.Active();
         if (immersive)
         {
             if (left == null || right == null) return;

@@ -17,7 +17,8 @@ public static class TtRender
     static string outputSource;
     static int used, batchCount, version;
     static bool anchored;
-    static readonly float[] anchor = new float[16], world = new float[16], projection = new float[16];
+    static readonly XrAnchor anchor = new();
+    static readonly float[] world = new float[16], projection = new float[16];
     static readonly float[] eyeView = new float[16], modelView = new float[16], modelProjection = new float[16];
     static readonly float[] from = new float[3], to = new float[3], surface = new float[3], up = new float[3];
     static readonly float[] hudMatrix = new float[] { 1.2f,0,0,0, 0,.9f,0,0, 0,0,0,0, 0,0,-2,1 };
@@ -93,7 +94,7 @@ public static class TtRender
     {
         if (!anchored)
         {
-            FrameMath.Anchor(anchor, left, right);
+            anchor.Recenter(left, right);
             anchored = focused;
         }
     }
@@ -121,8 +122,8 @@ public static class TtRender
             var view = eye == 0 ? left : right;
             if (immersive)
             {
-                FrameMath.Transpose(eyeView, view.ViewProjection);
-                FrameMath.Multiply(projection, anchor, eyeView);
+                anchor.ViewProjection(view, eyeView);
+                FrameMath.Transpose(projection, eyeView);
             }
             var data = eyeData[eye]; data.Clear();
             for (int i = 0; i < used; i++)
@@ -140,7 +141,6 @@ public static class TtRender
                 Add(data, command.ImageInfo);
             }
             var drawBuffer = Gfx.UseBuffer(eye == 0 ? "tt-left-draws" : "tt-right-draws", Gfx.BufferType.Storage, data, version);
-            if (immersive) Xr.SelectEye(eye);
             var scene = immersive ? Gfx.UseTexture(eye == 0 ? "tt-left-scene" : "tt-right-scene", view.Width, view.Height, Gfx.PixelFormat.Rgba8, null, 1, sceneOptions) : Gfx.MainTex;
             pass.Target = scene;
             Gfx.BeginPass(pass);
@@ -158,7 +158,7 @@ public static class TtRender
             Gfx.EndPass();
             if (immersive)
             {
-                pass.Target = Gfx.MainTex;
+                pass.Target = view.Target;
                 Gfx.BeginPass(pass);
                 outputBindings["scene"] = scene;
                 Gfx.Draw(3, outputBindings, outputOptions);

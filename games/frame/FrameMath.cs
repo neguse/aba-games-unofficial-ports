@@ -20,18 +20,6 @@ public static class FrameMath
                 result[row * 4 + column] = matrix[column * 4 + row];
     }
 
-    public static void Anchor(float[] result, XrView left, XrView right)
-    {
-        var q = left.Orientation;
-        float yaw = (float)Math.Atan2(2 * (q[0] * q[2] + q[1] * q[3]),
-            1 - 2 * (q[0] * q[0] + q[1] * q[1]));
-        float c = (float)Math.Cos(yaw), s = (float)Math.Sin(yaw);
-        for (int i = 0; i < 16; i++) result[i] = 0;
-        result[0] = c; result[2] = -s; result[5] = 1;
-        result[8] = s; result[10] = c; result[15] = 1;
-        for (int i = 0; i < 3; i++) result[12 + i] = (left.Position[i] + right.Position[i]) * .5f;
-    }
-
     public static void LookAt(float[] result, float[] from, float[] to, float[] up, float scale)
     {
         float zx = from[0] - to[0], zy = from[1] - to[1], zz = from[2] - to[2];

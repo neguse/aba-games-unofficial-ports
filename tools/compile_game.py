@@ -87,7 +87,7 @@ if args.frame:
         parser.error('--frame requires gear-toy-gear, torus-trooper or mazer-mayhem')
     excluded = ['Render.cs', 'Pad.cs'] if args.game in ['gear-toy-gear', 'mazer-mayhem'] else []
     sources = [p for p in sources if p.parent != Path('games') / args.game or p.name not in excluded]
-    sources.append(Path('games/frame/FrameMath.cs'))
+    if args.game == 'torus-trooper': sources.append(Path('games/frame/FrameMath.cs'))
     sources += [p for p in sorted((Path('games') / args.game / 'frame').glob('*.cs')) if p.name != 'Program.cs']
     if args.entry == 'Game' and args.game in ['gear-toy-gear', 'mazer-mayhem']:
         args.entry = 'FrameApp'
@@ -99,6 +99,8 @@ else:
     shader_source += '}\n'
     Path('build/Shaders.cs').write_text(shader_source)
     sources.append(Path('build/Shaders.cs'))
+if args.frame or args.game == 'torus-trooper':
+    sources.append(args.lub / 'cs-lib/lubx/XrAnchor.cs')
 if args.test:
     sources.append(args.test)
 compiler = args.lub / 'third_party/tcs/Transpiler/bin/Release/net10.0/Transpiler.dll'

@@ -10,7 +10,8 @@ public static class MmRender
     static readonly Color white = new(255, 255, 255, 255);
     static readonly TextureOpts target = new() { Target = true };
     static readonly PassOpts pass = new() { ClearColor = new float[] { 210 / 255f, 210 / 255f, 210 / 255f, 1 } };
-    static readonly float[] anchor = new float[16], eyeView = new float[16], projection = new float[16], matrix = new float[16];
+    static readonly XrAnchor anchor = new();
+    static readonly float[] matrix = new float[16];
     static readonly DrawOpts outputOptions = new() { Depth = false, Blend = Gfx.Blend.None, Cull = Gfx.Cull.None };
     static readonly PassOpts outputPass = new();
     static readonly Dictionary<string, object> outputBindings = new();
@@ -161,7 +162,7 @@ public static class MmRender
         if (outputSource == null) return;
         outputOptions.Shader = Gfx.UseShader("scene-output", outputSource, outputSource, 1);
         if (outputOptions.Shader == null) return;
-        if (!anchored) { FrameMath.Anchor(anchor, left, right); anchored = true; }
+        if (!anchored) { anchor.Recenter(left, right); anchored = true; }
         for (int i = 0; i < used; i++)
         {
             var command = commands[i];
@@ -171,14 +172,11 @@ public static class MmRender
         for (int eye = 0; eye < 2; eye++)
         {
             var view = eye == 0 ? left : right;
-            FrameMath.Transpose(eyeView, view.ViewProjection);
-            FrameMath.Multiply(projection, anchor, eyeView);
-            FrameMath.Transpose(matrix, projection);
+            anchor.ViewProjection(view, matrix);
             for (int i = 0; i < 16; i++) eyes[eye][i] = matrix[i];
             var eyeBuffer = Gfx.UseBuffer(eye == 0 ? "left" : "right", Gfx.BufferType.Storage, eyes[eye], version);
             var scene = Gfx.UseTexture(eye == 0 ? "sceneL" : "sceneR", view.Width, view.Height, Gfx.PixelFormat.Rgba8, null, 1, target);
             var depth = Gfx.UseTexture(eye == 0 ? "depthL" : "depthR", view.Width, view.Height, Gfx.PixelFormat.Depth24Stencil8, null, 1, target);
-            Xr.SelectEye(eye);
             pass.Target = scene;
             pass.DepthTarget = depth;
             pass.ClearDepth = 1;
@@ -190,7 +188,7 @@ public static class MmRender
                 Gfx.Draw(command.Count, command.Bindings, command.Options);
             }
             Gfx.EndPass();
-            outputPass.Target = Gfx.MainTex;
+            outputPass.Target = view.Target;
             Gfx.BeginPass(outputPass);
             outputBindings["scene"] = scene;
             Gfx.Draw(3, outputBindings, outputOptions);
