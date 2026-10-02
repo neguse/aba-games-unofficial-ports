@@ -179,7 +179,7 @@ emsdkの`emsdk_env.sh`を読み込み、リポジトリのルートで実行す�
 
 ```sh
 bash tools/setup_lub.sh
-python3 tools/build.py --lub .cache/lub
+python3 tools/build.py --lub .cache/lub --tcs .cache/lub/third_party/tcs --emsdk /path/to/emsdk
 python3 -m http.server 8765 --directory dist --bind 127.0.0.1
 ```
 
@@ -190,8 +190,11 @@ Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで上記
 原作アーカイブのSHA-256はビルド時に照合する。
 展開済みの原作を使う場合は`--original /path/to/tf`を指定する。
 
-lubは`58e00721ca923996ac8b13eff8540a0d0e608bb1`に固定し、
-TCSとLuaはそのサブモジュール、Slangは`v2026.8.1`を使用する。
+lubは`fef974414b37eb6f465e69d624e79098f49b43cb`に固定し、
+Torus Trooperはネイティブ版と同じC#・描画・操作・シェーダーを使う。
+`TorusTrooper.csproj`のソース一覧をtcs2cでCへ変換し、Wasmを`torus-trooper/wasm/`へ配置する。
+OpenXRとWebXRの接続の差はLubが扱う。
+ほかのゲームのTCSとLuaはlubのサブモジュール、Slangは`v2026.8.1`を使用する。
 シェーダーもビルド時に変換するため、ブラウザにはSlangやBulletMLの解析器を配布しない。
 
 ## 検証
@@ -243,6 +246,9 @@ node tests/mu-cade/browser.mjs
 
 開始・移動・収納・ポーズ、各面の描画、音源のデコードと再生、ランキングの再読込を確認する。
 テスト内でLuaに観測処理と面・ゲームオーバーへの遷移を挿入する。
+Torus Trooperのブラウザテストは、`tools/compile_torus_web.py`に同じ依存引数と
+`--original .cache/original/tt --test --output build/web-test/torus-trooper`を渡してビルドし、
+`build/web-test/`で実行する。観測用ホストは通常ビルドに含めない。
 PARSEC47はROLL／LOCKの操作・進行・描画、15音源とモード別保存を検証する。
 ゲーム進行テストは両モード×4難易度でボスを経てPARSEC 12まで進め、
 特殊攻撃・得点・被弾・ポーズ・意図的な処理落ちも確認する。

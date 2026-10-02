@@ -21,7 +21,8 @@ public static class GtgRender
     static TextureRef blank;
     static int version, used, pass;
     static bool anchored;
-    static readonly float[] anchor = new float[16], eyeView = new float[16], projection = new float[16], matrix = new float[16];
+    static readonly XrAnchor anchor = new();
+    static readonly float[] matrix = new float[16];
 
     public static bool Begin()
     {
@@ -133,7 +134,7 @@ public static class GtgRender
         if (outputOptions.Shader == null) return;
         if (!anchored)
         {
-            FrameMath.Anchor(anchor, left, right);
+            anchor.Recenter(left, right);
             anchored = true;
         }
         for (int i = 0; i < used; i++)
@@ -145,9 +146,7 @@ public static class GtgRender
         for (int eye = 0; eye < 2; eye++)
         {
             var view = eye == 0 ? left : right;
-            FrameMath.Transpose(eyeView, view.ViewProjection);
-            FrameMath.Multiply(projection, anchor, eyeView);
-            FrameMath.Transpose(matrix, projection);
+            anchor.ViewProjection(view, matrix);
             var values = eyes[eye];
             for (int i = 0; i < 16; i++) values[i] = matrix[i];
             var eyeBuffer = Gfx.UseBuffer(eye == 0 ? "left" : "right", Gfx.BufferType.Storage, values, version);
@@ -157,7 +156,6 @@ public static class GtgRender
             var bloomAlpha = Gfx.UseTexture(eye == 0 ? "bloomAlphaL" : "bloomAlphaR", view.Width, view.Height, Gfx.PixelFormat.R8, null, 1, target);
             var scene = Gfx.UseTexture(eye == 0 ? "sceneL" : "sceneR", view.Width, view.Height, Gfx.PixelFormat.Rgba8, null, 1, target);
             var depth = Gfx.UseTexture(eye == 0 ? "depthL" : "depthR", view.Width, view.Height, Gfx.PixelFormat.Depth24Stencil8, null, 1, target);
-            Xr.SelectEye(eye);
             for (int layer = 0; layer < 3; layer++)
             {
                 layerTargets[0] = layer == 0 ? edge : bloom;
@@ -182,7 +180,7 @@ public static class GtgRender
                 }
                 Gfx.EndPass();
             }
-            outputPass.Target = Gfx.MainTex;
+            outputPass.Target = view.Target;
             Gfx.BeginPass(outputPass);
             outputBindings["scene"] = scene;
             Gfx.Draw(3, outputBindings, outputOptions);

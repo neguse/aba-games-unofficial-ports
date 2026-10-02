@@ -1,7 +1,8 @@
 # GearToyGear on Steam Frame
 
-Standalone Linux ARM64, CoreCLR .NET 10, OpenXR and Vulkan. Requires lub's
-`vr/frame` branch with the eye-pose API (commit `9eeca7b` or later).
+Standalone Linux ARM64, CoreCLR .NET 10, OpenXR and Vulkan. Requires the lub
+revision pinned in the repository README (`Xr.View` / `Xr.Input` / `Xr.Active`
+and `XrView.Target`).
 
 ## Build
 

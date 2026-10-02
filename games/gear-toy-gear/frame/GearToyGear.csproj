@@ -11,7 +11,7 @@
     <ProjectReference Include="$(LubRoot)/dotnet/Lub/Lub.csproj" />
     <ProjectReference Include="$(LubRoot)/third_party/tcs/TinySystem/TinySystem.csproj" />
     <Compile Include="../*.cs" Exclude="../Render.cs;../Pad.cs" />
-    <Compile Include="../../frame/FrameMath.cs" />
+    <Compile Include="$(LubRoot)/cs-lib/lubx/XrAnchor.cs" Link="lubx/XrAnchor.cs" />
     <Compile Include="../../../game/SimulationTime.cs" />
     <Compile Include="../../../game/PatternNumber.cs;../../../build/gear-toy-gear/Data.cs" />
     <Content Include="game.vs.slang;game.fs.slang" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />

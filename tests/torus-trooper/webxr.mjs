@@ -2,39 +2,6 @@ import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { mkdir } from 'node:fs/promises';
-import { anchorPose, controllerInput, eyeMatrix, frameScheduler, multiply } from '../../web/torus-webxr.js';
-
-const identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
-const anchor = anchorPose({ position: { x: 2, y: 1.6, z: -3 }, orientation: { x: 0, y: 0, z: 0, w: 1 } });
-assert.deepEqual([...anchor.slice(12, 15)], [2, Math.fround(1.6), -3]);
-assert.ok(multiply(identity, anchor).every((value, index) => value === anchor[index]));
-const projection = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1.002, -1, 0, 0, -.2002, 0];
-const matrix = eyeMatrix({ projectionMatrix: projection, transform: { inverse: { matrix: identity } } }, identity);
-const nearDepth = (matrix[10] * -.1 + matrix[14]) / .1;
-assert.ok(Math.abs(nearDepth) < .000001, 'WebGL near plane becomes WebGPU depth zero');
-const yawAnchor = anchorPose({ position: { x: 0, y: 0, z: 0 }, orientation: { x: 0, y: Math.SQRT1_2, z: 0, w: Math.SQRT1_2 } });
-const inverseYaw = [0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 1];
-const recentered = eyeMatrix({ projectionMatrix: projection, transform: { inverse: { matrix: inverseYaw } } }, yawAnchor);
-assert.ok(recentered.every((value, index) => Math.abs(value - matrix[index]) < .000001), 'recenter cancels initial headset yaw');
-const pad = { mapping: 'xr-standard', axes: [0, 0, -.8, -.8], buttons: Array.from({ length: 6 }, () => ({ value: 0, pressed: false })) };
-pad.buttons[0] = { value: .8, pressed: true };
-assert.equal(controllerInput([{ handedness: 'left', gamepad: pad }]).mask, 1 | 4 | 32);
-pad.axes[2] = -.3; pad.axes[3] = 0; pad.buttons[0].value = 0;
-assert.equal(controllerInput([{ handedness: 'left', gamepad: pad }], 4).mask, 4, 'stick hysteresis');
-assert.equal(controllerInput([{ handedness: 'left', gamepad: pad }]).mask, 0);
-assert.equal(controllerInput([], 255).mask, 0, 'disconnected controls release');
-const native = new Map(); let id = 0;
-const host = { requestAnimationFrame(callback) { native.set(++id, callback); return id; }, cancelAnimationFrame(id) { native.delete(id); } };
-const scheduler = frameScheduler(host), calls = [];
-host.requestAnimationFrame(() => { calls.push(1); host.requestAnimationFrame(() => calls.push(2)); });
-scheduler.immersive(true); assert.equal(native.size, 0);
-scheduler.flush(10); assert.deepEqual(calls, [1], 'new callbacks wait for next XR frame');
-scheduler.flush(20); assert.deepEqual(calls, [1, 2]);
-const cancelled = host.requestAnimationFrame(() => calls.push(3)); host.cancelAnimationFrame(cancelled);
-scheduler.flush(30); assert.deepEqual(calls, [1, 2]);
-host.requestAnimationFrame(() => calls.push(4)); scheduler.immersive(false);
-assert.equal(native.size, 1, 'desktop animation resumes after XR');
-
 const { chromium } = await import(pathToFileURL(resolve(process.env.PLAYWRIGHT_MODULE || '.cache/browser/node_modules/playwright/index.mjs')));
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH, headless: true,
     args: process.platform === 'win32' ? ['--enable-unsafe-webgpu', '--use-angle=d3d11'] :
@@ -65,7 +32,7 @@ try {
                     const views = [-.032, .032].map((eye, index) => {
                         const view = identity(); view[12] = -eye - xrTest.offset; view[13] = -1.6;
                         return { eye: index ? 'right' : 'left', projectionMatrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1.0002, -1, 0, 0, -.10001, 0],
-                            transform: { inverse: { matrix: view } } };
+                            transform: { position: { x: eye + xrTest.offset, y: 1.6, z: 0 }, orientation: { x: 0, y: 0, z: 0, w: 1 }, inverse: { matrix: view } } };
                     });
                     callback(time, { getViewerPose: () => xrTest.tracking ? { views, transform: {
                         position: { x: xrTest.offset, y: 1.6, z: 0 }, orientation: { x: 0, y: 0, z: 0, w: 1 },
@@ -114,19 +81,6 @@ try {
         };
         WebGL2RenderingContext.prototype.makeXRCompatible = async function() {};
     });
-    await page.route('**/game.lua', async route => {
-        const response = await route.fetch();
-        const code = (await response.text()).replace(/return Game\s*$/, `local frame=Game.on_frame
-function Game.on_frame(dt)
- frame(dt)
- local g=Game.manager
- local shots=0
- for _,s in ipairs(g.shots.actor) do if s.exists then shots=shots+1 end end
- lub.host.send('test.xr',table.concat({g.state==g.in_game_state and 1 or 0,g.in_game_state.time,g.pad.directions,g.pad.buttons,g.in_game_state.pause_cnt,shots,g.ship.charging_shot and g.ship.charging_shot.charge_cnt or 0,TtRender.active and 1 or 0,TtRender.focused and 1 or 0,Game.elapsed,TtRender.first_person and 1 or 0,TtRender.projection[1][13] or 0},','))
-end
-return Game`);
-        await route.fulfill({ response, body: code });
-    });
     async function boot(target = url) {
         await page.goto(target);
         await page.locator('#status').waitFor({ state: 'hidden', timeout: 45000 });
@@ -164,8 +118,8 @@ return Game`);
     await page.waitForTimeout(150); assert.notEqual(await page.evaluate(() => gameState[10]), viewBefore, 'held stick toggles once');
     await button(1, 3, false);
     await page.evaluate(() => { xrTest.offset = .15; });
-    await page.waitForFunction(() => Math.abs(gameState[11] + .118) < .0001);
-    await button(0, 5, true); await page.waitForFunction(() => Math.abs(gameState[11] - .032) < .0001); await button(0, 5, false);
+    await page.waitForFunction(() => Math.abs(gameState[11] + .182) < .0001);
+    await button(0, 5, true); await page.waitForFunction(() => Math.abs(gameState[11] + .032) < .0001); await button(0, 5, false);
     await page.locator('#canvas').screenshot({ path: 'build/screenshots/torus-webxr-stereo.png' });
     assert.ok(await page.evaluate(() => xrTest.colored > 200), 'course is visible in first person');
     await button(0, 4, true); await page.waitForFunction(() => gameState[4] === 0); await button(0, 4, false);
@@ -184,7 +138,7 @@ return Game`);
     await page.evaluate(() => xrTest.session.end());
     await page.waitForFunction(() => gameState[7] === 0);
     assert.deepEqual(await page.evaluate(() => [canvas.width, canvas.height, _canvasWidth, _canvasHeight]), [640, 480, 640, 480]);
-    await page.keyboard.press('Escape'); await page.waitForFunction(() => gameState[0] === 0);
+    await page.keyboard.down('Escape'); await page.waitForFunction(() => gameState[0] === 0); await page.keyboard.up('Escape');
     await vr.click(); await page.waitForFunction(() => gameState[7] === 1 && xrTest.eyes.every(count => count > 100));
     await page.evaluate(() => xrTest.session.end()); await page.waitForFunction(() => gameState[7] === 0);
     assert.deepEqual(errors, []);
@@ -198,5 +152,5 @@ return Game`);
     await boot(url + '?unsupported');
     assert.equal(await vr.textContent(), 'VR非対応'); assert.equal(await vr.isDisabled(), true);
     await page.keyboard.down('z'); await page.waitForFunction(() => gameState[0] === 1); await page.keyboard.up('z');
-    console.log('WebXR math, input, scheduling, stereo pixels, gameplay, focus, tracking, exit, re-entry and failure recovery passed.');
+    console.log('WebXR input, scheduling, stereo pixels, gameplay, focus, tracking, exit, re-entry and failure recovery passed.');
 } finally { await browser.close(); }

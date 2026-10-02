@@ -8,6 +8,13 @@ public static class FrameTests
         var m = (float[])value;
         return new(m[0],m[1],m[2],m[3],m[4],m[5],m[6],m[7],m[8],m[9],m[10],m[11],m[12],m[13],m[14],m[15]);
     }
+    static System.Numerics.Matrix4x4 AnchorMatrix(object value)
+    {
+        var m = ((XrAnchor)value).ToLocal();
+        var t = new float[16];
+        for (int row = 0; row < 4; row++) for (int column = 0; column < 4; column++) t[column * 4 + row] = m[row * 4 + column];
+        return Matrix(t);
+    }
     public static int Main()
     {
         Directory.SetCurrentDirectory(AppContext.BaseDirectory);
@@ -58,13 +65,13 @@ public static class FrameTests
                     TtRender.Recenter();
                     updateAnchor.Invoke(null, [rearPose, rearPose, false]);
                     updateAnchor.Invoke(null, [frontPose, frontPose, true]);
-                    var anchor = Matrix(anchorField.GetValue(null));
+                    var anchor = AnchorMatrix(anchorField.GetValue(null));
                     Check(System.Numerics.Vector3.TransformNormal(-System.Numerics.Vector3.UnitZ, anchor).Z < -.99f, "An unfocused startup pose must not lock the game behind the player");
                     updateAnchor.Invoke(null, [rearPose, rearPose, true]);
-                    Check(anchor.Equals(Matrix(anchorField.GetValue(null))), "Head turns must retain the established game direction");
+                    Check(anchor.Equals(AnchorMatrix(anchorField.GetValue(null))), "Head turns must retain the established game direction");
                     TtRender.Recenter();
                     updateAnchor.Invoke(null, [rearPose, rearPose, true]);
-                    anchor = Matrix(anchorField.GetValue(null));
+                    anchor = AnchorMatrix(anchorField.GetValue(null));
                     Check(System.Numerics.Vector3.TransformNormal(-System.Numerics.Vector3.UnitZ, anchor).Z > .99f, "Game start recenter adopts the player's current heading");
                     Check(anchor.Translation == new System.Numerics.Vector3(1, 2, 3), "Recenter adopts the current head position");
                     Console.WriteLine("PASS focused startup and game-start recenter");

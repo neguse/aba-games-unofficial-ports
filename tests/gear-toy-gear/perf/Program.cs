@@ -36,7 +36,7 @@ int runtime = Lub.Run(() =>
 {
     try
     {
-        if (Xr.GetView(0, .05f, 100) == null) return;
+        if (Xr.View(0, .05f, 100) == null) return;
         if (start == 0) start = Stopwatch.GetTimestamp();
         double elapsed = Stopwatch.GetElapsedTime(start).TotalSeconds;
         bool playing = Game.frame.IsInGame && !state.IsInGameOver;

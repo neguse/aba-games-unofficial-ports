@@ -1,106 +1,89 @@
+global using Host = FrameHost;
 using System;
-using System.Collections.Generic;
 using static Lub;
 
 public static class Game
 {
     public static GameManager manager;
     public static string savedReplay = "";
-    public static float elapsed;
     public static ShaderRef shader;
-    static string shaderSource;
+    static string vertex, fragment;
+    static readonly XrView desktop = new();
+    static bool wasImmersive;
+    static readonly bool profile = Environment.GetEnvironmentVariable("LUB_PROFILE") == "1";
     public static void OnInit()
     {
         Config(new ConfigOpts { Width = 640, Height = 480 });
         manager = new GameManager();
-        manager.init_0();
-        manager.start();
-        if (Host.Available())
-        {
-            Host.Send("scores.load", "");
-            Host.Send("replay.load", "");
-            Host.Send("ready", "");
-        }
+        manager.init_0(); manager.start();
+        manager.rand.setSeed(TinySystem.Random.Next());
+        FrameHost.Load();
     }
-
     public static void OnFrame(float dt)
+        => DrawInput(dt, Xr.Input(0), Xr.Input(1), Xr.Focused());
+    public static void DrawInput(float dt, XrInput leftInput, XrInput rightInput, bool focused)
     {
-        bool wasFocused = TtRender.Active && TtRender.Focused;
-        while (Host.Available())
+        if (profile) Profiler.BeginScope("tt.audio.begin");
+        FrameHost.Begin();
+        if (profile) Profiler.EndScope("tt.audio.begin");
+        var left = Xr.View(0, .05f, 500);
+        var right = Xr.View(1, .05f, 500);
+        bool immersive = Xr.Active();
+        if (immersive)
         {
-            Host.Poll(out string topic, out string payload);
-            if (topic == null)
-                break;
-            if (topic.StartsWith("xr."))
-            {
-                TtRender.Receive(topic, payload);
-                if (topic != "xr.frame") { elapsed = 0; dt = 0; }
-            }
-            if (topic == "scores")
-            {
-                manager.prefManager.load(payload);
-                if (manager.state == manager.titleState)
-                    manager.titleManager.start();
-            }
-
-            if (topic == "seed")
-            {
-                int seed = GameMath.parseNonnegative(payload);
-                if (seed >= 0)
-                    manager.rand.setSeed(seed);
-            }
-
-            if ((topic == "replay") && (payload.Length > 0))
-            {
-                var replay = new ReplayData();
-                if (replay.decode(payload))
-                {
-                    savedReplay = payload;
-                    manager.inGameState._replayData = replay;
-                    manager.startTitle();
-                }
-            }
-
-            if (topic == "input")
-            {
-                int input = GameMath.parseNonnegative(payload);
-                if ((input < 0) || (input > 255))
-                    continue;
-                manager.pad.directions = input & 15;
-                manager.pad.buttons = input & 48;
-                manager.pad.pause = (input & 64) != 0;
-                manager.pad.escape = (input & 128) != 0;
-            }
+            if (left == null || right == null) return;
+            FrameControls.Read(manager, leftInput, rightInput);
+            if (!wasImmersive) TtRender.Recenter();
         }
-
-        if (TtRender.Active && !TtRender.Focused) return;
-        if (TtRender.Active && !wasFocused) dt = 0;
-        if (TtRender.Active) TtRender.ApplyInput(manager);
-        elapsed = elapsed + (Math.Min(dt, 0.1f));
-        while (elapsed >= 0.016f)
+        else
         {
-            manager.move();
-            elapsed = elapsed - (0.016f);
+            Gfx.Size(out int width, out int height);
+            desktop.Width = width; desktop.Height = height;
+            left = desktop; right = null; focused = true;
+            FrameControls.ReadDesktop(manager);
         }
-
-        string source = GameShaders.vertex + GameShaders.fragment;
-        shader = Gfx.UseShader("torus-trooper", GameShaders.vertex, GameShaders.fragment,
-            shader != null && shaderSource == source ? (int?)shader.Version : null);
-        shaderSource = source;
+        wasImmersive = immersive;
+        bool wasTitle = manager.state == manager.titleState;
+        if (profile) Profiler.BeginScope("tt.update");
+        if (focused)
+            manager.Advance(dt);
+        if (wasTitle && manager.state == manager.inGameState) TtRender.Recenter();
+        if (profile) Profiler.EndScope("tt.update");
+        if (profile) Profiler.BeginScope("tt.shader");
+        if (vertex == null)
+        {
+            Io.LoadText("mesh.vs.slang", out var source, out _, out _, out _);
+            vertex = source;
+        }
+        if (fragment == null)
+        {
+            Io.LoadText("mesh.fs.slang", out var source, out _, out _, out _);
+            fragment = source;
+        }
+        if (vertex == null || fragment == null) { if (profile) Profiler.EndScope("tt.shader"); return; }
+        shader = Gfx.UseShader("tt-xr", vertex, fragment, 1);
+        if (profile) Profiler.EndScope("tt.shader");
         if (shader == null) return;
-        if (TtRender.Active)
+        if (profile) Profiler.BeginScope("tt.geometry");
+        TtRender.Begin();
+        if (immersive)
         {
-            TtRender.Present(manager);
-            return;
+            manager.state.draw(Transform.Identity(), null, Gfx.Blend.Additive, Gfx.Cull.None, 1);
+            TtRender.Hud = true;
+            manager.state.drawFront(Transform.Ortho(), null, Gfx.Blend.Additive, Gfx.Cull.None, 1);
         }
-        Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = new float[] { 0, 0, 0, 1 } });
-        manager.draw();
-        Gfx.EndPass();
+        else manager.draw();
+        if (profile) Profiler.EndScope("tt.geometry");
+        if (profile) Profiler.BeginScope("tt.submit");
+        TtRender.Present(manager.ship, left, right);
+        if (profile) Profiler.EndScope("tt.submit");
+        if (profile) Profiler.BeginScope("tt.audio.end");
+        FrameHost.End(focused, dt);
+        if (profile) Profiler.EndScope("tt.audio.end");
     }
-
     public static void OnQuit()
     {
-        manager.prefManager.save();
-        manager.close();
+        manager.prefManager.save(); manager.close();
+        FrameHost.SaveReplay();
     }
 }

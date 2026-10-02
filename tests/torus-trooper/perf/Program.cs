@@ -22,7 +22,7 @@ int runtime = Lub.Run(() =>
 {
     try
     {
-        if (Xr.GetView(0, .05f, 500) == null) return;
+        if (Xr.View(0, .05f, 500) == null) return;
         if (start == 0)
         {
             start = Stopwatch.GetTimestamp();
