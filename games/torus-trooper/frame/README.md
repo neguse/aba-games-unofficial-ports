@@ -1,8 +1,8 @@
 # Torus Trooper on Steam Frame
 
-Standalone Linux ARM64, CoreCLR .NET 10, OpenXR and Vulkan. Requires lub's
-`vr/frame` branch with the eye-pose and `XrInput.StickClick` APIs
-(commit `e54ef44` or later).
+Standalone Linux ARM64, CoreCLR .NET 10, OpenXR and Vulkan. Requires the lub
+revision pinned in the repository README (`Xr.View` / `Xr.Input` / `Xr.Active`
+and `XrView.Target`).
 
 ## Build
 
