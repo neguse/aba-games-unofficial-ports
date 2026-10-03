@@ -44,6 +44,7 @@ static int geom_destroy(lua_State* L){auto a=handle(L,1);dGeomDestroy(a);return 
 static int geom_position(lua_State* L){auto a=handle(L,1);auto x=double(luaL_checknumber(L,2));auto y=double(luaL_checknumber(L,3));auto z=double(luaL_checknumber(L,4));dGeomSetPosition(a,x,y,z);return 0;}
 static int geom_body(lua_State* L){auto a=handle(L,1);auto b=handle(L,2);dGeomSetBody(a,b);return 0;}
 static int get_body(lua_State* L){auto a=handle(L,1);return push(L,dGeomGetBody(a));}
+static int same(lua_State* L){lua_pushboolean(L,lua_touserdata(L,1)==lua_touserdata(L,2));return 1;}
 static int hinge(lua_State* L){auto a=handle(L,1);return push(L,dJointCreateHinge(a,0));}
 static int joint_destroy(lua_State* L){auto a=handle(L,1);dJointDestroy(a);return 0;}
 static int joint_attach(lua_State* L){auto a=handle(L,1);auto b=handle(L,2);auto c=handle(L,3);dJointAttach(a,b,c);return 0;}
@@ -115,6 +116,7 @@ extern "C" int luaopen_mcd_ode(lua_State* L){
 {"geom_position",geom_position},
 {"geom_body",geom_body},
 {"get_body",get_body},
+{"same",same},
 {"hinge",hinge},
 {"joint_destroy",joint_destroy},
 {"joint_attach",joint_attach},

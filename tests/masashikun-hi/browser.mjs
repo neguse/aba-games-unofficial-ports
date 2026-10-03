@@ -27,7 +27,9 @@ try{
  await page.locator('[data-event="0"]').click();await page.waitForFunction(()=>gameState[0]===2);
  await page.waitForFunction(()=>document.pointerLockElement===document.querySelector('#canvas'));
  await page.mouse.click(300,300);await page.waitForFunction(()=>gameState[0]===3);await page.mouse.click(300,300);await page.waitForFunction(()=>gameState[0]===1);
- const previous=await page.evaluate(()=>gameState[5]);await page.mouse.move(420,360);await page.waitForFunction(old=>gameState[5]>0&&gameState[5]!==old,previous);
+ const previous=await page.evaluate(()=>gameState[5]);
+ // Headless pointer lock reports a real move as a jump and its inverse, so the relative move is dispatched directly.
+ await page.evaluate(()=>document.querySelector('#canvas').dispatchEvent(new PointerEvent('pointermove',{movementX:120,movementY:60})));await page.waitForFunction(old=>gameState[5]>0&&gameState[5]!==old,previous);
  await page.keyboard.press('ShiftLeft');await page.waitForFunction(()=>gameState[5]===768);
  await page.waitForFunction(()=>gameState[1]>=48);
  const presses=await page.evaluate(()=>gameState[6]),holds=await page.evaluate(()=>gameState[7]);

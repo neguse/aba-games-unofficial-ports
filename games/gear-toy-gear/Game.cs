@@ -1,66 +1,51 @@
+global using Host = FrameHost;
 using System;
 using static Lub;
 
 public static class Game
 {
     public static GtgFrame frame;
-    public static bool VariableTime;
+    static readonly XrView desktop = new();
     static readonly bool profile = Environment.GetEnvironmentVariable("LUB_PROFILE") == "1";
-    static float elapsed;
     public static void OnInit()
     {
         Config(new ConfigOpts { Width = 640, Height = 480 });
         frame = new GtgFrame();
         frame.LoadContent();
-        if (Host.Available())
-        {
-            Host.Send("scores.load", "");
-            Host.Send("ready", "");
-        }
+        FrameHost.Load();
     }
 
     public static void OnFrame(float dt)
+        => DrawInput(dt, Xr.Input(0), Xr.Input(1), Xr.Focused());
+
+    public static void DrawInput(float dt, XrInput leftHand, XrInput rightHand, bool focused)
     {
-        while (Host.Available())
+        FrameHost.Begin();
+        var left = Xr.View(0, .05f, 100);
+        var right = Xr.View(1, .05f, 100);
+        bool immersive = Xr.Active();
+        if (immersive)
         {
-            Lub.Host.Poll(out string topic, out string payload);
-            if (topic == null)
-                break;
-            if (topic == "input")
-            {
-                int value = GameMath.parseNonnegative(payload);
-                if (value >= 0 && value < 65536)
-                    Pad.input = value;
-            }
-
-            if (topic == "seed")
-            {
-                int value = GameMath.parseNonnegative(payload);
-                if (value >= 0)
-                    frame.Seed(value);
-            }
-
-            if (topic == "scores")
-                frame.LoadScores(payload);
+            if (left == null || right == null) return;
+            Pad.Read(leftHand, rightHand, frame.IsInGame && frame.PauseTicks >= 0);
         }
-
-        if (VariableTime)
+        else
+        {
+            Gfx.Size(out int width, out int height);
+            desktop.Width = width; desktop.Height = height;
+            left = desktop; right = null; focused = true;
+            Pad.ReadDesktop();
+        }
+        if (focused)
         {
             if (profile) Profiler.BeginScope("gtg.update");
             frame.Advance(dt);
             if (profile) Profiler.EndScope("gtg.update");
-            frame.Draw();
-            return;
         }
-
-        elapsed += Math.Min(dt, 0.1f);
-        while (elapsed >= (1f / 60))
-        {
-            elapsed -= (1f / 60);
-            frame.Update();
-        }
-
+        GtgRender.Immersive = immersive;
         frame.Draw();
+        GtgRender.Present(left, right);
+        FrameHost.End(focused);
     }
 
     public static void OnQuit()

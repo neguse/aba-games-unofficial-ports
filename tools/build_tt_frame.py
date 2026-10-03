@@ -29,8 +29,8 @@ if args.runtime in ['coreclr', 'both']:
                     '-c', 'Release', '-r', 'linux-arm64', '--self-contained', 'true',
                     f'-p:LubRoot={lub}', '-o', str(output)], cwd=root, check=True)
 if args.runtime in ['tcs2c', 'both']:
-    subprocess.run([sys.executable, 'tools/compile_torus_c.py', '--lub', str(lub),
-                    '--tcs', str(args.tcs.resolve()), '--native', str(native / 'liblub.so'),
+    subprocess.run([sys.executable, 'tools/compile_frame_c.py', '--lub', str(lub),
+                    '--tcs', str(args.tcs.resolve()), '--game', 'torus-trooper', '--native', str(native / 'liblub.so'),
                     '--cc', args.cc, '--executable', str(output / 'TorusTrooper-c')], cwd=root, check=True)
     shutil.copy2(args.tcs / 'LICENSE', output / 'LICENSE-tcs.txt')
 for path in (root / 'games/torus-trooper/frame').glob('mesh.*.slang'):

@@ -150,6 +150,7 @@ Eでアクセル、Qでブレーキ、F1/Pでポーズ、Escでタイトルへ�
 44文字の形状をビルド時に変換し、原作の立体・発光描画と11音源を使う。
 効果音は敵と自機の相対位置に応じて定位し、レーザー音は飛行中にループする。
 ランキング10件をブラウザに保存し、直前のプレイをタイトルで再生する。
+WebXR対応ブラウザでは「VRで遊ぶ」で没入表示に切り替わり、Steam Frame版と同じコントローラー操作になる。
 ゲームパッドは対象外。
 
 ## Mu-cade
@@ -162,7 +163,8 @@ Eでアクセル、Qでブレーキ、F1/Pでポーズ、Escでタイトルへ�
 
 弾幕13種と文字・タイトル画像をビルド時に変換する。連結・衝突・反力は
 ODE 0.5.0（`7bac210f051b3ffcfaf9a168db3d7c302f7a49a4`）を倍精度で実行し、
-TinyC#との接続だけを`ode.cpp`に持つ。Mu-cade専用ランタイムは`mu-cade/wasm/`へ配置する。
+TinyC#との接続だけを`ode_host.c`（Wasm）と`ode.cpp`（Luaでの検証）に持つ。
+ODEを含むWasmは`build/web-c-mu-cade/`で別にビルドし、`mu-cade/wasm/`へ配置する。
 
 ## まさしくんハイ！
 
@@ -191,8 +193,9 @@ Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで上記
 展開済みの原作を使う場合は`--original /path/to/tf`を指定する。
 
 lubは`78d71c5d84dd507de26d8e281863d77c1647fc48`に固定し、
-Torus Trooperはネイティブ版と同じC#・描画・操作・シェーダーを使う。
-`TorusTrooper.csproj`のソース一覧をtcs2cでCへ変換し、Wasmを`torus-trooper/wasm/`へ配置する。
+Torus TrooperとGearToyGearはネイティブ版と同じC#・描画・操作・シェーダーを使う。
+`tools/compile_frame_web.py`が各ゲームの`frame/*.csproj`のソース一覧をtcs2cでCへ変換し、
+Wasmを`<ゲーム>/wasm/`へ配置する。入力・音・保存はLubのAPIを直接使い、保存ファイルを`localStorage`へ写す。
 OpenXRとWebXRの接続の差はLubが扱う。
 ほかのゲームのTCSとLuaはlubのサブモジュール、Slangは`v2026.8.1`を使用する。
 シェーダーもビルド時に変換するため、ブラウザにはSlangやBulletMLの解析器を配布しない。
@@ -246,9 +249,13 @@ node tests/mu-cade/browser.mjs
 
 開始・移動・収納・ポーズ、各面の描画、音源のデコードと再生、ランキングの再読込を確認する。
 テスト内でLuaに観測処理と面・ゲームオーバーへの遷移を挿入する。
-Torus Trooperのブラウザテストは、`tools/compile_torus_web.py`に同じ依存引数と
-`--original .cache/original/tt --test --output build/web-test/torus-trooper`を渡してビルドし、
-`build/web-test/`で実行する。観測用ホストは通常ビルドに含めない。
+Torus TrooperとGearToyGearのブラウザテストは、`tools/compile_frame_web.py`に同じ依存引数と
+`--game torus-trooper --original .cache/original/tt --test --output build/web-test/torus-trooper`
+（GearToyGearは`--game gear-toy-gear --original .cache/original/GearToyGear/GearToyGear`と
+`build/web-test/gear-toy-gear`）を渡してビルドし、`build/web-test/`で実行する。
+観測用ホストは通常ビルドに含めない。同じビルドで`tests/torus-trooper/webxr.mjs`と
+`tests/gear-toy-gear/webxr.mjs`を実行し、模擬XRセッションで両眼の描画・コントローラー操作・
+フォーカス・終了と再開を確認する。
 PARSEC47はROLL／LOCKの操作・進行・描画、15音源とモード別保存を検証する。
 ゲーム進行テストは両モード×4難易度でボスを経てPARSEC 12まで進め、
 特殊攻撃・得点・被弾・ポーズ・意図的な処理落ちも確認する。
@@ -270,7 +277,7 @@ Wokは原作Cとの球・鍋の軌道と6種の発生装置の比較、連続得
 Mazer Mayhemは原作C#の3,000更新のゲーム進行と1,200更新の物理、
 ハイパー・ボス・リプレイ・ポーズ、14音源とランキングの再読込を検証する。
 GearToyGearは原作C#の3,000更新の進行、2回のボス区間・9種の障害物、
-加減速・リプレイ・ポーズ、位置音・11音源とランキングの再読込を検証する。
+加減速・リプレイ・ポーズ、位置音・11音源とランキングの再読込、WebXRの両眼描画と操作を検証する。
 Mu-cadeは移動・照準固定・尾の連結と切断、3種×3サイズの敵、残機と倍率、
 原作ODE DLLの衝突・反力・落下軌道、13音源とランキングの再読込を検証する。
 画面は`build/screenshots/`へ出力する。公開先も同じ検証を実行できる。

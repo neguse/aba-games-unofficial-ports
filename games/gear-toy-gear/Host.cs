@@ -6,7 +6,7 @@ public static class FrameHost
 {
     static readonly string[] names = new string[] { Sound.names[0], Sound.names[1], Sound.names[2], Sound.names[3], Sound.names[4], Sound.names[5], Sound.names[6], Sound.names[7], "Gtg1", "Gtg2", "Gtg3" };
     static readonly int[] sounds = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    static readonly Dictionary<int, FrameSoundLoop> loops = new();
+    internal static readonly Dictionary<int, FrameSoundLoop> loops = new();
     static readonly string savePath = (Environment.GetEnvironmentVariable("XDG_DATA_HOME") ??
         Environment.GetEnvironmentVariable("HOME") + "/.local/share") + "/gear-toy-gear/scores.txt";
     static int music = -1;
@@ -17,6 +17,12 @@ public static class FrameHost
     static bool audioStarted;
 
     public static bool Available() => true;
+    public static void Load()
+    {
+        Game.frame.Seed(TinySystem.Random.Shared.Next());
+        Io.LoadText(savePath, out var scores, out _, out _, out _);
+        if (scores != null) Game.frame.LoadScores(scores);
+    }
     public static void Begin()
     {
         for (int i = 0; i < names.Length; i++)
@@ -68,17 +74,9 @@ public static class FrameHost
     {
         switch (topic)
         {
-            case "ready":
-                Game.frame.Seed(TinySystem.Random.Shared.Next());
-                break;
-            case "scores.load":
-                Io.LoadText(savePath, out var scores, out _, out _, out _);
-                if (scores != null) Game.frame.LoadScores(scores);
-                break;
             case "scores.save":
                 Io.SaveText(savePath, payload);
                 break;
-            case "quit": Lub.Quit(); break;
             case "music.loop": music = 8 + int.Parse(payload); musicVolume = 1; break;
             case "music.stop": music = -1; break;
             case "music.volume": musicVolume = float.Parse(payload); break;

@@ -2,14 +2,13 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
-import re
 import shutil
 import subprocess
 import sys
 import tarfile
 import urllib.request
 import zipfile
-from link_web import link
+from link_web import link, mucade
 
 
 parser = argparse.ArgumentParser()
@@ -20,11 +19,11 @@ parser.add_argument('--original', type=Path)
 args = parser.parse_args()
 
 
-def compiled(game, target):
+def compiled(game, target, **native):
     source = Path('build/web-c') / game
     subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
                     '--game', game, '--c', str(source)], check=True)
-    link(args.lub, args.emsdk, source, target / 'wasm')
+    link(args.lub, args.emsdk, source, target / 'wasm', **native)
     files = []
     for path in sorted((Path('build') / game / 'images').glob('*.png')):
         (target / 'images').mkdir(exist_ok=True)
@@ -141,8 +140,8 @@ tt = Path('.cache/original/tt')
 target = dist / 'torus-trooper'
 target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_torus.py', str(tt)], check=True)
-subprocess.run([sys.executable, 'tools/compile_torus_web.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
-                '--emsdk', str(args.emsdk), '--original', str(tt), '--output', str(target)], check=True)
+subprocess.run([sys.executable, 'tools/compile_frame_web.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
+                '--emsdk', str(args.emsdk), '--game', 'torus-trooper', '--original', str(tt), '--output', str(target)], check=True)
 archive = Path('.cache/rr0_24.zip')
 if not archive.exists():
     urllib.request.urlretrieve('https://abagames.sakura.ne.jp/windows/rr0_24.zip', archive)
@@ -228,16 +227,8 @@ gtg = Path('.cache/original/GearToyGear/GearToyGear')
 target = dist / 'gear-toy-gear'
 target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_gear.py', str(gtg)], check=True)
-compiled('gear-toy-gear', target)
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/gear-toy-gear/game'], check=True)
-shutil.copy2('games/gear-toy-gear/index.html', target / 'index.html')
-(target / 'audio').mkdir(exist_ok=True)
-volumes = dict(re.findall(r'Sound\s*\{\s*Name = (\w+);\s*Volume = ([-\d]+)', (gtg / 'Content/Audio/Gtg.xap').read_text()))
-for path in (gtg / 'Content/Audio').glob('*.wav'):
-    gain = 0.5 * 10 ** (int(volumes[path.stem]) / 2000)
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(path), '-af', f'volume={gain}',
-                    '-c:a', 'pcm_s16le', str(target / 'audio' / path.name)], check=True)
-(target / 'LICENSE.txt').write_text(Path('games/gear-toy-gear/LICENSE.txt').read_text() + '\n\n' + licenses)
+subprocess.run([sys.executable, 'tools/compile_frame_web.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
+                '--emsdk', str(args.emsdk), '--game', 'gear-toy-gear', '--original', str(gtg), '--output', str(target)], check=True)
 archive = Path('.cache/mcd0_11.zip')
 if not archive.exists():
     urllib.request.urlretrieve('https://abagames.sakura.ne.jp/windows/mcd0_11.zip', archive)
@@ -250,17 +241,14 @@ target = dist / 'mu-cade'
 target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/build_mucade_runtime.py', '--lub', str(args.lub)], check=True)
 subprocess.run([sys.executable, 'tools/compile_mucade.py', str(mcd)], check=True)
-subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'mu-cade',
-                '--output', str(target / 'game.lua')], check=True)
+compiled('mu-cade', target, **mucade)
 shutil.copy2('games/mu-cade/index.html', target / 'index.html')
 subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
 (target / 'audio').mkdir(exist_ok=True)
 for path in (mcd / 'sounds').rglob('*'):
     if path.is_file():
         shutil.copy2(path, target / 'audio' / path.name)
-(target / 'wasm').mkdir(exist_ok=True)
-for name in ['lub.js', 'lub.wasm', 'lub.data']:
-    shutil.copy2(Path('.cache/mu-cade-lub/build/wasm') / name, target / 'wasm' / name)
 (target / 'LICENSE.txt').write_text(Path('games/mu-cade/LICENSE.txt').read_text() + '\n\n' + licenses)
-subprocess.run([sys.executable, 'tools/build_masashikun.py', '--lub', str(args.lub)], check=True)
+subprocess.run([sys.executable, 'tools/build_masashikun.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
+                '--emsdk', str(args.emsdk)], check=True)
 print('Built dist/')

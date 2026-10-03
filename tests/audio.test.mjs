@@ -22,10 +22,6 @@ async function harness() {
                     connect(target) { this.target = target; return target; } };
                 gains.push(gain); return gain;
             }
-            createPanner() {
-                return { positionX: {}, positionY: {}, positionZ: {},
-                    connect(target) { this.target = target; return target; }, disconnect() {} };
-            }
             createBufferSource() {
                 const source = { starts: 0, stops: 0, connect(target) { this.target = target; return target; },
                     start() { this.starts++; }, stop() { this.stops++; } };
@@ -104,31 +100,4 @@ test('overlapping cues do not stop another instance of the same effect', async (
     await Promise.all([first, second]);
     assert.equal(h.sources.length, 2);
     assert.ok(h.sources.every(source => source.starts === 1 && source.stops === 0));
-});
-
-
-test('a stopped spatial cue cannot start after its audio decode', async () => {
-    const h = await harness();
-    const pending = h.run('playSpatial([17, 0, 1, -20, 3, -80])');
-    h.run('stopSpatial(17)');
-    h.requests.get('audio/ship_shot.wav')();
-    await pending;
-    assert.equal(h.sources.length, 0);
-});
-
-test('spatial loops use the latest position and stop independently', async () => {
-    const h = await harness();
-    const pending = h.run('playSpatial([17, 0, 1, -20, 3, -80])');
-    h.context.window.lubHost.onMessage('spatial.update', new TextEncoder().encode('17,30,4,-10'));
-    h.requests.get('audio/ship_shot.wav')();
-    await pending;
-    const first = h.sources[0], panner = first.target;
-    assert.equal(first.loop, true);
-    assert.deepEqual([panner.positionX.value, panner.positionY.value, panner.positionZ.value], [30, 4, -10]);
-    assert.equal(panner.rolloffFactor, 0);
-    assert.equal(panner.target, h.gains[0]);
-    await h.run('playSpatial([18, 0, 0, 0, 0, 0])');
-    h.run('stopSpatial(17)');
-    assert.equal(first.stops, 1);
-    assert.equal(h.sources[1].stops, 0);
 });

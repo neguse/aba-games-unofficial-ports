@@ -3,7 +3,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
-from link_web import link
+from link_web import link, mucade
 
 # Builds a game with its browser-test hooks into build/web-test/, next to a copy of dist/.
 parser = argparse.ArgumentParser()
@@ -30,4 +30,5 @@ if tumiki:
     shutil.copytree(root / 'dist/audio', site / 'audio', dirs_exist_ok=True)
 else:
     shutil.copytree(root / 'dist' / args.game, target, dirs_exist_ok=True)
-link(args.lub, args.emsdk, source, target / 'wasm', root / 'tests/web-host.c')
+native = {name: root / path for name, path in mucade.items()} if args.game == 'mu-cade' else {}
+link(args.lub, args.emsdk, source, target / 'wasm', root / 'tests/web-host.c', **native)

@@ -23,7 +23,7 @@ subprocess.run(['dotnet', 'publish', 'games/gear-toy-gear/frame/GearToyGear.cspr
                 '-c', 'Release', '-r', 'linux-arm64', '--self-contained', 'true',
                 f'-p:LubRoot={lub}', '-o', str(output)], cwd=root, check=True)
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(lub),
-                '--game', 'gear-toy-gear', '--frame', '--output', str(output / 'game.lua')], cwd=root, check=True)
+                '--game', 'gear-toy-gear', '--output', str(output / 'game.lua')], cwd=root, check=True)
 (output / 'native').mkdir(exist_ok=True)
 shutil.copy2(native / 'lub', output / 'native/lub')
 for source in ['samples/boot.lua', 'third_party/lume/lume.lua']:

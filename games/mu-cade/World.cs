@@ -84,7 +84,7 @@ public class World
     {
         var b1 = McdPhysics.GetBody(o1);
         var b2 = McdPhysics.GetBody(o2);
-        if (b1 == b2)
+        if (McdPhysics.Same(b1, b2))
             return;
         var a1 = b1 == null ? staticActor : actor[b1];
         var a2 = b2 == null ? staticActor : actor[b2];

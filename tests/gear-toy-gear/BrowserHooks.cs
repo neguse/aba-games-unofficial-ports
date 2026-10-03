@@ -38,8 +38,9 @@ public static class BrowserHooks
         var f = Game.frame;
         var a = f.actors;
         var p = a.player;
-        Host.Send("test.state", (int)f.state + "," + p.Pos.X + "," + p.Pos.Y + "," + Stage.GameSpeed + "," + a.shots.Count + ","
+        Lub.Host.Send("test.state", (int)f.state + "," + p.Pos.X + "," + p.Pos.Y + "," + Stage.GameSpeed + "," + a.shots.Count + ","
             + f.storedPauseTicks + "," + a.stage.ticks + "," + f.record.Scores[0] + "," + a.middleEnemies.Count + ","
-            + (p.isInReplay ? 1 : 0) + "," + Pad.input + "," + a.playerHomingLasers.Count);
+            + (p.isInReplay ? 1 : 0) + "," + Pad.input + "," + a.playerHomingLasers.Count + ","
+            + FrameHost.loops.Count + "," + (Xr.Active() ? 1 : 0) + "," + (Xr.Focused() ? 1 : 0));
     }
 }
