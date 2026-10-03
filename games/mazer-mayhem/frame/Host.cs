@@ -52,7 +52,7 @@ public static class FrameHost
         switch (topic)
         {
             case "ready":
-                Game.frame.Seed(TinySystem.Random.Next());
+                Game.frame.Seed(TinySystem.Random.Shared.Next());
                 break;
             case "scores.load":
                 Io.LoadText(savePath, out var scores, out _, out _, out _);

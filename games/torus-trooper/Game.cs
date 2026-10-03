@@ -16,7 +16,7 @@ public static class Game
         Config(new ConfigOpts { Width = 640, Height = 480 });
         manager = new GameManager();
         manager.init_0(); manager.start();
-        manager.rand.setSeed(TinySystem.Random.Next());
+        manager.rand.setSeed(TinySystem.Random.Shared.Next());
         FrameHost.Load();
     }
     public static void OnFrame(float dt)

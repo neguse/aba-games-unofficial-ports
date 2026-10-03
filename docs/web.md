@@ -190,7 +190,7 @@ Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで上記
 原作アーカイブのSHA-256はビルド時に照合する。
 展開済みの原作を使う場合は`--original /path/to/tf`を指定する。
 
-lubは`fef974414b37eb6f465e69d624e79098f49b43cb`に固定し、
+lubは`78d71c5d84dd507de26d8e281863d77c1647fc48`に固定し、
 Torus Trooperはネイティブ版と同じC#・描画・操作・シェーダーを使う。
 `TorusTrooper.csproj`のソース一覧をtcs2cでCへ変換し、Wasmを`torus-trooper/wasm/`へ配置する。
 OpenXRとWebXRの接続の差はLubが扱う。
