@@ -14,7 +14,7 @@ timeout 7200 bash scripts/build-release.sh --target lub_shared
 
 Collect `liblub.so`, `libopenxr_loader.so.1`, `libSDL3.so.0` and
 `libslang-compiler.so.0.2026.8.1` from that build into one directory.
-From the tsumiki root, with .NET 10, Python and ffmpeg installed:
+From the repository root, with .NET 10, Python and ffmpeg installed:
 
 ```sh
 python3 tools/build_tt_frame.py --lub /path/to/lub \
