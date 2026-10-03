@@ -18,22 +18,8 @@ try {
             createPanner(){window.spatialStarts++;return super.createPanner();}
         };
     });
-    await page.route('**/game.lua',async route=>{
-        const response=await route.fetch();let code=await response.text();assert.match(code,/return Game\s*$/);
-        code=code.replace('if topic == "scores" then',`if topic == "test.boss" then local a=Game.frame.actors;a.stage.stage_count=6;a.stage.stage_ticks=0;a.stage:go_to_next_stage();a.stage.stage_ticks=421 end
-if topic == "test.finish" then local a=Game.frame.actors;a.game_state.score=7654321;a.game_state.left=0;a.player.invincible_ticks=-1;a.player:destroy();a.game_state.game_over_ticks=2 end
-if topic == "test.cue" then local s=Game.frame.sound;Game.test_cue=s:get_cue('HomingLaser');Game.test_cue:apply3_d(AudioListener.new(),AudioEmitter.new());Game.test_cue:play() end
-if topic == "test.stop" then Game.test_cue:stop(0) end
-if topic == "scores" then`);
-        code=code.replace(/return Game\s*$/,`local frame=Game.on_frame
-function Game.on_frame(dt)
- frame(dt)
- local f=Game.frame;local a=f.actors;local p=a.player
- lub.host.send('test.state',table.concat({f.state,p.pos.x,p.pos.y,Stage.game_speed,a.shots:get_count(),f.stored_pause_ticks,a.stage.ticks,f.record.stored_scores[1],a.middle_enemies:get_count(),p.is_in_replay and 1 or 0,Pad.input,a.player_homing_lasers:get_count()},','))
-end
-return Game`);
-        await route.fulfill({response,body:code});
-    });
+    // test commands: 0 boss, 1 finish, 2 cue, 3 stop
+    async function command(id,value=0){await page.evaluate(payload=>lubHost.queue.push({topic:'test',payload}),`${id},${value}`);}
     async function observe(){
         await page.locator('#status').waitFor({state:'hidden',timeout:60000});
         await page.evaluate(()=>{const onMessage=lubHost.onMessage;lubHost.onMessage=(topic,bytes)=>{if(topic==='test.state')window.gameState=new TextDecoder().decode(bytes).split(',').map(Number);else onMessage(topic,bytes);};});
@@ -60,12 +46,12 @@ return Game`);
     await page.keyboard.down('p');await page.waitForFunction(()=>gameState[5]>=0);await release('p');
     const paused=await page.evaluate(()=>gameState[6]);await page.waitForTimeout(350);assert.equal(await page.evaluate(()=>gameState[6]),paused);
     await screenshot('paused');await page.keyboard.down('p');await page.waitForFunction(()=>gameState[5]<0);await release('p');
-    await page.evaluate(()=>lubHost.queue.push({topic:'test.boss',payload:''}));
+    await command(0);
     await page.waitForFunction(()=>gameState[8]>=3);await screenshot('boss');
-    await page.evaluate(()=>lubHost.queue.push({topic:'test.cue',payload:''}));
+    await command(2);
     await page.waitForFunction(()=>spatialStarts>0);await page.waitForTimeout(300);
-    await page.evaluate(()=>lubHost.queue.push({topic:'test.stop',payload:''}));await page.waitForFunction(()=>loopStops>0);
-    await page.evaluate(()=>lubHost.queue.push({topic:'test.finish',payload:''}));
+    await command(3);await page.waitForFunction(()=>loopStops>0);
+    await command(1);
     await page.waitForFunction(()=>gameState[0]===0&&gameState[7]===7654321&&gameState[9]===1);
     await page.waitForFunction(()=>localStorage.getItem('gear-toy-gear-scores-v1')?.startsWith('7654321,'));
     await screenshot('replay');assert.ok(await page.evaluate(()=>audioStarts>0));

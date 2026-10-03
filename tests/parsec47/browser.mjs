@@ -24,26 +24,7 @@ try {
             }
         };
     });
-    await page.route('**/game.lua', async route => {
-        const response = await route.fetch(); let code = await response.text();
-        assert.match(code, /return Game\s*$/);
-        code = code.replace('if topic == "scores" then', `if topic == "test.progress" then
- Game.manager.ship.cnt = -30
- for i = 1, 900 do Game.manager.ship.cnt = -30; Game.manager:move() end
-end
-if topic == "test.gameover" then Game.manager.score = 1234567; Game.manager:start_gameover() end
-if topic == "scores" then`);
-        code = code.replace(/return Game\s*$/, `local frame = Game.on_frame
-local renderFrames = 0
-function Game.on_frame(dt)
- frame(dt)
- renderFrames = renderFrames + 1
- local g = Game.manager
- lub.host.send('test.state', table.concat({g.state,g.mode,g.title.mode,g.stage_manager.parsec,g.ship.pos.x,g.ship.roll_lock_cnt,g.cnt,g.pref_manager.hi_score[2][2][1],renderFrames}, ','))
-end
-return Game`);
-        await route.fulfill({ response, body: code });
-    });
+    // BrowserHooks.Command ids: 0 = progress; 1 = gameover
     async function observe() {
         await page.locator('#status').waitFor({ state: 'hidden', timeout: 45000 });
         await page.evaluate(() => {
@@ -79,14 +60,14 @@ return Game`);
         assert.equal(await page.evaluate(() => gameState[4]), pos);
         await press('p'); await page.waitForFunction(() => gameState[0] === 1);
         await page.keyboard.down('z');
-        await page.evaluate(() => lubHost.queue.push({ topic: 'test.progress', payload: '' }));
+        await page.evaluate(() => lubHost.queue.push({ topic: 'test', payload: '0,0' }));
         await page.waitForFunction(() => gameState[3] >= 2);
         await page.screenshot({ path: `build/screenshots/parsec47-${mode ? 'lock' : 'roll'}.png` });
         await page.keyboard.up('z');
         if (!mode) { await press('Escape'); await page.waitForFunction(() => gameState[0] === 0); }
     }
     assert.ok(await page.evaluate(() => audioStarts > 0));
-    await page.evaluate(() => lubHost.queue.push({ topic: 'test.gameover', payload: '' }));
+    await page.evaluate(() => lubHost.queue.push({ topic: 'test', payload: '1,0' }));
     await page.waitForFunction(() => localStorage.getItem('parsec47-scores-v1')?.includes('1234567'));
     await page.reload(); await observe();
     await page.waitForFunction(() => gameState[7] === 1234567 && gameState[1] === 1);

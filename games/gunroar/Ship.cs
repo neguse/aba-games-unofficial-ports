@@ -1384,10 +1384,5 @@ public class Boat
         {
             return _replayMode;
         }
-
-        set
-        {
-            _replayMode = value;
-        }
     }
 }

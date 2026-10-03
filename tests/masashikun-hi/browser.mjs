@@ -10,25 +10,8 @@ try{
  await mkdir('build/screenshots',{recursive:true});
  const page=await browser.newPage({viewport:{width:1000,height:1000}});
  page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
- await page.route('**/game.lua',async route=>{
-  const response=await route.fetch();let code=await response.text();assert.match(code,/return Game\s*$/);
-  code=code.replace('if topic == "seed" then',`if topic == "test.score" then MasKak.setkakhiscore(12345) end
-if topic == "seed" then`);
-  code=code.replace(/return Game\s*$/,`local move=MasMain.moveall;local lastMotion,presses,holds=0,0,0
-function MasMain.moveall()
- if MasForm.mousemv>0 then lastMotion=MasForm.mousemv end
- if MasForm.mousebt==1 then presses=presses+1 end
- if MasForm.mousebt==2 then holds=holds+1 end
- move()
-end
-local frame=Game.on_frame
-function Game.on_frame(dt)
- frame(dt)
- lub.host.send('test.state',table.concat({MasMain.mlspe,MasKak.kakcou,MasKak.myx,MasKak.myp,MasKak.speed,lastMotion,presses,holds,MasScores.hscsf and 1 or 0,MasKak.kakhsc[2].rec},','))
-end
-return Game`);
-  await route.fulfill({response,body:code});
- });
+ // test commands: 0 score
+ async function command(id,value=0){await page.evaluate(payload=>lubHost.queue.push({topic:'test',payload}),`${id},${value}`);}
  async function observe(){
   await page.locator('#status').waitFor({state:'hidden',timeout:60000});
   await page.evaluate(()=>{const onMessage=lubHost.onMessage;lubHost.onMessage=(topic,bytes)=>{if(topic==='test.state')window.gameState=new TextDecoder().decode(bytes).split(',').map(Number);else onMessage(topic,bytes);};});
@@ -59,7 +42,7 @@ return Game`);
  }
  await page.evaluate(()=>document.exitPointerLock());await page.waitForFunction(()=>gameState[0]===-1);
  await page.keyboard.press('F5');await page.waitForFunction(()=>gameState[0]===1);
- await page.evaluate(()=>lubHost.queue.push({topic:'test.score',payload:''}));await page.locator('#ranking').waitFor({state:'visible'});
+ await command(0);await page.locator('#ranking').waitFor({state:'visible'});
  assert.equal(await page.locator('#name-row').isVisible(),true);await page.locator('#player-name').fill('まさし <one>');await page.locator('#close-rank').click();
  await page.waitForFunction(()=>localStorage.getItem('masashikun-hi-scores-v1')?.includes('12345\tまさし <one>'));
  await page.reload();await observe();assert.equal(await page.evaluate(()=>gameState[9]),12345);

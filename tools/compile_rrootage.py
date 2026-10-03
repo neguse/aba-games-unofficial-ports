@@ -3,6 +3,7 @@ from pathlib import Path
 import math
 import struct
 from compile_barrage import Compiler
+from compile_title import png
 
 parser = argparse.ArgumentParser()
 parser.add_argument('original', type=Path)
@@ -50,12 +51,8 @@ for width, height, rows in images:
         row = rows[max(0, min(height - 1, j))]
         pixels.extend(row[max(0, min(width - 1, i))] for i in range(-1, atlas_width - 1))
     y += height + 2
-runs = []
-for color in pixels:
-    if runs and runs[-1] == color:
-        runs[-2] += 1
-    else:
-        runs.extend([1, color])
+png(output / 'images/atlas.png', atlas_width, atlas_height,
+    [value for color in pixels for value in (color & 255, color >> 8 & 255, color >> 16 & 255, 255)])
 def array(values):
     return 'new int[] {' + ','.join(map(str, values)) + '}'
 source = 'using System.Collections.Generic;\npublic static class RrData {\n'
@@ -63,15 +60,6 @@ source += 'public static int[][] barrages = new int[][] {' + ','.join(patterns) 
 source += 'public static int[] sine=' + array(sine) + ', tangent=' + array(tangent) + ';\n'
 source += f'public const int atlasWidth={atlas_width},atlasHeight={atlas_height};\n'
 source += 'public static int[] textureWidth=' + array([w for w, _, _ in images]) + ',textureHeight=' + array([h for _, h, _ in images]) + ',textureY=' + array(ys) + ';\n'
-source += 'static int[] runs=' + array(runs) + ';\n'
-source += '''public static List<int> pixels() {
-var bytes=new List<int>();
-for(int i=0;i<runs.Length;i+=2)for(int j=0;j<runs[i];j++){
-int rgb=runs[i+1];bytes.Add(rgb&255);bytes.Add((rgb>>8)&255);bytes.Add((rgb>>16)&255);bytes.Add(255);
-}
-return bytes;
-}
-}
-'''
+source += '}\n'
 (output / 'Data.cs').write_text(source)
 print('Compiled 68 rRootage patterns, lookup tables and texture atlas')

@@ -71,7 +71,7 @@ public abstract class PrimitiveShape : Shape
         Initializeintbytebytebytebyte(n, 255, 255, 255, 255);
     }
 
-    public virtual void Initializeintbytebytebytebyte(int n, Byte r, Byte g, Byte b, Byte a)
+    public virtual void Initializeintbytebytebytebyte(int n, int r, int g, int b, int a)
     {
         Verts = MmArrays.Make(n, () => new VertexPositionColor());
         for (int i = 0; i < n; i++)
@@ -88,7 +88,7 @@ public abstract class PrimitiveListShape : PrimitiveShape
     {
     }
 
-    public override void Initializeintbytebytebytebyte(int n, byte r, byte g, byte b, byte a)
+    public override void Initializeintbytebytebytebyte(int n, int r, int g, int b, int a)
     {
         base.Initializeintbytebytebytebyte(n, r, g, b, a);
         BeginAdd();
@@ -104,7 +104,7 @@ public abstract class PrimitiveListShape : PrimitiveShape
         index = 0;
     }
 
-    public void AddVector3bytebytebytebyte(Vector3 p, byte r, byte g, byte b, byte a)
+    public void AddVector3bytebytebytebyte(Vector3 p, int r, int g, int b, int a)
     {
         Verts[(index)].Position.X = p.X;
         Verts[(index)].Position.Y = p.Y;
@@ -129,7 +129,7 @@ public abstract class PrimitiveListShape : PrimitiveShape
         Verts[(index)].Position.X = x;
         Verts[(index)].Position.Y = y;
         Verts[(index)].Position.Z = z;
-        Verts[(index)].Color = new Color(Verts[(index)].Color.R, Verts[(index)].Color.G, Verts[(index)].Color.B, (byte)(a * 255));
+        Verts[(index)].Color = new Color(Verts[(index)].Color.R, Verts[(index)].Color.G, Verts[(index)].Color.B, (int)(a * 255));
         index++;
     }
 
@@ -147,7 +147,7 @@ public class TriangleListShape : PrimitiveListShape
     {
     }
 
-    public override void Initializeintbytebytebytebyte(int n, byte r, byte g, byte b, byte a)
+    public override void Initializeintbytebytebytebyte(int n, int r, int g, int b, int a)
     {
         indices = MmArrays.Make(n * 3, () => 0);
         for (int i = 0; i < n * 3; i++)
@@ -178,7 +178,7 @@ public class QuadListShape : PrimitiveListShape
     {
     }
 
-    public override void Initializeintbytebytebytebyte(int n, byte r, byte g, byte b, byte a)
+    public override void Initializeintbytebytebytebyte(int n, int r, int g, int b, int a)
     {
         indices = MmArrays.Make(n * 6, () => 0);
         for (int i = 0; i < n; i++)

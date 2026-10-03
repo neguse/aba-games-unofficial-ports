@@ -27,29 +27,30 @@ public class Player
     private Record record;
     private Replay replay;
     private Sound sound;
-    private Vector3 storedPos = new Vector3();
+    public Vector3 storedPos = new Vector3();
     private Vector2 storedPos2 = new Vector2();
-    private float deg;
+    public float deg;
     private float tiresDeg;
     private Vector2 blurVel = new Vector2();
     private BlurNormalTextureCubeListShape shape, shapeTurret, shapeTires;
     private Vector4 bv = new Vector4();
     private int storedAreaX, storedAreaY;
     private Vector2 areaOfs = new Vector2();
-    private int fireCnt, shotCnt;
-    private float cnt;
+    private int fireCnt;
+    public int shotCnt;
+    public float cnt;
     private QuadListShape shadowShape;
     private Vector2 dashVel = new Vector2();
-    private float dashCnt;
+    public float dashCnt;
     private bool aPressed;
     private float multiplier;
     private float baseMultiplier;
     private float bonusCnt;
-    private int score;
-    private int left;
+    public int score;
+    public int left;
     private int nextExtendScore;
     private int addedExtendScore;
-    private bool storedIsInHyper;
+    public bool storedIsInHyper;
     private int hyperStartCnt;
     private int bonusCntLength;
     private float baseRank;
@@ -60,13 +61,13 @@ public class Player
     private int blinkInterval;
     private bool hasShape;
     private float velZ;
-    private float gameoverCnt;
+    public float gameoverCnt;
     private float turnMessageCnt;
     private float hyperMessageCnt;
     private float dashMessageCnt;
     private int dashNumCnt;
     private bool isPlayedBonusGetSe;
-    private bool isInReplay;
+    public bool isInReplay;
     private ReplayData replayData = new ReplayData();
     private ReplayCursor replayDataEnumerator;
     public static void SetRandomSeed(Int32 s)
@@ -531,7 +532,7 @@ public class Player
         hyperRank = 0;
     }
 
-    private void Destroy()
+    public void Destroy()
     {
         bullets.RemoveAll();
         Quaternion qd = new Quaternion();

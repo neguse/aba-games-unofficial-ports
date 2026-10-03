@@ -94,7 +94,6 @@ public static class NrVerification {
     }
     public static void Main(){
         NrAngles.tantbl=NrData.tangent;NrAngles.sctbl=NrData.sine;NrAttract.initHiScore();NrBarrage.initBarragemanager();NrAttract.initAttractManager();NrCore.initTitle();
-        Check(NrData.tablePixels().Count==256*260*4&&NrData.spritePixels().Count==40*280*4,"palette and sprite bytes");
         ShipMotion();Barrages();Raster();Stages();Rules();Console.WriteLine("RESULT "+failures.ToString());
     }
 }

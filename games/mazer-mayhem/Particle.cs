@@ -49,11 +49,11 @@ public class ParticlePool : ActorPool<Particle>
 
     private void AddShape(Particle a)
     {
-        byte al;
+        int al;
         float sz;
         if (a.Cnt < 16)
         {
-            al = (byte)(a.Cnt * 5);
+            al = (int)(a.Cnt * 5);
             sz = a.Size * a.Cnt / 16;
         }
         else
@@ -98,7 +98,7 @@ public class Particle : Actor
     public Vector3 Pos = new Vector3();
     public Vector3 Vel = new Vector3();
     public float Cnt;
-    public byte R, G, B, Er, Eg, Eb;
+    public int R, G, B, Er, Eg, Eb;
     public Quaternion Dir = new Quaternion();
     public float Size;
     private int storedId;
@@ -131,7 +131,7 @@ public class Particle : Actor
         storedId = -1;
     }
 
-    public void Set(Vector3 p, Quaternion d, float s, int c, byte r, byte g, byte b, byte er, byte eg, byte eb, float sz)
+    public void Set(Vector3 p, Quaternion d, float s, int c, int r, int g, int b, int er, int eg, int eb, float sz)
     {
         Pos = (p).Copy();
         Dir = (d).Copy();
@@ -149,7 +149,7 @@ public class Particle : Actor
         Size = sz;
     }
 
-    public void SetFixed(Vector3 p, Quaternion d, float s, int c, byte r, byte g, byte b, byte er, byte eg, byte eb, float sz)
+    public void SetFixed(Vector3 p, Quaternion d, float s, int c, int r, int g, int b, int er, int eg, int eb, float sz)
     {
         Pos = (p).Copy();
         Dir = (d).Copy();

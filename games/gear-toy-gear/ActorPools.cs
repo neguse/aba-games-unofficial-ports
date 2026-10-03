@@ -5,14 +5,14 @@ using System.Collections.Generic;
 public class ActorPools
 {
     private GtgFrame frame;
-    private GameState gameState;
+    public GameState gameState;
     private Field field;
-    private Player player;
+    public Player player;
     private LaserPool playerLasers;
-    private PlayerHomingLaserPool playerHomingLasers;
-    private ShotPool shots;
+    public PlayerHomingLaserPool playerHomingLasers;
+    public ShotPool shots;
     private EnemyPool enemies;
-    private MiddleEnemyPool middleEnemies;
+    public MiddleEnemyPool middleEnemies;
     private LaserPool lasers;
     private TurretPool turrets;
     private HomingLaserPool homingLasers;
@@ -20,7 +20,7 @@ public class ActorPools
     private PillarPool pillars;
     private ParticlePool particles;
     private PlatePool plates;
-    private Stage stage;
+    public Stage stage;
     private float shadowDepthOffset;
     public ActorPools(GtgFrame frame, Pad pad, Replay replay, Record record, Sound sound)
     {

@@ -50,6 +50,10 @@ for path in (args.original / 'sounds').rglob('*'):
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(path),
                         '-c:a', 'pcm_s16le', str(output / name)], check=True)
         files.append(name)
+(output / 'images').mkdir(exist_ok=True)
+for path in (root / 'build/torus-trooper/images').glob('*.png'):
+    shutil.copy2(path, output / 'images' / path.name)
+    files.append('images/' + path.name)
 (output / 'assets.json').write_text(json.dumps(files), encoding='utf-8')
 shutil.copy2(lub / 'web/xr.mjs', output / 'xr.js')
 shutil.copy2(root / 'games/torus-trooper/index.html', output / 'index.html')

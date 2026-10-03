@@ -8,6 +8,8 @@ public static class Game
     static float elapsed;
     static int dx, dy, keyMove;
     static bool buttonHeld, pressPending;
+    // Input observed at each move step, read by the browser test hooks.
+    public static int lastMotion, presses, holds;
     public static void OnInit()
     {
         Config(new ConfigOpts { Width = 640, Height = 480 });
@@ -122,6 +124,12 @@ public static class Game
                     elapsed -= 0.033f;
                     MasForm.mousebt = pressPending ? 1 : buttonHeld ? 2 : 0;
                     pressPending = false;
+                    if (MasForm.mousemv > 0)
+                        lastMotion = MasForm.mousemv;
+                    if (MasForm.mousebt == 1)
+                        presses++;
+                    if (MasForm.mousebt == 2)
+                        holds++;
                     MasMain.moveall();
                     if (MasForm.mousebt == 1)
                         MasForm.mousebt = 2;

@@ -15,17 +15,17 @@ public class MmFrame
     private WallPool walls;
     private TurretPool turrets;
     private BulletPool bullets;
-    private BallPool balls;
+    public BallPool balls;
     private ParticlePool particles;
     private ParticlePool addedParticles;
     private BonusPool bonuses;
     private BonusPool addedBonuses;
-    private Player player;
+    public Player player;
     private ShotPool shots;
-    private GrenadePool grenades;
+    public GrenadePool grenades;
     private BoardPool playerBoards;
     private BoardPool ballBoards;
-    private Stage stage;
+    public Stage stage;
     private float cnt;
     float phase, replaySeconds;
     public float StepSeconds;
@@ -68,13 +68,13 @@ public class MmFrame
         SimulationTime.Variable = true;
         Update();
     }
-    private float storedPauseCnt;
-    private MmFrameGameState state;
+    public float storedPauseCnt;
+    public MmFrameGameState state;
     private List<List<string>> stageData;
     private Title title;
     private bool bPressed;
     private bool sPressed;
-    private Record record;
+    public Record record;
     private Replay replay;
     private Sound sound;
     private float delayRatio;

@@ -150,7 +150,8 @@ public static class TtRender
                 batch.Options.Shader = Game.shader;
                 batch.Bindings["verts"] = vertexBuffer; batch.Bindings["faces"] = faceBuffer; batch.Bindings["draws"] = drawBuffer;
                 var texture = batch.Image;
-                batch.Bindings["image"] = texture == null ? blank : Gfx.UseTexture(texture.key, texture.width, texture.atlasHeight, Gfx.PixelFormat.Rgba8, texture.pixels, 1, textureOptions);
+                var image = texture == null ? null : texture.Use(textureOptions);
+                batch.Bindings["image"] = image == null ? blank : image;
                 batch.Range[0] = batch.First;
                 batch.Viewport[0] = view.Width; batch.Viewport[1] = view.Height;
                 Gfx.Draw(batch.Count, batch.Bindings, batch.Options);

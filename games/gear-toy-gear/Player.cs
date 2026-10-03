@@ -26,10 +26,10 @@ public class Player
     private Shape edgeShape;
     private float fireTicks, fireAngleTicks;
     private float homingLaserFireTicks;
-    private float invincibleTicks;
+    public float invincibleTicks;
     private PlayerData[] data;
     private float depthSpeed;
-    private bool isInReplay;
+    public bool isInReplay;
     private float accel;
     public Player(GtgFrame frame, GameState gameState, Field field, Pad pad, Replay replay, ParticlePool particles, Sound sound)
     {

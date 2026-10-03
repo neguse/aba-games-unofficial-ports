@@ -20,8 +20,8 @@ public class Stage
     private int playerStartAreaX, playerStartAreaY;
     private QuadListShape floorShape;
     private float appearanceCnt;
-    private float appearanceCntDec;
-    private float appearanceWaitCnt;
+    public float appearanceCntDec;
+    public float appearanceWaitCnt;
     private int bgmIndex;
     private int bgmIndexOfs;
     public static void SetRandomSeed(Int32 s)

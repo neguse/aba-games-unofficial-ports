@@ -54,6 +54,7 @@ for path in (original / 'sounds').rglob('*'):
     if path.suffix in ['.wav', '.ogg']:
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(path),
                         '-c:a', 'pcm_s16le', str(output / 'audio' / (path.stem + '.wav'))], check=True)
+shutil.copytree(root / 'build/torus-trooper/images', output / 'images', dirs_exist_ok=True)
 shutil.copy2(original / 'readme_e.txt', output / 'README-original.txt')
 shutil.copy2(root / 'LICENSE', output / 'LICENSE.txt')
 shutil.copy2(lub / 'LICENSE', output / 'native/LICENSE-lub.txt')

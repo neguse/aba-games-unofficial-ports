@@ -2,9 +2,8 @@ using System.Collections.Generic;
 using static Lub;
 public static class WkRender {
  public static List<float> vertices=new List<float>();
- static List<int> pixels;
  static int version;
- public static void Init(){pixels=WkData.pixels();}
+ public static void Init(){}
  public static void Rect(int x,int y,int w,int h,int u,int v,float r,float g,float b){
   vertices.Add(x/320f-1);vertices.Add(1-y/240f);vertices.Add(w/320f);vertices.Add(-h/240f);
   vertices.Add(u);vertices.Add(v);vertices.Add(w);vertices.Add(h);
@@ -15,7 +14,8 @@ public static class WkRender {
  public static void Frame(){
   version++;
   var shader=Gfx.UseShader("wok",GameShaders.vertex,GameShaders.fragment,1);
-  var atlas=Gfx.UseTexture("atlas",WkData.atlasWidth,WkData.atlasHeight,Gfx.PixelFormat.Rgba8,pixels,1);
+  Png.Load("images/atlas.png",out var pixels,out _,out _,out _,out _,out int pixelsVersion,out _,out _);
+  var atlas=pixels==null?null:Gfx.UseTextureBytes("atlas",WkData.atlasWidth,WkData.atlasHeight,Gfx.PixelFormat.Rgba8,pixels,pixelsVersion);
   var rects=Gfx.UseBuffer("rects",Gfx.BufferType.Storage,vertices,version);
   if(shader==null||atlas==null||rects==null)return;
   Gfx.BeginPass(new PassOpts{Target=Gfx.MainTex,ClearColor=new float[]{1,1,1,1}});

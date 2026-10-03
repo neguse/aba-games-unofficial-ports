@@ -22,26 +22,7 @@ try {
             }
         };
     });
-    await page.route('**/game.lua', async route => {
-        const response = await route.fetch(); let code = await response.text();
-        assert.match(code, /return Game\s*$/);
-        code = code.replace('if topic == "scores" then', `if topic == "test.finish" then
- local g=Game.manager; g.score=7654321; g:start_gameover()
-end
-if topic == "test.gold" then
- local g=Game.manager; local gold=g.golds.actor[16]; gold.is_exist=true; gold.pos.x=g.ship.pos.x+math.sin(g.ship.deg)*0.4; gold.pos.y=g.ship.pos.y+math.cos(g.ship.deg)*0.4
-end
-if topic == "test.invincible" then Game.manager.ship.gauge=201 end
-if topic == "scores" then`);
-        code = code.replace(/return Game\s*$/, `local frame=Game.on_frame
-function Game.on_frame(dt)
- frame(dt)
- local g=Game.manager
- lub.host.send('test.state',table.concat({g.state,g.stage,g.ship.pos.x,g.ship.pos.y,g.ship.speed,g.stage_timer,g.left_gold,g.ship.invincible and 1 or 0,g.pref_manager.hi_score},','))
-end
-return Game`);
-        await route.fulfill({ response, body: code });
-    });
+    // BrowserHooks.Command ids: 0 = finish; 1 = gold; 2 = invincible
     async function observe() {
         await page.locator('#status').waitFor({ state: 'hidden', timeout: 45000 });
         await page.evaluate(() => {
@@ -64,9 +45,9 @@ return Game`);
     await page.keyboard.down('ArrowDown'); await page.keyboard.down('x'); await page.waitForFunction(() => gameState[4] > 0.5);
     await page.keyboard.up('x'); await page.keyboard.up('ArrowDown');
     const gold = await page.evaluate(() => gameState[6]);
-    await page.evaluate(() => lubHost.queue.push({ topic: 'test.gold', payload: '' }));
+    await page.evaluate(() => lubHost.queue.push({ topic: 'test', payload: '1,0' }));
     await page.waitForFunction(gold => gameState[6] < gold, gold);
-    await page.evaluate(() => lubHost.queue.push({ topic: 'test.invincible', payload: '' }));
+    await page.evaluate(() => lubHost.queue.push({ topic: 'test', payload: '2,0' }));
     await page.waitForFunction(() => gameState[7] === 1);
     await press('p'); await page.waitForFunction(() => gameState[0] === 4);
     const time = await page.evaluate(() => gameState[5]); await page.waitForTimeout(200);
@@ -84,7 +65,7 @@ return Game`);
     assert.ok(colored > 5000, `colored field and glow pixels: ${colored}`);
     await press('p'); await page.waitForFunction(() => gameState[0] === 1);
     assert.ok(await page.evaluate(() => audioStarts > 0));
-    await page.evaluate(() => lubHost.queue.push({ topic: 'test.finish', payload: '' }));
+    await page.evaluate(() => lubHost.queue.push({ topic: 'test', payload: '0,0' }));
     await page.waitForFunction(() => localStorage.getItem('a7xpg-scores-v1') === '7654321');
     await page.reload(); await observe();
     await page.waitForFunction(() => gameState[8] === 7654321);

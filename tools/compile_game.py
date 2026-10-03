@@ -11,6 +11,8 @@ parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanio
 parser.add_argument('--test', type=Path)
 parser.add_argument('--frame', action='store_true')
 parser.add_argument('--output', type=Path, default=Path('build/game.lua'))
+parser.add_argument('--c', type=Path, help='write game.c and binding.c here instead of Lua')
+parser.add_argument('--tcs', type=Path)
 args = parser.parse_args()
 first = ['Core.cs', 'Rand.cs', 'PatternNumber.cs', 'Pattern.cs']
 sources = [Path('game') / name for name in first]
@@ -103,6 +105,18 @@ if args.frame or args.game == 'torus-trooper':
     sources.insert(0, args.lub / 'cs-lib/lubx/XrAnchor.cs')
 if args.test:
     sources.append(args.test)
+if args.c:
+    references = ['--ref', str(args.lub / 'cs-lib/lub_stub.cs')]
+    if args.game == 'mu-cade':
+        references += ['--ref', 'games/mu-cade/OdeApi.cs']
+    args.c.mkdir(parents=True, exist_ok=True)
+    subprocess.run(['dotnet', str(args.tcs / 'tcs2c/bin/Release/net10.0/tcs2c.dll'), '--lib', *references,
+                    *map(str, sources), '-o', str(args.c / 'game.c')], check=True)
+    subprocess.run(['dotnet', str(args.lub / 'tools/lub-gen/bin/Release/net10.0/lub-gen.dll'), 'tcs',
+                    '--stub', str(args.lub / 'cs-lib/lub_stub.cs'),
+                    *[arg for path in sources for arg in ['--source', str(path)]],
+                    '-o', str(args.c / 'binding.c')], check=True)
+    raise SystemExit(0)
 compiler = args.lub / 'third_party/tcs/Transpiler/bin/Release/net10.0/Transpiler.dll'
 command = ['dotnet', str(compiler), *map(str, sources), '--ref', str(args.lub / 'cs-lib/lub_stub.cs'), '--no-naming-check']
 if args.game == 'mu-cade':

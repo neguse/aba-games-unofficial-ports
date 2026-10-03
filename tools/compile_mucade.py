@@ -33,8 +33,8 @@ images, masks = [], []
 for letter in range(5):
     panel = [pixels[y * 320 + letter * 64 + x] for y in range(64) for x in range(64)]
     mask = [(255, 255, 255, 0) if p[:3] == (0, 0, 0) else (0, 0, 0, 0) for p in panel]
-    images.append(image(f'mu-cade-{letter}', panel, 64, 64, True))
-    masks.append(image(f'mu-cade-mask-{letter}', mask, 64, 64, True))
+    images.append(image(output, f'mu-cade-{letter}', panel, 64, 64, True))
+    masks.append(image(output, f'mu-cade-mask-{letter}', mask, 64, 64, True))
 (output / 'Data.cs').write_text('''public static class McdData {
 public static float[][][] Letters(){return ''' + emit(letters, 3) + ''';}
 public static DrawImage[] images = new DrawImage[]{''' + ','.join(images) + '''};

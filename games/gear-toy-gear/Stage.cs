@@ -29,7 +29,7 @@ public class Stage
     private PillarPool pillars;
     private Player player;
     private GameState gameState;
-    private float ticks;
+    public float ticks;
     private float enemyTicks, enemyTicksBase, enemyFormCount, enemyFormCountBase, enemyFormTicks, enemyFormTicksBase, middleEnemyTicks, middleEnemyTicksBase;
     private float pillarTicks, pillarTicksRate;
     private EnemyType enemyType = new EnemyType();
@@ -37,10 +37,10 @@ public class Stage
     private MiddleEnemyWeaponType middleEnemyWeaponType;
     private int middleEnemyFireInterval;
     private StagePillarType pillarType;
-    private float stageTicks;
+    public float stageTicks;
     private float targetBackgroundR, targetBackgroundG, targetBackgroundB;
     private float targetRank;
-    private int stageCount;
+    public int stageCount;
     private bool isBossStage;
     public Stage(EnemyPool enemies, MiddleEnemyPool middleEnemies, PillarPool pillars, Player player, GameState gameState)
     {
@@ -205,7 +205,7 @@ public class Stage
             Letter.AddstringVector3floatQuaternionfloat("STAGE " + (stageCount / 7 + 1), new Vector3(-10, 0, 0), 1 + stageTicks * 0.002f, (Quaternion.Identity).Copy(), 0.7f);
     }
 
-    private void GoToNextStage()
+    public void GoToNextStage()
     {
         stageCount++;
         if (stageCount % 7 == 1)

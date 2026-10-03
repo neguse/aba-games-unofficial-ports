@@ -3,10 +3,22 @@ using static Lub;
 
 public class DrawImage
 {
-    public string key;
+    public string key, path;
     public int width, height, atlasHeight, levels;
     public List<int> pixels;
     public TextureRef texture;
+
+    // A file-backed image stays null until its PNG is available.
+    public TextureRef Use(TextureOpts options)
+    {
+        if (path == null)
+            return texture = Gfx.UseTexture(key, width, atlasHeight, Gfx.PixelFormat.Rgba8, pixels,
+                texture == null ? (int?)null : texture.Version, options);
+        Png.Load(path, out var bytes, out _, out _, out _, out _, out int version, out _, out _);
+        if (bytes != null)
+            texture = Gfx.UseTextureBytes(key, width, atlasHeight, Gfx.PixelFormat.Rgba8, bytes, version, options);
+        return texture;
+    }
 }
 
 public class MeshRange
@@ -98,16 +110,16 @@ public class Mesh
             vertexBuffer == null ? (int?)null : vertexBuffer.Version);
         faceBuffer = Gfx.UseBuffer(key + "-faces", Gfx.BufferType.Storage, faces,
             faceBuffer == null ? (int?)null : faceBuffer.Version);
-        DrawImage texture = image == null ? white : image;
-        texture.texture = Gfx.UseTexture(texture.key, texture.width, texture.atlasHeight, Gfx.PixelFormat.Rgba8,
-            texture.pixels, texture.texture == null ? (int?)null : texture.texture.Version,
-            new TextureOpts { Filter = Gfx.Filter.Linear, Wrap = Gfx.Wrap.Repeat });
+        var options = new TextureOpts { Filter = Gfx.Filter.Linear, Wrap = Gfx.Wrap.Repeat };
+        var source = image == null ? white : image;
+        var texture = source.Use(options);
+        if (texture == null) texture = white.Use(options);
         return new Dictionary<string, object> {
-            ["image"] = texture.texture, ["verts"] = vertexBuffer, ["faces"] = faceBuffer,
+            ["image"] = texture, ["verts"] = vertexBuffer, ["faces"] = faceBuffer,
             ["uniforms"] = new Dictionary<string, object> {
                 ["model"] = model, ["tint"] = color == null ? new float[] { 1, 1, 1, 1 } : color,
                 ["options"] = new float[] { width, additive ? 1 : 0, first, image == null ? 0 : 1 },
                 ["viewport"] = new float[] { viewportWidth, viewportHeight, 0, 0 },
-                ["imageInfo"] = new float[] { texture.width, texture.height, texture.levels - 1, 0 } } };
+                ["imageInfo"] = new float[] { source.width, source.height, source.levels - 1, 0 } } };
     }
 }

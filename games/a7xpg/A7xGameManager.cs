@@ -204,7 +204,7 @@ public class A7xGameManager
     {
         playSe(5);
         Enemy enemy = (Enemy)enemies.getInstance();
-        if ((!((enemy) != null)) != null)
+        if (enemy == null)
             return;
         enemy.set(type, size, speed);
     }

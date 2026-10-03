@@ -15,22 +15,8 @@ try {
         window.audioStarts=0;const Native=window.AudioContext;
         window.AudioContext=class extends Native {createBufferSource(){const source=super.createBufferSource(),start=source.start.bind(source);source.start=(...a)=>{window.audioStarts++;return start(...a);};return source;}};
     });
-    await page.route('**/game.lua',async route=>{
-        const response=await route.fetch();let code=await response.text();assert.match(code,/return Game\s*$/);
-        code=code.replace('if topic == "scores" then',`if topic == "test.bonus" then for i=1,100 do Game.frame.player:get_bonus(Game.frame.player.stored_pos) end end
-if topic == "test.boss" then Game.frame.stage.appearance_wait_cnt=0;Game.frame.stage.appearance_cnt_dec=31 end
-if topic == "test.finish" then local p=Game.frame.player;p.score=7654321;p.left=0;p:destroy();p.gameover_cnt=599 end
-if topic == "scores" then`);
-        code=code.replace(/return Game\s*$/,`local frame=Game.on_frame
-function Game.on_frame(dt)
- frame(dt)
- local f=Game.frame;local p=f.player;local boss=0
- for i=1,f.balls:length()do if f.balls.actors[i].base_radius>5 then boss=boss+1 end end
- lub.host.send('test.state',table.concat({f.state,p.stored_pos.x,p.stored_pos.y,p.deg,p.shot_cnt,p.dash_cnt,p.stored_is_in_hyper and 1 or 0,f.stored_pause_cnt,p.cnt,f.record.stored_scores[1],boss,p.is_in_replay and 1 or 0,Pad.input,f.grenades:length()},','))
-end
-return Game`);
-        await route.fulfill({response,body:code});
-    });
+    // test commands: 0 bonus, 1 boss, 2 finish
+    async function command(id,value=0){await page.evaluate(payload=>lubHost.queue.push({topic:'test',payload}),`${id},${value}`);}
     async function observe(){
         await page.locator('#status').waitFor({state:'hidden',timeout:60000});
         await page.evaluate(()=>{const onMessage=lubHost.onMessage;lubHost.onMessage=(topic,bytes)=>{if(topic==='test.state')window.gameState=new TextDecoder().decode(bytes).split(',').map(Number);else onMessage(topic,bytes);};});
@@ -59,12 +45,12 @@ return Game`);
     await page.keyboard.down('F1');await page.waitForFunction(()=>gameState[7]>=0);await release('F1');
     const paused=await page.evaluate(()=>gameState[8]);await page.waitForTimeout(350);assert.equal(await page.evaluate(()=>gameState[8]),paused);
     await screenshot('paused');await page.keyboard.down('F1');await page.waitForFunction(()=>gameState[7]<0);await release('F1');
-    await page.evaluate(()=>lubHost.queue.push({topic:'test.bonus',payload:''}));
+    await command(0);
     await page.keyboard.down('z');await page.keyboard.down('c');await page.waitForFunction(()=>gameState[6]===1);
     await page.keyboard.up('z');await release('c');await screenshot('hyper');
-    await page.evaluate(()=>lubHost.queue.push({topic:'test.boss',payload:''}));
+    await command(1);
     await page.waitForFunction(()=>gameState[10]>0);await screenshot('boss');
-    await page.evaluate(()=>lubHost.queue.push({topic:'test.finish',payload:''}));
+    await command(2);
     await page.waitForFunction(()=>gameState[0]===0&&gameState[9]===7654321&&gameState[11]===1);
     await page.waitForFunction(()=>localStorage.getItem('mazer-mayhem-scores-v1')?.startsWith('7654321,'));
     await screenshot('replay');assert.ok(await page.evaluate(()=>audioStarts>0));

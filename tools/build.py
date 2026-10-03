@@ -1,5 +1,6 @@
 import argparse
 import hashlib
+import json
 from pathlib import Path
 import re
 import shutil
@@ -8,6 +9,7 @@ import sys
 import tarfile
 import urllib.request
 import zipfile
+from link_web import link
 
 
 parser = argparse.ArgumentParser()
@@ -16,6 +18,21 @@ parser.add_argument('--tcs', type=Path, required=True)
 parser.add_argument('--emsdk', type=Path, required=True)
 parser.add_argument('--original', type=Path)
 args = parser.parse_args()
+
+
+def compiled(game, target):
+    source = Path('build/web-c') / game
+    subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
+                    '--game', game, '--c', str(source)], check=True)
+    link(args.lub, args.emsdk, source, target / 'wasm')
+    files = []
+    for path in sorted((Path('build') / game / 'images').glob('*.png')):
+        (target / 'images').mkdir(exist_ok=True)
+        shutil.copy2(path, target / 'images' / path.name)
+        files.append('images/' + path.name)
+    (target / 'assets.json').write_text(json.dumps(files), encoding='utf-8')
+
+
 original = args.original
 if original is None:
     cache = Path('.cache')
@@ -33,16 +50,14 @@ dist = Path('dist')
 dist.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_barrage.py', str(original / 'barrage'), 'build/BarrageCode.cs'], check=True)
 subprocess.run([sys.executable, 'tools/compile_data.py', str(original), 'build/GameData.cs'], check=True)
-subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--output', 'dist/game.lua'], check=True)
+compiled('tumiki', dist)
 subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), 'dist/shaders.json', 'shaders/mesh'], check=True)
 for path in Path('web').iterdir():
     shutil.copy2(path, dist / path.name)
 shutil.copytree(original / 'sounds', dist / 'audio', dirs_exist_ok=True)
-(dist / 'wasm').mkdir(exist_ok=True)
-for name in ['lub.js', 'lub.wasm', 'lub.data']:
-    shutil.copy2(args.lub / 'build/wasm' / name, dist / 'wasm' / name)
 licenses = Path('LICENSE').read_text() + '\n\nlub\n---\n' + (args.lub / 'LICENSE').read_text()
 licenses += '\n\n' + (args.lub / 'THIRD_PARTY_LICENSES.md').read_text()
+licenses += '\n\ntcs2c runtime\n---\n' + (args.tcs / 'LICENSE').read_text()
 (dist / 'LICENSE.txt').write_text(licenses)
 archive = Path('.cache/p47_0_21.zip')
 if not archive.exists():
@@ -56,8 +71,7 @@ p47 = Path('.cache/original/p47')
 target = dist / 'parsec47'
 target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_parsec47.py', str(p47)], check=True)
-subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'parsec47',
-                '--output', str(target / 'game.lua')], check=True)
+compiled('parsec47', target)
 shutil.copy2('games/parsec47/index.html', target / 'index.html')
 subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
 shutil.copytree(p47 / 'sounds', target / 'audio', dirs_exist_ok=True)
@@ -73,8 +87,7 @@ gr = Path('.cache/original/gr')
 target = dist / 'gunroar'
 target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_gunroar.py', str(gr)], check=True)
-subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'gunroar',
-                '--output', str(target / 'game.lua')], check=True)
+compiled('gunroar', target)
 shutil.copy2('games/gunroar/index.html', target / 'index.html')
 subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/gunroar/game'], check=True)
 (target / 'audio').mkdir(exist_ok=True)
@@ -93,8 +106,7 @@ ttn = Path('.cache/original/ttn')
 target = dist / 'titanion'
 target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_titanion.py', str(ttn)], check=True)
-subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'titanion',
-                '--output', str(target / 'game.lua')], check=True)
+compiled('titanion', target)
 shutil.copy2('games/titanion/index.html', target / 'index.html')
 subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
 (target / 'audio').mkdir(exist_ok=True)
@@ -113,8 +125,7 @@ a7x = Path('.cache/original/a7xpg')
 target = dist / 'a7xpg'
 target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_a7xpg.py', str(a7x)], check=True)
-subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'a7xpg',
-                '--output', str(target / 'game.lua')], check=True)
+compiled('a7xpg', target)
 subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
 shutil.copy2('games/a7xpg/index.html', target / 'index.html')
 shutil.copytree(a7x / 'sounds', target / 'audio', dirs_exist_ok=True)
@@ -143,8 +154,7 @@ rr = Path('.cache/original/rr')
 target = dist / 'rrootage'
 target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_rrootage.py', str(rr)], check=True)
-subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'rrootage',
-                '--output', str(target / 'game.lua')], check=True)
+compiled('rrootage', target)
 subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'shaders/mesh'], check=True)
 shutil.copy2('games/rrootage/index.html', target / 'index.html')
 shutil.copytree(rr / 'sounds', target / 'audio', dirs_exist_ok=True)
@@ -160,8 +170,7 @@ nr = Path('.cache/original/noiz2sa')
 target = dist / 'noiz2sa'
 target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_noiz2sa.py', str(nr)], check=True)
-subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'noiz2sa',
-                '--output', str(target / 'game.lua')], check=True)
+compiled('noiz2sa', target)
 subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/noiz2sa/game'], check=True)
 shutil.copy2('games/noiz2sa/index.html', target / 'index.html')
 shutil.copytree(nr / 'sounds', target / 'audio', dirs_exist_ok=True)
@@ -177,8 +186,7 @@ wok = Path('.cache/original/wok')
 target = dist / 'wok'
 target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_wok.py', str(wok)], check=True)
-subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'wok',
-                '--output', str(target / 'game.lua')], check=True)
+compiled('wok', target)
 subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/wok/game'], check=True)
 shutil.copy2('games/wok/index.html', target / 'index.html')
 (target / 'audio').mkdir(exist_ok=True)
@@ -199,8 +207,7 @@ mm = Path('.cache/original/Mm/Mm')
 target = dist / 'mazer-mayhem'
 target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_mazer.py', str(mm)], check=True)
-subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'mazer-mayhem',
-                '--output', str(target / 'game.lua')], check=True)
+compiled('mazer-mayhem', target)
 subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/mazer-mayhem/game'], check=True)
 shutil.copy2('games/mazer-mayhem/index.html', target / 'index.html')
 (target / 'audio').mkdir(exist_ok=True)
@@ -221,8 +228,7 @@ gtg = Path('.cache/original/GearToyGear/GearToyGear')
 target = dist / 'gear-toy-gear'
 target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_gear.py', str(gtg)], check=True)
-subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--game', 'gear-toy-gear',
-                '--output', str(target / 'game.lua')], check=True)
+compiled('gear-toy-gear', target)
 subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/gear-toy-gear/game'], check=True)
 shutil.copy2('games/gear-toy-gear/index.html', target / 'index.html')
 (target / 'audio').mkdir(exist_ok=True)

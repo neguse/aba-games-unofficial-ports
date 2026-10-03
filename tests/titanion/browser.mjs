@@ -22,26 +22,7 @@ try {
             }
         };
     });
-    await page.route('**/game.lua', async route => {
-        const response = await route.fetch(); let code = await response.text();
-        assert.match(code, /return Game\s*$/);
-        code = code.replace('if topic == "scores" then', `if topic == "test.finish" then
- local g=Game.manager
- g.game_state.score=7654321; g.game_state.left=0; g.game_state:destroyed_player()
- g:save_last_replay(); g:start_title()
-end
-if topic == "scores" then`);
-        code = code.replace(/return Game\s*$/, `local frame=Game.on_frame
-function Game.on_frame(dt)
- frame(dt)
- local g=Game.manager
- local shots=0
- for _,s in ipairs(g.player_spec.shots.actors) do if s.exists then shots=shots+1 end end
- lub.host.send('test.state',table.concat({g.game_state:is_in_game() and 1 or 0,g.title.cursor_idx,g.game_state:mode_0(),g.player.state.pos.x,shots,g.game_state:paused() and 1 or 0,g.stage.phase_time,g.player_spec.tractor_beam.length,g.player.state.is_invincible and 1 or 0,g.player.state.replay_mode and 1 or 0,g.preference.high_score[3][1],g.player.state.captured_enemy_width},','))
-end
-return Game`);
-        await route.fulfill({ response, body: code });
-    });
+    // BrowserHooks.Command ids: 0 = finish
     async function observe() {
         await page.locator('#status').waitFor({ state: 'hidden', timeout: 45000 });
         await page.evaluate(() => {
@@ -78,7 +59,7 @@ return Game`);
         if (mode < 2) { await press('Escape'); await page.waitForFunction(() => gameState[0] === 0); }
     }
     assert.ok(await page.evaluate(() => audioStarts > 0));
-    await page.evaluate(() => lubHost.queue.push({ topic: 'test.finish', payload: '' }));
+    await page.evaluate(() => lubHost.queue.push({ topic: 'test', payload: '0,0' }));
     await page.waitForFunction(() => localStorage.getItem('titanion-scores-v1')?.includes('7654321') && localStorage.getItem('titanion-replay-v1'));
     await page.reload(); await observe();
     await page.waitForFunction(() => gameState[10] === 7654321 && gameState[1] === 2 && gameState[9] === 1);

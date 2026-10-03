@@ -28,7 +28,7 @@ lines += ['}', 'public void unloadBulletMLs() {}', '}']
 (output / 'BarrageManager.cs').write_text('\n'.join(lines) + '\n')
 pixels = bitmap(args.original / 'images/title.bmp', (128, 128, 24))
 (output / 'TitleImage.cs').write_text('''public static class TitleImage {
-public static DrawImage title = ''' + image('parsec47', pixels, 128, 128, False) + ''';
+public static DrawImage title = ''' + image(output, 'parsec47', pixels, 128, 128, False) + ''';
 }
 ''')
 print(f'Compiled {len(compiler.patterns)} PARSEC47 patterns and title image')

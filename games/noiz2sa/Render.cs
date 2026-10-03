@@ -1,7 +1,7 @@
+using System;
 using System.Collections.Generic;
 using static Lub;
 public static class NrRender {
-    static List<int> tablePixels,spritePixels;
     static PixelLayer decay,smoke,blend,present;
     static bool initialized;
     static int version,ping;
@@ -9,7 +9,7 @@ public static class NrRender {
     static TextureRef tables,sprites;
     static int drawIndex;
     public static void Init(){
-        tablePixels=NrData.tablePixels();spritePixels=NrData.spritePixels();
+        
         decay=new PixelLayer(320);decay.Rect(0,0,320,480,0,0,320,480,1);
         smoke=new PixelLayer(320);smoke.Rect(0,0,320,480,0,0,320,480,2);
         blend=new PixelLayer(320);blend.Rect(0,0,320,480,0,0,320,480,3);
@@ -22,10 +22,15 @@ public static class NrRender {
         Gfx.Draw(layer.rectangles.Count/12*6,new Dictionary<string,object>{["rectangles"]=buffer,["first"]=first,["second"]=second,["third"]=third,["tables"]=tables,["sprites"]=sprites},new DrawOpts{Shader=shader,Blend=Gfx.Blend.None,Depth=false,DepthWrite=false,Cull=Gfx.Cull.None});
     }
     static void Paint(PixelLayer layer){Draw(layer,tables,tables,tables);}
+    // Draws into the frame's layers just before they are composed; the browser test paints its palette swatches here.
+    public static Action overlay;
     public static void Frame(){
+        if(overlay!=null)overlay();
         shader=Gfx.UseShader("noiz2sa",GameShaders.vertex,GameShaders.fragment,1);
-        tables=Gfx.UseTexture("tables",256,260,Gfx.PixelFormat.Rgba8,tablePixels,1);
-        sprites=Gfx.UseTexture("sprites",40,280,Gfx.PixelFormat.Rgba8,spritePixels,1);
+        Png.Load("images/tables.png",out var tablePixels,out _,out _,out _,out _,out int tableVersion,out _,out _);
+        Png.Load("images/sprites.png",out var spritePixels,out _,out _,out _,out _,out int spriteVersion,out _,out _);
+        tables=tablePixels==null?null:Gfx.UseTextureBytes("tables",256,260,Gfx.PixelFormat.Rgba8,tablePixels,tableVersion);
+        sprites=spritePixels==null?null:Gfx.UseTextureBytes("sprites",40,280,Gfx.PixelFormat.Rgba8,spritePixels,spriteVersion);
         if(shader==null||tables==null||sprites==null)return;
         var targets=new List<TextureRef>();
         for(int i=0;i<7;i++){
