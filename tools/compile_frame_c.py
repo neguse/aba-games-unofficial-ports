@@ -6,7 +6,8 @@ import subprocess
 
 # Games whose C# sources are listed by their Frame project and shared by every runtime.
 projects = {'torus-trooper': 'games/torus-trooper/frame/TorusTrooper.csproj',
-            'gear-toy-gear': 'games/gear-toy-gear/frame/GearToyGear.csproj'}
+            'gear-toy-gear': 'games/gear-toy-gear/frame/GearToyGear.csproj',
+            'mazer-mayhem': 'games/mazer-mayhem/frame/MazerMayhem.csproj'}
 
 
 def compile_game(lub, tcs, game, output, extra=()):

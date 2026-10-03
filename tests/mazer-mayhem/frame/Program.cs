@@ -1,7 +1,7 @@
 using System.Reflection;
 
-static T Field<T>(object obj, string name) => (T)obj.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(obj);
-static void Set(object obj, string name, object value) => obj.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(obj, value);
+static T Field<T>(object obj, string name) => (T)obj.GetType().GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).GetValue(obj);
+static void Set(object obj, string name, object value) => obj.GetType().GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).SetValue(obj, value);
 static void Near(float actual, float expected, float tolerance, string name)
 {
     if (!float.IsFinite(actual) || Math.Abs(actual - expected) > tolerance)
@@ -41,6 +41,8 @@ try
     if (!pad.ButtonA || pad.ButtonBack) throw new Exception("fire/back mapping");
     Pad.Read(null, new XrInput { Active = true, Secondary = true, Menu = true }, true);
     if (!pad.ButtonBack || !pad.ButtonStart || pad.ButtonA) throw new Exception("pause mapping");
+    Pad.Read(new XrInput { Active = true, Primary = true }, null);
+    if (!pad.ButtonStart || pad.ButtonA || pad.ButtonBack) throw new Exception("X pause mapping");
     Pad.Read(null, null);
     Near(pad.ThumbStickLeft.Length(), 0, 0, "disconnected stick");
     var particleFrame = new MmFrame(); particleFrame.LoadContent();
@@ -144,7 +146,7 @@ try
         Pad.Read(new XrInput { Active = true, Trigger = 1 }, new XrInput { Active = true, Trigger = 1 });
         foreach (float dt in Schedule(hz, .1)) frame.Advance(dt);
         if (!player.IsInHyper) throw new Exception("both-trigger hyper failed");
-        Set(player, "left", 0); typeof(Player).GetMethod("Destroy", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(player, null); Pad.Read(null, null);
+        Set(player, "left", 0); typeof(Player).GetMethod("Destroy", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(player, null); Pad.Read(null, null);
         foreach (float dt in Schedule(hz, 11)) frame.Advance(dt);
         if (frame.IsInGame) throw new Exception("gameover did not return to title");
         Pad.Read(null, new XrInput { Active = true, Primary = true }); frame.Advance(1f / 60);

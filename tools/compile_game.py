@@ -85,15 +85,10 @@ if args.game in ['gear-toy-gear', 'torus-trooper']:
     sources.append(Path('game/SimulationTime.cs'))
 
 if args.frame:
-    if args.game not in ['torus-trooper', 'mazer-mayhem']:
-        parser.error('--frame requires torus-trooper or mazer-mayhem')
-    excluded = ['Render.cs', 'Pad.cs'] if args.game == 'mazer-mayhem' else []
-    sources = [p for p in sources if p.parent != Path('games') / args.game or p.name not in excluded]
-    if args.game == 'torus-trooper': sources.append(Path('games/frame/FrameMath.cs'))
-    sources += [p for p in sorted((Path('games') / args.game / 'frame').glob('*.cs')) if p.name != 'Program.cs']
-    if args.entry == 'Game' and args.game == 'mazer-mayhem':
-        args.entry = 'FrameApp'
-elif args.game != 'gear-toy-gear':
+    if args.game != 'torus-trooper':
+        parser.error('--frame requires torus-trooper')
+    sources.append(Path('games/frame/FrameMath.cs'))
+elif args.game not in ['gear-toy-gear', 'mazer-mayhem']:
     shader_source = 'public static class GameShaders {\n'
     for name, stage in [('vertex', 'vs'), ('fragment', 'fs')]:
         prefix = 'shaders/mesh' if args.game in ['titanion', 'parsec47', 'tumiki', 'torus-trooper', 'a7xpg', 'rrootage', 'mu-cade'] else f'games/{args.game}/game'
@@ -101,7 +96,7 @@ elif args.game != 'gear-toy-gear':
     shader_source += '}\n'
     Path('build/Shaders.cs').write_text(shader_source)
     sources.append(Path('build/Shaders.cs'))
-if args.frame or args.game in ['torus-trooper', 'gear-toy-gear']:
+if args.game in ['torus-trooper', 'gear-toy-gear', 'mazer-mayhem']:
     sources.insert(0, args.lub / 'cs-lib/lubx/XrAnchor.cs')
 if args.test:
     sources.append(args.test)

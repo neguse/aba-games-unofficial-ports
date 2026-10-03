@@ -206,16 +206,8 @@ mm = Path('.cache/original/Mm/Mm')
 target = dist / 'mazer-mayhem'
 target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_mazer.py', str(mm)], check=True)
-compiled('mazer-mayhem', target)
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/mazer-mayhem/game'], check=True)
-shutil.copy2('games/mazer-mayhem/index.html', target / 'index.html')
-(target / 'audio').mkdir(exist_ok=True)
-for path in (mm / 'Content/Audio').glob('*.wav'):
-    # Mm.xap: each cue is -12 dB, with +5 dB for the Music category.
-    gain = '-7dB' if path.stem in ['Mm1', 'Mm2', 'Mm3'] else '-12dB'
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(path), '-af', f'volume={gain}',
-                    '-c:a', 'pcm_s16le', str(target / 'audio' / path.name)], check=True)
-(target / 'LICENSE.txt').write_text(Path('games/mazer-mayhem/LICENSE.txt').read_text() + '\n\n' + licenses)
+subprocess.run([sys.executable, 'tools/compile_frame_web.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
+                '--emsdk', str(args.emsdk), '--game', 'mazer-mayhem', '--original', str(mm), '--output', str(target)], check=True)
 archive = Path('.cache/GearToyGear0_1.zip')
 if not archive.exists():
     urllib.request.urlretrieve('https://abagames.sakura.ne.jp/xna/gtg/GearToyGear0_1.zip', archive)

@@ -32,6 +32,15 @@ def gear_audio(original, output):
     return [path.name for path in paths]
 
 
+def mazer_audio(original, output):
+    paths = list((original / 'Content/Audio').glob('*.wav'))
+    for path in paths:
+        # Mm.xap: each cue is -12 dB, with +5 dB for the Music category.
+        gain = '-7dB' if path.stem in ['Mm1', 'Mm2', 'Mm3'] else '-12dB'
+        convert(path, output / path.name, '-af', f'volume={gain}')
+    return [path.name for path in paths]
+
+
 # shaders: the arguments of compile_shaders.mjs. test: the observation host and the C# it calls.
 games = {
     'torus-trooper': dict(
@@ -45,6 +54,11 @@ games = {
         audio=gear_audio,
         license=lambda original: (root / 'games/gear-toy-gear/LICENSE.txt').read_text(),
         test=('tests/web-host.c', ['tests/gear-toy-gear/BrowserHooks.cs'])),
+    'mazer-mayhem': dict(
+        shaders=['games/mazer-mayhem/game', 'games/frame/scene.output.slang'],
+        audio=mazer_audio,
+        license=lambda original: (root / 'games/mazer-mayhem/LICENSE.txt').read_text(),
+        test=('tests/web-host.c', ['tests/mazer-mayhem/BrowserHooks.cs'])),
 }
 
 parser = argparse.ArgumentParser()

@@ -10,11 +10,11 @@
   <ItemGroup>
     <ProjectReference Include="$(LubRoot)/dotnet/Lub/Lub.csproj" />
     <ProjectReference Include="$(LubRoot)/third_party/tcs/TinySystem/TinySystem.csproj" />
-    <Compile Include="../*.cs" Exclude="../Render.cs;../Pad.cs" />
+    <Compile Include="../*.cs" />
     <Compile Include="$(LubRoot)/cs-lib/lubx/XrAnchor.cs" Link="lubx/XrAnchor.cs" />
     <Compile Include="../../../game/SimulationTime.cs" />
     <Compile Include="../../../game/PatternNumber.cs;../../../build/mazer-mayhem/Data.cs" />
-    <Content Include="game.vs.slang;game.fs.slang" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
+    <Content Include="../game.vs.slang;../game.fs.slang" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
     <Content Include="../../frame/scene.output.slang" CopyToOutputDirectory="PreserveNewest" Link="scene.output.slang" />
     <Content Include="../LICENSE.txt" CopyToOutputDirectory="PreserveNewest" Link="LICENSE.txt" />
     <Content Include="run.sh" CopyToOutputDirectory="PreserveNewest" />

@@ -1,63 +1,44 @@
-using System;
+global using Host = FrameHost;
 using static Lub;
 
 public static class Game
 {
     public static MmFrame frame;
-    public static bool VariableTime;
-    static float elapsed;
+    static readonly XrView desktop = new();
     public static void OnInit()
     {
         Config(new ConfigOpts { Width = 640, Height = 480 });
         frame = new MmFrame();
         frame.LoadContent();
-        if (Host.Available())
-        {
-            Host.Send("scores.load", "");
-            Host.Send("ready", "");
-        }
+        FrameHost.Load();
     }
 
     public static void OnFrame(float dt)
+        => DrawInput(dt, Xr.Input(0), Xr.Input(1), Xr.Focused());
+
+    public static void DrawInput(float dt, XrInput leftHand, XrInput rightHand, bool focused)
     {
-        while (Host.Available())
+        FrameHost.Begin();
+        var left = Xr.View(0, .05f, 100);
+        var right = Xr.View(1, .05f, 100);
+        bool immersive = Xr.Active();
+        if (immersive)
         {
-            Lub.Host.Poll(out string topic, out string payload);
-            if (topic == null)
-                break;
-            if (topic == "input")
-            {
-                int value = GameMath.parseNonnegative(payload);
-                if (value >= 0 && value < 512)
-                    Pad.input = value;
-            }
-
-            if (topic == "seed")
-            {
-                int value = GameMath.parseNonnegative(payload);
-                if (value >= 0)
-                    frame.Seed(value);
-            }
-
-            if (topic == "scores")
-                frame.LoadScores(payload);
+            if (left == null || right == null) return;
+            Pad.Read(leftHand, rightHand, frame.IsInGame && frame.PauseCnt >= 0);
         }
-
-        if (VariableTime)
+        else
         {
-            frame.Advance(dt);
-            frame.Render();
-            return;
+            Gfx.Size(out int width, out int height);
+            desktop.Width = width; desktop.Height = height;
+            left = desktop; right = null; focused = true;
+            Pad.ReadDesktop();
         }
-
-        elapsed += Math.Min(dt, 0.1f);
-        while (elapsed >= frame.Interval())
-        {
-            elapsed -= frame.Interval();
-            frame.Update();
-        }
-
+        if (focused) frame.Advance(dt);
+        MmRender.Immersive = immersive;
         frame.Render();
+        MmRender.Present(left, right);
+        FrameHost.End(focused);
     }
 
     public static void OnQuit()

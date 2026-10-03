@@ -36,8 +36,9 @@ public static class BrowserHooks
                 boss++;
         }
 
-        Host.Send("test.state", (int)f.state + "," + p.storedPos.X + "," + p.storedPos.Y + "," + p.deg + "," + p.shotCnt + "," + p.dashCnt + ","
+        Lub.Host.Send("test.state", (int)f.state + "," + p.storedPos.X + "," + p.storedPos.Y + "," + p.deg + "," + p.shotCnt + "," + p.dashCnt + ","
             + (p.storedIsInHyper ? 1 : 0) + "," + f.storedPauseCnt + "," + p.cnt + "," + f.record.Scores[0] + "," + boss + ","
-            + (p.isInReplay ? 1 : 0) + "," + Pad.input + "," + f.grenades.Length());
+            + (p.isInReplay ? 1 : 0) + "," + Pad.input + "," + f.grenades.Length() + ","
+            + (Xr.Active() ? 1 : 0) + "," + (Xr.Focused() ? 1 : 0));
     }
 }

@@ -11,10 +11,6 @@ try {
     await mkdir('build/screenshots',{recursive:true});
     const page=await browser.newPage({viewport:{width:960,height:960}});
     page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
-    await page.addInitScript(()=>{
-        window.audioStarts=0;const Native=window.AudioContext;
-        window.AudioContext=class extends Native {createBufferSource(){const source=super.createBufferSource(),start=source.start.bind(source);source.start=(...a)=>{window.audioStarts++;return start(...a);};return source;}};
-    });
     // test commands: 0 bonus, 1 boss, 2 finish
     async function command(id,value=0){await page.evaluate(payload=>lubHost.queue.push({topic:'test',payload}),`${id},${value}`);}
     async function observe(){
@@ -53,8 +49,11 @@ try {
     await command(2);
     await page.waitForFunction(()=>gameState[0]===0&&gameState[9]===7654321&&gameState[11]===1);
     await page.waitForFunction(()=>localStorage.getItem('mazer-mayhem-scores-v1')?.startsWith('7654321,'));
-    await screenshot('replay');assert.ok(await page.evaluate(()=>audioStarts>0));
+    await screenshot('replay');assert.ok(await page.evaluate(()=>window.miniaudio?.devices.some(device=>device?.webaudio.state==='running')));
     await page.reload();await observe();await page.waitForFunction(()=>gameState[9]===7654321);
+    // A ranking stored by the earlier page, which kept the same text under the same key.
+    await page.evaluate(()=>localStorage.setItem('mazer-mayhem-scores-v1','8000000,900000,800000,700000,600000,500000,400000,300000,200000,100000'));
+    await page.reload();await observe();await page.waitForFunction(()=>gameState[9]===8000000);
     await page.keyboard.down('F1');await page.waitForFunction(()=>gameState[0]===1);await release('F1');
     await page.keyboard.down('Escape');await page.waitForFunction(()=>gameState[0]===0);await release('Escape');
     const count=await page.evaluate(async()=>{
@@ -64,5 +63,5 @@ try {
         await audio.close();return names.length;
     });
     assert.equal(count,14);assert.deepEqual(errors,[]);
-    console.log('PASS: movement, turn, shots/dash/grenade, pause, hyper, boss rendering, replay, 14 audio decodes and ranking reload');
+    console.log('PASS: movement, turn, shots/dash/grenade, pause, hyper, boss rendering, replay, audio, 14 audio decodes and ranking reload');
 }finally{await browser.close();}

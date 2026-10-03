@@ -5,7 +5,7 @@ using static Lub;
 public static class FrameHost
 {
     static readonly string[] names = new string[] { "Bonus", "BurstBig", "BurstSmall", "Dash", "Extend", "Grenade", "Hit", "HyperStart", "PlayerDestroyed", "Shot", "ShotHyper", "Mm1", "Mm2", "Mm3" };
-    static readonly int[] sounds = new int[14];
+    static readonly int[] sounds = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     static readonly string savePath = (Environment.GetEnvironmentVariable("XDG_DATA_HOME") ??
         Environment.GetEnvironmentVariable("HOME") + "/.local/share") + "/mazer-mayhem/scores.txt";
     static int music = -1;
@@ -15,6 +15,12 @@ public static class FrameHost
     static bool audioStarted;
 
     public static bool Available() => true;
+    public static void Load()
+    {
+        Game.frame.Seed(TinySystem.Random.Shared.Next());
+        Io.LoadText(savePath, out var scores, out _, out _, out _);
+        if (scores != null) Game.frame.LoadScores(scores);
+    }
     public static void Begin()
     {
         for (int i = 0; i < names.Length; i++)
@@ -51,17 +57,9 @@ public static class FrameHost
     {
         switch (topic)
         {
-            case "ready":
-                Game.frame.Seed(TinySystem.Random.Shared.Next());
-                break;
-            case "scores.load":
-                Io.LoadText(savePath, out var scores, out _, out _, out _);
-                if (scores != null) Game.frame.LoadScores(scores);
-                break;
             case "scores.save":
                 Io.SaveText(savePath, payload);
                 break;
-            case "quit": Lub.Quit(); break;
             case "music.loop": music = 11 + int.Parse(payload); musicVolume = 1; break;
             case "music.stop": music = -1; break;
             case "music.volume": musicVolume = float.Parse(payload); break;

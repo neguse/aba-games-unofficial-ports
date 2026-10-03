@@ -527,8 +527,11 @@ public class MmFrame
     public void Exit()
     {
         MmPreference.Save(record);
-        if (Host.Available())
-            Host.Send("quit", "");
+        // A page takes the player back to its game list; elsewhere leaving the title ends the game.
+        if (Lub.Host.Available())
+            Lub.Host.Send("quit", "");
+        else
+            Lub.Quit();
     }
 
     public float Interval()
@@ -540,9 +543,8 @@ public class MmFrame
     {
         Technique = "BlurLightingTech";
         DepthEnabled = true;
-        MmRender.Begin(this);
+        MmRender.Begin();
         Draw();
-        MmRender.End();
     }
 
     public void Seed(int seed)

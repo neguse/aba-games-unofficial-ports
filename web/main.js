@@ -117,12 +117,6 @@ function stopSound(channel) {
     channels.delete(channel);
 }
 async function playSound(index) {
-    if (config.soundOverlap) {
-        const decoded = await buffer(soundNames[index], 'wav');
-        const source = audio.createBufferSource(); source.buffer = decoded;
-        source.connect(volume); source.start();
-        return;
-    }
     const channel = soundChannels[index];
     stopSound(channel);
     const version = soundVersions.get(channel);
@@ -158,7 +152,6 @@ window.lubHost = { queue, onMessage(topic, bytes) {
     if (topic === 'music.loop' || topic === 'music.once') playMusic(Number(text), topic === 'music.loop').catch(fail);
     if (topic === 'music.stop') stopMusic();
     if (topic === 'music.fade') stopMusic(true);
-    if (topic === 'music.volume' && music) musicGain.gain.value = Math.max(0, Math.min(1, Number(text)));
     if (topic === 'sound.play') playSound(Number(text)).catch(fail);
     if (topic === 'sound.stop') stopSound(soundChannels[Number(text)]);
 } };

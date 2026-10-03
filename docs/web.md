@@ -139,6 +139,7 @@ Xを押すとダッシュとグレネード、ZとCを同時に押し続ける�
 F1でポーズ、Escでタイトルへ戻る。
 44文字の形状と迷路XMLをビルド時に変換し、原作の立体・残像・反射と14音源を使う。
 ランキング10件をブラウザへ保存し、タイトルでは直前のプレイを再生する。
+WebXR対応ブラウザでは「VRで遊ぶ」で没入表示に切り替わり、Steam Frame版と同じコントローラー操作になる。
 ゲームパッドと右スティックによる視点変更は対象外。
 
 ## GearToyGear
@@ -193,7 +194,7 @@ Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで上記
 展開済みの原作を使う場合は`--original /path/to/tf`を指定する。
 
 lubは`78d71c5d84dd507de26d8e281863d77c1647fc48`に固定し、
-Torus TrooperとGearToyGearはネイティブ版と同じC#・描画・操作・シェーダーを使う。
+Torus Trooper・GearToyGear・Mazer Mayhemはネイティブ版と同じC#・描画・操作・シェーダーを使う。
 `tools/compile_frame_web.py`が各ゲームの`frame/*.csproj`のソース一覧をtcs2cでCへ変換し、
 Wasmを`<ゲーム>/wasm/`へ配置する。入力・音・保存はLubのAPIを直接使い、保存ファイルを`localStorage`へ写す。
 OpenXRとWebXRの接続の差はLubが扱う。
@@ -249,13 +250,14 @@ node tests/mu-cade/browser.mjs
 
 開始・移動・収納・ポーズ、各面の描画、音源のデコードと再生、ランキングの再読込を確認する。
 テスト内でLuaに観測処理と面・ゲームオーバーへの遷移を挿入する。
-Torus TrooperとGearToyGearのブラウザテストは、`tools/compile_frame_web.py`に同じ依存引数と
+Torus Trooper・GearToyGear・Mazer Mayhemのブラウザテストは、`tools/compile_frame_web.py`に同じ依存引数と
 `--game torus-trooper --original .cache/original/tt --test --output build/web-test/torus-trooper`
 （GearToyGearは`--game gear-toy-gear --original .cache/original/GearToyGear/GearToyGear`と
-`build/web-test/gear-toy-gear`）を渡してビルドし、`build/web-test/`で実行する。
-観測用ホストは通常ビルドに含めない。同じビルドで`tests/torus-trooper/webxr.mjs`と
-`tests/gear-toy-gear/webxr.mjs`を実行し、模擬XRセッションで両眼の描画・コントローラー操作・
-フォーカス・終了と再開を確認する。
+`build/web-test/gear-toy-gear`、Mazer Mayhemは`--game mazer-mayhem --original .cache/original/Mm/Mm`と
+`build/web-test/mazer-mayhem`）を渡してビルドし、`build/web-test/`で実行する。
+観測用ホストは通常ビルドに含めない。同じビルドで`tests/torus-trooper/webxr.mjs`・
+`tests/gear-toy-gear/webxr.mjs`・`tests/mazer-mayhem/webxr.mjs`を実行し、
+模擬XRセッションで両眼の描画・コントローラー操作・フォーカス・終了と再開を確認する。
 PARSEC47はROLL／LOCKの操作・進行・描画、15音源とモード別保存を検証する。
 ゲーム進行テストは両モード×4難易度でボスを経てPARSEC 12まで進め、
 特殊攻撃・得点・被弾・ポーズ・意図的な処理落ちも確認する。
@@ -275,7 +277,7 @@ Noiz2saは通常10面のボス・クリアと4種のエンドレス、原作Cの
 Wokは原作Cとの球・鍋の軌道と6種の発生装置の比較、連続得点・ミス・音楽切替、
 ポインターロック・再開、5音源とハイスコアの再読込を検証する。
 Mazer Mayhemは原作C#の3,000更新のゲーム進行と1,200更新の物理、
-ハイパー・ボス・リプレイ・ポーズ、14音源とランキングの再読込を検証する。
+ハイパー・ボス・リプレイ・ポーズ、14音源とランキングの再読込、WebXRの両眼描画と操作を検証する。
 GearToyGearは原作C#の3,000更新の進行、2回のボス区間・9種の障害物、
 加減速・リプレイ・ポーズ、位置音・11音源とランキングの再読込、WebXRの両眼描画と操作を検証する。
 Mu-cadeは移動・照準固定・尾の連結と切断、3種×3サイズの敵、残機と倍率、

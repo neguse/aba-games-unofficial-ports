@@ -10,6 +10,7 @@ static class RenderingTests
         var depth = Gfx.UseTexture("mm-depth-test", 16, 16, Gfx.PixelFormat.Depth24Stencil8, null, 1, new TextureOpts { Target = true });
         var data = new List<float>(new float[88]);
         foreach (int offset in new[] { 0,16,32,48 }) for (int i = 0; i < 4; i++) data[offset+i*5] = 1;
+        data[87] = 1;
         var bindings = new Dictionary<string, object> {
             ["parameters"] = Gfx.UseBuffer("mm-test-parameters", Gfx.BufferType.Storage, data, 1),
             ["eye"] = Gfx.UseBuffer("mm-test-eye", Gfx.BufferType.Storage, new List<float>(Matrix.Identity.M), 1)

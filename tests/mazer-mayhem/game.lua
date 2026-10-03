@@ -1,4 +1,5 @@
-lub={host={available=function() return false end}}
+local saved
+lub={host={available=function()return false end},gfx={},audio={},io={save_text=function(path,text)saved=text end}}
 dofile(arg[1])
 local function near(a,b,tolerance,label)
  assert(math.abs(a-b)<=tolerance, (label or '')..': '..tostring(a)..' != '..tostring(b))
@@ -137,14 +138,16 @@ assert(f.stage.appearance_wait_cnt==180 and f.stage.appearance_cnt_dec==10)
 p.score=7654321;p.left=0;p:destroy();assert(p.gameover_cnt==1 and p.left==-1)
 tick(f,0,601)
 assert(f.state==0 and f.record.stored_scores[1]==7654321 and p.is_in_replay)
+assert(saved:sub(1,8)=='7654321,')
 local scores='7654321,1000000,900000,800000,700000,600000,500000,400000,300000,200000'
 local record=Record.new();record:load();MmPreference.load(record,scores)
 assert(record.stored_scores[1]==7654321 and record.stored_scores[10]==200000)
 MmPreference.load(record,'1,2,3,4,5,6,7,8,9,10');assert(record.stored_scores[1]==7654321)
-local events={};lub.host.available=function()return true end;lub.host.send=function(topic,value)events[#events+1]={topic,value}end
-local sound=Sound.new();sound:play_bgm('Mm1');sound:fadeout_bgm()
-for i=1,120 do sound:update()end
-assert(#events==123 and events[3][1]=='music.volume' and events[123][1]=='music.stop')
-near(tonumber(events[62][2]),.5,.0001,'fade midpoint')
+local sound=Sound.new();sound:play_bgm('Mm1');assert(FrameHost.music==11 and FrameHost.music_volume==1)
+sound:fadeout_bgm()
+for i=1,60 do sound:update()end
+near(FrameHost.music_volume,.5,.0001,'fade midpoint');assert(FrameHost.music==11)
+for i=1,60 do sound:update()end
+assert(FrameHost.music==-1)
 print('PASS replay, hyper, extends, pause, dash, boss progression, game over, scores and 120-update music fade')
 print('RESULT 0')
