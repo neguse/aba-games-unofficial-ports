@@ -193,7 +193,7 @@ Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで上記
 原作アーカイブのSHA-256はビルド時に照合する。
 展開済みの原作を使う場合は`--original /path/to/tf`を指定する。
 
-lubは`78d71c5d84dd507de26d8e281863d77c1647fc48`に固定し、
+lubは`ec65d1914cd8ddf23a7a092a0a7a1b12565848b9`に固定し、
 Torus Trooper・GearToyGear・Mazer Mayhemはネイティブ版と同じC#・描画・操作・シェーダーを使う。
 `tools/compile_frame_web.py`が各ゲームの`frame/*.csproj`のソース一覧をtcs2cでCへ変換し、
 Wasmを`<ゲーム>/wasm/`へ配置する。入力・音・保存はLubのAPIを直接使い、保存ファイルを`localStorage`へ写す。
