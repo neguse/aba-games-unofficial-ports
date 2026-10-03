@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: neguse/lub
-          ref: 9e85d32b635d0c6b458fc52516f538c96e1a3a15
+          ref: 78d71c5d84dd507de26d8e281863d77c1647fc48
           submodules: recursive
           path: .cache/lub
           persist-credentials: false

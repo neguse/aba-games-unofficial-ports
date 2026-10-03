@@ -59,7 +59,7 @@ Frame 版の開発ブランチは
 
 | 依存 | 使用コミット／バージョン |
 | --- | --- |
-| Lub | [`9e85d32b635d0c6b458fc52516f538c96e1a3a15`](https://github.com/neguse/lub/tree/9e85d32b635d0c6b458fc52516f538c96e1a3a15) |
+| Lub | [`78d71c5d84dd507de26d8e281863d77c1647fc48`](https://github.com/neguse/lub/tree/78d71c5d84dd507de26d8e281863d77c1647fc48) |
 | tcs | [`e2c95d4b0ea69b25de5807da99c17462752330b2`](https://github.com/neguse/tcs/tree/e2c95d4b0ea69b25de5807da99c17462752330b2)（Lub のサブモジュール） |
 | .NET SDK | 10 |
 | Slang | 2026.8.1 Linux ARM64 公式バイナリ |
@@ -75,7 +75,7 @@ CMake、Ninja、Vulkan 開発ライブラリ、zip を使用する。
 
 ```sh
 git clone https://github.com/neguse/lub.git ../lub-frame
-git -C ../lub-frame checkout --detach 9e85d32b635d0c6b458fc52516f538c96e1a3a15
+git -C ../lub-frame checkout --detach 78d71c5d84dd507de26d8e281863d77c1647fc48
 git -C ../lub-frame submodule update --init --recursive
 dotnet build ../lub-frame/third_party/tcs/Transpiler/Transpiler.csproj -c Release
 (
