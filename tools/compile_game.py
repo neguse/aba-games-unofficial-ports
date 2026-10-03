@@ -100,7 +100,7 @@ else:
     Path('build/Shaders.cs').write_text(shader_source)
     sources.append(Path('build/Shaders.cs'))
 if args.frame or args.game == 'torus-trooper':
-    sources.append(args.lub / 'cs-lib/lubx/XrAnchor.cs')
+    sources.insert(0, args.lub / 'cs-lib/lubx/XrAnchor.cs')
 if args.test:
     sources.append(args.test)
 compiler = args.lub / 'third_party/tcs/Transpiler/bin/Release/net10.0/Transpiler.dll'
