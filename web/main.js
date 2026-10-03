@@ -189,34 +189,21 @@ async function boot() {
     const device = await adapter.requestDevice({ requiredFeatures });
     device.addEventListener('uncapturederror', event => fail(event.error));
     device.lost.then(info => fail(new Error(`描画が停止しました。ページを再読み込みしてください。 ${info.message}`)));
-    const [codeResponse, shadersResponse] = await Promise.all([config.compiled ? null : fetch('game.lua'), fetch('shaders.json')]);
-    if ((!config.compiled && !codeResponse.ok) || !shadersResponse.ok) throw new Error('ゲームデータを読み込めませんでした。');
-    const code = codeResponse ? await codeResponse.text() : null;
+    const shadersResponse = await fetch('shaders.json');
+    if (!shadersResponse.ok) throw new Error('ゲームデータを読み込めませんでした。');
     const shaders = await shadersResponse.json();
     window.slangCompile = async (source, entry) => (Array.isArray(shaders)
         ? shaders.find(shader => shader.entry === entry && source.replaceAll('\r', '').endsWith(shader.source.replaceAll('\r', '')))
         : shaders[entry]) || { error: `Unknown shader: ${entry}` };
-    compiled = config.compiled ? await import('./compiled.js') : null;
-    const files = compiled ? await compiled.assets() : null;
+    compiled = await import('./compiled.js');
+    const files = await compiled.assets();
     window._canvasWidth = 640; window._canvasHeight = 480;
     const module = {
         canvas, preinitializedWebGPUDevice: device, webgpuAdapter: adapter,
         locateFile: path => `${config.wasm || "wasm/"}${path}`,
-        arguments: ['game.lua'],
         print: text => console.log(text),
         printErr: text => /error|failed|abort|fault/i.test(text) ? fail(new Error(text)) : console.info(text),
-        preRun: compiled ? [() => compiled.prepare(module, files, config.saves || [])] : [() => {
-            module.addRunDependency('game-files');
-            const remove = module.removeRunDependency;
-            module.removeRunDependency = function(id) {
-                remove.call(module, id);
-                if (id === 'datafile_lub.data') {
-                    module.FS.writeFile('game.lua', code);
-                    module.removeRunDependency = remove;
-                    remove.call(module, 'game-files');
-                }
-            };
-        }],
+        preRun: [() => compiled.prepare(module, files, config.saves || [])],
     };
     if (direct) module.onRuntimeInitialized = () => {
         xr?.ready(); status.hidden = true;

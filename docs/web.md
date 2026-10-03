@@ -188,17 +188,20 @@ python3 -m http.server 8765 --directory dist --bind 127.0.0.1
 
 `http://127.0.0.1:8765`を開く。WebGPUにはlocalhostまたはHTTPSが必要。
 PARSEC47は`http://127.0.0.1:8765/parsec47/`、Gunroarは`http://127.0.0.1:8765/gunroar/`を開く。
-Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで上記の12作品を生成する。
+Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで全作品を生成する。
 依存物と原作アーカイブは`.cache/`、生成コードは`build/`、配布物は`dist/`に置く。
 原作アーカイブのSHA-256はビルド時に照合する。
 展開済みの原作を使う場合は`--original /path/to/tf`を指定する。
 
-lubは`ec65d1914cd8ddf23a7a092a0a7a1b12565848b9`に固定し、
+lubは`ec65d1914cd8ddf23a7a092a0a7a1b12565848b9`に固定する。
+全作品をtcs2cでCへ変換し、lubとリンクしたWasmを作品ごとの`wasm/`へ配置する。
+画像は`build/<作品>/images/`にPNGで書き出し、`assets.json`に列挙して実行時に`Png.Load`で読む。
 Torus Trooper・GearToyGear・Mazer Mayhemはネイティブ版と同じC#・描画・操作・シェーダーを使う。
 `tools/compile_frame_web.py`が各ゲームの`frame/*.csproj`のソース一覧をtcs2cでCへ変換し、
 Wasmを`<ゲーム>/wasm/`へ配置する。入力・音・保存はLubのAPIを直接使い、保存ファイルを`localStorage`へ写す。
 OpenXRとWebXRの接続の差はLubが扱う。
-ほかのゲームのTCSとLuaはlubのサブモジュール、Slangは`v2026.8.1`を使用する。
+ほかのゲームはページとホストメッセージで入力・音・保存をやり取りする。
+tcsはlubのサブモジュール、Slangは`v2026.8.1`を使用する。
 シェーダーもビルド時に変換するため、ブラウザにはSlangやBulletMLの解析器を配布しない。
 
 ## 検証
@@ -229,12 +232,16 @@ python3 tests/check_game.py --lub .cache/lub --game mu-cade
 ゲームの検証は部品の取得・接続・収納・反撃・切断・得点・難易度変化、敵の部分破壊、コンティニューと、
 自動操作・無敵状態での全5面からエンディングへの進行を確認する。
 
-ブラウザ検証にはPlaywrightを使用する。ローカル配信を起動した状態で実行する。
+`check_game.py`は同じC#をLuaへ変換して実行するゲームロジックの検証で、配布物には含めない。
+
+ブラウザ検証にはPlaywrightを使用する。観測用のビルドを`build/web-test/`に作り、それを配信して実行する。
 
 ```sh
 npm install --prefix .cache/browser --no-save playwright@1.60.0
 .cache/browser/node_modules/.bin/playwright install chromium
-node tests/browser.mjs
+python3 tools/build_web_test.py --lub .cache/lub --tcs .cache/lub/third_party/tcs --emsdk /path/to/emsdk --game tumiki
+python3 -m http.server 8766 --directory build/web-test --bind 127.0.0.1
+node tests/browser.mjs http://127.0.0.1:8766
 node tests/parsec47/browser.mjs
 node tests/gunroar/browser.mjs
 node tests/titanion/browser.mjs
@@ -249,7 +256,8 @@ node tests/mu-cade/browser.mjs
 ```
 
 開始・移動・収納・ポーズ、各面の描画、音源のデコードと再生、ランキングの再読込を確認する。
-テスト内でLuaに観測処理と面・ゲームオーバーへの遷移を挿入する。
+`tools/build_web_test.py --game <作品>`が各作品の`BrowserHooks.cs`（観測と面・ゲームオーバーへの遷移）を
+組み込んだビルドを作る。ほかの作品も同じ手順で、URLに`http://127.0.0.1:8766/<作品>/`を渡して実行する。
 Torus Trooper・GearToyGear・Mazer Mayhemのブラウザテストは、`tools/compile_frame_web.py`に同じ依存引数と
 `--game torus-trooper --original .cache/original/tt --test --output build/web-test/torus-trooper`
 （GearToyGearは`--game gear-toy-gear --original .cache/original/GearToyGear/GearToyGear`と

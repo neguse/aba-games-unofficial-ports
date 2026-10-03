@@ -1,8 +1,8 @@
-name: Frame release
+name: Release
 
 on:
   pull_request:
-    branches: [release/frame, codex/torus-webxr]
+    branches: [release/frame]
   push:
     tags: ['frame-v*']
 
@@ -156,24 +156,77 @@ jobs:
           compression-level: 0
           if-no-files-found: error
 
+  web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.111
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build python3 ffmpeg unzip
+          git clone --depth 1 --branch 5.0.2 https://github.com/emscripten-core/emsdk.git "$HOME/emsdk"
+          "$HOME/emsdk/emsdk" install 5.0.2
+          "$HOME/emsdk/emsdk" activate 5.0.2
+      - name: Build web games
+        run: |
+          source "$HOME/emsdk/emsdk_env.sh"
+          bash tools/setup_lub.sh
+          timeout 5400 python3 tools/build.py --lub .cache/lub --tcs .cache/lub/third_party/tcs --emsdk "$HOME/emsdk"
+      - name: Verify game logic and barrage patterns
+        run: |
+          python3 tests/check_patterns.py
+          python3 tests/check_patterns.py --patterns .cache/original/p47 --expected-cases 425
+          python3 tests/check_patterns.py --patterns .cache/original/tt/barrage --expected-cases 140
+          python3 tests/check_patterns.py --patterns .cache/original/rr --expected-cases 340
+          python3 tests/check_patterns.py --patterns .cache/original/noiz2sa --expected-cases 365
+          for game in tumiki parsec47 gunroar titanion a7xpg torus-trooper rrootage noiz2sa wok mazer-mayhem gear-toy-gear mu-cade; do
+            python3 tests/check_game.py --lub .cache/lub --game "$game"
+          done
+          node tests/audio.test.mjs
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        id: upload
+        with:
+          name: web-dist
+          path: dist
+          if-no-files-found: error
+
   release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/frame-v')
-    needs: build
+    needs: [build, web]
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           artifact-ids: ${{ needs.build.outputs.artifact-id }}
           merge-multiple: true
           path: assets
-      - name: Create release with ZIPs
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.web.outputs.artifact-id }}
+          merge-multiple: true
+          path: dist
+      - name: Publish the release and the web build
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ github.ref_name }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           cat > notes.md <<EOF
           Steam Frame 本体で動作する GearToyGear / Torus Trooper / Mazer Mayhem。
@@ -181,8 +234,16 @@ jobs:
           [Click to Install](https://github.com/${GH_REPO}/releases/download/${RELEASE_TAG}/Install-ABA-Games.desktop) をSteam Frameでダウンロードし、開いて実行してください。3ゲームをまとめて導入・更新します。
           [操作・ビルド手順と依存バージョン](https://github.com/${GH_REPO}/blob/${RELEASE_TAG}/README.md)
           EOF
-          gh release create "$RELEASE_TAG" --verify-tag --draft \
+          # A tag with "-rc" is a release candidate: a prerelease on GitHub and an undeployed preview version on the web.
+          candidate=false
+          case "$RELEASE_TAG" in *-rc*) candidate=true ;; esac
+          gh release create "$RELEASE_TAG" --verify-tag --draft --prerelease="$candidate" \
             --title "Steam Frame ${RELEASE_TAG}" --notes-file notes.md \
             assets/GearToyGear-steam-frame-arm64.zip assets/TorusTrooper-steam-frame-arm64.zip assets/MazerMayhem-steam-frame-arm64.zip \
             assets/Install-ABA-Games.desktop assets/install_frame.py
+          if "$candidate"; then
+            npx --yes wrangler@4.146.0 versions upload --tag "$RELEASE_TAG" --message "$RELEASE_TAG"
+          else
+            npx --yes wrangler@4.146.0 deploy
+          fi
           gh release edit "$RELEASE_TAG" --draft=false

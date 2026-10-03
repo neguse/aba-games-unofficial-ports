@@ -17,7 +17,7 @@ select,input,dialog button{font:inherit}dialog{color:#eef;background:#18183b;bor
   <nav><button id="pause" disabled>ポーズ / 再開（F3）</button><button id="title" disabled>タイトルへ</button><button id="rank" disabled>ランキング</button><button id="sound" type="button" aria-pressed="false">音：オン</button><button id="fullscreen" type="button">全画面</button><a href="https://www.asahi-net.or.jp/~cs8k-cyu/free/mas.html">原作：Kenta Cho / ABA Games</a><a href="LICENSE.txt">GPL・ライセンス</a><a href="source.tar.gz">対応ソース</a><a href="../">ゲーム一覧</a></nav>
   <dialog id="ranking"><h2 id="ranking-title"></h2><form method="dialog"><p id="category-row"><label>競技 <select id="category"><option>かけぬけろ</option><option>跳び箱</option><option>大岡裁き</option><option>人投げ</option><option>逆ファイアー</option><option>総合</option></select></label></p><table><thead><tr><th>順位</th><th>記録</th><th>名前</th></tr></thead><tbody id="records"></tbody></table><label id="name-row">名前 <input id="player-name" maxlength="40" autocomplete="nickname"></label><p><button id="close-rank">閉じる</button> <button type="button" id="clear-scores">全記録を消す</button></p></form></dialog>
 </main>
-<script id="game-config" type="application/json">{"wasm":"wasm/","compiled":true,"scores":"masashikun-hi-scores-v1","seed":true,"music":[],"sounds":[],"controls":[]}</script>
+<script id="game-config" type="application/json">{"wasm":"wasm/","scores":"masashikun-hi-scores-v1","seed":true,"music":[],"sounds":[],"controls":[]}</script>
 <script type="module">
 import '../main.js';
 const canvas=document.querySelector('#canvas'),dialog=document.querySelector('#ranking'),help=document.querySelector('#help');
