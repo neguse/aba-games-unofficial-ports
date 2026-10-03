@@ -3,6 +3,7 @@ from pathlib import Path
 import re
 import struct
 import zlib
+from compile_title import png as write_png
 
 parser = argparse.ArgumentParser()
 parser.add_argument('original', type=Path)
@@ -65,14 +66,7 @@ for index, name in enumerate(names):
     widths.append(width); heights.append(height); ys.append(y); y += height
 atlas_width, atlas_height = max(widths), y
 pixels = [color for width, rows in zip(widths,images) for row in rows for color in row+[0]*(atlas_width-width)]
-runs = []
-for color in pixels:
-    if color >= 2**31:
-        color -= 2**32
-    if runs and runs[-1] == color:
-        runs[-2] += 1
-    else:
-        runs.extend([1,color])
+write_png(output/'images/atlas.png', atlas_width, atlas_height, [color>>shift&255 for color in pixels for shift in (0,8,16,24)])
 zone = min(palette[1:], key=lambda rgb: sum((a-b)**2 for a,b in zip(rgb,(240,240,128))))
 def duration(path):
     data = path.read_bytes()
@@ -95,15 +89,6 @@ source += f'public const int atlasWidth={atlas_width},atlasHeight={atlas_height}
 for name, values in [('widths',widths),('heights',heights),('ys',ys),('zoneColor',zone)]:
     source += f'public static int[] {name}='+array(values)+';\n'
 source += 'public static float[] musicDuration=new float[]{'+','.join(str(duration(args.original/'sounds'/f'wok{i}.ogg'))+'f' for i in [1,2])+'};\n'
-source += 'static int[] runs='+array(runs)+';\n'
-source += '''public static List<int> pixels(){
- var result=new List<int>();
- for(int i=0;i<runs.Length;i+=2)for(int j=0;j<runs[i];j++){
-  int c=runs[i+1];result.Add(c&255);result.Add((c>>8)&255);result.Add((c>>16)&255);result.Add((c>>24)&255);
- }
- return result;
-}
-}
-'''
+source += '}\n'
 (output/'Data.cs').write_text(source)
 print(f'Compiled 48 Wok sprites into {atlas_width}x{atlas_height} atlas')

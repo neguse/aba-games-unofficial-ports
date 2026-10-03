@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-static T Field<T>(object value, string name) => (T)value.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(value);
+static T Field<T>(object value, string name) => (T)value.GetType().GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).GetValue(value);
 static void Near(double actual, double expected, double tolerance = .00001)
 {
     if (Math.Abs(actual - expected) > tolerance) throw new Exception($"{actual} != {expected}");

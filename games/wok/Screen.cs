@@ -1,12 +1,12 @@
 using static WkConstants;
 public static class WkScreen {
  public static bool clickPending;
- public static int mx=320,my=240,buttons;
+ public static int mx=320,my=240,buttons,clickX,clickY;
  public static void initMouse(){}
  public static void Pointer(string text){
   string[] words=text.Split(",");if(words.Length!=3)return;
   int x=GameMath.parseNonnegative(words[0]),y=GameMath.parseNonnegative(words[1]),b=GameMath.parseNonnegative(words[2]);
-  if(x<0||x>640||y<0||y>480||b<0||b>3)return;mx=x;my=y;buttons=b;if((b&1)!=0)clickPending=true;
+  if(x<0||x>640||y<0||y>480||b<0||b>3)return;mx=x;my=y;buttons=b;if((b&1)!=0){clickPending=true;clickX=x;clickY=y;}
  }
  public static void drawSprite(int n,int x,int y){WkRender.Sprite(n,x,y);}
  public static int drawNum(int n,int x,int y){

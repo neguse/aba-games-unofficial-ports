@@ -22,26 +22,7 @@ try {
             }
         };
     });
-    await page.route('**/game.lua', async route => {
-        const response = await route.fetch(); let code = await response.text();
-        assert.match(code, /return Game\s*$/);
-        code = code.replace('if topic == "scores" then', `if topic == "test.finish" then
- local g=Game.manager
- g.score_reel:set_actual_score(7654321)
- g.in_game_state.left=0; g.in_game_state:ship_destroyed(); g:start_title(true)
-end
-if topic == "scores" then`);
-        code = code.replace(/return Game\s*$/, `local frame=Game.on_frame
-function Game.on_frame(dt)
- frame(dt)
- local g=Game.manager
- local shots=0; local lance=0
- for _,s in ipairs(g.shots.actor) do if s.exists then shots=shots+1; if s.lance then lance=lance+1 end end end
- lub.host.send('test.state',table.concat({g.state==g.in_game_state and 1 or 0,g.title_manager.game_mode,g.in_game_state:get_game_mode(),g.ship.boat_num,g.ship.boat[1]:get_pos().x,g.ship.boat[2]:get_pos().x,shots,g.in_game_state.pause_cnt,g.in_game_state.time,g.ship.boat[1].fire_spr_deg,lance,g.ship:replay_mode() and 1 or 0,g.pref_manager.pref_data:high_score(3)},','))
-end
-return Game`);
-        await route.fulfill({ response, body: code });
-    });
+    // BrowserHooks.Command ids: 0 = finish
     async function observe() {
         await page.locator('#status').waitFor({ state: 'hidden', timeout: 45000 });
         await page.evaluate(() => {
@@ -89,7 +70,7 @@ return Game`);
         if (mode < 3) { await press('Escape'); await page.waitForFunction(() => gameState[0] === 0); }
     }
     assert.ok(await page.evaluate(() => audioStarts > 0));
-    await page.evaluate(() => lubHost.queue.push({ topic: 'test.finish', payload: '' }));
+    await page.evaluate(() => lubHost.queue.push({ topic: 'test', payload: '0,0' }));
     await page.waitForFunction(() => localStorage.getItem('gunroar-scores-v1')?.includes('7654321') && localStorage.getItem('gunroar-replay-v1'));
     await page.reload(); await observe();
     await page.waitForFunction(() => gameState[12] === 7654321 && gameState[1] === 3 && gameState[11] === 1);

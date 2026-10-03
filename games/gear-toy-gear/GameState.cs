@@ -11,12 +11,12 @@ public class GameState
     private Record record;
     private Sound sound;
     private PlatePool plates;
-    private int score;
+    public int score;
     private int storedMultiplier;
     private int extendScore, nextExtendScoreOffset;
-    private int left;
+    public int left;
     private bool storedIsInGameOver;
-    private float gameOverTicks;
+    public float gameOverTicks;
     private bool isButtonPressed;
     private float ticks;
     private bool isAccelPressed;

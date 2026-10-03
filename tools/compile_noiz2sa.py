@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 import struct
 from compile_barrage import Compiler
+from compile_title import png
 
 parser = argparse.ArgumentParser()
 parser.add_argument('original', type=Path)
@@ -70,31 +71,13 @@ for i in range(512):
     shift = int(sine[(i*8)&1023] / 128)
     pixels.append(pack(shift+2, shift+2))
 sprite_pixels = [pack(*colors[i], 255 if i else 0) for i in sprites]
-def runs(values):
-    result = []
-    for value in values:
-        value = value if value < 2**31 else value - 2**32
-        if result and result[-1] == value:
-            result[-2] += 1
-        else:
-            result.extend([1, value])
-    return result
+for name, width, values in [('tables', 256, pixels), ('sprites', 40, sprite_pixels)]:
+    png(output / f'images/{name}.png', width, len(values) // width, [value >> shift & 255 for value in values for shift in (0, 8, 16, 24)])
 patterns = [[i for i, (name, _) in enumerate(compiler.patterns) if name.startswith(directory + '/')] for directory in ['zako', 'middle', 'boss']]
 source = 'using System.Collections.Generic;\npublic static class NrData {\n'
 source += 'public static int[][] barrages=' + array(patterns) + ';\n'
 source += 'public static int[] sine=' + array(sine) + ';\npublic static int[] tangent=' + array(tangent) + ';\n'
 source += 'public static float[][][] letters=' + array(c_array(args.original / 'src/letterdata.h', 'spData'), 'float') + ';\n'
-source += 'static int[] tableRuns=' + array(runs(pixels)) + ';\nstatic int[] spriteRuns=' + array(runs(sprite_pixels)) + ';\n'
-source += '''public static List<int> tablePixels(){return decode(tableRuns);}
-public static List<int> spritePixels(){return decode(spriteRuns);}
-static List<int> decode(int[] runs){
-var result=new List<int>();
-for(int i=0;i<runs.Length;i+=2)for(int j=0;j<runs[i];j++){
-int color=runs[i+1];result.Add(color&255);result.Add((color>>8)&255);result.Add((color>>16)&255);result.Add((color>>24)&255);
-}
-return result;
-}
-}
-'''
+source += '}\n'
 (output / 'Data.cs').write_text(source)
 print('Compiled 73 Noiz2sa patterns, palette/blend tables and title sprites')

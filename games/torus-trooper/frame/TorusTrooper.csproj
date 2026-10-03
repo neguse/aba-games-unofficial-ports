@@ -16,6 +16,7 @@
     <Compile Include="../../../game/SimulationTime.cs" />
     <Compile Include="../../../game/Mesh.cs;../../../game/Transform.cs;../../../game/Pattern.cs;../../../game/PatternNumber.cs;../../../build/torus-trooper/*.cs" />
     <Content Include="mesh.*.slang" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
+    <Content Include="../../../build/torus-trooper/images/*.png" CopyToOutputDirectory="PreserveNewest" Link="images/%(Filename)%(Extension)" />
     <Content Include="run.sh" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

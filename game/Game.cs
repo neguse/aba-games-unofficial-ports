@@ -4,7 +4,7 @@ using static Lub;
 
 public static class Game
 {
-    static GameManager manager;
+    public static GameManager manager;
     static float elapsed;
     public static ShaderRef shader;
     static string shaderSource;

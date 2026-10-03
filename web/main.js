@@ -19,15 +19,16 @@ let musicVersion = 0;
 let muted = false;
 let xr;
 let compiled;
+// A game with its own save files drives input, audio and storage through the runtime.
+const direct = Boolean(config.saves);
 const buffers = new Map();
 const channels = new Map();
-const spatialSounds = new Map();
 const soundVersions = new Map();
 const musicNames = config.music || ['we_are_tumiki_fighters', 'just_over_the_horizon', 'panic_on_meadow', 'here_comes_a_gigantic_toy', 'battle_over_the_junk_city', 'return_to_home'];
 const soundNames = config.sounds || ['ship_shot', 'stuck', 'stuck_bonus', 'stuck_destroyed', 'ship_destroyed', 'enemy_damaged', 'small_enemy_destroyed', 'enemy_destroyed', 'boss_destroyed', 'extend', 'warning', 'propeller', 'stuck_bonus_pushin'];
 const soundChannels = config.channels || [0, 1, 2, 3, 2, 4, 5, 6, 6, 7, 7, 7, 2];
 
-function send(topic, payload) { if (!config.compiled) queue.push({ topic, payload }); }
+function send(topic, payload) { if (!direct) queue.push({ topic, payload }); }
 function input() {
     let mask = 0;
     for (const key of pressed) mask |= controls.get(key) || 0;
@@ -41,7 +42,7 @@ function initAudio() {
     volume.connect(audio.destination);
 }
 function unlockAudio() {
-    if (config.compiled) { compiled?.unlockAudio(); return; }
+    if (direct) { compiled?.unlockAudio(); return; }
     initAudio();
     if (audio.state === 'suspended') audio.resume();
 }
@@ -76,7 +77,7 @@ document.querySelector('#sound').onclick = event => {
     unlockAudio(); muted = !muted;
     event.currentTarget.textContent = muted ? '音：オフ' : '音：オン';
     event.currentTarget.setAttribute('aria-pressed', String(muted));
-    if (config.compiled) compiled?.volume(window.Module, muted ? 0 : 1);
+    if (direct) compiled?.volume(window.Module, muted ? 0 : 1);
     else volume.gain.value = muted ? 0 : 1;
     canvas.focus();
 };
@@ -116,12 +117,6 @@ function stopSound(channel) {
     channels.delete(channel);
 }
 async function playSound(index) {
-    if (config.soundOverlap) {
-        const decoded = await buffer(soundNames[index], 'wav');
-        const source = audio.createBufferSource(); source.buffer = decoded;
-        source.connect(volume); source.start();
-        return;
-    }
     const channel = soundChannels[index];
     stopSound(channel);
     const version = soundVersions.get(channel);
@@ -131,32 +126,6 @@ async function playSound(index) {
     source.connect(volume);
     channels.set(channel, source); source.start();
     source.onended = () => { if (channels.get(channel) === source) channels.delete(channel); };
-}
-function positionSpatial(sound, position) {
-    sound.position = position;
-    if (!sound.source) return;
-    const [x, y, z] = position;
-    sound.panner.positionX.value = x; sound.panner.positionY.value = y; sound.panner.positionZ.value = z;
-}
-async function playSpatial(values) {
-    const [id, index, loop, ...position] = values;
-    stopSpatial(id);
-    const sound = { position };
-    spatialSounds.set(id, sound);
-    const decoded = await buffer(soundNames[index], 'wav');
-    if (spatialSounds.get(id) !== sound) return;
-    const source = audio.createBufferSource(), panner = audio.createPanner();
-    source.buffer = decoded; source.loop = Boolean(loop);
-    panner.panningModel = 'equalpower'; panner.distanceModel = 'inverse';
-    // Gtg.xap has no distance or pitch RPC; XACT's default volume curve is constant.
-    panner.refDistance = 1; panner.rolloffFactor = 0;
-    sound.source = source; sound.panner = panner; positionSpatial(sound, sound.position);
-    source.connect(panner).connect(volume); source.start();
-    source.onended = () => { if (spatialSounds.get(id) === sound) spatialSounds.delete(id); panner.disconnect(); };
-}
-function stopSpatial(id) {
-    spatialSounds.get(id)?.source?.stop();
-    spatialSounds.delete(id);
 }
 function fail(error) { status.hidden = false; status.textContent = String(error?.message || error); console.error(error); }
 window.lubHost = { queue, onMessage(topic, bytes) {
@@ -183,15 +152,8 @@ window.lubHost = { queue, onMessage(topic, bytes) {
     if (topic === 'music.loop' || topic === 'music.once') playMusic(Number(text), topic === 'music.loop').catch(fail);
     if (topic === 'music.stop') stopMusic();
     if (topic === 'music.fade') stopMusic(true);
-    if (topic === 'music.volume' && music) musicGain.gain.value = Math.max(0, Math.min(1, Number(text)));
     if (topic === 'sound.play') playSound(Number(text)).catch(fail);
     if (topic === 'sound.stop') stopSound(soundChannels[Number(text)]);
-    if (topic === 'spatial.play') playSpatial(text.split(',').map(Number)).catch(fail);
-    if (topic === 'spatial.stop') stopSpatial(Number(text));
-    if (topic === 'spatial.update') {
-        const [id, ...position] = text.split(',').map(Number), sound = spatialSounds.get(id);
-        if (sound) positionSpatial(sound, position);
-    }
 } };
 
 async function boot() {
@@ -227,36 +189,23 @@ async function boot() {
     const device = await adapter.requestDevice({ requiredFeatures });
     device.addEventListener('uncapturederror', event => fail(event.error));
     device.lost.then(info => fail(new Error(`描画が停止しました。ページを再読み込みしてください。 ${info.message}`)));
-    const [codeResponse, shadersResponse] = await Promise.all([config.compiled ? null : fetch('game.lua'), fetch('shaders.json')]);
-    if ((!config.compiled && !codeResponse.ok) || !shadersResponse.ok) throw new Error('ゲームデータを読み込めませんでした。');
-    const code = codeResponse ? await codeResponse.text() : null;
+    const shadersResponse = await fetch('shaders.json');
+    if (!shadersResponse.ok) throw new Error('ゲームデータを読み込めませんでした。');
     const shaders = await shadersResponse.json();
     window.slangCompile = async (source, entry) => (Array.isArray(shaders)
         ? shaders.find(shader => shader.entry === entry && source.replaceAll('\r', '').endsWith(shader.source.replaceAll('\r', '')))
         : shaders[entry]) || { error: `Unknown shader: ${entry}` };
-    compiled = config.compiled ? await import('./compiled.js') : null;
-    const files = compiled ? await compiled.assets() : null;
+    compiled = await import('./compiled.js');
+    const files = await compiled.assets();
     window._canvasWidth = 640; window._canvasHeight = 480;
     const module = {
         canvas, preinitializedWebGPUDevice: device, webgpuAdapter: adapter,
         locateFile: path => `${config.wasm || "wasm/"}${path}`,
-        arguments: ['game.lua'],
         print: text => console.log(text),
-        printErr: text => /error|failed|abort/i.test(text) ? fail(new Error(text)) : console.info(text),
-        preRun: config.compiled ? [() => compiled.prepare(module, files, config.saves)] : [() => {
-            module.addRunDependency('game-files');
-            const remove = module.removeRunDependency;
-            module.removeRunDependency = function(id) {
-                remove.call(module, id);
-                if (id === 'datafile_lub.data') {
-                    module.FS.writeFile('game.lua', code);
-                    module.removeRunDependency = remove;
-                    remove.call(module, 'game-files');
-                }
-            };
-        }],
+        printErr: text => /error|failed|abort|fault/i.test(text) ? fail(new Error(text)) : console.info(text),
+        preRun: [() => compiled.prepare(module, files, config.saves || [])],
     };
-    if (config.compiled) module.onRuntimeInitialized = () => {
+    if (direct) module.onRuntimeInitialized = () => {
         xr?.ready(); status.hidden = true;
         compiled.volume(module, muted ? 0 : 1);
         if (!document.activeElement?.closest('.game-selection')) canvas.focus();

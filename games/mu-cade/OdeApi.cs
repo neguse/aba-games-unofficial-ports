@@ -125,6 +125,7 @@ public static class McdPhysics
     }
 
     public static OdeHandle GetBody(OdeHandle a) => default;
+    public static bool Same(OdeHandle a, OdeHandle b) => default;
     public static OdeHandle Hinge(OdeHandle a) => default;
     public static void JointDestroy(OdeHandle a)
     {

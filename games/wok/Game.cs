@@ -22,9 +22,11 @@ public static class Game {
   while(elapsed>=0.01f){
    elapsed-=0.01f;bool escape=(input&128)!=0;
    if(escape&&!escapePressed){if(WkCore.status==TITLE)WkCore.quitWok();else WkAttract.initTitle();}
-   escapePressed=escape;int buttons=WkScreen.buttons;if(WkScreen.clickPending)WkScreen.buttons|=1;
+   escapePressed=escape;int buttons=WkScreen.buttons,mx=WkScreen.mx,my=WkScreen.my;
+   // A click acts where it was pressed, even if the pointer has moved on since.
+   if(WkScreen.clickPending){WkScreen.buttons|=1;WkScreen.mx=WkScreen.clickX;WkScreen.my=WkScreen.clickY;}
    WkCore.move();WkRender.vertices.Clear();WkCore.draw();WkCore.rank++;
-   WkScreen.clickPending=false;WkScreen.buttons=buttons;
+   WkScreen.clickPending=false;WkScreen.buttons=buttons;WkScreen.mx=mx;WkScreen.my=my;
   }
   WkRender.Frame();WkSound.Frame(dt);
   if(Host.Available())Host.Send("state",WkCore.status.ToString());

@@ -1,5 +1,6 @@
 lub={config=function()end,host={available=function()return false end}}
 local draws=0
+lub.png={load=function()return nil,0,0,0,0,0,"pending" end}
 lub.gfx={ADDITIVE=1,ALPHA=2,MULTIPLY=3,NONE=0,use_buffer=function(key,kind,data)assert(#data>0,key);return {version=1}end,
  use_texture=function()return {version=1}end,draw=function(n)draws=draws+n end}
 local game=dofile(arg[1]);game.on_init()

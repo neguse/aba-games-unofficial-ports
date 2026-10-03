@@ -22,7 +22,7 @@ subprocess.run(['dotnet', 'publish', 'games/mazer-mayhem/frame/MazerMayhem.cspro
                 '-c', 'Release', '-m:1', '-p:NuGetAudit=false', '-r', 'linux-arm64', '--self-contained', 'true',
                 f'-p:LubRoot={lub}', '-o', str(output)], cwd=root, check=True)
 subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(lub),
-                '--game', 'mazer-mayhem', '--frame', '--output', str(output / 'game.lua')], cwd=root, check=True)
+                '--game', 'mazer-mayhem', '--output', str(output / 'game.lua')], cwd=root, check=True)
 (output / 'native').mkdir(exist_ok=True)
 shutil.copy2(native / 'lub', output / 'native/lub')
 for source in ['samples/boot.lua', 'third_party/lume/lume.lua']:

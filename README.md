@@ -38,7 +38,7 @@ ZIP には ARM64 の .NET ランタイムと必要なライブラリを含む。
 | 右トリガー | 加速 | 通常ショット | 右旋回 |
 | 左トリガー | 通常速度まで減速 | チャージ・減速、離すと発射 | 左旋回 |
 | A | 開始・リトライ | 開始・決定 | 開始、押すとダッシュ＋グレネード、保持でショット |
-| Menu | ポーズ・再開 | ポーズ・再開 | ポーズ・再開 |
+| Menu / X | ポーズ・再開 | ポーズ・再開 | ポーズ・再開 |
 | B | ポーズ中にタイトルへ戻る | ポーズ中にタイトルへ戻る、タイトルでリプレイ切替 | ポーズ中にタイトルへ戻る |
 | 右スティック押し込み | 割り当てなし | 三人称／一人称の切替 | 割り当てなし |
 
@@ -53,14 +53,14 @@ Mazer Mayhem は倍率をためて両トリガーを同時に引くとハイパ�
 Frame 版の開発ブランチは
 [`release/frame`](https://github.com/neguse/aba-games-unofficial-ports/tree/release/frame)。
 ゲームのソースは [GearToyGear](games/gear-toy-gear/)・
-[Torus Trooper](games/torus-trooper/)・[Mazer Mayhem](games/mazer-mayhem/) にある。Torus Trooperの描画・入力はWebXRと共通で、`frame/`にはネイティブ起動とビルド設定を置く。
+[Torus Trooper](games/torus-trooper/)・[Mazer Mayhem](games/mazer-mayhem/) にある。3作とも描画・入力はWebXRと共通で、`frame/`にはネイティブ起動とビルド設定を置く。
 
 ## 依存バージョン
 
 | 依存 | 使用コミット／バージョン |
 | --- | --- |
-| Lub | [`78d71c5d84dd507de26d8e281863d77c1647fc48`](https://github.com/neguse/lub/tree/78d71c5d84dd507de26d8e281863d77c1647fc48) |
-| tcs | [`e2c95d4b0ea69b25de5807da99c17462752330b2`](https://github.com/neguse/tcs/tree/e2c95d4b0ea69b25de5807da99c17462752330b2)（Lub のサブモジュール） |
+| Lub | [`ec65d1914cd8ddf23a7a092a0a7a1b12565848b9`](https://github.com/neguse/lub/tree/ec65d1914cd8ddf23a7a092a0a7a1b12565848b9) |
+| tcs | [`8b1e4ba35d4987896e2ea2a8d356ed86059fca68`](https://github.com/neguse/tcs/tree/8b1e4ba35d4987896e2ea2a8d356ed86059fca68)（Lub のサブモジュール） |
 | .NET SDK | 10 |
 | Slang | 2026.8.1 Linux ARM64 公式バイナリ |
 
@@ -75,7 +75,7 @@ CMake、Ninja、Vulkan 開発ライブラリ、zip を使用する。
 
 ```sh
 git clone https://github.com/neguse/lub.git ../lub-frame
-git -C ../lub-frame checkout --detach 78d71c5d84dd507de26d8e281863d77c1647fc48
+git -C ../lub-frame checkout --detach ec65d1914cd8ddf23a7a092a0a7a1b12565848b9
 git -C ../lub-frame submodule update --init --recursive
 dotnet build ../lub-frame/third_party/tcs/Transpiler/Transpiler.csproj -c Release
 (
@@ -126,8 +126,8 @@ Torus Trooperは`--runtime coreclr`（既定）、`--runtime tcs2c`、`--runtime
 実行方式を選ぶ。tcs2cを含む場合は`--tcs ../lub-frame/third_party/tcs`を指定し、
 GCCまたはClangでCをビルドする（`--cc`でコンパイラーを指定できる）。
 両方を含む配布物では`LUB_RUNTIME=coreclr ./run.sh`または
-`LUB_RUNTIME=tcs2c ./run.sh`で起動する。ゲーム・描画・操作のC#とシェーダーは、
-WebXR版も同じものを使う。
+`LUB_RUNTIME=tcs2c ./run.sh`で起動する。3作ともゲーム・描画・操作の
+C#とシェーダーは、WebXR版も同じものを使う。
 
 
 ## 原作とライセンス

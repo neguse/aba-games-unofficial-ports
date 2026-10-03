@@ -3,19 +3,32 @@ using static Lub;
 
 public static class MmRender
 {
+    static readonly List<MmDrawCommand> commands = new();
+    static readonly List<float>[] eyes = new List<float>[] { new(), new() };
+    static readonly Vector3 zeroNormal = new();
+    static readonly Vector2 zeroUv = new();
+    static readonly Color white = new(255, 255, 255, 255);
+    static readonly TextureOpts target = new() { Target = true };
+    static readonly PassOpts pass = new() { ClearColor = new float[] { 210 / 255f, 210 / 255f, 210 / 255f, 1 } };
+    static readonly XrAnchor anchor = new();
+    static readonly float[] matrix = new float[16];
+    static readonly DrawOpts outputOptions = new() { Depth = false, Blend = Gfx.Blend.None, Cull = Gfx.Cull.None };
+    static readonly PassOpts outputPass = new();
+    static readonly Dictionary<string, object> outputBindings = new();
+    static string outputSource;
     static ShaderRef shader;
-    static int version, drawIndex;
-    public static void Begin(MmFrame frame)
+    static string vertexSource, fragment;
+    static int version, used;
+    static bool anchored;
+    public static bool Immersive;
+    public static void Begin()
     {
         version++;
-        drawIndex = 0;
-        shader = Gfx.UseShader("mazer-mayhem", GameShaders.vertex, GameShaders.fragment, 1);
-        Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = new float[] { 210 / 255f, 210 / 255f, 210 / 255f, 1 } });
-    }
-
-    public static void End()
-    {
-        Gfx.EndPass();
+        used = 0;
+        foreach (var eye in eyes) while (eye.Count < 16) eye.Add(0);
+        if (vertexSource == null) { Io.LoadText("game.vs.slang", out var source, out _, out _, out _); vertexSource = source; }
+        if (fragment == null) { Io.LoadText("game.fs.slang", out var source, out _, out _, out _); fragment = source; }
+        if (vertexSource != null && fragment != null) shader = Gfx.UseShader("mm-xr", vertexSource, fragment, 1);
     }
 
     static void Vertex(List<float> data, Vector3 p, Vector3 n, Color c, Vector2 uv)
@@ -47,7 +60,7 @@ public static class MmRender
             for (int i = 0; i < count; i++)
             {
                 var v = vertices[indices[i]];
-                Vertex(shape.data, v.Position, Vector3.Zero, v.Color, Vector2.Zero);
+                Vertex(shape.data, v.Position, zeroNormal, v.Color, zeroUv);
             }
 
             shape.meshVersion = meshVersion;
@@ -64,7 +77,7 @@ public static class MmRender
             for (int i = 0; i < count; i++)
             {
                 var v = vertices[indices[i]];
-                Vertex(shape.data, v.Position, v.Normal, new Color(255, 255, 255, 255), v.TextureCoordinate);
+                Vertex(shape.data, v.Position, v.Normal, white, v.TextureCoordinate);
             }
 
             shape.meshVersion = meshVersion;
@@ -85,7 +98,11 @@ public static class MmRender
     {
         if (count <= 0 || shader == null)
             return;
-        var paramsData = new List<float>();
+        if (used == commands.Count) commands.Add(new MmDrawCommand(used));
+        var command = commands[used];
+        used++;
+        var paramsData = command.Data;
+        paramsData.Clear();
         foreach (float x in frame.storedWorldMatrix.M)
             paramsData.Add(x);
         foreach (float x in frame.storedViewMatrix.M)
@@ -122,12 +139,83 @@ public static class MmRender
         AddVector(paramsData, new Vector4(210 / 255f, 210 / 255f, 210 / 255f, 1));
         AddVector(paramsData, frame.storedVelocity);
         int mode = frame.Technique == "SimpleTech" ? 0 : frame.Technique == "SimpleFogTech" ? 1 : frame.Technique == "BoardTech" ? 2 : frame.Technique == "BlurLightingTech" ? 3 : frame.Technique == "BlurAlphaLightingTech" ? 4 : 5;
-        AddVector(paramsData, new Vector4(frame.storedBlurThickness, mode, 0, 0));
-        var vertices = Gfx.UseBuffer("mesh" + shape.id.ToString(), Gfx.BufferType.Storage, shape.data, meshVersion);
-        var parameters = Gfx.UseBuffer("draw" + drawIndex.ToString(), Gfx.BufferType.Storage, paramsData, version);
-        drawIndex++;
-        if (vertices == null || parameters == null)
-            return;
-        Gfx.Draw(count, new Dictionary<string, object> { ["vertices"] = vertices, ["parameters"] = parameters }, new DrawOpts { Shader = shader, Depth = frame.DepthEnabled, DepthWrite = frame.DepthEnabled, Blend = Gfx.Blend.Alpha, Cull = Gfx.Cull.None });
+        AddVector(paramsData, new Vector4(frame.storedBlurThickness, mode, frame.Hud ? 1 : 0, Immersive ? 1 : 0));
+        command.MeshKey = "mesh" + shape.id;
+        command.Geometry = shape.data;
+        command.MeshVersion = meshVersion;
+        command.Count = count;
+        command.Options.Shader = shader;
+        command.Options.Depth = frame.DepthEnabled;
+        command.Options.DepthWrite = frame.DepthEnabled;
+        command.Options.InstanceCount = 1;
+        if (used < 2) return;
+        var previous = commands[used - 2];
+        if (previous.Geometry != command.Geometry || previous.MeshVersion != meshVersion ||
+            previous.Count != count || previous.Options.Depth != command.Options.Depth) return;
+        foreach (float value in paramsData) previous.Data.Add(value);
+        previous.Options.InstanceCount++;
+        used--;
     }
+    public static void Present(XrView left, XrView right)
+    {
+        bool immersive = right != null;
+        if (immersive)
+        {
+            if (outputSource == null) { Io.LoadText("scene.output.slang", out var source, out _, out _, out _); outputSource = source; }
+            if (outputSource == null) return;
+            outputOptions.Shader = Gfx.UseShader("scene-output", outputSource, outputSource, 1);
+            if (outputOptions.Shader == null) return;
+            if (!anchored) anchor.Recenter(left, right);
+        }
+        anchored = immersive;
+        for (int i = 0; i < used; i++)
+        {
+            var command = commands[i];
+            command.Bindings["vertices"] = Gfx.UseBuffer(command.MeshKey, Gfx.BufferType.Storage, command.Geometry, command.MeshVersion);
+            command.Bindings["parameters"] = Gfx.UseBuffer(command.Key, Gfx.BufferType.Storage, command.Data, version);
+        }
+        for (int eye = 0; eye < (immersive ? 2 : 1); eye++)
+        {
+            var view = eye == 0 ? left : right;
+            if (immersive)
+            {
+                anchor.ViewProjection(view, matrix);
+                for (int i = 0; i < 16; i++) eyes[eye][i] = matrix[i];
+            }
+            var eyeBuffer = Gfx.UseBuffer(eye == 0 ? "left" : "right", Gfx.BufferType.Storage, eyes[eye], version);
+            // A texture keeps its size until its version changes, and an XR eye can change size between sessions.
+            int size = view.Width * 16384 + view.Height;
+            // The window is already display-encoded; only an XR eye needs the finished image decoded.
+            var scene = immersive ? Gfx.UseTexture(eye == 0 ? "sceneL" : "sceneR", view.Width, view.Height, Gfx.PixelFormat.Rgba8, null, size, target) : Gfx.MainTex;
+            pass.Target = scene;
+            pass.DepthTarget = immersive ? Gfx.UseTexture(eye == 0 ? "depthL" : "depthR", view.Width, view.Height, Gfx.PixelFormat.Depth24Stencil8, null, size, target) : null;
+            pass.ClearDepth = 1;
+            Gfx.BeginPass(pass);
+            for (int i = 0; i < used; i++)
+            {
+                var command = commands[i];
+                command.Bindings["eye"] = eyeBuffer;
+                Gfx.Draw(command.Count, command.Bindings, command.Options);
+            }
+            Gfx.EndPass();
+            if (!immersive) continue;
+            outputPass.Target = view.Target;
+            Gfx.BeginPass(outputPass);
+            outputBindings["scene"] = scene;
+            Gfx.Draw(3, outputBindings, outputOptions);
+            Gfx.EndPass();
+        }
+    }
+}
+
+sealed class MmDrawCommand
+{
+    public readonly string Key;
+    public readonly List<float> Data = new();
+    public readonly Dictionary<string, object> Bindings = new();
+    public readonly DrawOpts Options = new() { Cull = Gfx.Cull.None, Blend = Gfx.Blend.Alpha };
+    public List<float> Geometry;
+    public string MeshKey;
+    public int Count, MeshVersion;
+    public MmDrawCommand(int index) { Key = "draw" + index; }
 }

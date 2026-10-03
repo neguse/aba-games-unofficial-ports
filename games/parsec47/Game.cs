@@ -4,7 +4,7 @@ using static Lub;
 
 public static class Game
 {
-    static P47GameManager manager;
+    public static P47GameManager manager;
     static float elapsed;
     public static ShaderRef shader;
     static string shaderSource;

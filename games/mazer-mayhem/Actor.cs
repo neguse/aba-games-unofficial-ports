@@ -6,7 +6,7 @@ using System.Collections.Generic;
 public class ActorPool<T>
     where T : class, Actor
 {
-    protected T[] actors;
+    public T[] actors;
     protected int actorNum, actorIdx;
     protected bool[] isRemoved;
     public ActorPool(int n, Func<T> factory)

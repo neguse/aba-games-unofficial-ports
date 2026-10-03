@@ -10,7 +10,7 @@ output = Path('build/torus-trooper')
 output.mkdir(parents=True, exist_ok=True)
 (output / 'TitleImage.cs').write_text('''public static class TtData {
 public const int musicCount = 4;
-public static DrawImage title = ''' + image('torus-trooper', pixels, 128, 64, False) + ''';
+public static DrawImage title = ''' + image(output, 'torus-trooper', pixels, 128, 64, False) + ''';
 }
 ''')
 

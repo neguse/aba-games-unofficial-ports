@@ -24,8 +24,11 @@ dotnet run --project tests/gear-toy-gear/frame/FrameTests.csproj \
 ```
 
 `--original` is the directory containing `Content` in the original
-GearToyGear 0.1 source distribution. Audio gains and letter geometry use
-the same source data as the browser build.
+GearToyGear 0.1 source distribution. The game, rendering, input and audio
+C# in `games/gear-toy-gear/` and its shaders are the ones the browser build
+compiles to WebAssembly; this directory holds only the native launcher and
+build settings. Without an XR session the same code draws a flat 640x480
+view and reads the keyboard.
 
 Upload `build/frame/publish` with SteamOS Devkit Client. Use the title ID
 `gtg_frame`, command `run.sh`, and Steam Linux Runtime 4 ARM64. For profiling,
@@ -42,7 +45,7 @@ game without removing scores.
 | Accelerate | Hold right trigger |
 | Brake to normal speed | Hold left trigger |
 | Start / retry | A |
-| Pause / resume | Menu |
+| Pause / resume | Menu or X |
 | Return to title | B while paused |
 
 Weapons fire automatically. Head movement controls only the view. Right

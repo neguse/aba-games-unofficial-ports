@@ -8,12 +8,10 @@ public static class Game {
     public static TextureRef atlas;
     static string shaderSource;
     static bool pausePressed,escapePressed;
-    static List<int> pixels;
     public static void OnInit() {
         Config(new ConfigOpts{Width=640,Height=480});
         RrAngles.tantbl=RrData.tangent;RrAngles.sctbl=RrData.sine;
         RrAttract.initHiScore();RrBarrage.initBarragemanager();RrAttract.initAttractManager();RrAttract.initGameStateFirst();RrCore.initTitle();
-        pixels=RrData.pixels();
         if(Host.Available()){Host.Send("scores.load","");Host.Send("ready","");}
     }
     public static void OnFrame(float dt) {
@@ -37,8 +35,9 @@ public static class Game {
         shader = Gfx.UseShader("rrootage", GameShaders.vertex, GameShaders.fragment,
             shader != null && shaderSource == source ? (int?)shader.Version : null);
         shaderSource = source;
-        atlas = Gfx.UseTexture("atlas", RrData.atlasWidth, RrData.atlasHeight, Gfx.PixelFormat.Rgba8, pixels,
-            atlas == null ? (int?)null : atlas.Version);
+        Png.Load("images/atlas.png", out var pixels, out _, out _, out _, out _, out int pixelsVersion, out _, out _);
+        if (pixels != null)
+            atlas = Gfx.UseTextureBytes("atlas", RrData.atlasWidth, RrData.atlasHeight, Gfx.PixelFormat.Rgba8, pixels, pixelsVersion);
         if (shader == null || atlas == null) return;
         Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = RrScreen.clearColor });
         RrCore.draw(RrScreen.setEyepos(), Gfx.Blend.Additive, "scene");

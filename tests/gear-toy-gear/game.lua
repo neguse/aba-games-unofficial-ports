@@ -1,4 +1,5 @@
-lub={host={available=function()return false end}}
+local saved
+lub={host={available=function()return false end},gfx={},audio={},io={save_text=function(path,text)saved=text end}}
 dofile(arg[1])
 local function near(a,b,tolerance,label)
  assert(math.abs(a-b)<=tolerance,(label or '')..': '..tostring(a)..' != '..tostring(b))
@@ -90,6 +91,7 @@ tick(f,16384);assert(f.stored_pause_ticks<0)
 tick(f,0);g.score=7654321;g.left=0;p.invincible_ticks=-1;p:destroy()
 assert(g.stored_is_in_game_over and g.left==-1)
 tick(f,0,300);assert(f.state==0 and a.player.is_in_replay and f.record.stored_scores[1]==7654321)
+assert(saved:sub(1,8)=='7654321,')
 local record=Record.new();record:load()
 GtgPreference.load(record,'7654321,90000,80000,70000,60000,50000,40000,30000,20000,10000')
 assert(record.stored_scores[1]==7654321 and record.stored_scores[10]==10000)
@@ -103,15 +105,12 @@ assert(pool:get(0).pos.x==10 and pool:get(0).turret_indexes[1]==7)
 pool:remove(0);assert(pool:get_count()==1 and pool:get(0).pos.x==20 and pool:get(0).turret_indexes[1]==8)
 Letter.bars:clear();Letter.addstring_vector3float_quaternionfloat('GEAR TOY GEAR',Vector3.new(),1,Quaternion.get_identity(),1)
 assert(Letter.bars:get_count()>20)
-local events={};lub.host.available=function()return true end;lub.host.send=function(topic,value)events[#events+1]={topic,value}end
 local sound=Sound.new();local cue=sound:get_cue('HomingLaser')
 local listener=AudioListener.new();listener.position=Vector3.new(1,2,3)
 local emitter=AudioEmitter.new();emitter.position=Vector3.new(4,6,8)
-cue:apply3_d(listener,emitter);cue:play();emitter.position.x=9;cue:apply3_d(listener,emitter);cue:stop(0)
-local function fields(text)local a={};for v in text:gmatch('[^,]+')do a[#a+1]=tonumber(v)end;return a end
-local play,update=fields(events[1][2]),fields(events[2][2])
-assert(events[1][1]=='spatial.play' and play[2]==2 and play[3]==1 and play[4]==3 and play[5]==4 and play[6]==5)
-assert(events[2][1]=='spatial.update' and update[2]==8 and update[3]==4 and update[4]==5)
-assert(events[3][1]=='spatial.stop')
+cue:apply3_d(listener,emitter);cue:play();local loop=FrameHost.loops[cue.id]
+assert(loop.sound==2);near(loop.pan,3/math.sqrt(34),.00001,'loop pan')
+emitter.position.x=9;cue:apply3_d(listener,emitter);near(loop.pan,8/math.sqrt(89),.00001,'moved loop pan')
+cue:stop(0);assert(FrameHost.loops[cue.id]==nil)
 print('PASS actor value copies, fixed buffers, compaction, alphabet glyphs and spatial cue lifecycle')
 print('RESULT 0')

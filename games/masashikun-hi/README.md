@@ -27,15 +27,15 @@ python3 -m http.server 8765 --directory dist
 `source.tar.gz`から展開した場合は、同梱の原作データを指定できる。
 
 ```sh
-python3 tools/build_masashikun.py --lub .cache/lub --original original
+python3 tools/build_masashikun.py --lub .cache/lub --tcs .cache/lub/third_party/tcs --emsdk /path/to/emsdk --original original
 ```
 
-lubは`e30ea534847fb61fd37c732e0b73cabe06006065`、そのサブモジュールTinyC#は
-`b02e66ad03fd1e3b716096ad4004d18ba28de5af`を使う。
-`tools/setup_lub.sh`がこのソースと依存ライブラリを取得して実行環境を構築する。
+lubとそのサブモジュールTinyC#は、`tools/setup_lub.sh`が固定するコミットを使う。
+同スクリプトがこのソースと依存ライブラリを取得して実行環境を構築する。
+ゲームはtcs2cでCへ変換し、lubとリンクしてWasmにする。
 原作アーカイブのSHA-256はビルド時に照合する。
 配布先の`source.tar.gz`には、このゲームの編集用C#、線画データ、
-シェーダー、Webページ、ビルド・検証手順、および生成Luaに含まれるTCSランタイムのソースを収録する。
+シェーダー、Webページ、ビルド・検証手順、およびゲームのWasmに含まれるtcs2cランタイムのソースを収録する。
 
 原作のDelphi引数評価順と32bit乱数を保持する。
 人投げの崖配列の33番目と角度表の257番目は原作EXEが隣接データを読むため、

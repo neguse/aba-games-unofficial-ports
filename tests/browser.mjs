@@ -29,33 +29,6 @@ try {
             }
         };
     });
-    await page.route('**/game.lua', async route => {
-        const response = await route.fetch();
-        let code = await response.text();
-        assert.match(code, /return Game\s*$/);
-        code = code.replace('if topic == "scores" then', `if topic == "test.stage" then
-  Game.manager.stage = tonumber(payload)
-  Game.manager:start_in_game()
-  for i = 1, 600 do
-   Game.manager.ship.cnt = -30
-   Game.manager:move()
-  end
-  Game.manager.ship.cnt = 1
-end
-if topic == "test.gameover" then
-  Game.manager.score = 1234567
-  Game.manager:start_gameover()
-end
-if topic == "scores" then`);
-        code = code.replace(/return Game\s*$/, `local original_frame = Game.on_frame
-function Game.on_frame(dt)
- original_frame(dt)
- local g = Game.manager
- lub.host.send('test.state', table.concat({g.state,g.stage,g.score,g.ship.pos.x,g.ship.pos.y,g.ship.stuck_enemies.pull_in_cnt,g.cnt,g.pref_manager.ranking[1].score}, ','))
-end
-return Game`);
-        await route.fulfill({ response, body: code });
-    });
     async function observe() {
         await page.locator('#status').waitFor({ state: 'hidden', timeout: 45000 });
         await page.evaluate(() => {
@@ -67,8 +40,8 @@ return Game`);
         });
         await page.waitForFunction(() => window.gameState);
     }
-    async function command(topic, payload = '') {
-        await page.evaluate(({ topic, payload }) => lubHost.queue.push({ topic, payload }), { topic, payload });
+    async function command(id, value = 0) {
+        await page.evaluate(payload => lubHost.queue.push({ topic: 'test', payload }), `${id},${value}`);
     }
     await page.goto(url);
     await observe();
@@ -102,12 +75,12 @@ return Game`);
     await page.evaluate(() => window.dispatchEvent(new Event('blur')));
     await page.keyboard.up('ArrowRight');
     for (let stage = 0; stage < 5; stage++) {
-        await command('test.stage', String(stage));
+        await command(0, stage);
         await page.waitForFunction(stage => gameState[1] === stage && gameState[0] === 1, stage);
         await page.waitForTimeout(800);
         await page.screenshot({ path: `build/screenshots/stage-${stage + 1}.png` });
     }
-    await command('test.gameover');
+    await command(1);
     await page.waitForFunction(() => localStorage.getItem('tumiki-scores-v1')?.startsWith('1234567,'));
     await page.reload();
     await observe();

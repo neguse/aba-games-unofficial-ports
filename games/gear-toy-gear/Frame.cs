@@ -9,8 +9,8 @@ public class GtgFrame
     private Random random = new Random();
     private Pad pad;
     private Title title;
-    private ActorPools actors;
-    private float storedPauseTicks;
+    public ActorPools actors;
+    public float storedPauseTicks;
     readonly SimulationClock clock = new SimulationClock();
     Action advanceUpdate;
     Func<float> replayStep;
@@ -20,12 +20,12 @@ public class GtgFrame
             clock.AdvanceReplay(seconds, 1f / 60, replayStep, advanceUpdate);
         else clock.Advance(seconds, 1f / 60, advanceUpdate);
     }
-    private FrameGameState state;
+    public FrameGameState state;
     private bool backPressed;
     private bool startPressed;
-    private Record record;
+    public Record record;
     private Replay replay;
-    private Sound sound;
+    public Sound sound;
     private int screenWidth, screenHeight;
     public void Initialize()
     {
@@ -222,8 +222,11 @@ public class GtgFrame
 
     public void Exit()
     {
+        // A page takes the player back to its game list; elsewhere leaving the title ends the game.
         if (Lub.Host.Available())
             Lub.Host.Send("quit", "");
+        else
+            Lub.Quit();
     }
 
     public void Seed(int seed)

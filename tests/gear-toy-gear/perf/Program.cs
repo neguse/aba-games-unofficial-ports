@@ -5,13 +5,13 @@ using static Lub;
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 int seconds = args.Length > 0 ? int.Parse(args[0]) : 60;
 float rank = args.Length > 1 ? float.Parse(args[1]) : 8;
-static T Field<T>(object value, string name) => (T)value.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(value);
+static T Field<T>(object value, string name) => (T)value.GetType().GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).GetValue(value);
 GameState state = null;
 Stage stage = null;
 BulletPool bullets = null;
 ParticlePool particles = null;
 bool wasPlaying = false;
-var targetRank = typeof(Stage).GetField("targetRank", BindingFlags.Instance | BindingFlags.NonPublic);
+var targetRank = typeof(Stage).GetField("targetRank", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 var samples = new Sample[checked((seconds + 30) * 160)];
 var left = new XrInput { Active = true };
 var right = new XrInput { Active = true };
@@ -21,11 +21,6 @@ int result = 1;
 int runtime = Lub.Run(() =>
 {
     Game.OnInit();
-    while (FrameHost.Available())
-    {
-        Lub.Host.Poll(out string topic, out _);
-        if (topic == null) break;
-    }
     Game.frame.Seed(1234);
     var actors = Field<ActorPools>(Game.frame, "actors");
     state = Field<GameState>(actors, "gameState");
@@ -55,7 +50,7 @@ int runtime = Lub.Run(() =>
         right.Primary = frame % 144 < 30;
         long allocated = GC.GetAllocatedBytesForCurrentThread();
         long before = Stopwatch.GetTimestamp();
-        FrameApp.DrawInput(dt, left, right, true);
+        Game.DrawInput(dt, left, right, true);
         double cpu = Stopwatch.GetElapsedTime(before).TotalMilliseconds;
         allocated = GC.GetAllocatedBytesForCurrentThread() - allocated;
         samples[frame] = new(elapsed, cpu, allocated, GC.CollectionCount(0), GC.CollectionCount(1), GC.CollectionCount(2), playing, Stage.Rank, Stage.GameSpeed, bullets.Count, particles.Count);

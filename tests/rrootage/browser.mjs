@@ -22,22 +22,8 @@ try {
             }
         };
     });
-    await page.route('**/game.lua', async route => {
-        const response = await route.fetch(); let code = await response.text();
-        assert.match(code, /return Game\s*$/);
-        code = code.replace('if topic == "scores" then', `if topic == "test.finish" then
- RrAttract.score=7654321;RrAttract.set_hi_score(1);RrCore.init_title()
-end
-if topic == "scores" then`);
-        code = code.replace(/return Game\s*$/, `local frame=Game.on_frame
-function Game.on_frame(dt)
- frame(dt)
- local s=RrShip.ship
- lub.host.send('test.state',table.concat({RrCore.status,RrAttract.mode,RrAttract.slc_stg,s.pos.x,s.laser_cnt,RrShip.bomb,s.rolling_cnt,s.color,s.rf_cnt,s.cnt,RrAttract.score,RrAttract.hi_score.score[4][2],RrAttract.hi_score.cleard[4][2],RrAttract.scene,s.rf_mtr_dec},','))
-end
-return Game`);
-        await route.fulfill({ response, body: code });
-    });
+    // test commands: 0 finish
+    async function command(id, value = 0) { await page.evaluate(payload => lubHost.queue.push({ topic: 'test', payload }), `${id},${value}`); }
     async function observe() {
         await page.locator('#status').waitFor({ state: 'hidden', timeout: 45000 });
         await page.evaluate(() => {
@@ -85,7 +71,7 @@ return Game`);
         if (mode < 3) { await press('Escape'); await page.waitForFunction(() => gameState[0] === 0); }
     }
     assert.ok(await page.evaluate(() => audioStarts > 0));
-    await page.evaluate(() => lubHost.queue.push({ topic: 'test.finish', payload: '' }));
+    await command(0);
     await page.waitForFunction(() => localStorage.getItem('rrootage-scores-v1')?.includes('7654321'));
     await page.reload(); await observe();
     await page.waitForFunction(() => gameState[0] === 0 && gameState[1] === 3 && gameState[2] === 1 && gameState[11] === 7654321 && gameState[12] === 1);

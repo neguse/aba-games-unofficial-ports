@@ -120,7 +120,7 @@ class Program:
                     self.state([getattr(self, kind)(value, bullet_env, method)])
             actions = [e for e in bullet if e.tag == "action"] + [e for e in bullet if e.tag == "actionRef"]
             child = self.compiler.program(actions) if actions else -1
-            args = "new float[] { " + ", ".join(bullet_env) + " }" if actions and bullet_env else "new float[0]"
+            args = "new float[] { " + ", ".join(bullet_env) + " }" if actions and bullet_env else f"new float[{self.compiler.parameter_count}]"
             self.state([f"s.Fire(w, b, {child}, {args});"])
         elif tag in ("changeDirection", "changeSpeed", "accel"):
             self.state([f"s.Term = {self.integer(node.find('term'), env)};"])

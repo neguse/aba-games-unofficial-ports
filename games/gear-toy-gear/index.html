@@ -8,11 +8,13 @@
 <main>
   <canvas id="canvas" width="640" height="480" tabindex="0" aria-label="GearToyGear ゲーム画面"></canvas>
   <p id="status" role="status">読み込み中…</p>
+  <p><button id="vr" type="button" hidden disabled>VRを確認中…</button></p>
+  <p>VR：左スティックで移動、右トリガーで加速、左トリガーで減速、Aで開始、Xでポーズ、Bでタイトルへ（ポーズ中）。</p>
   <p>移動：矢印 / WASD　開始・加速：X / V / , / /　減速：Z / C / M / .　アクセル：E　ブレーキ：Q　ポーズ：F1 / P　タイトルへ：Esc</p>
   <p>ショットと誘導レーザーは自動で発射します。敵と障害物を避けながら加速すると、ゲーム速度と得点倍率が上がります。</p>
   <nav><button id="sound" type="button" aria-pressed="false">音：オン</button><button id="fullscreen" type="button">全画面</button><a href="https://www.asahi-net.or.jp/~cs8k-cyu/xna/gtg/index_e.html">原作：Kenta Cho / ABA Games</a><a href="LICENSE.txt">ライセンス</a><a href="../">TUMIKI Fighters</a></nav>
 </main>
-<script id="game-config" type="application/json">{"wasm":"../wasm/","scores":"gear-toy-gear-scores-v1","seed":true,"musicExtension":"wav","soundOverlap":true,"music":["Gtg1","Gtg2","Gtg3"],"sounds":["EnemyDestroyed","Extend","HomingLaser","Laser","MiddleEnemyDestroyed","PlayerDestroyed","PlayerLaser","Shot"],"controls":[["KeyW",1],["KeyS",2],["KeyA",4],["KeyD",8],["ArrowUp",16],["Numpad8",16],["ArrowDown",32],["Numpad2",32],["ArrowLeft",64],["Numpad4",64],["ArrowRight",128],["Numpad6",128],["KeyZ",256],["KeyM",256],["KeyX",512],["Comma",512],["KeyC",1024],["Period",1024],["KeyV",2048],["Slash",2048],["KeyQ",4096],["KeyE",8192],["F1",16384],["KeyP",16384],["Escape",32768]]}</script>
+<script id="game-config" type="application/json">{"webxr":true,"wasm":"wasm/","saves":[["/save/gear-toy-gear/scores.txt","gear-toy-gear-scores-v1"]],"music":["Gtg1","Gtg2","Gtg3"],"sounds":["EnemyDestroyed","Extend","HomingLaser","Laser","MiddleEnemyDestroyed","PlayerDestroyed","PlayerLaser","Shot"],"controls":[["KeyW",1],["KeyS",2],["KeyA",4],["KeyD",8],["ArrowUp",16],["Numpad8",16],["ArrowDown",32],["Numpad2",32],["ArrowLeft",64],["Numpad4",64],["ArrowRight",128],["Numpad6",128],["KeyZ",256],["KeyM",256],["KeyX",512],["Comma",512],["KeyC",1024],["Period",1024],["KeyV",2048],["Slash",2048],["KeyQ",4096],["KeyE",8192],["F1",16384],["KeyP",16384],["Escape",32768]]}</script>
 <script type="module">
 import '../main.js';
 const onMessage=lubHost.onMessage;

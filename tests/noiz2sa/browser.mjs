@@ -22,29 +22,8 @@ try {
             }
         };
     });
-    await page.route('**/game.lua', async route => {
-        const response = await route.fetch(); let code = await response.text();
-        assert.match(code, /return Game\s*$/);
-        code = code.replace('if topic == "scores" then', `if topic == "test.select" then NrAttract.hi_score.stage=tonumber(payload);NrCore.init_title() end
-if topic == "test.record" then NrAttract.score=123456;NrBarrage.scene=0;NrAttract.set_clear_score();NrPreference.save_preference() end
-if topic == "test.finish" then NrAttract.score=7654321;NrCore.init_gameover();NrAttract.go_cnt=901 end
-if topic == "test.palette" then test_palette=true end
-if topic == "scores" then`);
-        code = code.replace('NrRender.frame()', `if test_palette then
- local colors={0,1,16,31,32,47,48,63}
- for i,c in ipairs(colors) do NrScreen.buf:rect(16+(i-1)*36,220,32,32,c,0,0,0,0) end
-end
-NrRender.frame()`);
-        code = code.replace(/return Game\s*$/, `local frame=Game.on_frame
-function Game.on_frame(dt)
- frame(dt)
- local s=NrShip.ship;local shots=0
- for _,shot in ipairs(NrShot.shot) do if shot.cnt~=-999999 then shots=shots+1 end end
- lub.host.send('test.state',table.concat({NrCore.status,NrAttract.slc_stg,NrAttract.stage,s.pos.x,s.speed,s.cnt,shots,NrBarrage.endless,NrBarrage.insane,NrAttract.hi_score.stage_score[14],NrAttract.hi_score.scene_score[2][1],NrBarrage.scene},','))
-end
-return Game`);
-        await route.fulfill({ response, body: code });
-    });
+    // test commands: 0 select stage(value), 1 record, 2 finish, 3 palette
+    async function command(id, value = 0) { await page.evaluate(payload => lubHost.queue.push({ topic: 'test', payload }), `${id},${value}`); }
     async function observe() {
         await page.locator('#status').waitFor({ state: 'hidden', timeout: 45000 });
         await page.evaluate(() => {
@@ -63,7 +42,7 @@ return Game`);
     const stages = [1, 9, 10, 11, 12, 13];
     for (const stage of stages) {
         console.log(`STAGE ${stage}`);
-        if (stage !== 1) await page.evaluate(stage => lubHost.queue.push({ topic: 'test.select', payload: String(stage) }), stage);
+        if (stage !== 1) await command(0, stage);
         await page.waitForFunction(stage => gameState[0] === 0 && gameState[1] === stage, stage);
         await page.keyboard.down('z'); await page.waitForFunction(stage => gameState[0] === 1 && gameState[2] === stage, stage); await page.keyboard.up('z');
         assert.equal(await page.evaluate(() => gameState[7]), stage >= 10 ? 1 : 0);
@@ -89,7 +68,7 @@ return Game`);
         assert.ok(colored > 500, `gameplay pixels stage ${stage}: ${colored}`);
         await page.keyboard.down('p'); await page.waitForFunction(() => gameState[0] === 1); await page.keyboard.up('p');
         if (stage === 1) {
-            await page.evaluate(() => lubHost.queue.push({ topic: 'test.record', payload: '' }));
+            await command(1);
             await page.waitForFunction(() => localStorage.getItem('noiz2sa-scores-v1')?.includes('123456'));
         }
         if (stage < 13) {
@@ -98,11 +77,11 @@ return Game`);
         }
     }
     assert.ok(await page.evaluate(() => audioStarts > 0));
-    await page.evaluate(() => lubHost.queue.push({ topic: 'test.finish', payload: '' }));
+    await command(2);
     await page.waitForFunction(() => localStorage.getItem('noiz2sa-scores-v1')?.includes('7654321'));
     await page.reload(); await observe();
     await page.waitForFunction(() => gameState[0] === 0 && gameState[1] === 13 && gameState[9] === 7654321 && gameState[10] === 123456);
-    await page.evaluate(() => lubHost.queue.push({ topic: 'test.palette', payload: '' }));
+    await command(3);
     await page.waitForTimeout(500);
     const paletteImage = await page.locator('#canvas').screenshot();
     const palette = await page.evaluate(async png => {

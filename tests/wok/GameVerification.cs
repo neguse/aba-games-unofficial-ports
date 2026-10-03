@@ -46,7 +46,7 @@ public static class WkVerification {
    foreach(var b in WkBall.ball)if(b.color>=0)Check(b.pos.x==b.pos.x&&b.pos.y==b.pos.y,"finite ball");
    if(WkCore.status==GAMEOVER)WkCore.initGame();
   }
-  Check(WkData.widths.Length==48&&WkData.pixels().Count==WkData.atlasWidth*WkData.atlasHeight*4,"atlas");
+  Check(WkData.widths.Length==48,"atlas");
   Console.WriteLine("RESULT "+failures.ToString());
  }
 }

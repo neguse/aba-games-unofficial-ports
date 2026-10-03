@@ -1,5 +1,6 @@
 import math
 import struct
+import zlib
 
 
 def bitmap(path, expected):
@@ -55,7 +56,17 @@ def mipmaps(pixels, width, height):
     return levels
 
 
-def image(name, pixels, width, height, mipmapped=False):
+def png(path, width, height, rgba):
+    def chunk(kind, data):
+        return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data))
+    rows = b''.join(b'\0' + bytes(rgba[y * width * 4:(y + 1) * width * 4]) for y in range(height))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', width, height, 8, 6, 0, 0, 0))
+                     + chunk(b'IDAT', zlib.compress(rows, 9)) + chunk(b'IEND', b''))
+
+
+def image(directory, name, pixels, width, height, mipmapped=False):
+    """Write directory/images/title-NAME.png and return the DrawImage that loads it."""
     levels = mipmaps(pixels, width, height) if mipmapped else [(width, height, pixels)]
     width, height, _ = levels[0]
     # lub exposes level zero only; stack the GLU mip levels in one texture.
@@ -64,7 +75,8 @@ def image(name, pixels, width, height, mipmapped=False):
         for y in range(h):
             atlas.extend(value for pixel in level[y * w:(y + 1) * w] for value in pixel)
             atlas.extend([0] * ((width - w) * 4))
-    return ('new DrawImage { key = "title-' + name + '", width = ' + str(width)
-            + ', height = ' + str(height) + ', atlasHeight = ' + str(sum(h for _, h, _ in levels))
-            + ', levels = ' + str(len(levels)) + ', pixels = new System.Collections.Generic.List<int> {'
-            + ','.join(map(str, atlas)) + '} }')
+    atlas_height = sum(h for _, h, _ in levels)
+    png(directory / 'images' / f'title-{name}.png', width, atlas_height, atlas)
+    return ('new DrawImage { key = "title-' + name + '", path = "images/title-' + name + '.png", width = ' + str(width)
+            + ', height = ' + str(height) + ', atlasHeight = ' + str(atlas_height)
+            + ', levels = ' + str(len(levels)) + ' }')

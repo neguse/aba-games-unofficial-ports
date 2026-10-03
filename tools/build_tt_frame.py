@@ -29,8 +29,8 @@ if args.runtime in ['coreclr', 'both']:
                     '-c', 'Release', '-r', 'linux-arm64', '--self-contained', 'true',
                     f'-p:LubRoot={lub}', '-o', str(output)], cwd=root, check=True)
 if args.runtime in ['tcs2c', 'both']:
-    subprocess.run([sys.executable, 'tools/compile_torus_c.py', '--lub', str(lub),
-                    '--tcs', str(args.tcs.resolve()), '--native', str(native / 'liblub.so'),
+    subprocess.run([sys.executable, 'tools/compile_frame_c.py', '--lub', str(lub),
+                    '--tcs', str(args.tcs.resolve()), '--game', 'torus-trooper', '--native', str(native / 'liblub.so'),
                     '--cc', args.cc, '--executable', str(output / 'TorusTrooper-c')], cwd=root, check=True)
     shutil.copy2(args.tcs / 'LICENSE', output / 'LICENSE-tcs.txt')
 for path in (root / 'games/torus-trooper/frame').glob('mesh.*.slang'):
@@ -54,6 +54,7 @@ for path in (original / 'sounds').rglob('*'):
     if path.suffix in ['.wav', '.ogg']:
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(path),
                         '-c:a', 'pcm_s16le', str(output / 'audio' / (path.stem + '.wav'))], check=True)
+shutil.copytree(root / 'build/torus-trooper/images', output / 'images', dirs_exist_ok=True)
 shutil.copy2(original / 'readme_e.txt', output / 'README-original.txt')
 shutil.copy2(root / 'LICENSE', output / 'LICENSE.txt')
 shutil.copy2(lub / 'LICENSE', output / 'native/LICENSE-lub.txt')

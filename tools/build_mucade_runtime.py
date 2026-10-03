@@ -1,7 +1,6 @@
 import argparse
 import hashlib
 from pathlib import Path
-import shutil
 import subprocess
 import tarfile
 import urllib.request
@@ -70,22 +69,12 @@ subprocess.run(['c++', '-O2', '-w', '-DLUA_32BITS', '-DdNODEBUG',
                 '-lm', '-ldl', '-o', str(output / 'lua-ode')], check=True)
 if args.native_only:
     raise SystemExit(0)
-runtime = Path('.cache/mu-cade-lub')
-shutil.copytree(args.lub, runtime, dirs_exist_ok=True,
-                ignore=shutil.ignore_patterns('.git', 'build', 'third_party', 'node_modules', 'bin', 'obj'))
-third_party = runtime / 'third_party'
-if not third_party.exists():
-    third_party.symlink_to(args.lub.resolve() / 'third_party', target_is_directory=True)
-api = runtime / 'src/lua_api.c'
-text = api.read_text()
-text = text.replace('void lua_api_register(lua_State *L) {',
-                    'extern int luaopen_mcd_ode(lua_State *L);\nvoid lua_api_register(lua_State *L) {\n  luaopen_mcd_ode(L);\n  lua_setglobal(L, "mcdphysics");')
-api.write_text(text)
-with (runtime / 'CMakeLists.txt').open('a') as cmake:
-    cmake.write('\nadd_library(mcd_ode STATIC\n' + '\n'.join('"' + source + '"' for source in sources) + '\n)\n')
-    cmake.write(f'target_include_directories(mcd_ode PUBLIC "{ode / "include"}")\n')
-    cmake.write('target_compile_definitions(mcd_ode PRIVATE dNODEBUG)\n')
-    cmake.write(f'target_sources(lub_objs PRIVATE "{bridge}")\n')
-    cmake.write('target_link_libraries(lub_objs PUBLIC mcd_ode)\n')
-subprocess.run(['emcmake', 'cmake', '--preset', 'wasm-release'], cwd=runtime, check=True)
-subprocess.run(['cmake', '--build', 'build/wasm', '--target', 'lub', '--parallel', '8'], cwd=runtime, check=True)
+# Included by lub's project(): the deferred call runs once lub's own targets exist.
+(output / 'ode.cmake').write_text('function(mcd_ode)\nadd_library(mcd_ode STATIC\n' + '\n'.join('"' + source + '"' for source in sources) + f'''
+)
+target_include_directories(mcd_ode PUBLIC "{ode / "include"}")
+target_compile_definitions(mcd_ode PRIVATE dNODEBUG)
+target_link_libraries(lub PRIVATE mcd_ode)
+endfunction()
+cmake_language(DEFER CALL mcd_ode)
+''')

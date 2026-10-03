@@ -11,29 +11,8 @@ try {
     await mkdir('build/screenshots',{recursive:true});
     const page=await browser.newPage({viewport:{width:960,height:960}});
     page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
-    await page.addInitScript(()=>{
-        window.audioStarts=0;window.spatialStarts=0;window.loopStops=0;const Native=window.AudioContext;
-        window.AudioContext=class extends Native {
-            createBufferSource(){const source=super.createBufferSource(),start=source.start.bind(source),stop=source.stop.bind(source);source.start=(...a)=>{window.audioStarts++;return start(...a);};source.stop=(...a)=>{if(source.loop)window.loopStops++;return stop(...a);};return source;}
-            createPanner(){window.spatialStarts++;return super.createPanner();}
-        };
-    });
-    await page.route('**/game.lua',async route=>{
-        const response=await route.fetch();let code=await response.text();assert.match(code,/return Game\s*$/);
-        code=code.replace('if topic == "scores" then',`if topic == "test.boss" then local a=Game.frame.actors;a.stage.stage_count=6;a.stage.stage_ticks=0;a.stage:go_to_next_stage();a.stage.stage_ticks=421 end
-if topic == "test.finish" then local a=Game.frame.actors;a.game_state.score=7654321;a.game_state.left=0;a.player.invincible_ticks=-1;a.player:destroy();a.game_state.game_over_ticks=2 end
-if topic == "test.cue" then local s=Game.frame.sound;Game.test_cue=s:get_cue('HomingLaser');Game.test_cue:apply3_d(AudioListener.new(),AudioEmitter.new());Game.test_cue:play() end
-if topic == "test.stop" then Game.test_cue:stop(0) end
-if topic == "scores" then`);
-        code=code.replace(/return Game\s*$/,`local frame=Game.on_frame
-function Game.on_frame(dt)
- frame(dt)
- local f=Game.frame;local a=f.actors;local p=a.player
- lub.host.send('test.state',table.concat({f.state,p.pos.x,p.pos.y,Stage.game_speed,a.shots:get_count(),f.stored_pause_ticks,a.stage.ticks,f.record.stored_scores[1],a.middle_enemies:get_count(),p.is_in_replay and 1 or 0,Pad.input,a.player_homing_lasers:get_count()},','))
-end
-return Game`);
-        await route.fulfill({response,body:code});
-    });
+    // test commands: 0 boss, 1 finish, 2 cue, 3 stop
+    async function command(id,value=0){await page.evaluate(payload=>lubHost.queue.push({topic:'test',payload}),`${id},${value}`);}
     async function observe(){
         await page.locator('#status').waitFor({state:'hidden',timeout:60000});
         await page.evaluate(()=>{const onMessage=lubHost.onMessage;lubHost.onMessage=(topic,bytes)=>{if(topic==='test.state')window.gameState=new TextDecoder().decode(bytes).split(',').map(Number);else onMessage(topic,bytes);};});
@@ -60,17 +39,21 @@ return Game`);
     await page.keyboard.down('p');await page.waitForFunction(()=>gameState[5]>=0);await release('p');
     const paused=await page.evaluate(()=>gameState[6]);await page.waitForTimeout(350);assert.equal(await page.evaluate(()=>gameState[6]),paused);
     await screenshot('paused');await page.keyboard.down('p');await page.waitForFunction(()=>gameState[5]<0);await release('p');
-    await page.evaluate(()=>lubHost.queue.push({topic:'test.boss',payload:''}));
+    await command(0);
     await page.waitForFunction(()=>gameState[8]>=3);await screenshot('boss');
-    await page.evaluate(()=>lubHost.queue.push({topic:'test.cue',payload:''}));
-    await page.waitForFunction(()=>spatialStarts>0);await page.waitForTimeout(300);
-    await page.evaluate(()=>lubHost.queue.push({topic:'test.stop',payload:''}));await page.waitForFunction(()=>loopStops>0);
-    await page.evaluate(()=>lubHost.queue.push({topic:'test.finish',payload:''}));
+    assert.ok(await page.evaluate(()=>window.miniaudio?.devices.some(device=>device?.webaudio.state==='running')));
+    const loops=await page.evaluate(()=>gameState[12]);
+    await command(2);await page.waitForFunction(n=>gameState[12]===n+1,loops);
+    await command(3);await page.waitForFunction(n=>gameState[12]<=n,loops);
+    await command(1);
     await page.waitForFunction(()=>gameState[0]===0&&gameState[7]===7654321&&gameState[9]===1);
     await page.waitForFunction(()=>localStorage.getItem('gear-toy-gear-scores-v1')?.startsWith('7654321,'));
-    await screenshot('replay');assert.ok(await page.evaluate(()=>audioStarts>0));
+    await screenshot('replay');
     await page.locator('#sound').click();assert.equal(await page.locator('#sound').getAttribute('aria-pressed'),'true');
     await page.reload();await observe();await page.waitForFunction(()=>gameState[7]===7654321);
+    // A ranking stored by the earlier page, which kept the same text under the same key.
+    await page.evaluate(()=>localStorage.setItem('gear-toy-gear-scores-v1','8000000,90000,80000,70000,60000,50000,40000,30000,20000,10000'));
+    await page.reload();await observe();await page.waitForFunction(()=>gameState[7]===8000000);
     await page.keyboard.down('F1');await page.waitForFunction(()=>gameState[0]===1);await release('F1');
     await page.keyboard.down('Escape');await page.waitForFunction(()=>gameState[0]===0);await release('Escape');
     const count=await page.evaluate(async()=>{
@@ -80,5 +63,5 @@ return Game`);
         await audio.close();return names.length;
     });
     assert.equal(count,11);assert.deepEqual(errors,[]);
-    console.log('PASS: movement, automatic shots, acceleration/braking, pause, boss rendering, replay, spatial loops, mute, 11 audio decodes and ranking reload');
+    console.log('PASS: movement, automatic shots, acceleration/braking, pause, boss rendering, replay, audio, looped cues, mute, 11 audio decodes and ranking reload');
 }finally{await browser.close();}

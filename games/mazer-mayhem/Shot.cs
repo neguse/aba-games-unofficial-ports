@@ -90,7 +90,7 @@ public class ShotPool : ActorPool<Shot>
 
     private void AddShape(Shot a)
     {
-        byte r, g, b;
+        int r, g, b;
         Vector3 bv = new Vector3(WIDTH, 0, 0);
         if (player.IsInHyper)
         {

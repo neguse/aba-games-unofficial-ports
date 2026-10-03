@@ -11,6 +11,8 @@ parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanio
 parser.add_argument('--test', type=Path)
 parser.add_argument('--frame', action='store_true')
 parser.add_argument('--output', type=Path, default=Path('build/game.lua'))
+parser.add_argument('--c', type=Path, help='write game.c and binding.c here instead of Lua')
+parser.add_argument('--tcs', type=Path)
 args = parser.parse_args()
 first = ['Core.cs', 'Rand.cs', 'PatternNumber.cs', 'Pattern.cs']
 sources = [Path('game') / name for name in first]
@@ -66,7 +68,7 @@ if args.game == 'mazer-mayhem':
     sources += sorted(Path('build/mazer-mayhem').glob('*.cs'))
     sources.append(Path('game/SimulationTime.cs'))
 if args.game == 'gear-toy-gear':
-    names = ['Arrays.cs', 'Math.cs', 'GameMath.cs', 'Random.cs', 'Actor.cs', 'PrimitiveShape.cs']
+    names = ['Arrays.cs', 'Math.cs', 'GameMath.cs', 'Random.cs', 'Actor.cs', 'PrimitiveShape.cs', 'Sound.cs']
     sources = [Path('game/PatternNumber.cs')] + [Path('games/gear-toy-gear') / name for name in names]
     sources += [p for p in sorted(Path('games/gear-toy-gear').glob('*.cs')) if p.name not in names]
     sources += sorted(Path('build/gear-toy-gear').glob('*.cs'))
@@ -83,15 +85,10 @@ if args.game in ['gear-toy-gear', 'torus-trooper']:
     sources.append(Path('game/SimulationTime.cs'))
 
 if args.frame:
-    if args.game not in ['gear-toy-gear', 'torus-trooper', 'mazer-mayhem']:
-        parser.error('--frame requires gear-toy-gear, torus-trooper or mazer-mayhem')
-    excluded = ['Render.cs', 'Pad.cs'] if args.game in ['gear-toy-gear', 'mazer-mayhem'] else []
-    sources = [p for p in sources if p.parent != Path('games') / args.game or p.name not in excluded]
-    if args.game == 'torus-trooper': sources.append(Path('games/frame/FrameMath.cs'))
-    sources += [p for p in sorted((Path('games') / args.game / 'frame').glob('*.cs')) if p.name != 'Program.cs']
-    if args.entry == 'Game' and args.game in ['gear-toy-gear', 'mazer-mayhem']:
-        args.entry = 'FrameApp'
-else:
+    if args.game != 'torus-trooper':
+        parser.error('--frame requires torus-trooper')
+    sources.append(Path('games/frame/FrameMath.cs'))
+elif args.game not in ['gear-toy-gear', 'mazer-mayhem']:
     shader_source = 'public static class GameShaders {\n'
     for name, stage in [('vertex', 'vs'), ('fragment', 'fs')]:
         prefix = 'shaders/mesh' if args.game in ['titanion', 'parsec47', 'tumiki', 'torus-trooper', 'a7xpg', 'rrootage', 'mu-cade'] else f'games/{args.game}/game'
@@ -99,10 +96,22 @@ else:
     shader_source += '}\n'
     Path('build/Shaders.cs').write_text(shader_source)
     sources.append(Path('build/Shaders.cs'))
-if args.frame or args.game == 'torus-trooper':
+if args.game in ['torus-trooper', 'gear-toy-gear', 'mazer-mayhem']:
     sources.insert(0, args.lub / 'cs-lib/lubx/XrAnchor.cs')
 if args.test:
     sources.append(args.test)
+if args.c:
+    stubs = [Path('games/mu-cade/OdeApi.cs')] if args.game == 'mu-cade' else []
+    args.c.mkdir(parents=True, exist_ok=True)
+    subprocess.run(['dotnet', str(args.tcs / 'tcs2c/bin/Release/net10.0/tcs2c.dll'), '--lib',
+                    '--ref', str(args.lub / 'cs-lib/lub_stub.cs'), *[arg for path in stubs for arg in ['--ref', str(path)]],
+                    *map(str, sources), '-o', str(args.c / 'game.c')], check=True)
+    subprocess.run(['dotnet', str(args.lub / 'tools/lub-gen/bin/Release/net10.0/lub-gen.dll'), 'tcs',
+                    '--stub', str(args.lub / 'cs-lib/lub_stub.cs'),
+                    # lub-gen takes a single stub, so it reads the game's own as source.
+                    *[arg for path in sources + stubs for arg in ['--source', str(path)]],
+                    '-o', str(args.c / 'binding.c')], check=True)
+    raise SystemExit(0)
 compiler = args.lub / 'third_party/tcs/Transpiler/bin/Release/net10.0/Transpiler.dll'
 command = ['dotnet', str(compiler), *map(str, sources), '--ref', str(args.lub / 'cs-lib/lub_stub.cs'), '--no-naming-check']
 if args.game == 'mu-cade':

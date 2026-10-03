@@ -9,6 +9,6 @@ pixels = bitmap(args.original / 'images/title.bmp', (280, 64, 24))
 output = Path('build/titanion')
 output.mkdir(parents=True, exist_ok=True)
 (output / 'TitleImage.cs').write_text('''public static class TitanionTitleImage {
-public static DrawImage title = ''' + image('titanion', pixels, 280, 64, True) + ''';
+public static DrawImage title = ''' + image(output, 'titanion', pixels, 280, 64, True) + ''';
 }
 ''')
