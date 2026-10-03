@@ -301,18 +301,17 @@ node tests/titanion/browser.mjs https://公開先のホスト名/titanion/
 
 ## 公開と取り消し
 
-PRを人間がマージした後、そのコミットをビルド・検証し、
-Cloudflare Workers Static Assetsへ配布する。
+タグ`frame-vX.Y.Z`を打つと、`.github/workflows/frame-release.yml`が全作品をビルド・検証し、
+Cloudflare Workers Static Assets（Worker名`aba-games-unofficial-ports`）へ配布する。
+`-rc`を含むタグは本番へ切り替えず、プレビュー用のバージョンだけを作る。
 
 ```sh
-npx wrangler@4.135.0 deploy --dry-run
-npx wrangler@4.135.0 deploy
-npx wrangler@4.135.0 deployments list
+npx wrangler@4.146.0 deployments list
+npx wrangler@4.146.0 rollback <Version ID>
 ```
 
-公開URLでも上記のブラウザ検証を実行する。更新前のVersion IDを控え、
-不具合時は`npx wrangler@4.135.0 rollback <Version ID>`で戻す。
-初回公開を取り下げる場合は`npx wrangler@4.135.0 delete --name tsumiki`を使用する。
+公開URLでも上記のブラウザ検証を実行する。不具合時は更新前のVersion IDへ`rollback`で戻す。
+公開を取り下げる場合は`npx wrangler@4.146.0 delete --name aba-games-unofficial-ports`を使用する。
 
 ## ライセンス
 
