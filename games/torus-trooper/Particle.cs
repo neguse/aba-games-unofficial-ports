@@ -10,6 +10,7 @@ public class Particle : LuminousActor
     public const float GRAVITY = 0.02f;
     public const float SIZE = 0.3f;
     public static Rand rand = new Rand();
+    static readonly Vector3 previous = new Vector3();
     public Tunnel tunnel;
     public Ship ship;
     public Vector3 pos;
@@ -101,12 +102,12 @@ public class Particle : LuminousActor
         pos.x += vel.x * SimulationTime.Step;
         pos.y += vel.y * SimulationTime.Step;
         pos.z += vel.z * SimulationTime.Step;
+        float approach = ship.speed;
         if (type == ParticlePType.FRAGMENT)
-            pos.y = pos.y - (ship.speed / 2 * SimulationTime.Step);
+            approach = ship.speed / 2;
         else if (type == ParticlePType.SPARK)
-            pos.y = pos.y - (ship.speed * 0.33f * SimulationTime.Step);
-        else
-            pos.y = pos.y - (ship.speed * SimulationTime.Step);
+            approach = ship.speed * 0.33f;
+        pos.y = pos.y - (approach * SimulationTime.Step);
         if (type != ParticlePType.STAR)
         {
             if (type == ParticlePType.FRAGMENT)
@@ -139,14 +140,24 @@ public class Particle : LuminousActor
         calcScreenPos();
         if (SimulationTime.Step != 1)
         {
-            psp.x = sp.x + (psp.x - sp.x) / SimulationTime.Step;
-            psp.y = sp.y + (psp.y - sp.y) / SimulationTime.Step;
-            psp.z = sp.z + (psp.z - sp.z) / SimulationTime.Step;
+            // A trail runs from where the particle was drawn one tick ago. The tunnel is laid out again from each
+            // slice the ship enters, so that place is the particle's position of a tick ago, measured from the
+            // slice the ship was in then.
+            float shipY = ship.pos.y;
+            previous.x = pos.x - vel.x;
+            previous.y = pos.y - vel.y + approach - ship.speed + (float)(Math.Floor(shipY) - Math.Floor(shipY - ship.speed));
+            previous.z = pos.z - vel.z;
+            Vector3 p = tunnel.getPos_1_Vector3(previous);
+            psp.x = p.x;
+            psp.y = p.y;
+            psp.z = p.z;
             if (inCourse)
             {
-                rpsp.x = rsp.x + (rpsp.x - rsp.x) / SimulationTime.Step;
-                rpsp.y = rsp.y + (rpsp.y - rsp.y) / SimulationTime.Step;
-                rpsp.z = rsp.z + (rpsp.z - rsp.z) / SimulationTime.Step;
+                previous.z = -previous.z;
+                p = tunnel.getPos_1_Vector3(previous);
+                rpsp.x = p.x;
+                rpsp.y = p.y;
+                rpsp.z = p.z;
             }
         }
     }

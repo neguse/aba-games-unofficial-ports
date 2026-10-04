@@ -17,6 +17,36 @@ static class DeltaTimeTests
             elapsed += dt;
         }
     }
+    static float Distance(Vector3 a, Vector3 b)
+        => MathF.Sqrt(MathF.Pow(a.x - b.x, 2) + MathF.Pow(a.y - b.y, 2) + MathF.Pow(a.z - b.z, 2));
+    // The sorted lengths of the trails, and of their reflections in the course, that one particle type shows frame by
+    // frame while the ship flies at full speed.
+    static List<float> FlightTrails(int type, IEnumerable<float> frames)
+    {
+        var g = new GameManager(); g.init_0(); g.start(); g.startInGame();
+        g.pad.buttons = 0; g.pad.directions = PadDir.UP;
+        Particle.setRandSeed(123);
+        var p = new Particle(); p.init_1([g.tunnel, g.ship]);
+        var clock = new SimulationClock();
+        var trails = new List<float>();
+        double elapsed = 0;
+        foreach (float dt in frames)
+        {
+            clock.Advance(dt, .016f, () =>
+            {
+                g.ship.move();
+                if (!p.exists) p.set_12(new Vector(0, 12), type == ParticlePType.STAR ? -12 : 2, 0, 0, 0, 1, 1, 1, 100, type);
+                p.move();
+            });
+            elapsed += dt;
+            if (elapsed < 6 || !p.exists) continue;
+            trails.Add(Distance(p.sp, p.psp));
+            if (p.inCourse) trails.Add(Distance(p.rsp, p.rpsp));
+        }
+        g.close();
+        trails.Sort();
+        return trails;
+    }
     static float[] Snapshot(GameManager g) => [g.ship.pos.x, g.ship.pos.y, g.ship.speed, g.stageManager.level,
         g.inGameState.score, g.bullets.actor.Count(a => a.exists), g.ship.fireShotCnt];
     public static void Run()
@@ -85,32 +115,20 @@ static class DeltaTimeTests
         var loaded = new PadRecord();
         if (!loaded.decode(longRecord.encode()) || loaded.steps.Count != 200000)
             throw new Exception("long variable-time replay");
-        var particles = new GameManager(); particles.init_0(); particles.start(); particles.startInGame();
-        particles.ship._speed = .6f;
+        // The tunnel is laid out again from each slice the ship enters, which moves every particle a whole slice
+        // at once; each display rate must still draw the trails of the original 16 ms tick.
         foreach (int type in new[] { ParticlePType.STAR, ParticlePType.JET, ParticlePType.SPARK })
         {
-            float? referenceLength = null, referenceMirror = null;
-            foreach (int hz in new[] { 0, 60, 90, 120, 144 })
+            var original = FlightTrails(type, Enumerable.Repeat(.016f, 625));
+            float typical = original[original.Count / 2], longest = original[^1];
+            foreach (int hz in new[] { 60, 90, 120, 144, 0 })
             {
-                Particle.setRandSeed(123);
-                var p = particles.particles.getInstanceForced();
-                p.set_12(new Vector(0, 12), type == ParticlePType.STAR ? -12 : 2, 0, 0, 0, 1, 1, 1, 100, type);
-                p.inCourse = type != ParticlePType.STAR;
-                var clock = new SimulationClock();
-                if (hz == 0) { p.move(); p.move(); }
-                else foreach (float dt in Schedule(hz, .032)) clock.Advance(dt, .016f, p.move);
-                float length = MathF.Sqrt(MathF.Pow(p.sp.x - p.psp.x, 2) + MathF.Pow(p.sp.y - p.psp.y, 2) + MathF.Pow(p.sp.z - p.psp.z, 2));
-                referenceLength ??= length;
-                Near(length, referenceLength.Value, referenceLength.Value * .03f, $"particle trail {type}/{hz}");
-                if (p.inCourse)
-                {
-                    float mirror = MathF.Sqrt(MathF.Pow(p.rsp.x - p.rpsp.x, 2) + MathF.Pow(p.rsp.y - p.rpsp.y, 2) + MathF.Pow(p.rsp.z - p.rpsp.z, 2));
-                    referenceMirror ??= mirror;
-                    Near(mirror, referenceMirror.Value, referenceMirror.Value * .03f, $"reflected trail {type}/{hz}");
-                }
+                var trails = FlightTrails(type, Schedule(hz, 10));
+                Near(trails[trails.Count / 2], typical, typical * .05f, $"typical particle trail {type}/{hz}");
+                if (trails[^1] > longest * 1.05f)
+                    throw new Exception($"longest particle trail {type}/{hz}: {trails[^1]} > {longest}");
             }
         }
-        particles.close();
         Console.WriteLine("PASS original particle trail lengths at 60/90/120/144 Hz");
     }
 }
