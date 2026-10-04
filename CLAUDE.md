@@ -13,8 +13,8 @@
 
 - 1 回のリリースで web と OpenXR（Steam Frame）の両方をビルド・デプロイする。
 - 本リリースの前に rc を出し、rc の配布物で確認してから本リリースにする。
-- タグ `frame-vX.Y.Z-rcN` が rc（GitHub の prerelease と、本番へ切り替えない web のプレビュー版）、
-  `frame-vX.Y.Z` が本リリース（GitHub の Release と web の本番デプロイ）。`.github/workflows/frame-release.yml` が行う。
+- タグ `release-vX.Y.Z-rcN` が rc（GitHub の prerelease と、本番へ切り替えない web のプレビュー版）、
+  `release-vX.Y.Z` が本リリース（GitHub の Release と web の本番デプロイ）。`.github/workflows/release.yml` が行う。
 - 受け入れ条件は同ワークフローの `build`（Frame ZIP の検査）と `web`（全作品のビルド、`check_game.py`、`check_patterns.py`）の成功。
   ブラウザテストと実機確認は rc の配布物で行う。
 - 戻し方: web は `wrangler rollback` で前のバージョンへ、Frame は前の Release を案内する。

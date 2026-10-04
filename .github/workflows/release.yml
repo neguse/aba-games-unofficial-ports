@@ -4,13 +4,13 @@ on:
   pull_request:
     branches: [main]
   push:
-    tags: ['frame-v*']
+    tags: ['release-v*']
 
 permissions:
   contents: read
 
 concurrency:
-  group: frame-${{ github.ref }}
+  group: release-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -200,7 +200,7 @@ jobs:
           if-no-files-found: error
 
   release:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/frame-v')
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/release-v')
     needs: [build, web]
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -238,7 +238,7 @@ jobs:
           candidate=false
           case "$RELEASE_TAG" in *-rc*) candidate=true ;; esac
           gh release create "$RELEASE_TAG" --verify-tag --draft --prerelease="$candidate" \
-            --title "Steam Frame ${RELEASE_TAG}" --notes-file notes.md \
+            --title "$RELEASE_TAG" --notes-file notes.md \
             assets/GearToyGear-steam-frame-arm64.zip assets/TorusTrooper-steam-frame-arm64.zip assets/MazerMayhem-steam-frame-arm64.zip \
             assets/Install-ABA-Games.desktop assets/install_frame.py
           if "$candidate"; then
