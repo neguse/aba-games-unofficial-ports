@@ -304,6 +304,8 @@ node tests/titanion/browser.mjs https://公開先のホスト名/titanion/
 タグ`frame-vX.Y.Z`を打つと、`.github/workflows/frame-release.yml`が全作品をビルド・検証し、
 Cloudflare Workers Static Assets（Worker名`aba-games-unofficial-ports`）へ配布する。
 `-rc`を含むタグは本番へ切り替えず、プレビュー用のバージョンだけを作る。
+プレビューは`https://<Version IDの先頭8桁>-aba-games-unofficial-ports.negcee.workers.dev/`で開く。
+Version IDはワークフローの`release`ジョブのログに出る。
 
 ```sh
 npx wrangler@4.146.0 deployments list
