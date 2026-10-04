@@ -243,6 +243,8 @@ jobs:
             assets/Install-ABA-Games.desktop assets/install_frame.py
           if "$candidate"; then
             npx --yes wrangler@4.146.0 versions upload --tag "$RELEASE_TAG" --message "$RELEASE_TAG"
+            # versions upload leaves workers_dev and preview_urls unapplied; the preview URL needs them.
+            npx --yes wrangler@4.146.0 triggers deploy
           else
             npx --yes wrangler@4.146.0 deploy
           fi
