@@ -49,6 +49,22 @@ try {
     await page.screenshot({ path: 'build/screenshots/title.png' });
     await page.waitForTimeout(350);
     await page.keyboard.down('z');
+    await page.waitForTimeout(800);
+    // The stage intro issues more than 128 draws a frame; the ground, drawn first, must keep its own transform.
+    const intro = await page.locator('#canvas').screenshot();
+    const groundBelowSky = await page.evaluate(async png => {
+        const image = new Image(); image.src = 'data:image/png;base64,' + png; await image.decode();
+        const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+        const context = canvas.getContext('2d'); context.drawImage(image, 0, 0);
+        const warm = (top, bottom) => {
+            const pixels = context.getImageData(0, Math.floor(image.height * top), image.width, Math.floor(image.height * (bottom - top))).data;
+            let red = 0, blue = 0;
+            for (let i = 0; i < pixels.length; i += 4) { red += pixels[i]; blue += pixels[i + 2]; }
+            return red > blue;
+        };
+        return !warm(0.02, 0.2) && warm(0.8, 0.98);
+    }, intro.toString('base64'));
+    assert.ok(groundBelowSky, 'the ground must be below the sky during the stage intro');
     await page.waitForFunction(() => gameState[0] === 1, null, { timeout: 30000 });
     await page.keyboard.up('z');
     const x = await page.evaluate(() => gameState[3]);

@@ -193,7 +193,7 @@ Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで全作
 原作アーカイブのSHA-256はビルド時に照合する。
 展開済みの原作を使う場合は`--original /path/to/tf`を指定する。
 
-lubは`ec65d1914cd8ddf23a7a092a0a7a1b12565848b9`に固定する。
+lubは`362510eb1f596f69d983501d930e4dfbb57581c3`に固定する。
 全作品をtcs2cでCへ変換し、lubとリンクしたWasmを作品ごとの`wasm/`へ配置する。
 画像は`build/<作品>/images/`にPNGで書き出し、`assets.json`に列挙して実行時に`Png.Load`で読む。
 Torus Trooper・GearToyGear・Mazer Mayhemはネイティブ版と同じC#・描画・操作・シェーダーを使う。
