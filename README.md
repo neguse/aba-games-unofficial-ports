@@ -50,8 +50,8 @@ Mazer Mayhem は倍率をためて両トリガーを同時に引くとハイパ�
 ## ソースコード
 
 配布版のコードは、利用する Release のタグから参照する。
-Frame 版の開発ブランチは
-[`release/frame`](https://github.com/neguse/aba-games-unofficial-ports/tree/release/frame)。
+開発ブランチは
+[`main`](https://github.com/neguse/aba-games-unofficial-ports/tree/main)。
 ゲームのソースは [GearToyGear](games/gear-toy-gear/)・
 [Torus Trooper](games/torus-trooper/)・[Mazer Mayhem](games/mazer-mayhem/) にある。3作とも描画・入力はWebXRと共通で、`frame/`にはネイティブ起動とビルド設定を置く。
 
