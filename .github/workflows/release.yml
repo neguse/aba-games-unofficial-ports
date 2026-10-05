@@ -224,7 +224,9 @@ jobs:
           artifact-ids: ${{ needs.web.outputs.artifact-id }}
           merge-multiple: true
           path: dist
-      - name: Upload an undeployed PR48 version and verify its provenance
+      - name: Test preview verification
+        run: python3 -m unittest discover -s tests -p test_pr_preview_verification.py
+      - name: Upload PR48 and verify authenticated version provenance
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -233,13 +235,13 @@ jobs:
           WRANGLER_SEND_METRICS: 'false'
         run: |
           python3 - <<'PYTHON'
+          import hashlib
           import json
           import os
           from pathlib import Path
-          import re
           import subprocess
-          import time
           import urllib.request
+          from tools.pr_preview_verification import check_public_preview, dist_manifest, preview_identity, verify_version
 
           for name in ('CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_ACCOUNT_ID'):
               if not os.environ.get(name):
@@ -275,38 +277,77 @@ jobs:
               'run_url': f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
           }
           Path('dist/pr-preview.json').write_text(json.dumps(provenance) + '\n')
+          # Bind this upload to the exact downloaded artifact and its file manifest.
+          # This is control-plane provenance, not remote asset byte readback.
+          manifest_bytes = dist_manifest('dist')
+          tree_digest = hashlib.sha256(manifest_bytes).hexdigest()
+          message = (
+              f"PR48 sha={head} artifact={provenance['artifact_id']} "
+              f"run={os.environ['GITHUB_RUN_ID']}.{os.environ['GITHUB_RUN_ATTEMPT']} "
+              f"tree-sha256={tree_digest}"
+          )
+          if len(message.encode('utf-8')) > 1000:
+              raise SystemExit('Cloudflare version message would be truncated')
+          Path('preview-evidence').mkdir(exist_ok=True)
+          Path('preview-evidence/manifest.json').write_bytes(manifest_bytes + b'\n')
+          receipt_path = Path('preview-evidence/wrangler-output.jsonl').resolve()
+          if receipt_path.exists():
+              raise SystemExit('Wrangler output receipt must be fresh')
+          upload_env = {**os.environ, 'WRANGLER_OUTPUT_FILE_PATH': str(receipt_path)}
           # Upload only: never deploy/promote a version or apply trigger/settings changes.
           result = subprocess.run([
               'npx', '--yes', 'wrangler@4.146.0', 'versions', 'upload',
-              '--preview-alias', 'pr-48', '--tag', 'pr-48', '--message', 'PR48 ' + head,
-          ], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+              '--preview-alias', 'pr-48', '--tag', 'pr-48', '--message', message,
+          ], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=upload_env)
           print(result.stdout, flush=True)
           result.check_returncode()
           if cloudflare_get('/deployments') != deployments_before:
               raise SystemExit('Production deployment state changed during preview upload; inspect before proceeding')
-          match = re.search(r'Version Preview URL: (https://[a-z0-9.-]+\.workers\.dev)', result.stdout)
-          if not match:
-              raise SystemExit('Upload returned no enabled version preview URL')
-          url = match.group(1)
-          for attempt in range(12):
-              try:
-                  with urllib.request.urlopen(url + '/pr-preview.json', timeout=30) as response:
-                      actual = json.load(response)
-                  if actual != provenance:
-                      raise ValueError('Preview provenance does not match this run')
-                  with urllib.request.urlopen(url + '/', timeout=30) as response:
-                      if response.status != 200:
-                          raise ValueError('Preview index did not return HTTP 200')
-                  break
-              except Exception:
-                  if attempt == 11:
-                      raise
-                  time.sleep(5)
-          print('Verified PR48 preview:', url)
-          print('Verified head SHA:', head)
-          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
-              summary.write(f'PR48 preview: {url}\n\nHead: `{head}`\n\nWeb artifact: `{provenance["artifact_id"]}`\n\nProduction deployment state unchanged.\n')
+          if dist_manifest('dist') != manifest_bytes:
+              raise SystemExit('Preview assets changed during upload')
+          version_id, url = preview_identity(receipt_path.read_text())
+          verify_version(cloudflare_get('/versions/' + version_id), version_id, message)
+          evidence = {
+              **provenance, 'version_id': version_id, 'preview_url': url,
+              'tree_sha256': tree_digest, 'version_message': message,
+              'provider_provenance': 'passed', 'production_unchanged': True,
+              'public_probe': {'status': 'not_run'},
+          }
+          try:
+              evidence['public_probe'] = check_public_preview(url, provenance)
+          except Exception as error:
+              evidence['public_probe'] = {'status': 'failed', 'error_type': type(error).__name__}
+              raise
+          finally:
+              Path('preview-evidence/verification.json').write_text(json.dumps(evidence, indent=2) + '\n')
+              with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+                  summary.write(
+                      f"PR48 preview: {url}\n\nHead: `{head}`\n\n"
+                      f"Web artifact: `{provenance['artifact_id']}`\n\n"
+                      f"Cloudflare version: `{version_id}`\n\n"
+                      "Authenticated upload provenance: **passed**. Production deployment unchanged.\n\n"
+                      f"Public HTTP verification: **{evidence['public_probe']['status']}**.\n"
+                  )
+                  if evidence['public_probe']['status'] == 'blocked':
+                      summary.write(
+                          "HTTP 403 / Cloudflare 1010 refused the CI client. Public provenance and "
+                          "availability are NOT verified; browser review is required. "
+                          "No security settings were changed.\n"
+                      )
+          if evidence['public_probe']['status'] == 'blocked':
+              print('::warning::Public preview verification BLOCKED by HTTP403/Cloudflare1010; '
+                    'upload provenance passed, public access requires browser review')
+          print('Verified authenticated PR48 upload provenance:', version_id)
           PYTHON
+      - name: Preserve preview verification evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: pr48-preview-verification
+          path: |
+            preview-evidence/manifest.json
+            preview-evidence/verification.json
+          if-no-files-found: warn
 
   release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/release-v')
