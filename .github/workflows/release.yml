@@ -62,6 +62,7 @@ jobs:
       - name: Build pinned Lub and tcs
         working-directory: .cache/lub
         run: |
+          python3 ../../tools/apply_collection_lub.py .
           test "$(git -C third_party/tcs rev-parse HEAD)" = 8b1e4ba35d4987896e2ea2a8d356ed86059fca68
           dotnet build third_party/tcs/Transpiler/Transpiler.csproj -c Release
           timeout 7200 bash scripts/build-release.sh --target lub

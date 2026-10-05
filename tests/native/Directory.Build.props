@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- Multiple standalone runners share this directory; isolate their restore caches and apphosts. -->
+    <BaseIntermediateOutputPath>obj/$(MSBuildProjectName)/</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin/$(MSBuildProjectName)/</BaseOutputPath>
+  </PropertyGroup>
+</Project>

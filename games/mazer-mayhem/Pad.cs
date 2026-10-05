@@ -20,6 +20,20 @@ public class Pad
         input = 0;
         for (int i = 0; i < keys.Length; i++)
             if (Lub.Input.KeyDown(keys[i])) input |= bits[i];
+        for (int player = 0; player < 4; player++)
+        {
+            if (!Lub.Input.GamepadConnected(player)) continue;
+            float x = Lub.Input.GamepadAxis(player, Lub.Input.PadAxis.LeftX), y = Lub.Input.GamepadAxis(player, Lub.Input.PadAxis.LeftY);
+            if (y < -.35f || Lub.Input.GamepadDown(player, Lub.Input.PadButton.DpadUp)) input |= 1;
+            if (y > .35f || Lub.Input.GamepadDown(player, Lub.Input.PadButton.DpadDown)) input |= 2;
+            if (x < -.35f || Lub.Input.GamepadDown(player, Lub.Input.PadButton.DpadLeft)) input |= 4;
+            if (x > .35f || Lub.Input.GamepadDown(player, Lub.Input.PadButton.DpadRight)) input |= 8;
+            if (Lub.Input.GamepadDown(player, Lub.Input.PadButton.South)) input |= 16;
+            if (Lub.Input.GamepadDown(player, Lub.Input.PadButton.LeftShoulder) || Lub.Input.GamepadAxis(player, Lub.Input.PadAxis.LeftTrigger) > .35f) input |= 32;
+            if (Lub.Input.GamepadDown(player, Lub.Input.PadButton.RightShoulder) || Lub.Input.GamepadAxis(player, Lub.Input.PadAxis.RightTrigger) > .35f) input |= 64;
+            if (Lub.Input.GamepadDown(player, Lub.Input.PadButton.Start)) input |= 128;
+            if (Lub.Input.GamepadDown(player, Lub.Input.PadButton.Back)) input |= 256;
+        }
     }
     public void Update() { }
     static Vector2 Stick(XrInput hand)

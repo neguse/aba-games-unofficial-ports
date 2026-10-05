@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <LubRoot Condition="'$(LubRoot)' == ''">../../../lub</LubRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(LubRoot)/dotnet/Lub/Lub.csproj" />
+    <Compile Include="../../native/Canvas.cs;../../native/GameSession.cs;../../native/HostBridge.cs;../../native/MasashikunPanel.cs;Program.cs" />
+    <Compile Include="$(LubRoot)/cs-lib/lubx/Color.cs;$(LubRoot)/cs-lib/lubx/MeshText.cs;$(LubRoot)/cs-lib/lubx/XrAnchor.cs" />
+    <Content Include="../../native/collection.slang" Link="collection.slang" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(LubRoot)/samples/data/fonts/MPLUS1p-subset.ttf" Link="font.ttf" CopyToOutputDirectory="PreserveNewest" />
+    <EmbeddedResource Include="../../native/catalog.json" LogicalName="Aba.Catalog.json" />
+    <EmbeddedResource Include="../../native/HostProfiles.json" LogicalName="Aba.HostProfiles.json" />
+  </ItemGroup>
+</Project>

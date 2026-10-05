@@ -12,12 +12,12 @@
   <p>VR：左スティックで移動、左右トリガーで旋回、Aで開始・ダッシュとグレネード・射撃、両トリガーでハイパーモード、Xでポーズ、Bでタイトルへ（ポーズ中）。</p>
   <p>移動：矢印 / WASD　開始・射撃：X / .　左旋回：Z / ,　右旋回：C / /　ポーズ：F1　タイトルへ：Esc</p>
   <p>射撃キーを押すとダッシュとグレネード、押し続けると射撃します。<br>黄色のアイテムを集め、Z＋Cでハイパーモード。敵の撃破で弾をアイテムに変え、得点倍率を上げられます。</p>
-  <nav><button id="sound" type="button" aria-pressed="false">音：オン</button><button id="fullscreen" type="button">全画面</button><a href="https://www.asahi-net.or.jp/~cs8k-cyu/xna/mm/index_e.html">原作：Kenta Cho / ABA Games</a><a href="LICENSE.txt">ライセンス</a><a href="../">TUMIKI Fighters</a></nav>
+  <nav><button id="sound" type="button" aria-pressed="false">音：オン</button><button id="fullscreen" type="button">全画面</button><a href="https://www.asahi-net.or.jp/~cs8k-cyu/xna/mm/index_e.html">原作：Kenta Cho / ABA Games</a><a href="LICENSE.txt">ライセンス</a><a href="../tumiki.html">TUMIKI Fighters</a></nav>
 </main>
 <script id="game-config" type="application/json">{"webxr":true,"wasm":"wasm/","saves":[["/save/mazer-mayhem/scores.txt","mazer-mayhem-scores-v1"]],"music":["Mm1","Mm2","Mm3"],"sounds":["Bonus","BurstBig","BurstSmall","Dash","Extend","Grenade","Hit","HyperStart","PlayerDestroyed","Shot","ShotHyper"],"controls":[["ArrowUp",1],["KeyW",1],["Numpad8",1],["ArrowDown",2],["KeyS",2],["Numpad2",2],["ArrowLeft",4],["KeyA",4],["Numpad4",4],["ArrowRight",8],["KeyD",8],["Numpad6",8],["KeyX",16],["Period",16],["KeyZ",32],["Comma",32],["KeyC",64],["Slash",64],["F1",128],["Escape",256]]}</script>
 <script type="module">
 import '../main.js';
 const onMessage=lubHost.onMessage;
-lubHost.onMessage=(topic,bytes)=>{if(topic==='quit')location.href='../';else onMessage(topic,bytes);};
+lubHost.onMessage=(topic,bytes)=>{if(topic==='quit')window.abaGame.returnToList();else onMessage(topic,bytes);};
 </script>
 </html>

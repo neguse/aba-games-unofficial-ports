@@ -1,5 +1,12 @@
 # ABA Games Unofficial Ports
 
+## 13作品の共通ランチャー
+
+開発中の共通ランチャーは13作品の選択と一覧への復帰に対応する。
+Linuxデスクトップ用とOpenXR用の起動方法、ビルド手順は
+[コレクションの説明](docs/collection.md)を参照。
+Web版も同じ13作品の一覧から選択する。公開済みの配布物については以下を参照。
+
 Kenta Cho / ABA Games の非公式 Steam Frame 移植。
 GearToyGear・Torus Trooper・Mazer Mayhem を Steam Frame 本体で実行する。
 

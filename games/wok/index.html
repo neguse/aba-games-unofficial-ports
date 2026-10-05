@@ -11,7 +11,7 @@
   <p id="status" role="status">読み込み中…</p>
   <p>マウスでSTARTをクリック。鍋で球を受け止め、右へ投げます。連続して投げるほど高得点。1個でも下へ落とすと終了です。</p>
   <p>プレイ中はマウスの移動で鍋を操作します。Escでマウスを解放してタイトルへ戻ります。</p>
-  <nav><button id="sound" type="button" aria-pressed="false">音：オン</button><button id="fullscreen" type="button">全画面</button><a href="https://www.asahi-net.or.jp/~cs8k-cyu/linux/wok_e.html">原作：Kenta Cho / ABA Games</a><a href="LICENSE.txt">ライセンス</a><a href="../">TUMIKI Fighters</a></nav>
+  <nav><button id="sound" type="button" aria-pressed="false">音：オン</button><button id="fullscreen" type="button">全画面</button><a href="https://www.asahi-net.or.jp/~cs8k-cyu/linux/wok_e.html">原作：Kenta Cho / ABA Games</a><a href="LICENSE.txt">ライセンス</a><a href="../tumiki.html">TUMIKI Fighters</a></nav>
 </main>
 <script id="game-config" type="application/json">{"wasm":"wasm/","scores":"wok-scores-v1","seed":true,"musicExtension":"wav","music":["wok1","wok2"],"sounds":["gen","score","miss"],"channels":[0,1,2],"controls":[["Escape",128]]}</script>
 <script type="module">
@@ -41,7 +41,7 @@ lubHost.onMessage=(topic,bytes)=>{
   if(topic==='state'){
     const previous=state;state=Number(new TextDecoder().decode(bytes));
     if(state===0&&previous!==0&&document.pointerLockElement===canvas)document.exitPointerLock();
-  } else if(topic==='quit')location.href='../';
+  } else if(topic==='quit')window.abaGame.returnToList();
   else onMessage(topic,bytes);
 };
 </script>
