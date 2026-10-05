@@ -165,6 +165,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # Keep the explicitly authorized PR48 preview tied to its exact head.
+          ref: ${{ github.event.pull_request.number == 48 && github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
@@ -199,6 +201,112 @@ jobs:
           name: web-dist
           path: dist
           if-no-files-found: error
+
+  web-preview:
+    # Public preview authorization is deliberately limited to this same-repo PR.
+    if: >-
+      github.event_name == 'pull_request' && github.event.pull_request.number == 48 &&
+      github.repository == 'neguse/aba-games-unofficial-ports' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'feat/thirteen-game-collection'
+    needs: web
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.web.outputs.artifact-id }}
+          merge-multiple: true
+          path: dist
+      - name: Upload an undeployed PR48 version and verify its provenance
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PREVIEW_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          WEB_ARTIFACT_ID: ${{ needs.web.outputs.artifact-id }}
+          WRANGLER_SEND_METRICS: 'false'
+        run: |
+          python3 - <<'PYTHON'
+          import json
+          import os
+          from pathlib import Path
+          import re
+          import subprocess
+          import time
+          import urllib.request
+
+          for name in ('CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_ACCOUNT_ID'):
+              if not os.environ.get(name):
+                  raise SystemExit(f'Missing existing repository secret: {name}')
+          config = json.loads(Path('wrangler.jsonc').read_text())
+          expected = {
+              'name': 'aba-games-unofficial-ports', 'compatibility_date': '2026-09-22',
+              'workers_dev': True, 'preview_urls': True, 'assets': {'directory': './dist'},
+          }
+          if config != expected:
+              raise SystemExit('Preview is limited to the existing static-assets-only Worker configuration')
+          head = os.environ['PREVIEW_HEAD_SHA']
+          if subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip() != head:
+              raise SystemExit('Preview checkout does not match the PR head')
+          base = 'https://api.cloudflare.com/client/v4/accounts/' + os.environ['CLOUDFLARE_ACCOUNT_ID']
+          base += '/workers/scripts/aba-games-unofficial-ports'
+
+          def cloudflare_get(path):
+              request = urllib.request.Request(base + path, headers={
+                  'Authorization': 'Bearer ' + os.environ['CLOUDFLARE_API_TOKEN'],
+              })
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  result = json.load(response)
+              if not result.get('success'):
+                  raise SystemExit('Cloudflare read failed: ' + path)
+              return result['result']
+
+          if not cloudflare_get('/subdomain').get('previews_enabled'):
+              raise SystemExit('Existing Worker preview URLs are disabled; no settings were changed')
+          deployments_before = cloudflare_get('/deployments')
+          provenance = {
+              'pull_request': 48, 'head_sha': head, 'artifact_id': os.environ['WEB_ARTIFACT_ID'],
+              'run_url': f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
+          }
+          Path('dist/pr-preview.json').write_text(json.dumps(provenance) + '\n')
+          # Upload only: never deploy/promote a version or apply trigger/settings changes.
+          result = subprocess.run([
+              'npx', '--yes', 'wrangler@4.146.0', 'versions', 'upload',
+              '--preview-alias', 'pr-48', '--tag', 'pr-48', '--message', 'PR48 ' + head,
+          ], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+          print(result.stdout, flush=True)
+          result.check_returncode()
+          if cloudflare_get('/deployments') != deployments_before:
+              raise SystemExit('Production deployment state changed during preview upload; inspect before proceeding')
+          match = re.search(r'Version Preview URL: (https://[a-z0-9.-]+\.workers\.dev)', result.stdout)
+          if not match:
+              raise SystemExit('Upload returned no enabled version preview URL')
+          url = match.group(1)
+          for attempt in range(12):
+              try:
+                  with urllib.request.urlopen(url + '/pr-preview.json', timeout=30) as response:
+                      actual = json.load(response)
+                  if actual != provenance:
+                      raise ValueError('Preview provenance does not match this run')
+                  with urllib.request.urlopen(url + '/', timeout=30) as response:
+                      if response.status != 200:
+                          raise ValueError('Preview index did not return HTTP 200')
+                  break
+              except Exception:
+                  if attempt == 11:
+                      raise
+                  time.sleep(5)
+          print('Verified PR48 preview:', url)
+          print('Verified head SHA:', head)
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write(f'PR48 preview: {url}\n\nHead: `{head}`\n\nWeb artifact: `{provenance["artifact_id"]}`\n\nProduction deployment state unchanged.\n')
+          PYTHON
 
   release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/release-v')
