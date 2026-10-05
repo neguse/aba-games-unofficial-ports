@@ -1,0 +1,15 @@
+[
+  {"id":"tumiki","title":"TUMIKI Fighters","vr":false},
+  {"id":"parsec47","title":"PARSEC47","vr":false},
+  {"id":"gunroar","title":"Gunroar","vr":false},
+  {"id":"titanion","title":"Titanion","vr":false},
+  {"id":"a7xpg","title":"A7Xpg","vr":false},
+  {"id":"torus-trooper","title":"Torus Trooper","vr":true},
+  {"id":"rrootage","title":"rRootage","vr":false},
+  {"id":"noiz2sa","title":"Noiz2sa","vr":false},
+  {"id":"wok","title":"Wok","vr":false},
+  {"id":"mazer-mayhem","title":"Mazer Mayhem","vr":true},
+  {"id":"gear-toy-gear","title":"GearToyGear","vr":true},
+  {"id":"mu-cade","title":"Mu-cade","vr":false},
+  {"id":"masashikun-hi","title":"Masashikun Hi!","vr":false}
+]

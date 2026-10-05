@@ -2,14 +2,24 @@
 <html lang="ja">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TUMIKI Fighters</title>
+<title>ABA Games · ゲームを選ぶ</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="style.css">
-<main>
-  <canvas id="canvas" width="640" height="480" tabindex="0" aria-label="TUMIKI Fighters ゲーム画面"></canvas>
-  <p id="status" role="status">読み込み中…</p>
-  <p>移動：矢印 / WASD　ショット・開始：Z　低速移動・収納：X　ポーズ：P</p>
-  <nav><button id="sound" type="button" aria-pressed="false">音：オン</button><button id="fullscreen" type="button">全画面</button><a href="https://www.asahi-net.or.jp/~cs8k-cyu/windows/tf_e.html">原作：Kenta Cho / ABA Games</a><a href="LICENSE.txt">ライセンス</a><a href="parsec47/">PARSEC47</a><a href="gunroar/">Gunroar</a><a href="titanion/">Titanion</a><a href="a7xpg/">A7Xpg</a><a href="torus-trooper/">Torus Trooper</a></nav>
+<main id="launcher">
+  <section id="selection" aria-labelledby="selection-title">
+    <h1 id="selection-title">ABA Games</h1>
+    <p>13作品からゲームを選んでください</p>
+    <nav id="game-list" class="game-selection" aria-label="ゲーム選択"></nav>
+    <p>矢印キー / 左スティック / 十字キーで選択 · Enter / Aで開始</p>
+    <p>各ゲームのポーズ・タイトル操作はそのままです。ゲーム一覧へ戻るには「ゲーム一覧へ」または Alt＋Esc</p>
+    <p><a href="https://www.asahi-net.or.jp/~cs8k-cyu/">原作：Kenta Cho / ABA Games</a> · <a href="LICENSE.txt">ライセンス</a></p>
+  </section>
+  <section id="player" aria-labelledby="playing-title" hidden>
+    <nav class="player-toolbar"><button id="return-to-list" type="button">← ゲーム一覧へ</button><strong id="playing-title"></strong><span>Alt＋Esc</span></nav>
+    <p id="launch-status" role="status"></p>
+    <div id="game-container"></div>
+  </section>
+  <noscript>ゲームを選ぶにはJavaScriptを有効にしてください</noscript>
 </main>
-<script type="module" src="main.js"></script>
+<script type="module" src="selector.js"></script>
 </html>

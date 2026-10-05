@@ -2,10 +2,6 @@
 body { margin: 0; min-height: 100svh; display: grid; place-items: center; }
 main { width: min(960px, 100%); text-align: center; }
 .game-selection { margin: 12px; text-align: left; border: 1px solid #555; border-radius: 4px; background: #25262b; }
-.game-selection summary { padding: 10px 12px; cursor: pointer; }
-.game-selection nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
-.game-selection a { padding: 8px 12px; border: 1px solid #555; border-radius: 4px; text-decoration: none; }
-.game-selection a:hover, .game-selection a[aria-current] { background: #3d4957; color: #fff; }
 .game-selection :focus-visible { outline: 2px solid #bacddd; outline-offset: 2px; }
 canvas { display: block; width: 100%; max-height: calc(100svh - 110px); object-fit: contain; aspect-ratio: 4/3; background: #000; outline: none; }
 canvas:fullscreen { width: 100vw; height: 100vh; max-height: none; background: #000; }
@@ -14,3 +10,22 @@ nav { display: flex; flex-wrap: wrap; justify-content: center; align-items: cent
 button { font: inherit; color: inherit; border: 1px solid #555; border-radius: 4px; padding: 3px 12px; background: #25262b; cursor: pointer; }
 a { color: #bacddd; }
 [hidden] { display: none; }
+
+#launcher { width: min(1100px, 100%); }
+#selection { padding: 16px 0; }
+#selection h1 { margin: 16px 12px 0; color: #f0f3f8; letter-spacing: .06em; }
+#game-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; padding: 16px; }
+#game-list button { min-height: 72px; text-align: left; padding: 16px; font-size: 17px; background: #292f39; }
+#game-list button:hover, #game-list button:focus { background: #3d4957; color: #fff; }
+.player-toolbar { justify-content: space-between; margin: 10px 12px; }
+.player-toolbar strong { flex: 1; }
+.game-frame { display: block; width: 100%; height: calc(100svh - 68px); min-height: 520px; border: 0; background: #18191c; }
+.embedded-game body { display: block; }
+.embedded-game main { margin: auto; }
+.embedded-game #game-return { margin: 10px 12px; }
+button:focus-visible, a:focus-visible { outline: 2px solid #bacddd; outline-offset: 3px; }
+@media (max-width: 440px) {
+    #game-list { grid-template-columns: 1fr; }
+    .player-toolbar span { display: none; }
+    .game-frame { min-height: 440px; }
+}

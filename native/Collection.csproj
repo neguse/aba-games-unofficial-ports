@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>AbaCollection</AssemblyName>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <LubRoot Condition="'$(LubRoot)' == ''">../../lub</LubRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="MucadePhysics.cs" />
+    <ProjectReference Include="$(LubRoot)/dotnet/Lub/Lub.csproj" />
+    <Compile Include="$(LubRoot)/cs-lib/lubx/Color.cs;$(LubRoot)/cs-lib/lubx/MeshText.cs;$(LubRoot)/cs-lib/lubx/XrAnchor.cs" />
+    <EmbeddedResource Include="catalog.json" LogicalName="Aba.Catalog.json" />
+    <EmbeddedResource Include="HostProfiles.json" LogicalName="Aba.HostProfiles.json" Condition="Exists('HostProfiles.json')" />
+    <Content Include="collection.slang;run.sh" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(LubRoot)/samples/data/fonts/MPLUS1p-subset.ttf" Link="font.ttf" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(LubRoot)/samples/data/fonts/MPLUS1p-OFL.txt" Link="FONT-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

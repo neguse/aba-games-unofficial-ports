@@ -41,7 +41,21 @@ public static class FrameControls
         if (Lub.Input.KeyDown("right") || Lub.Input.KeyDown("Keypad 6") || Lub.Input.KeyDown("Keypad 9") || Lub.Input.KeyDown("Keypad 3") || Lub.Input.KeyDown("d")) directions |= PadDir.RIGHT;
         if (Lub.Input.KeyDown("z") || Lub.Input.KeyDown("left ctrl") || Lub.Input.KeyDown("right ctrl") || Lub.Input.KeyDown(".")) buttons |= PadButton.A;
         if (Lub.Input.KeyDown("x") || Lub.Input.KeyDown("left alt") || Lub.Input.KeyDown("right alt") || Lub.Input.KeyDown("left shift") || Lub.Input.KeyDown("right shift") || Lub.Input.KeyDown("/")) buttons |= PadButton.B;
+        bool pause = Lub.Input.KeyDown("p"), escape = Lub.Input.KeyDown("escape");
+        for (int player = 0; player < 4; player++)
+        {
+            if (!Lub.Input.GamepadConnected(player)) continue;
+            float x = Lub.Input.GamepadAxis(player, Lub.Input.PadAxis.LeftX), y = Lub.Input.GamepadAxis(player, Lub.Input.PadAxis.LeftY);
+            if (y < -.35f || Lub.Input.GamepadDown(player, Lub.Input.PadButton.DpadUp)) directions |= PadDir.UP;
+            if (y > .35f || Lub.Input.GamepadDown(player, Lub.Input.PadButton.DpadDown)) directions |= PadDir.DOWN;
+            if (x < -.35f || Lub.Input.GamepadDown(player, Lub.Input.PadButton.DpadLeft)) directions |= PadDir.LEFT;
+            if (x > .35f || Lub.Input.GamepadDown(player, Lub.Input.PadButton.DpadRight)) directions |= PadDir.RIGHT;
+            if (Lub.Input.GamepadDown(player, Lub.Input.PadButton.South) || Lub.Input.GamepadAxis(player, Lub.Input.PadAxis.RightTrigger) > .35f) buttons |= PadButton.A;
+            if (Lub.Input.GamepadDown(player, Lub.Input.PadButton.East) || Lub.Input.GamepadAxis(player, Lub.Input.PadAxis.LeftTrigger) > .35f) buttons |= PadButton.B;
+            pause = pause || Lub.Input.GamepadDown(player, Lub.Input.PadButton.Start);
+            escape = escape || Lub.Input.GamepadDown(player, Lub.Input.PadButton.Back);
+        }
         manager.pad.directions = directions; manager.pad.buttons = buttons;
-        manager.pad.pause = Lub.Input.KeyDown("p"); manager.pad.escape = Lub.Input.KeyDown("escape");
+        manager.pad.pause = pause; manager.pad.escape = escape;
     }
 }

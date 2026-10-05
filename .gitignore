@@ -7,3 +7,6 @@ __pycache__/
 
 games/mazer-mayhem/frame/obj/
 tests/mazer-mayhem/frame/obj/
+
+native/obj/
+native/bin/

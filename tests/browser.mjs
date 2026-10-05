@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const { chromium } = await import(pathToFileURL(resolve(process.env.PLAYWRIGHT_MODULE || '.cache/browser/node_modules/playwright/index.mjs')));
-const url = process.argv[2] || 'http://127.0.0.1:8765';
+const url = process.argv[2] || 'http://127.0.0.1:8765/tumiki.html';
 const browser = await chromium.launch({
     executablePath: process.env.CHROMIUM_PATH,
     headless: true,

@@ -15,6 +15,7 @@ parser.add_argument('--lub', type=Path, required=True)
 parser.add_argument('--tcs', type=Path, required=True)
 parser.add_argument('--emsdk', type=Path, required=True)
 parser.add_argument('--original', type=Path)
+parser.add_argument('--source-only', action='store_true', help='refresh corresponding source beside an existing web build')
 args = parser.parse_args()
 original = args.original
 if original is None:
@@ -30,16 +31,17 @@ if original is None:
 Path('build').mkdir(exist_ok=True)
 target = Path('dist/masashikun-hi')
 target.mkdir(parents=True, exist_ok=True)
-subprocess.run([sys.executable, 'tools/compile_masashikun.py', str(original)], check=True)
-source = Path('build/web-c/masashikun-hi')
-subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
-                '--game', 'masashikun-hi', '--c', str(source)], check=True)
-link(args.lub, args.emsdk, source, target / 'wasm')
-(target / 'assets.json').write_text('[]', encoding='utf-8')
-subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/masashikun-hi/game'], check=True)
-shutil.copy2('games/masashikun-hi/index.html', target / 'index.html')
-for name in ['main.js', 'compiled.js', 'style.css']:
-    shutil.copy2(Path('web') / name, Path('dist') / name)
+if not args.source_only:
+    subprocess.run([sys.executable, 'tools/compile_masashikun.py', str(original)], check=True)
+    source = Path('build/web-c/masashikun-hi')
+    subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
+                    '--game', 'masashikun-hi', '--c', str(source)], check=True)
+    link(args.lub, args.emsdk, source, target / 'wasm')
+    (target / 'assets.json').write_text('[]', encoding='utf-8')
+    subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/masashikun-hi/game'], check=True)
+    shutil.copy2('games/masashikun-hi/index.html', target / 'index.html')
+    for name in ['main.js', 'compiled.js', 'style.css']:
+        shutil.copy2(Path('web') / name, Path('dist') / name)
 licenses = Path('games/masashikun-hi/LICENSE.txt').read_text()
 for path in [args.lub / 'LICENSE', args.lub / 'THIRD_PARTY_LICENSES.md', args.tcs / 'LICENSE']:
     licenses += '\n\n' + path.read_text()
@@ -50,8 +52,9 @@ with tarfile.open(target / 'source.tar.gz', 'w:gz') as bundle:
         for path in sorted(Path(directory).iterdir()):
             if path.is_file():
                 bundle.add(path, arcname='masashikun-hi-source/' + str(path))
-    for name in ['build_masashikun.py', 'compile_masashikun.py', 'compile_game.py', 'compile_shaders.mjs', 'link_web.py', 'setup_lub.sh']:
+    for name in ['build_masashikun.py', 'compile_masashikun.py', 'compile_game.py', 'compile_shaders.mjs', 'link_web.py', 'setup_lub.sh', 'apply_collection_lub.py']:
         bundle.add(Path('tools') / name, arcname='masashikun-hi-source/tools/' + name)
+    bundle.add('tools/patches/lub-collection.patch', arcname='masashikun-hi-source/tools/patches/lub-collection.patch')
     for name in ['main.js', 'compiled.js', 'style.css']:
         bundle.add(Path('web') / name, arcname='masashikun-hi-source/web/' + name)
     bundle.add('tests/check_game.py', arcname='masashikun-hi-source/tests/check_game.py')

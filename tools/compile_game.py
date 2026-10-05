@@ -13,6 +13,7 @@ parser.add_argument('--frame', action='store_true')
 parser.add_argument('--output', type=Path, default=Path('build/game.lua'))
 parser.add_argument('--c', type=Path, help='write game.c and binding.c here instead of Lua')
 parser.add_argument('--tcs', type=Path)
+parser.add_argument('--sources-json', type=Path, help='write the resolved C# source list without compiling')
 args = parser.parse_args()
 first = ['Core.cs', 'Rand.cs', 'PatternNumber.cs', 'Pattern.cs']
 sources = [Path('game') / name for name in first]
@@ -94,12 +95,18 @@ elif args.game not in ['gear-toy-gear', 'mazer-mayhem']:
         prefix = 'shaders/mesh' if args.game in ['titanion', 'parsec47', 'tumiki', 'torus-trooper', 'a7xpg', 'rrootage', 'mu-cade'] else f'games/{args.game}/game'
         shader_source += f'public static string {name} = {json.dumps(Path(f"{prefix}.{stage}.slang").read_text())};\n'
     shader_source += '}\n'
-    Path('build/Shaders.cs').write_text(shader_source)
-    sources.append(Path('build/Shaders.cs'))
+    shader_path = Path('build/shaders') / args.game / 'Shaders.cs'
+    shader_path.parent.mkdir(parents=True, exist_ok=True)
+    shader_path.write_text(shader_source)
+    sources.append(shader_path)
 if args.game in ['torus-trooper', 'gear-toy-gear', 'mazer-mayhem']:
     sources.insert(0, args.lub / 'cs-lib/lubx/XrAnchor.cs')
 if args.test:
     sources.append(args.test)
+if args.sources_json:
+    args.sources_json.parent.mkdir(parents=True, exist_ok=True)
+    args.sources_json.write_text(json.dumps([str(path.resolve()) for path in sources]), encoding='utf-8')
+    raise SystemExit(0)
 if args.c:
     stubs = [Path('games/mu-cade/OdeApi.cs')] if args.game == 'mu-cade' else []
     args.c.mkdir(parents=True, exist_ok=True)

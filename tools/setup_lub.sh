@@ -10,6 +10,7 @@ fi
 git -C "$directory" fetch origin "$revision"
 git -C "$directory" checkout --detach "$revision"
 git -C "$directory" submodule update --init --recursive
+python3 tools/apply_collection_lub.py "$directory"
 (
     cd "$directory"
     dotnet build third_party/tcs/Transpiler/Transpiler.csproj -c Release
