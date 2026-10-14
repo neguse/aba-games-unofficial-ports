@@ -106,7 +106,7 @@ public class Stage
         EnemySpec.setRandSeed(randSeed);
         TurretSpec.setRandSeed(randSeed);
         PlayerSpec.setRandSeed(randSeed);
-        ParticleSpec.setRandSeed(randSeed);
+        ParticleSpecs.setRandSeed(randSeed);
         Sound.setRandSeed(randSeed);
         {
             rankTrg = 0;
