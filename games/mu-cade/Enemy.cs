@@ -41,7 +41,7 @@ public class Enemy : OdeActor
         lastForce = new Vector3();
     }
 
-    public virtual bool set_8_EnemySpec_Single_Single_Single_Single_Vector3_Single_Int32(EnemySpec spec, float x, float y, float z, float deg, Vector3 sizeScale = null, float massScale = 1, int type = 0)
+    public bool set_8_EnemySpec_Single_Single_Single_Single_Vector3_Single_Int32(EnemySpec spec, float x, float y, float z, float deg, Vector3 sizeScale = null, float massScale = 1, int type = 0)
     {
         if ((sizeScale) != null)
             return set_10(spec, x, y, z, deg, sizeScale.x, sizeScale.y, sizeScale.z, massScale, type);
@@ -49,7 +49,7 @@ public class Enemy : OdeActor
             return set_10(spec, x, y, z, deg, 1, 1, 1, massScale, type);
     }
 
-    public virtual bool set_10(EnemySpec spec, float x, float y, float z, float deg, float sx, float sy, float sz, float massScale = 1, int type = 0)
+    public bool set_10(EnemySpec spec, float x, float y, float z, float deg, float sx, float sy, float sz, float massScale = 1, int type = 0)
     {
         base.set_1();
         this.spec = spec;
@@ -75,18 +75,18 @@ public class Enemy : OdeActor
         return true;
     }
 
-    public virtual void setJointedEnemies_1(Enemy[] enemies)
+    public void setJointedEnemies_1(Enemy[] enemies)
     {
         state.jointedEnemies = enemies;
     }
 
-    public virtual void setJointedEnemiesPrevNext(Enemy pe, Enemy ne)
+    public void setJointedEnemiesPrevNext(Enemy pe, Enemy ne)
     {
         state.prevJointedEnemy = pe;
         state.nextJointedEnemy = ne;
     }
 
-    public virtual void setJoints(OdeHandle[] joints)
+    public void setJoints(OdeHandle[] joints)
     {
         state.joints = joints;
     }
@@ -117,7 +117,7 @@ public class Enemy : OdeActor
         base.remove_0();
     }
 
-    public virtual void removeAsTail(int idx)
+    public void removeAsTail(int idx)
     {
         TailParticle tp = tailParticles.getInstance();
         if ((tp) != null)
@@ -126,7 +126,7 @@ public class Enemy : OdeActor
         remove_0();
     }
 
-    public virtual void removeCleaning()
+    public void removeCleaning()
     {
         state.removeAllJoints();
         if ((state.topBullet) != null)
@@ -136,7 +136,7 @@ public class Enemy : OdeActor
         }
     }
 
-    public virtual void updateState()
+    public void updateState()
     {
         float[] p = McdPhysics.BodyVector(_bodyId, 0);
         state.pos.x = p[0];
@@ -222,7 +222,7 @@ public class Enemy : OdeActor
         }
     }
 
-    public virtual bool checkDestroyed()
+    public bool checkDestroyed()
     {
         if (state.destroyable && state.pos.z < -10)
         {
@@ -237,7 +237,7 @@ public class Enemy : OdeActor
         return false;
     }
 
-    public virtual void addScore_2(int sc, float sz = 0.5f)
+    public void addScore_2(int sc, float sz = 0.5f)
     {
         gameManager.addScore_1(sc * ship.getMultiplier());
         NumIndicator ni = numIndicators.getInstance();
@@ -261,7 +261,7 @@ public class Enemy : OdeActor
         ni.set_8_Int32_Int32_Single_Single_Single_Single_Single_Int32(sc, ship.getMultiplier(), state.pos.x, state.pos.y, vx * 0.3f, vy * 0.3f, sz);
     }
 
-    public virtual void addConnectedParticles_3_Single_Single_Boolean(float deg, float speed = 1, bool rot = true)
+    public void addConnectedParticles_3_Single_Single_Boolean(float deg, float speed = 1, bool rot = true)
     {
         ConnectedParticle[] cps = connectedParticles.getMultipleInstances(9);
         if (!((cps) != null))
@@ -279,22 +279,22 @@ public class Enemy : OdeActor
         }
     }
 
-    public virtual Vector3 pos()
+    public Vector3 pos()
     {
         return state.pos;
     }
 
-    public virtual void drawSpectrum(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawSpectrum(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         state.linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
     }
 
-    public virtual bool collideBullet()
+    public bool collideBullet()
     {
         return spec.collideBullet();
     }
 
-    public virtual void drawShadow_0(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawShadow_0(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         spec.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", state.linePoint);
     }
@@ -305,12 +305,12 @@ public class Enemy : OdeActor
         spec.drawSubShape(model, tint, blend, key + "-drawSubShape-1", state);
     }
 
-    public virtual EnemyState getState_0()
+    public EnemyState getState_0()
     {
         return state;
     }
 
-    public virtual bool isCentipedeHead()
+    public bool isCentipedeHead()
     {
         if ((((spec is CentHead ? (CentHead)spec : null))) != null)
             return true;
@@ -318,7 +318,7 @@ public class Enemy : OdeActor
             return false;
     }
 
-    public virtual bool isBlock()
+    public bool isBlock()
     {
         if ((((spec is Block ? (Block)spec : null))) != null)
             return true;
@@ -326,7 +326,7 @@ public class Enemy : OdeActor
             return false;
     }
 
-    public virtual void slowdown()
+    public void slowdown()
     {
         state.slowdown();
     }
@@ -338,7 +338,7 @@ public class EnemyPool : OdeActorPool<Enemy>
     {
     }
 
-    public virtual void drawShadow_0(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawShadow_0(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         blend = Gfx.Blend.Alpha;
         foreach (Enemy e in actor)
@@ -347,14 +347,14 @@ public class EnemyPool : OdeActorPool<Enemy>
         blend = Gfx.Blend.Additive;
     }
 
-    public virtual void drawSpectrum(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawSpectrum(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         foreach (Enemy e in actor)
             if (e.exists)
                 e.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1-" + e.meshKey);
     }
 
-    public virtual bool exists()
+    public bool exists()
     {
         foreach (Enemy e in actor)
             if (e.exists)
@@ -362,7 +362,7 @@ public class EnemyPool : OdeActorPool<Enemy>
         return false;
     }
 
-    public virtual int countCentipedes()
+    public int countCentipedes()
     {
         int c = 0;
         foreach (Enemy e in actor)
@@ -371,7 +371,7 @@ public class EnemyPool : OdeActorPool<Enemy>
         return c;
     }
 
-    public virtual int countBlocks()
+    public int countBlocks()
     {
         int c = 0;
         foreach (Enemy e in actor)
@@ -380,7 +380,7 @@ public class EnemyPool : OdeActorPool<Enemy>
         return c;
     }
 
-    public virtual void slowdown()
+    public void slowdown()
     {
         foreach (Enemy e in actor)
             if (e.exists)
@@ -427,7 +427,7 @@ public class EnemyState
         clearState();
     }
 
-    public virtual void clearState()
+    public void clearState()
     {
         pos.z = 0;
         pos.y = pos.z;
@@ -469,12 +469,12 @@ public class EnemyState
         linePoint.init_0();
     }
 
-    public virtual void clear()
+    public void clear()
     {
         clearState();
     }
 
-    public virtual void removeAllJoints()
+    public void removeAllJoints()
     {
         if ((joints) != null)
             foreach (OdeHandle j in joints)
@@ -482,7 +482,7 @@ public class EnemyState
         joints = null;
     }
 
-    public virtual void slowdown()
+    public void slowdown()
     {
         forwardForceScale *= 0.5f;
         if ((topBullet) != null)

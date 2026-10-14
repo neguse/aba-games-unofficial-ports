@@ -17,6 +17,7 @@ public class StageManager
     public EnemySpec _blockSpec;
     public int cnt;
     public int rankDownCnt;
+    public bool idle;
     public StageManager(Field field, Ship ship, BulletPool bullets, World world, EnemyPool enemies)
     {
         this.field = field;
@@ -28,7 +29,7 @@ public class StageManager
         _blockSpec = new Block(field, ship, bullets, world);
     }
 
-    public virtual void start_1(int randSeed)
+    public void start_1(int randSeed)
     {
         initRank();
         rand.setSeed(randSeed);
@@ -50,21 +51,23 @@ public class StageManager
         rankDownCnt = 0;
     }
 
-    public virtual void initRank()
+    public void initRank()
     {
         rank = 0;
         trgRank = 30;
     }
 
-    public virtual void clearAppearances()
+    public void clearAppearances()
     {
         appearanceNextIdx = 0;
         appearanceIdx = appearanceNextIdx;
         appearanceCnt = 0;
     }
 
-    public virtual void move_0()
+    public void move_0()
     {
+        if (idle)
+            return;
         cnt++;
         float cntInc = 1.0f + rank * 0.04f;
         int cn = enemies.countCentipedes();
@@ -195,7 +198,7 @@ public class StageManager
         rank += trgRank / sqrt(trgRank - rank) * 0.0006f;
     }
 
-    public virtual void downRank()
+    public void downRank()
     {
         if (rankDownCnt % 2 == 0)
         {
@@ -214,7 +217,7 @@ public class StageManager
         rankDownCnt++;
     }
 
-    public virtual void addAppearance(float rank, int type, int size, int num, int interval)
+    public void addAppearance(float rank, int type, int size, int num, int interval)
     {
         Appearance a = appearances[appearanceNextIdx];
         appearanceNextIdx++;
@@ -223,7 +226,7 @@ public class StageManager
         a.set_5_Single_Int32_Int32_Int32_Int32(rank, type, size, num, interval);
     }
 
-    public virtual Enemy set_9_EnemySpec_Single_Single_Single_Single_Single_Single_Single_Single(EnemySpec es, float x, float y, float z, float deg, float sx = 1, float sy = 1, float sz = 1, float massScale = 1)
+    public Enemy set_9_EnemySpec_Single_Single_Single_Single_Single_Single_Single_Single(EnemySpec es, float x, float y, float z, float deg, float sx = 1, float sy = 1, float sz = 1, float massScale = 1)
     {
         Enemy e = default(Enemy);
         if ((((es is Block ? (Block)es : null))) != null && enemies.countBlocks() > MAX_BLOCKS_NUM)
@@ -244,7 +247,7 @@ public class StageManager
         return e;
     }
 
-    public virtual EnemySpec blockSpec()
+    public EnemySpec blockSpec()
     {
         return _blockSpec;
     }
@@ -274,7 +277,7 @@ public class Appearance
         num = 0;
     }
 
-    public virtual void set_5_Single_Int32_Int32_Int32_Int32(float rank, int type, int size, int num, int interval)
+    public void set_5_Single_Int32_Int32_Int32_Int32(float rank, int type, int size, int num, int interval)
     {
         appType = AppearanceAppearanceType.NORMAL;
         switch (type)
@@ -301,7 +304,7 @@ public class Appearance
         cnt = 0;
     }
 
-    public virtual bool move_3(Rand rand, float cntInc, bool forced)
+    public bool move_3(Rand rand, float cntInc, bool forced)
     {
         if (num <= 0)
             return false;

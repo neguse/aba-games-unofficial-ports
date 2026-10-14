@@ -1,16 +1,5 @@
 using static Lub;
 
-public class IdleStageManager : StageManager
-{
-    public IdleStageManager(Field field, Ship ship, BulletPool bullets, World world, EnemyPool enemies) : base(field, ship, bullets, world, enemies)
-    {
-    }
-
-    public override void move_0()
-    {
-    }
-}
-
 public static class BrowserHooks
 {
     static string failure;
@@ -39,13 +28,7 @@ public static class BrowserHooks
         if (command == 0)
         {
             g.enemies.clear();
-            var old = g.stageManager;
-            var idle = new IdleStageManager(g.field, g.ship, g.bullets, g.world, g.enemies);
-            idle.rank = old.rank;
-            idle.trgRank = old.trgRank;
-            idle.cnt = old.cnt;
-            idle.rankDownCnt = old.rankDownCnt;
-            g.stageManager = idle;
+            g.stageManager.idle = true;
         }
         if (command == 1)
         {

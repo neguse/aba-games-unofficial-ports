@@ -14,7 +14,7 @@ public class Shot : OdeActor
     public float _deg;
     public ShapeGroup shape;
     public LinePoint linePoint;
-    public virtual void set_2(Vector3 p, float d)
+    public void set_2(Vector3 p, float d)
     {
         base.set_1();
         pos.x = p.x - sin(d) * 0.5f;
@@ -82,7 +82,7 @@ public class Shot : OdeActor
         }
     }
 
-    public virtual void recordLinePoints_0()
+    public void recordLinePoints_0()
     {
         float[] model = Transform.Identity();
         float[] parent1 = model;
@@ -105,7 +105,7 @@ public class Shot : OdeActor
         linePoint.draw(model, tint, blend, key + "-draw-1");
     }
 
-    public virtual float deg()
+    public float deg()
     {
         return _deg;
     }
@@ -157,7 +157,7 @@ public class EnhancedShot : OdeActor
     public float _deg;
     public ShapeGroup shape;
     public LinePoint linePoint;
-    public virtual void set_2(Vector3 p, float d)
+    public void set_2(Vector3 p, float d)
     {
         base.set_1();
         pos.x = p.x - sin(d) * 0.5f;
@@ -225,7 +225,7 @@ public class EnhancedShot : OdeActor
         }
     }
 
-    public virtual void recordLinePoints_0()
+    public void recordLinePoints_0()
     {
         float[] model = Transform.Identity();
         float[] parent1 = model;
@@ -248,7 +248,7 @@ public class EnhancedShot : OdeActor
         linePoint.draw(model, tint, blend, key + "-draw-1");
     }
 
-    public virtual float deg()
+    public float deg()
     {
         return _deg;
     }

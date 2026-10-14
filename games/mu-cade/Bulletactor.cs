@@ -38,13 +38,13 @@ public class BulletActor : Actor
         linePoint.setSpectrumParams(1, 0.25f, 0.5f, 0.2f);
     }
 
-    public virtual void set_5__Single_Single_Single_Single(PatternState[] runner, float x, float y, float deg, float speed)
+    public void set_5__Single_Single_Single_Single(PatternState[] runner, float x, float y, float deg, float speed)
     {
         bullet.set_6(runner, x, y, deg, speed, 0);
         start_0();
     }
 
-    public virtual void start_0()
+    public void start_0()
     {
         isAimTop = false;
         isTop = isAimTop;
@@ -58,54 +58,54 @@ public class BulletActor : Actor
         exists = true;
     }
 
-    public virtual void setInvisible()
+    public void setInvisible()
     {
         isVisible = false;
     }
 
-    public virtual void setTop()
+    public void setTop()
     {
         isAimTop = true;
         isTop = isAimTop;
         setInvisible();
     }
 
-    public virtual void unsetTop()
+    public void unsetTop()
     {
         isAimTop = false;
         isTop = isAimTop;
     }
 
-    public virtual void unsetAimTop()
+    public void unsetAimTop()
     {
         isAimTop = false;
     }
 
-    public virtual void setWait(int prvw, int pstw)
+    public void setWait(int prvw, int pstw)
     {
         isWait = true;
         waitCnt = prvw;
         postWait = pstw;
     }
 
-    public virtual void setMorphSeed()
+    public void setMorphSeed()
     {
         isMorphSeed = true;
     }
 
-    public virtual void rewind()
+    public void rewind()
     {
         bullet.resetParser();
         PatternState[] runner = Bullet.createRunner(bullet.getParser());
         bullet.setRunner(runner);
     }
 
-    public virtual void remove_0()
+    public void remove_0()
     {
         shouldBeRemoved = true;
     }
 
-    public virtual void removeForced()
+    public void removeForced()
     {
         bullet.remove_0();
         exists = false;
@@ -174,7 +174,7 @@ public class BulletActor : Actor
     {
     }
 
-    public virtual void slowdown()
+    public void slowdown()
     {
         bullet.slowdown();
         postWait *= 2;
@@ -226,7 +226,7 @@ public class SimpleBullet : OdeActor
         linePoint.setSpectrumParams(1, 0.25f, 0.5f, 0.2f);
     }
 
-    public virtual void set_4_Single_Single_Single_Single(float x, float y, float d, float sp)
+    public void set_4_Single_Single_Single_Single(float x, float y, float d, float sp)
     {
         base.set_1();
         pos.x = x;
@@ -314,7 +314,7 @@ public class SimpleBullet : OdeActor
         }
     }
 
-    public virtual void recordLinePoints_0()
+    public void recordLinePoints_0()
     {
         float[] model = Transform.Identity();
         float[] parent1 = model;
@@ -326,7 +326,7 @@ public class SimpleBullet : OdeActor
         model = parent1;
     }
 
-    public virtual void collapseIntoParticle()
+    public void collapseIntoParticle()
     {
         Particle p = particles.getInstanceForced();
         float d = deg;
@@ -337,14 +337,14 @@ public class SimpleBullet : OdeActor
             gameManager.addScore_1(10);
     }
 
-    public virtual void drawSpectrum(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawSpectrum(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         if (removeCnt > 0)
             return;
         linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
     }
 
-    public virtual void drawShadow_0(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawShadow_0(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         if (removeCnt > 0)
             return;
@@ -358,7 +358,7 @@ public class SimpleBullet : OdeActor
         linePoint.draw(model, tint, blend, key + "-draw-1");
     }
 
-    public virtual void slowdown()
+    public void slowdown()
     {
         if (removeCnt > 0)
             return;

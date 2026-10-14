@@ -13,7 +13,7 @@ public class CentBarrage
     public float wayMorphRank;
     public string barMorphBml;
     public float barMorphRank;
-    public virtual void set_4_BulletPool_Ship_EnemyState_Single(BulletPool bullets, Ship ship, EnemyState state, float orderRatio = 0)
+    public void set_4_BulletPool_Ship_EnemyState_Single(BulletPool bullets, Ship ship, EnemyState state, float orderRatio = 0)
     {
         state.barrage.clear();
         switch (type)
@@ -65,7 +65,7 @@ public class CentBarrage
 
 public class CentHeadToAndFrom : CentHead
 {
-    public virtual void initLengthAndSize(int size)
+    public void initLengthAndSize(int size)
     {
         float ss = default(float);
         switch (size)
@@ -89,7 +89,7 @@ public class CentHeadToAndFrom : CentHead
         massScale = ss * ss;
     }
 
-    public virtual float calcBarrageRank(float br)
+    public float calcBarrageRank(float br)
     {
         if (br < 0.01f)
             return 0;
@@ -97,7 +97,7 @@ public class CentHeadToAndFrom : CentHead
             return 1 - 1 / sqrt(br);
     }
 
-    public virtual float[] calcBarrageSpeedAndInterval(float rank, float br, float minInterval = 20, float maxInterval = 120)
+    public float[] calcBarrageSpeedAndInterval(float rank, float br, float minInterval = 20, float maxInterval = 120)
     {
         float speed = 0;
         int interval = 0;
@@ -127,7 +127,7 @@ public class CentHeadToAndFrom : CentHead
         };
     }
 
-    public virtual float[] calcForwardForceAndSlowVelocity(float rank, int size)
+    public float[] calcForwardForceAndSlowVelocity(float rank, int size)
     {
         float forwardForceScale = 0;
         float slowVelocityRatio = 0;
@@ -291,7 +291,7 @@ public class CentHeadToAndFrom : CentHead
 
 public class CentHeadChase : CentHead
 {
-    public virtual void initLengthAndSize(int size)
+    public void initLengthAndSize(int size)
     {
         float ss = default(float);
         switch (size)
@@ -315,7 +315,7 @@ public class CentHeadChase : CentHead
         massScale = ss * ss;
     }
 
-    public virtual float calcBarrageRank(float br)
+    public float calcBarrageRank(float br)
     {
         if (br < 0.01f)
             return 0;
@@ -323,7 +323,7 @@ public class CentHeadChase : CentHead
             return 1 - 1 / sqrt(br);
     }
 
-    public virtual float[] calcBarrageSpeedAndInterval(float rank, float br, float minInterval = 20, float maxInterval = 120)
+    public float[] calcBarrageSpeedAndInterval(float rank, float br, float minInterval = 20, float maxInterval = 120)
     {
         float speed = 0;
         int interval = 0;
@@ -353,7 +353,7 @@ public class CentHeadChase : CentHead
         };
     }
 
-    public virtual float[] calcForwardForceAndSlowVelocity(float rank, int size)
+    public float[] calcForwardForceAndSlowVelocity(float rank, int size)
     {
         float forwardForceScale = 0;
         float slowVelocityRatio = 0;
@@ -527,7 +527,7 @@ public class CentHeadChase : CentHead
 
 public class CentHeadRoll : CentHead
 {
-    public virtual void initLengthAndSize(int size)
+    public void initLengthAndSize(int size)
     {
         float ss = default(float);
         switch (size)
@@ -551,7 +551,7 @@ public class CentHeadRoll : CentHead
         massScale = ss * ss;
     }
 
-    public virtual float calcBarrageRank(float br)
+    public float calcBarrageRank(float br)
     {
         if (br < 0.01f)
             return 0;
@@ -559,7 +559,7 @@ public class CentHeadRoll : CentHead
             return 1 - 1 / sqrt(br);
     }
 
-    public virtual float[] calcBarrageSpeedAndInterval(float rank, float br, float minInterval = 20, float maxInterval = 120)
+    public float[] calcBarrageSpeedAndInterval(float rank, float br, float minInterval = 20, float maxInterval = 120)
     {
         float speed = 0;
         int interval = 0;
@@ -589,7 +589,7 @@ public class CentHeadRoll : CentHead
         };
     }
 
-    public virtual float[] calcForwardForceAndSlowVelocity(float rank, int size)
+    public float[] calcForwardForceAndSlowVelocity(float rank, int size)
     {
         float forwardForceScale = 0;
         float slowVelocityRatio = 0;

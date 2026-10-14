@@ -41,7 +41,7 @@ public class Field
         floorWall.init_1_(null);
     }
 
-    public virtual void start_0()
+    public void start_0()
     {
         floorWall.set_1(false);
         ShapeGroup s = new ShapeGroup();
@@ -52,22 +52,22 @@ public class Field
         eyePos.x = eyePos.y;
     }
 
-    public virtual void clear()
+    public void clear()
     {
         floorWall.remove_0();
     }
 
-    public virtual void setShip(Ship ship)
+    public void setShip(Ship ship)
     {
         this.ship = ship;
     }
 
-    public virtual void setStarParticles(StarParticlePool starParticles)
+    public void setStarParticles(StarParticlePool starParticles)
     {
         this.starParticles = starParticles;
     }
 
-    public virtual void move_0()
+    public void move_0()
     {
         cnt--;
         if (cnt < 0)
@@ -101,7 +101,7 @@ public class Field
         setEyePos();
     }
 
-    public virtual void setEyePos()
+    public void setEyePos()
     {
         float tx = ship.pos().x, ty = ship.pos().y;
         if (checkInField_1_Vector3(ship.pos()))
@@ -120,11 +120,11 @@ public class Field
         eyePos.y += (ty - eyePos.y) * 0.05f;
     }
 
-    public virtual float[] setLookAt() { return Transform.LookAt(Transform.Perspective(), eyePos.x, eyePos.y + EYE_POS_Y, EYE_POS_Z, eyePos.x, eyePos.y, 0, 0, 1, 0); }
+    public float[] setLookAt() { return Transform.LookAt(Transform.Perspective(), eyePos.x, eyePos.y + EYE_POS_Y, EYE_POS_Z, eyePos.x, eyePos.y, 0, 0, 1, 0); }
 
-    public virtual float[] setLookAtTitle() { return Transform.LookAt(Transform.Perspective(), 0, EYE_POS_Y, EYE_POS_Z, 0, 0, 0, 0, 1, 0); }
+    public float[] setLookAtTitle() { return Transform.LookAt(Transform.Perspective(), 0, EYE_POS_Y, EYE_POS_Z, 0, 0, 0, 0, 1, 0); }
 
-    public virtual void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         if (fieldMesh == null) { var mesh = new Mesh("field");
         int part1 = mesh.vertexCount;
@@ -170,7 +170,7 @@ public class Field
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public virtual void appendSquare(Mesh mesh, float[] model, float[] tint, float x, float y, float w, float h, float z, float a)
+    public void appendSquare(Mesh mesh, float[] model, float[] tint, float x, float y, float w, float h, float z, float a)
     {
         LinePoint.appendLine(mesh, tint, x, y, z, x + w, y, z, a);
         LinePoint.appendLine(mesh, tint, x + w, y, z, x + w, y + h, z, a);
@@ -251,7 +251,7 @@ public class Field
             7
         }
     };
-    public virtual void drawOverlay(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawOverlay(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         model = Transform.Ortho();
         gameManager.drawState(model, tint, blend, key + "-drawState-1");
@@ -332,22 +332,22 @@ public class Field
 
 
 
-    public virtual bool checkInField_1_Vector(Vector p)
+    public bool checkInField_1_Vector(Vector p)
     {
         return _size.contains_2(p);
     }
 
-    public virtual bool checkInField_2(float x, float y)
+    public bool checkInField_2(float x, float y)
     {
         return _size.contains_3(x, y);
     }
 
-    public virtual bool checkInField_1_Vector3(Vector3 p)
+    public bool checkInField_1_Vector3(Vector3 p)
     {
         return (_size.contains_3(p.x, p.y) && fabs(p.z) < 1);
     }
 
-    public virtual Vector size()
+    public Vector size()
     {
         return _size;
     }

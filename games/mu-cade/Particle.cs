@@ -44,22 +44,22 @@ public class Particle : Actor
         r = g;
     }
 
-    public virtual void set_8_Vector_Single_Single_Single_Single_Single_Single_Int32(Vector p, float vx, float vy, float sz, float r, float g, float b, int c = 60)
+    public void set_8_Vector_Single_Single_Single_Single_Single_Single_Int32(Vector p, float vx, float vy, float sz, float r, float g, float b, int c = 60)
     {
         set_11_Single_Single_Single_Single_Single_Single_Single_Single_Single_Single_Int32(p.x, p.y, 0, vx, vy, 0, sz, r, g, b, c);
     }
 
-    public virtual void set_8_Vector3_Single_Single_Single_Single_Single_Single_Int32(Vector3 p, float vx, float vy, float sz, float r, float g, float b, int c = 60)
+    public void set_8_Vector3_Single_Single_Single_Single_Single_Single_Int32(Vector3 p, float vx, float vy, float sz, float r, float g, float b, int c = 60)
     {
         set_11_Single_Single_Single_Single_Single_Single_Single_Single_Single_Single_Int32(p.x, p.y, p.z, vx, vy, 0, sz, r, g, b, c);
     }
 
-    public virtual void set_9_Single_Single_Single_Single_Single_Single_Single_Single_Int32(float x, float y, float vx, float vy, float sz, float r, float g, float b, int c = 60)
+    public void set_9_Single_Single_Single_Single_Single_Single_Single_Single_Int32(float x, float y, float vx, float vy, float sz, float r, float g, float b, int c = 60)
     {
         set_11_Single_Single_Single_Single_Single_Single_Single_Single_Single_Single_Int32(x, y, 0, vx, vy, 0, sz, r, g, b, c);
     }
 
-    public virtual void set_11_Single_Single_Single_Single_Single_Single_Single_Single_Single_Single_Int32(float x, float y, float z, float vx, float vy, float vz, float sz, float r, float g, float b, int c = 60)
+    public void set_11_Single_Single_Single_Single_Single_Single_Single_Single_Single_Single_Int32(float x, float y, float z, float vx, float vy, float vz, float sz, float r, float g, float b, int c = 60)
     {
         pos.x = x;
         pos.y = y;
@@ -101,7 +101,7 @@ public class Particle : Actor
             exists = false;
     }
 
-    public virtual void recordLinePoints_0()
+    public void recordLinePoints_0()
     {
         float[] model = Transform.Identity();
         float[] parent1 = model;
@@ -167,12 +167,12 @@ public class ConnectedParticle : Actor
         baseLength = 0;
     }
 
-    public virtual void set_11_Single_Single_Single_Single_Single_Single_Single_Int32_Single_ConnectedParticle_Boolean(float x, float y, float d, float s, float r, float g, float b, int c, float bl = 0, ConnectedParticle pp = null, bool decay = true)
+    public void set_11_Single_Single_Single_Single_Single_Single_Single_Int32_Single_ConnectedParticle_Boolean(float x, float y, float d, float s, float r, float g, float b, int c, float bl = 0, ConnectedParticle pp = null, bool decay = true)
     {
         set_12(x, y, 0, d, s, r, g, b, c, bl, pp, decay);
     }
 
-    public virtual void set_12(float x, float y, float z, float d, float s, float r, float g, float b, int c, float bl = 0, ConnectedParticle pp = null, bool decay = true)
+    public void set_12(float x, float y, float z, float d, float s, float r, float g, float b, int c, float bl = 0, ConnectedParticle pp = null, bool decay = true)
     {
         _pos.x = x;
         _pos.y = y;
@@ -198,7 +198,7 @@ public class ConnectedParticle : Actor
         exists = true;
     }
 
-    public virtual void setRot(float[] r)
+    public void setRot(float[] r)
     {
         for (int i = 0; i < 16; i++)
             rot[i] = r[i];
@@ -242,7 +242,7 @@ public class ConnectedParticle : Actor
             exists = false;
     }
 
-    public virtual void recordLinePoints_0()
+    public void recordLinePoints_0()
     {
         float[] model = Transform.Identity();
         if (!((prevParticle) != null) || !(prevParticle.exists))
@@ -276,12 +276,12 @@ public class ConnectedParticle : Actor
         model = parent1;
     }
 
-    public virtual Vector3 pos()
+    public Vector3 pos()
     {
         return _pos;
     }
 
-    public virtual Vector3 vel()
+    public Vector3 vel()
     {
         return _vel;
     }
@@ -293,7 +293,7 @@ public class ConnectedParticlePool : ActorPool<ConnectedParticle>
     {
     }
 
-    public virtual void recordLinePoints_0()
+    public void recordLinePoints_0()
     {
         float[] model = Transform.Identity();
         foreach (ConnectedParticle cp in actor)
@@ -354,7 +354,7 @@ public class TailParticle : Actor
         r = g;
     }
 
-    public virtual void set_8_Single_Single_Single_Single_Single_Single_Single_Int32(float x, float y, float z, float sz, float r, float g, float b, int c)
+    public void set_8_Single_Single_Single_Single_Single_Single_Single_Int32(float x, float y, float z, float sz, float r, float g, float b, int c)
     {
         pos.x = x;
         pos.y = y;
@@ -408,7 +408,7 @@ public class TailParticle : Actor
         }
     }
 
-    public virtual void recordLinePoints_0()
+    public void recordLinePoints_0()
     {
         float[] model = Transform.Identity();
         float[] parent1 = model;
@@ -449,7 +449,7 @@ public class StarParticle : Actor
         size = 1;
     }
 
-    public virtual void set_5_Single_Single_Single_Single_Single(float x, float y, float z, float speed, float sz)
+    public void set_5_Single_Single_Single_Single_Single(float x, float y, float z, float speed, float sz)
     {
         pos.x = x;
         pos.y = y;
@@ -499,7 +499,7 @@ public class NumIndicator : Actor
         num2 = -1;
     }
 
-    public virtual void set_8_Int32_Int32_Single_Single_Single_Single_Single_Int32(int n1, int n2, float x, float y, float vx, float vy, float sz = 0.5f, int c = 300)
+    public void set_8_Int32_Int32_Single_Single_Single_Single_Single_Int32(int n1, int n2, float x, float y, float vx, float vy, float sz = 0.5f, int c = 300)
     {
         num1 = n1;
         num2 = n2;

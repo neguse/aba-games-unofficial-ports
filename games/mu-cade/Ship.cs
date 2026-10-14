@@ -63,10 +63,10 @@ public class Ship : OdeActor, BulletTarget
         rand.setSeed(seed);
     }
 
-    public Ship(World world, TwinStickPad pad, Field field, ParticlePool particles, ConnectedParticlePool connectedParticles, GameManager gameManager)
+    public Ship(World world, RecordableTwinStickPad pad, Field field, ParticlePool particles, ConnectedParticlePool connectedParticles, GameManager gameManager)
     {
         setWorld(world);
-        this.pad = (RecordableTwinStickPad)pad;
+        this.pad = pad;
         this.field = field;
         this.particles = particles;
         this.connectedParticles = connectedParticles;
@@ -93,7 +93,7 @@ public class Ship : OdeActor, BulletTarget
         base.init_1_Boolean();
     }
 
-    public virtual void setBullets(BulletPool bullets)
+    public void setBullets(BulletPool bullets)
     {
         this.bullets = bullets;
     }
@@ -102,14 +102,14 @@ public class Ship : OdeActor, BulletTarget
     {
     }
 
-    public virtual void initMassAndGeom()
+    public void initMassAndGeom()
     {
         base.set_1();
         shape.setMass_3(this);
         shape.setGeom(this, world.space);
     }
 
-    public virtual void start_0()
+    public void start_0()
     {
         initMassAndGeom();
         restart();
@@ -123,7 +123,7 @@ public class Ship : OdeActor, BulletTarget
         aPressed = bPressed;
     }
 
-    public virtual void restart()
+    public void restart()
     {
         fireCnt = 99999;
         fireInterval = 99999;
@@ -145,7 +145,7 @@ public class Ship : OdeActor, BulletTarget
         setDeg(deg);
     }
 
-    public virtual void clear()
+    public void clear()
     {
         shots.clear();
         enhancedShots.clear();
@@ -313,7 +313,7 @@ public class Ship : OdeActor, BulletTarget
             enhancedShotCnt--;
     }
 
-    public virtual void fireShot(float deg)
+    public void fireShot(float deg)
     {
         if (enhancedShotCnt > 0)
         {
@@ -340,7 +340,7 @@ public class Ship : OdeActor, BulletTarget
             ss.clearContactJoint();
     }
 
-    public virtual void addTail_1(float size)
+    public void addTail_1(float size)
     {
         if (restartCnt > 0 || !(field.checkInField_1_Vector3(_pos)))
             return;
@@ -369,7 +369,7 @@ public class Ship : OdeActor, BulletTarget
             flags.hit = true;
     }
 
-    public virtual void destroyed_0()
+    public void destroyed_0()
     {
         if (restartCnt > 0)
             return;
@@ -389,21 +389,21 @@ public class Ship : OdeActor, BulletTarget
         SoundManager.playSe("shipdestroyed.wav");
     }
 
-    public virtual void removeAllTails()
+    public void removeAllTails()
     {
         for (int i = 0; i < tailNum; i++)
             tails[i].remove_0();
         tailNum = 0;
     }
 
-    public virtual void removeAllTailsWithoutParticles()
+    public void removeAllTailsWithoutParticles()
     {
         for (int i = 0; i < tailNum; i++)
             tails[i].removeWithoutParticles();
         tailNum = 0;
     }
 
-    public virtual void moveInTitle()
+    public void moveInTitle()
     {
         titleCnt++;
         float tcr = (float)(titleCnt % 600) / 600;
@@ -434,7 +434,7 @@ public class Ship : OdeActor, BulletTarget
         restartCnt = RESTART_CNT_CONST;
     }
 
-    public virtual void addConnectedParticles_3_Vector3_Single_Single(Vector3 p, float deg, float speed = 1)
+    public void addConnectedParticles_3_Vector3_Single_Single(Vector3 p, float deg, float speed = 1)
     {
         ConnectedParticle[] cps = connectedParticles.getMultipleInstances(9);
         if (!((cps) != null))
@@ -450,17 +450,17 @@ public class Ship : OdeActor, BulletTarget
         }
     }
 
-    public virtual int getMultiplier()
+    public int getMultiplier()
     {
         return tailNum + 1;
     }
 
-    public virtual bool inRestartBulletDisap()
+    public bool inRestartBulletDisap()
     {
         return (restartBulletDisapCnt > 0);
     }
 
-    public virtual void recordLinePoints_0()
+    public void recordLinePoints_0()
     {
         float[] model = Transform.Identity();
         float[] parent1 = model;
@@ -492,7 +492,7 @@ public class Ship : OdeActor, BulletTarget
         model = parent1;
     }
 
-    public virtual void drawLeft(float[] model, float[] tint, Gfx.Blend blend, string key, float x, float y)
+    public void drawLeft(float[] model, float[] tint, Gfx.Blend blend, string key, float x, float y)
     {
         float[] view = model;
         model = Transform.Identity();
@@ -517,25 +517,25 @@ public class Ship : OdeActor, BulletTarget
         model = parent2;
     }
 
-    public virtual Vector3 pos()
+    public Vector3 pos()
     {
         return _pos;
     }
 
-    public virtual Vector getTargetPos()
+    public Vector getTargetPos()
     {
         trgPos.x = _pos.x;
         trgPos.y = _pos.y;
         return trgPos;
     }
 
-    public virtual bool replayMode_1(bool v)
+    public bool replayMode_1(bool v)
     {
         _replayMode = v;
         return _replayMode;
     }
 
-    public virtual bool replayMode_0()
+    public bool replayMode_0()
     {
         return _replayMode;
     }
@@ -594,7 +594,7 @@ public class ShipTail : OdeActor
     {
     }
 
-    public virtual void initMassAndGeom()
+    public void initMassAndGeom()
     {
         base.set_1();
         m = McdPhysics.Mass();
@@ -603,7 +603,7 @@ public class ShipTail : OdeActor
         shape.addGeom_3(this, world.space, size);
     }
 
-    public virtual void set_6(float x, float y, float z, float deg, float sz, OdeHandle jointedBodyId)
+    public void set_6(float x, float y, float z, float deg, float sz, OdeHandle jointedBodyId)
     {
         size.y = sz;
         size.x = size.y;
@@ -654,7 +654,7 @@ public class ShipTail : OdeActor
         ship.addConnectedParticles_3_Vector3_Single_Single(_pos, deg - PI / 2);
     }
 
-    public virtual void removeWithoutParticles()
+    public void removeWithoutParticles()
     {
         McdPhysics.JointDestroy(joint);
         base.remove_0();
@@ -668,12 +668,12 @@ public class ShipTail : OdeActor
             flags.hit = true;
     }
 
-    public virtual void setTailParticleTarget()
+    public void setTailParticleTarget()
     {
         TailParticle.setTarget(_pos, deg);
     }
 
-    public virtual bool addTail_2(ShipTail tail, float sz)
+    public bool addTail_2(ShipTail tail, float sz)
     {
         if (fabs(_pos.z) >= 1)
             return false;
@@ -682,7 +682,7 @@ public class ShipTail : OdeActor
         return true;
     }
 
-    public virtual void recordLinePoints_0()
+    public void recordLinePoints_0()
     {
         float[] model = Transform.Identity();
         float[] parent1 = model;
@@ -704,7 +704,7 @@ public class ShipTail : OdeActor
         linePoint.draw(model, tint, blend, key + "-draw-1");
     }
 
-    public virtual Vector3 pos()
+    public Vector3 pos()
     {
         return _pos;
     }

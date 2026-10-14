@@ -17,17 +17,17 @@ public class TitleManager
         this.prefManager = prefManager;
     }
 
-    public virtual void start_0()
+    public void start_0()
     {
         cnt = 0;
     }
 
-    public virtual void move_0()
+    public void move_0()
     {
         cnt++;
     }
 
-    public virtual void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         float x = 250, y = 50;
         float lsz = 50, lof = 40;
@@ -54,7 +54,7 @@ public class TitleManager
         drawRanking(model, tint, blend, key + "-drawRanking-1");
     }
 
-    public virtual void drawRanking(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawRanking(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         int rn = GameMath.integer((cnt - 60) / 40);
         if (rn > PrefData.RANKING_NUM)

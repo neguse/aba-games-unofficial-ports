@@ -11,7 +11,7 @@ public class TwinStickPadState
         button = 0;
     }
 
-    public virtual TwinStickPadState Copy()
+    public TwinStickPadState Copy()
     {
         return new TwinStickPadState
         {
@@ -22,14 +22,20 @@ public class TwinStickPadState
     }
 }
 
-public class TwinStickPad
+public static class TwinStickPad
 {
     public static int input;
+}
+
+public class RecordableTwinStickPad
+{
+    public List<TwinStickPadState> inputRecord = new List<TwinStickPadState>();
+    public int cursor;
     public bool pause
     {
         get
         {
-            return (input & 1024) != 0;
+            return (TwinStickPad.input & 1024) != 0;
         }
     }
 
@@ -37,46 +43,36 @@ public class TwinStickPad
     {
         get
         {
-            return (input & 2048) != 0;
+            return (TwinStickPad.input & 2048) != 0;
         }
     }
 
-    public virtual TwinStickPadState getState_1(bool record = true)
+    public TwinStickPadState getState_1(bool record = true)
     {
+        int input = TwinStickPad.input;
         var s = new TwinStickPadState();
         s.left.x = (input & 4) != 0 ? -1 : (input & 8) != 0 ? 1 : 0;
         s.left.y = (input & 1) != 0 ? 1 : (input & 2) != 0 ? -1 : 0;
         s.right.x = (input & 64) != 0 ? -1 : (input & 128) != 0 ? 1 : 0;
         s.right.y = (input & 16) != 0 ? 1 : (input & 32) != 0 ? -1 : 0;
         s.button = ((input & 256) != 0 ? 1 : 0) | ((input & 512) != 0 ? 2 : 0);
-        return s;
-    }
-}
-
-public class RecordableTwinStickPad : TwinStickPad
-{
-    public List<TwinStickPadState> inputRecord = new List<TwinStickPadState>();
-    public int cursor;
-    public override TwinStickPadState getState_1(bool record = true)
-    {
-        var s = base.getState_1(record);
         if (record)
             inputRecord.Add(s.Copy());
         return s;
     }
 
-    public virtual void startRecord()
+    public void startRecord()
     {
         inputRecord = new List<TwinStickPadState>();
     }
 
-    public virtual void startReplay(List<TwinStickPadState> data)
+    public void startReplay(List<TwinStickPadState> data)
     {
         inputRecord = data;
         cursor = 0;
     }
 
-    public virtual TwinStickPadState replay()
+    public TwinStickPadState replay()
     {
         if (cursor >= inputRecord.Count)
             return null;
