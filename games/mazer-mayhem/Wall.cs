@@ -1,33 +1,73 @@
 // Copyright 2008 Kenta Cho. Some rights reserved.
 using System;
 
-public class WallPool : ActorPool<Wall>
+public class WallPool
 {
     private MmFrame frame;
     private Field field;
     private BlurNormalTextureCubeListShape shape;
     private Vector3 storedHitPos = new Vector3();
     private float storedHitDistRatio;
-    public WallPool(int n, MmFrame frame, Field field) : base(n, () => new Wall())
+    public ActorPool<Wall> pool;
+    public Wall[] actors;
+    public WallPool(int n, MmFrame frame, Field field)
     {
+        pool = new ActorPool<Wall>(n, () => new Wall(), null);
+        actors = pool.actors;
         this.frame = frame;
         this.field = field;
         shape = BallShape.CreateShape(frame);
     }
 
-    public override void UpdateT(Wall a)
+    public int Add(Wall a)
+    {
+        return pool.Add(a);
+    }
+
+    public void ForEach(Action<Wall> func)
+    {
+        pool.ForEach(func);
+    }
+
+    public void RemoveT(Wall a)
+    {
+        pool.Removeint(a.GetId());
+    }
+
+    public void Gc()
+    {
+        pool.Gc();
+    }
+
+    public void Update()
+    {
+        pool.ForEach((Wall a) =>
+        {
+            UpdateT(a);
+        });
+    }
+
+    public void Draw()
+    {
+        pool.ForEach((Wall a) =>
+        {
+            DrawT(a);
+        });
+    }
+
+    public void UpdateT(Wall a)
     {
         a.IsActivated = field.Contains((a.Pos2).Copy());
     }
 
-    public override void DrawT(Wall a)
+    public void DrawT(Wall a)
     {
         shape.DrawVector3Quaternionfloat((a.State.Pos).Copy(), (a.State.Rotation).Copy(), a.State.Radius);
     }
 
     public void CheckCollisions(BallPool actorBPool)
     {
-        this.ForEach((Wall actorA) =>
+        pool.ForEach((Wall actorA) =>
         {
             if (actorA.IsActivated)
             {
@@ -44,7 +84,7 @@ public class WallPool : ActorPool<Wall>
     public bool CheckHit(Vector3 p)
     {
         bool hf = false;
-        this.ForEach((Wall a) =>
+        pool.ForEach((Wall a) =>
         {
             if (!hf && a.IsActivated && Math.Abs(p.X - a.Pos2.X) < 10 && Math.Abs(p.Y - a.Pos2.Y) < 10)
             {
@@ -62,7 +102,7 @@ public class WallPool : ActorPool<Wall>
 
     public void ClearAll()
     {
-        Clear();
+        pool.Clear();
         for (int i = 0; i < actors.Length; i++)
             actors[(i)].Clear();
         {

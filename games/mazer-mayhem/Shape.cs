@@ -1,16 +1,35 @@
 // Copyright 2008 Kenta Cho. Some rights reserved.
 using System;
 
-public class BlurNormalTextureCubeListShape : Shape
+public class BlurNormalTextureCubeListShape : IShapeDraw
 {
+    private MmFrame frame;
+    private Shape shape;
     public VertexPositionNormalTexture[] Verts;
     private int index;
     public int version;
     private int primitiveCnt;
     private int[] indices;
     private Quaternion dir = new Quaternion();
-    public BlurNormalTextureCubeListShape(MmFrame frame) : base(frame)
+    public BlurNormalTextureCubeListShape(MmFrame frame)
     {
+        this.frame = frame;
+        shape = new Shape(frame, this);
+    }
+
+    public void DrawVector3Quaternion(Vector3 pos, Quaternion dir)
+    {
+        shape.DrawVector3Quaternion(pos, dir);
+    }
+
+    public void DrawVector3Quaternionfloat(Vector3 pos, Quaternion dir, float size)
+    {
+        shape.DrawVector3Quaternionfloat(pos, dir, size);
+    }
+
+    public void DrawVector3Quaternionfloatfloatfloat(Vector3 pos, Quaternion dir, float xs, float ys, float zs)
+    {
+        shape.DrawVector3Quaternionfloatfloatfloat(pos, dir, xs, ys, zs);
     }
 
     public void BeginAdd(int nn)
@@ -181,9 +200,9 @@ public class BlurNormalTextureCubeListShape : Shape
         version++;
     }
 
-    public override void Draw()
+    public void Draw()
     {
-        MmRender.DrawShapeMmFrameVertexPositionNormalTextureArrayintArrayintint(this, frame, Verts, indices, primitiveCnt * 3, version);
+        MmRender.DrawShapeMmFrameVertexPositionNormalTextureArrayintArrayintint(shape, frame, Verts, indices, primitiveCnt * 3, version);
     }
 
     public void DrawDeg(Vector3 pos, float d)

@@ -2,26 +2,32 @@
 using System;
 using System.Collections.Generic;
 
-public abstract class Shape
+public interface IShapeDraw
+{
+    void Draw();
+}
+
+public class Shape
 {
     static int nextId;
     public int id, meshVersion = -1;
     public List<float> data = new List<float>();
-    protected MmFrame frame;
+    private MmFrame frame;
+    private IShapeDraw owner;
     private Matrix m = new Matrix();
-    public Shape(MmFrame frame)
+    public Shape(MmFrame frame, IShapeDraw owner)
     {
         id = nextId;
         nextId++;
         this.frame = frame;
+        this.owner = owner;
     }
 
-    public abstract void Draw();
     public void DrawVector3(Vector3 pos)
     {
         m = Matrix.CreateTranslationVector3(pos);
         frame.WorldMatrix = m;
-        Draw();
+        owner.Draw();
     }
 
     public void DrawVector3Quaternion(Vector3 pos, Quaternion dir)
@@ -29,7 +35,7 @@ public abstract class Shape
         m = Matrix.CreateFromQuaternion(dir);
         m *= Matrix.CreateTranslationVector3(pos);
         frame.WorldMatrix = m;
-        Draw();
+        owner.Draw();
     }
 
     public void DrawVector3float(Vector3 pos, float size)
@@ -37,7 +43,7 @@ public abstract class Shape
         m = Matrix.CreateScalefloat(size);
         m *= Matrix.CreateTranslationVector3(pos);
         frame.WorldMatrix = m;
-        Draw();
+        owner.Draw();
     }
 
     public void DrawVector3Quaternionfloat(Vector3 pos, Quaternion dir, float size)
@@ -46,7 +52,7 @@ public abstract class Shape
         m *= Matrix.CreateFromQuaternion(dir);
         m *= Matrix.CreateTranslationVector3(pos);
         frame.WorldMatrix = m;
-        Draw();
+        owner.Draw();
     }
 
     public void DrawVector3Quaternionfloatfloatfloat(Vector3 pos, Quaternion dir, float xs, float ys, float zs)
@@ -55,42 +61,21 @@ public abstract class Shape
         m *= Matrix.CreateFromQuaternion(dir);
         m *= Matrix.CreateTranslationVector3(pos);
         frame.WorldMatrix = m;
-        Draw();
+        owner.Draw();
     }
 }
 
-public abstract class PrimitiveShape : Shape
+public class PrimitiveListShape
 {
     public VertexPositionColor[] Verts;
-    public PrimitiveShape(MmFrame frame) : base(frame)
-    {
-    }
-
-    public void Initializeint(int n)
-    {
-        Initializeintbytebytebytebyte(n, 255, 255, 255, 255);
-    }
-
-    public virtual void Initializeintbytebytebytebyte(int n, int r, int g, int b, int a)
+    public int index;
+    public int version;
+    public int[] indices;
+    public void Initializeintbytebytebytebyte(int n, int r, int g, int b, int a)
     {
         Verts = MmArrays.Make(n, () => new VertexPositionColor());
         for (int i = 0; i < n; i++)
             Verts[(i)] = new VertexPositionColor((Vector3.Zero).Copy(), new Color(r, g, b, a));
-    }
-}
-
-public abstract class PrimitiveListShape : PrimitiveShape
-{
-    protected int index;
-    public int version;
-    protected int[] indices;
-    public PrimitiveListShape(MmFrame frame) : base(frame)
-    {
-    }
-
-    public override void Initializeintbytebytebytebyte(int n, int r, int g, int b, int a)
-    {
-        base.Initializeintbytebytebytebyte(n, r, g, b, a);
         BeginAdd();
     }
 
@@ -141,30 +126,68 @@ public abstract class PrimitiveListShape : PrimitiveShape
     }
 }
 
-public class TriangleListShape : PrimitiveListShape
+public class TriangleListShape : IShapeDraw
 {
-    public TriangleListShape(MmFrame frame) : base(frame)
+    private MmFrame frame;
+    private Shape shape;
+    private PrimitiveListShape list = new PrimitiveListShape();
+    public TriangleListShape(MmFrame frame)
     {
+        this.frame = frame;
+        shape = new Shape(frame, this);
     }
 
-    public override void Initializeintbytebytebytebyte(int n, int r, int g, int b, int a)
+    public void Initializeint(int n)
     {
-        indices = MmArrays.Make(n * 3, () => 0);
+        Initializeintbytebytebytebyte(n, 255, 255, 255, 255);
+    }
+
+    public void Initializeintbytebytebytebyte(int n, int r, int g, int b, int a)
+    {
+        list.indices = MmArrays.Make(n * 3, () => 0);
         for (int i = 0; i < n * 3; i++)
-            indices[(i)] = (int)i;
-        base.Initializeintbytebytebytebyte(n * 3, r, g, b, a);
+            list.indices[(i)] = (int)i;
+        list.Initializeintbytebytebytebyte(n * 3, r, g, b, a);
     }
 
-    public override void Draw()
+    public void BeginAdd()
     {
-        if (index <= 0)
+        list.BeginAdd();
+    }
+
+    public void AddVector3bytebytebytebyte(Vector3 p, int r, int g, int b, int a)
+    {
+        list.AddVector3bytebytebytebyte(p, r, g, b, a);
+    }
+
+    public void Addfloatfloatfloat(float x, float y, float z)
+    {
+        list.Addfloatfloatfloat(x, y, z);
+    }
+
+    public void EndAdd()
+    {
+        list.EndAdd();
+    }
+
+    public void DrawVector3(Vector3 pos)
+    {
+        shape.DrawVector3(pos);
+    }
+
+    public void Draw()
+    {
+        if (list.index <= 0)
             return;
-        MmRender.DrawShapeMmFrameVertexPositionColorArrayintArrayintint(this, frame, Verts, indices, index, version);
+        MmRender.DrawShapeMmFrameVertexPositionColorArrayintArrayintint(shape, frame, list.Verts, list.indices, list.index, list.version);
     }
 }
 
-public class QuadListShape : PrimitiveListShape
+public class QuadListShape : IShapeDraw
 {
+    private MmFrame frame;
+    private Shape shape;
+    private PrimitiveListShape list = new PrimitiveListShape();
     private static int[] QuadIndices = new int[]
     {
         0,
@@ -174,23 +197,55 @@ public class QuadListShape : PrimitiveListShape
         2,
         3
     };
-    public QuadListShape(MmFrame frame) : base(frame)
+    public QuadListShape(MmFrame frame)
     {
+        this.frame = frame;
+        shape = new Shape(frame, this);
     }
 
-    public override void Initializeintbytebytebytebyte(int n, int r, int g, int b, int a)
+    public void Initializeintbytebytebytebyte(int n, int r, int g, int b, int a)
     {
-        indices = MmArrays.Make(n * 6, () => 0);
+        list.indices = MmArrays.Make(n * 6, () => 0);
         for (int i = 0; i < n; i++)
             for (int j = 0; j < 6; j++)
-                indices[(i * 6 + j)] = (int)(i * 4 + QuadIndices[(j)]);
-        base.Initializeintbytebytebytebyte(n * 4, r, g, b, a);
+                list.indices[(i * 6 + j)] = (int)(i * 4 + QuadIndices[(j)]);
+        list.Initializeintbytebytebytebyte(n * 4, r, g, b, a);
     }
 
-    public override void Draw()
+    public void Clear()
     {
-        if (index <= 0)
+        list.Clear();
+    }
+
+    public void BeginAdd()
+    {
+        list.BeginAdd();
+    }
+
+    public void Addfloatfloatfloat(float x, float y, float z)
+    {
+        list.Addfloatfloatfloat(x, y, z);
+    }
+
+    public void Addfloatfloatfloatfloat(float x, float y, float z, float a)
+    {
+        list.Addfloatfloatfloatfloat(x, y, z, a);
+    }
+
+    public void EndAdd()
+    {
+        list.EndAdd();
+    }
+
+    public void DrawVector3(Vector3 pos)
+    {
+        shape.DrawVector3(pos);
+    }
+
+    public void Draw()
+    {
+        if (list.index <= 0)
             return;
-        MmRender.DrawShapeMmFrameVertexPositionColorArrayintArrayintint(this, frame, Verts, indices, index / 4 * 6, version);
+        MmRender.DrawShapeMmFrameVertexPositionColorArrayintArrayintint(shape, frame, list.Verts, list.indices, list.index / 4 * 6, list.version);
     }
 }

@@ -1,20 +1,45 @@
 // Copyright 2008 Kenta Cho. Some rights reserved.
 using System;
 
-public class BoardPool : ActorPool<Board>
+public class BoardPool
 {
-    public BoardPool(int n, MmFrame frame) : base(n, () => new Board())
+    public ActorPool<Board> pool;
+    public Board[] actors;
+    public BoardPool(int n, MmFrame frame)
     {
+        pool = new ActorPool<Board>(n, () => new Board(), null);
+        actors = pool.actors;
         for (int i = 0; i < actors.Length; i++)
             actors[(i)].Initialize(frame);
     }
 
-    public override void UpdateT(Board a)
+    public int AddForced(Board a)
+    {
+        return pool.AddForced(a);
+    }
+
+    public void Update()
+    {
+        pool.ForEach((Board a) =>
+        {
+            UpdateT(a);
+        });
+    }
+
+    public void Draw()
+    {
+        pool.ForEach((Board a) =>
+        {
+            DrawT(a);
+        });
+    }
+
+    public void UpdateT(Board a)
     {
         a.Cnt -= SimulationTime.Step;
         if (a.Cnt <= 0)
         {
-            RemoveT(a);
+            pool.RemoveT(a);
             return;
         }
 
@@ -27,36 +52,36 @@ public class BoardPool : ActorPool<Board>
         return actors[(id)].Shape;
     }
 
-    public override void DrawT(Board a)
+    public void DrawT(Board a)
     {
         a.Shape.DrawVector3((a.Pos).Copy());
     }
 
-    public override void Gc()
+    public void Gc()
     {
-        for (int i = 0; i < actorNum; i++)
+        for (int i = 0; i < pool.actorNum; i++)
         {
-            if (!isRemoved[(i)])
+            if (!pool.isRemoved[(i)])
                 continue;
-            for (int j = actorNum - 1; j < i; j--)
+            for (int j = pool.actorNum - 1; j < i; j--)
             {
-                if (isRemoved[(j)])
+                if (pool.isRemoved[(j)])
                     continue;
                 QuadListShape s = actors[(i)].Shape;
                 actors[(i)] = (actors[(j)]).Copy();
                 actors[(i)].SetId(i);
-                isRemoved[(i)] = false;
+                pool.isRemoved[(i)] = false;
                 actors[(j)].Shape = s;
                 break;
             }
 
-            actorNum--;
+            pool.actorNum--;
         }
     }
 
     public void ClearAll()
     {
-        Clear();
+        pool.Clear();
         for (int i = 0; i < actors.Length; i++)
             actors[(i)].Clear();
     }
@@ -65,10 +90,10 @@ public class BoardPool : ActorPool<Board>
     {
         get
         {
-            if (actorNum < actors.Length)
-                return actorNum;
+            if (pool.actorNum < actors.Length)
+                return pool.actorNum;
             else
-                return actorIdx;
+                return pool.actorIdx;
         }
     }
 }

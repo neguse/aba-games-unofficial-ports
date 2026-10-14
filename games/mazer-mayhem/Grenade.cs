@@ -1,7 +1,7 @@
 // Copyright 2008 Kenta Cho. Some rights reserved.
 using System;
 
-public class GrenadePool : ActorPool<Grenade>
+public class GrenadePool
 {
     private MmFrame frame;
     private BallPool balls;
@@ -12,8 +12,12 @@ public class GrenadePool : ActorPool<Grenade>
     private QuadListShape burstShape;
     private Quaternion dirVel = new Quaternion();
     private Vector4 bv = new Vector4();
-    public GrenadePool(int n, MmFrame frame, BallPool balls, ParticlePool particles, BulletPool bullets, Sound sound) : base(n, () => new Grenade())
+    public ActorPool<Grenade> pool;
+    public Grenade[] actors;
+    public GrenadePool(int n, MmFrame frame, BallPool balls, ParticlePool particles, BulletPool bullets, Sound sound)
     {
+        pool = new ActorPool<Grenade>(n, () => new Grenade(), null);
+        actors = pool.actors;
         this.frame = frame;
         this.balls = balls;
         this.particles = particles;
@@ -25,21 +29,47 @@ public class GrenadePool : ActorPool<Grenade>
         dirVel = (Quaternion.CreateFromYawPitchRoll(0.025f, 0.05f, -0.0125f)).Copy();
     }
 
-    public override void Update()
+    public int Add(Grenade a)
+    {
+        return pool.Add(a);
+    }
+
+    public int Length()
+    {
+        return pool.Length();
+    }
+
+    public void Gc()
+    {
+        pool.Gc();
+    }
+
+    public void Draw()
+    {
+        pool.ForEach((Grenade a) =>
+        {
+            DrawT(a);
+        });
+    }
+
+    public void Update()
     {
         burstShape.BeginAdd();
-        base.Update();
+        pool.ForEach((Grenade a) =>
+        {
+            UpdateT(a);
+        });
         burstShape.EndAdd();
     }
 
-    public override void UpdateT(Grenade a)
+    public void UpdateT(Grenade a)
     {
         if (a.BurstCnt > 0)
         {
             a.BurstCnt += SimulationTime.Step;
             if (a.BurstCnt > 20)
             {
-                RemoveT(a);
+                pool.RemoveT(a);
                 return;
             }
 
@@ -112,7 +142,7 @@ public class GrenadePool : ActorPool<Grenade>
         burstShape.Addfloatfloatfloatfloat(x1, y1, z, 0);
     }
 
-    public override void DrawT(Grenade a)
+    public void DrawT(Grenade a)
     {
         if (a.BurstCnt > 0)
             return;
@@ -130,7 +160,7 @@ public class GrenadePool : ActorPool<Grenade>
 
     public void ClearAll()
     {
-        Clear();
+        pool.Clear();
         for (int i = 0; i < actors.Length; i++)
             actors[(i)].Clear();
     }
