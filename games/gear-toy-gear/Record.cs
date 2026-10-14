@@ -1,4 +1,4 @@
-using static Lub;
+using Lub;
 
 public class Record
 {

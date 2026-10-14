@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using static Lub;
+using Lub;
 
 public static class Game
 {
@@ -11,7 +11,7 @@ public static class Game
     static float elapsed;
     public static void OnInit()
     {
-        Config(new ConfigOpts { Width = 640, Height = 480 });
+        App.Config(new ConfigOpts { Width = 640, Height = 480 });
         manager = new A7xGameManager();
         manager.init();
         manager.start();

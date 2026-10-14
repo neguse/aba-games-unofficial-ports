@@ -1,7 +1,7 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Lub;
+using Lub;
 public class Fragment: LuminousActor {
 
   public const float R = 1, G = 0.8f, B = 0.6f;

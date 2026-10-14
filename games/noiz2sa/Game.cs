@@ -1,11 +1,11 @@
 using System;
-using static Lub;
+using Lub;
 using static NrConstants;
 public static class Game {
     static float elapsed;
     static bool pausePressed,escapePressed;
     public static void OnInit(){
-        Config(new ConfigOpts{Width=640,Height=480});
+        App.Config(new ConfigOpts{Width=640,Height=480});
         NrAngles.tantbl=NrData.tangent;NrAngles.sctbl=NrData.sine;
         NrAttract.initHiScore();NrBarrage.initBarragemanager();NrAttract.initAttractManager();NrCore.initTitle();NrRender.Init();
         if(Host.Available()){Host.Send("scores.load","");Host.Send("ready","");}

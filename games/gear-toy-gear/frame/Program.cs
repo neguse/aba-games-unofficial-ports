@@ -5,7 +5,7 @@ long report = Stopwatch.GetTimestamp();
 int frames = 0;
 float leftTrigger = 0, rightTrigger = 0;
 bool profile = Environment.GetEnvironmentVariable("LUB_PROFILE") == "1";
-return Lub.Run(Game.OnInit, null, dt =>
+return Lub.App.Run(Game.OnInit, null, dt =>
 {
     var left = Lub.Xr.Input(0);
     var right = Lub.Xr.Input(1);

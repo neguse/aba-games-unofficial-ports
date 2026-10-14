@@ -1,7 +1,7 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Lub;
+using Lub;
 public class Particle: Actor {
 
   public static Rand rand = new Rand();

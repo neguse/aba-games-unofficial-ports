@@ -5,7 +5,7 @@ using System.Runtime.Loader;
 using System.Text.Json;
 using Aba;
 using Aba.Native;
-using static Lub;
+using Lub;
 
 // Cloud-only integration: the real native API/runtime dispatch with a mock
 // Renderer. This does NOT validate rendered pixels, GPU drivers or OpenXR.

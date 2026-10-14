@@ -1,4 +1,4 @@
-using static Lub;
+using Lub;
 public static class NrPreference {
     public static void loadPreference(string text){
         string[] words=text.Split(",");if(words.Length!=115)return;

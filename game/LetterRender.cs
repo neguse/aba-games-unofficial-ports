@@ -1,7 +1,7 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Lub;
+using Lub;
 public class LetterRender {
 
   public static Mesh[] meshes = new Mesh[DISPLAY_LIST_NUM];

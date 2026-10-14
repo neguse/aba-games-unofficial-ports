@@ -1,6 +1,6 @@
 // Copyright 2005 Kenta Cho. Some rights reserved.
 using System;
-using static Lub;
+using Lub;
 
 public class ReplayData
 {

@@ -1,5 +1,5 @@
 // Copyright 2005 Kenta Cho. Some rights reserved.
-using static Lub;
+using Lub;
 
 public static class Sound
 {

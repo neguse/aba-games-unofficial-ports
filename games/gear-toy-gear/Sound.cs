@@ -1,4 +1,4 @@
-using static Lub;
+using Lub;
 using System;
 
 public class Sound

@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using static Lub;
+using Lub;
 
 namespace Aba.Native;
 

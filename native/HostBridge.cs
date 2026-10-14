@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using static Lub;
+using Lub;
 
 namespace Aba.Native;
 

@@ -1,7 +1,7 @@
 // Copyright (C) 2000 Kenta Cho. SPDX-License-Identifier: GPL-2.0-or-later
 // TinyC# browser adaptation (2026-09-24).
 using System;
-using static Lub;
+using Lub;
 
 public static class Game
 {
@@ -12,7 +12,7 @@ public static class Game
     public static Action beforeMove;
     public static void OnInit()
     {
-        Config(new ConfigOpts { Width = 640, Height = 480 });
+        App.Config(new ConfigOpts { Width = 640, Height = 480 });
         MasMain.initall();
         if (Host.Available())
         {

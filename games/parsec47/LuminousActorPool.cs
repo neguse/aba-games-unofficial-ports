@@ -1,7 +1,7 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Lub;
+using Lub;
 public class LuminousActorPool: ActorPool {
   public LuminousActorPool(int n, Actor act, ActorInitializer ini) : base(n, act, ini) {
   }

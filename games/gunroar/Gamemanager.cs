@@ -1,4 +1,4 @@
-using static Lub;
+using Lub;
 // Copyright 2005 Kenta Cho. Some rights reserved.
 using System;
 using System.Collections.Generic;

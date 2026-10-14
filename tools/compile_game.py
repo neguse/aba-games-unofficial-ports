@@ -120,7 +120,7 @@ if args.c:
                     '-o', str(args.c / 'binding.c')], check=True)
     raise SystemExit(0)
 compiler = args.lub / 'third_party/tcs/Transpiler/bin/Release/net10.0/Transpiler.dll'
-command = ['dotnet', str(compiler), *map(str, sources), '--ref', str(args.lub / 'cs-lib/lub_stub.cs'), '--no-naming-check']
+command = ['dotnet', str(compiler), *map(str, sources), '--ref', str(args.lub / 'cs-lib/lub_stub.cs')]
 if args.game == 'mu-cade':
     command += ['--ref', 'games/mu-cade/OdeApi.cs']
 subprocess.run(command[:2] + ['check'] + command[2:], check=True)

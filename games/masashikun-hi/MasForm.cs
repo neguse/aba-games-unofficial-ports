@@ -2,7 +2,7 @@
 // TinyC# browser adaptation (2026-09-24).
 using System;
 using System.Collections.Generic;
-using static Lub;
+using Lub;
 
 public static class MasForm
 {

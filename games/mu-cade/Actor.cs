@@ -1,6 +1,6 @@
 // Copyright 2004 Kenta Cho. Some rights reserved.
 using System;
-using static Lub;
+using Lub;
 using System.Collections.Generic;
 
 public abstract class Actor

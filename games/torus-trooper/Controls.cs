@@ -1,3 +1,4 @@
+using Lub;
 public static class FrameControls
 {
     static int directions;

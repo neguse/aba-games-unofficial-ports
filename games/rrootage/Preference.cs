@@ -1,4 +1,4 @@
-using static Lub;
+using Lub;
 using static RrAttract;
 public static class RrPreference {
     public static void loadPreference(string text) {

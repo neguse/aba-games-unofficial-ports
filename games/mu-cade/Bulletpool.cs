@@ -1,6 +1,6 @@
 // Copyright 2006 Kenta Cho. Some rights reserved.
 using System.Collections.Generic;
-using static Lub;
+using Lub;
 
 public class BulletPool : ActorPool<BulletActor>
 {

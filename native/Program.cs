@@ -1,6 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
-using static Lub;
+using Lub;
 using Aba;
 using Aba.Native;
 
@@ -42,12 +42,12 @@ public static class Collection
             else runtime.Add(args[i]);
         }
         Directory.SetCurrentDirectory(root);
-        int result=Lub.Run(Init,OnEvent,Frame,Quit,runtime.ToArray());
+        int result=App.Run(Init,OnEvent,Frame,Quit,runtime.ToArray());
         return result!=0?result:smokeFailed?1:0;
     }
     static void Init()
     {
-        Config(new ConfigOpts{Width=960,Height=720});
+        App.Config(new ConfigOpts{Width=960,Height=720});
         Session.AfterFrame=Transition;
         if(smokeFrames>=0) pending=0;
     }
@@ -128,7 +128,7 @@ public static class Collection
         if(armed&&confirm&&!previousConfirm) pending=selected;
         if(Input.KeyPressed("r")) canvas!.Recenter();
         bool leave=Input.KeyDown("escape")||Input.GamepadDown(0,Input.PadButton.East)||right?.Active==true&&right.Secondary;
-        if(armed&&leave&&!previousExit) Lub.Quit();
+        if(armed&&leave&&!previousExit) App.Quit();
         previousExit=leave;
         var screen=canvas!.Target("collection-menu",Canvas.Width,Canvas.Height);
         canvas.Begin(screen);
@@ -164,9 +164,9 @@ public static class Collection
         {
             if(smokeFrames>=0)
             {
-                if(error!=null) {smokeFailed=true;Console.Error.WriteLine("ABA_SMOKE_FAILED "+error);Lub.Quit();return;}
+                if(error!=null) {smokeFailed=true;Console.Error.WriteLine("ABA_SMOKE_FAILED "+error);App.Quit();return;}
                 if(++smokeIndex<games.Length) pending=smokeIndex;
-                else {Console.WriteLine("ABA_SMOKE_ALL_PASSED");Lub.Quit();}
+                else {Console.WriteLine("ABA_SMOKE_ALL_PASSED");App.Quit();}
             }
             return;
         }
