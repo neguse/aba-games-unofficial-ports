@@ -1,17 +1,21 @@
 // Copyright 2009 Kenta Cho. Some rights reserved.
 using System;
 
-public class LaserPool : ActorPool<Laser>
+public class LaserPool
 {
+    private ActorPool<Laser> pool;
+    public Laser[] Actors;
     private GtgFrame frame;
     private Field field;
     private Shape edgeShape;
-    public LaserPool(int n, GtgFrame frame, Field field) : base(n, () => new Laser())
+    public LaserPool(int n, GtgFrame frame, Field field)
     {
+        pool = new ActorPool<Laser>(n, () => new Laser(), a => UpdateT(a), a => DrawT(a), i => pool.Remove(i));
+        Actors = pool.Actors;
         this.frame = frame;
         this.field = field;
-        shape = new CubeShape(frame, 0.33f, 0.33f, 1);
-        edgeShape = new CubeEdgeShape(frame, 0.33f, 0.33f, 1);
+        pool.shape = CubeShape.Create(frame, 0.33f, 0.33f, 1);
+        edgeShape = CubeEdgeShape.Create(frame, 0.33f, 0.33f, 1);
     }
 
     public void AddVector3Vector3float(Vector3 p, Vector3 v, float length)
@@ -30,7 +34,7 @@ public class LaserPool : ActorPool<Laser>
         a.Color.W = 0.75f;
         a.Ticks = 1;
         a.SingleStep = true;
-        AddT(a);
+        pool.AddT(a);
     }
 
     public void AddVector3Vector3floatint(Vector3 p, Vector3 v, float length, int ticks)
@@ -49,7 +53,7 @@ public class LaserPool : ActorPool<Laser>
         a.Color.W = 0.9f;
         a.Ticks = ticks;
         a.Vel = (v).Copy();
-        AddT(a);
+        pool.AddT(a);
     }
 
     public void AddPlayer(Vector3 p, Vector3 v, float length, int ticks)
@@ -68,10 +72,10 @@ public class LaserPool : ActorPool<Laser>
         a.Color.W = 0.7f;
         a.Ticks = ticks;
         a.Vel = (v).Copy();
-        AddT(a);
+        pool.AddT(a);
     }
 
-    public override bool UpdateT(Laser a)
+    public bool UpdateT(Laser a)
     {
         if (a.SingleStep) return false;
         a.Pos += (a.Vel) * SimulationTime.Step;
@@ -81,14 +85,29 @@ public class LaserPool : ActorPool<Laser>
         return a.Ticks > 0;
     }
 
-    public override void DrawT(Laser a)
+    public void DrawT(Laser a)
     {
         Shape.AddInstance((a.Pos).Copy(), a.Scale, (a.Orientation).Copy(), (a.Color).Copy());
     }
 
     public void DrawEdge()
     {
-        DrawShape(edgeShape);
+        pool.DrawShape(edgeShape);
+    }
+
+    public void Clear()
+    {
+        pool.Clear();
+    }
+
+    public void Update()
+    {
+        pool.Update();
+    }
+
+    public void Draw()
+    {
+        pool.Draw();
     }
 }
 

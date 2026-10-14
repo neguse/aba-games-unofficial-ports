@@ -40,8 +40,8 @@ public class Player
         this.replay = replay;
         this.particles = particles;
         this.sound = sound;
-        shape = new GearShape(frame, 1, 0.8f, 0.2f, new Color(250, 100, 100, 240), new Color(250, 200, 200, 240), true);
-        edgeShape = new GearEdgeShape(frame, 1, 0.8f, 0.5f, 0.1f);
+        shape = GearShape.Create(frame, 1, 0.8f, 0.2f, new Color(250, 100, 100, 240), new Color(250, 200, 200, 240), true);
+        edgeShape = GearEdgeShape.Create(frame, 1, 0.8f, 0.5f, 0.1f);
         data = GtgArrays.Make(4, () => new PlayerData());
         for (int i = 0; i < 4; i++)
         {

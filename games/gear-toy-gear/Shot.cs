@@ -1,8 +1,10 @@
 // Copyright 2009 Kenta Cho. Some rights reserved.
 using System;
 
-public class ShotPool : ActorPool<Shot>
+public class ShotPool
 {
+    private ActorPool<Shot> pool;
+    public Shot[] Actors;
     private GtgFrame frame;
     private Field field;
     private EnemyPool enemies;
@@ -11,8 +13,10 @@ public class ShotPool : ActorPool<Shot>
     private Player player;
     private ParticlePool particles;
     private Quaternion rollQuaternion = new Quaternion();
-    public ShotPool(int n, GtgFrame frame, Field field, EnemyPool enemies, MiddleEnemyPool middleEnemies, PillarPool pillars, Player player, ParticlePool particles) : base(n, () => new Shot())
+    public ShotPool(int n, GtgFrame frame, Field field, EnemyPool enemies, MiddleEnemyPool middleEnemies, PillarPool pillars, Player player, ParticlePool particles)
     {
+        pool = new ActorPool<Shot>(n, () => new Shot(), a => UpdateT(a), a => DrawT(a), i => pool.Remove(i));
+        Actors = pool.Actors;
         this.frame = frame;
         this.field = field;
         this.enemies = enemies;
@@ -20,7 +24,7 @@ public class ShotPool : ActorPool<Shot>
         this.pillars = pillars;
         this.player = player;
         this.particles = particles;
-        shape = new CubeShape(frame, 1, 1, 3);
+        pool.shape = CubeShape.Create(frame, 1, 1, 3);
         rollQuaternion = (Quaternion.CreateFromYawPitchRoll(0, 0, 0.05f)).Copy();
     }
 
@@ -36,10 +40,10 @@ public class ShotPool : ActorPool<Shot>
         a.Color.Y = 0.3f;
         a.Color.Z = 0.9f;
         a.Color.W = 0.9f;
-        AddT(a);
+        pool.AddT(a);
     }
 
-    public override bool UpdateT(Shot a)
+    public bool UpdateT(Shot a)
     {
         a.Orientation *= GameMath.Rotation(rollQuaternion);
         a.Pos += (a.Vel) * SimulationTime.Step;
@@ -60,9 +64,24 @@ public class ShotPool : ActorPool<Shot>
         return (a.Pos.Z > Field.BackDepth);
     }
 
-    public override void DrawT(Shot a)
+    public void DrawT(Shot a)
     {
         Shape.AddInstance((a.Pos).Copy(), a.Scale, (a.Orientation).Copy(), (a.Color).Copy());
+    }
+
+    public void Clear()
+    {
+        pool.Clear();
+    }
+
+    public void Update()
+    {
+        pool.Update();
+    }
+
+    public void Draw()
+    {
+        pool.Draw();
     }
 }
 

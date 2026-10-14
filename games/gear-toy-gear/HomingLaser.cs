@@ -1,8 +1,10 @@
 // Copyright 2009 Kenta Cho. Some rights reserved.
 using System;
 
-public class HomingLaserPool : ActorPool<HomingLaser>
+public class HomingLaserPool
 {
+    private ActorPool<HomingLaser> pool;
+    public HomingLaser[] Actors;
     private GtgFrame frame;
     private Field field;
     private LaserPool lasers;
@@ -10,8 +12,10 @@ public class HomingLaserPool : ActorPool<HomingLaser>
     private PillarPool pillars;
     private ParticlePool particles;
     private Sound sound;
-    public HomingLaserPool(int n, GtgFrame frame, Field field, LaserPool lasers, Player player, PillarPool pillars, ParticlePool particles, Sound sound) : base(n, () => new HomingLaser())
+    public HomingLaserPool(int n, GtgFrame frame, Field field, LaserPool lasers, Player player, PillarPool pillars, ParticlePool particles, Sound sound)
     {
+        pool = new ActorPool<HomingLaser>(n, () => new HomingLaser(), a => UpdateT(a), a => { }, i => Remove(i));
+        Actors = pool.Actors;
         this.frame = frame;
         this.field = field;
         this.lasers = lasers;
@@ -21,14 +25,14 @@ public class HomingLaserPool : ActorPool<HomingLaser>
         this.sound = sound;
     }
 
-    public override void Clear()
+    public void Clear()
     {
-        ForEach((HomingLaser a) =>
+        pool.ForEach((HomingLaser a) =>
         {
             if (a.Cue != null)
                 a.Cue.Stop(AudioStopOptions.Immediate);
         });
-        base.Clear();
+        pool.Clear();
     }
 
     public void Add(Vector3 from, Vector3 to, float speed)
@@ -38,10 +42,10 @@ public class HomingLaserPool : ActorPool<HomingLaser>
         a.Vel = (to - from).Copy();
         a.Vel.Normalize();
         a.Vel *= speed;
-        AddT(a);
+        pool.AddT(a);
     }
 
-    public override bool UpdateT(HomingLaser a)
+    public bool UpdateT(HomingLaser a)
     {
         a.Pos += (a.Vel * Stage.GameSpeedSqrt) * SimulationTime.Step;
         if (pillars.CheckHit((a.Pos).Copy()))
@@ -80,7 +84,7 @@ public class HomingLaserPool : ActorPool<HomingLaser>
         return (a.Pos.Z < Field.FrontDepth * 2);
     }
 
-    public override void Remove(int i)
+    public void Remove(int i)
     {
         if (Actors[(i)].Cue != null)
         {
@@ -88,7 +92,12 @@ public class HomingLaserPool : ActorPool<HomingLaser>
             Actors[(i)].Cue = null;
         }
 
-        base.Remove(i);
+        pool.Remove(i);
+    }
+
+    public void Update()
+    {
+        pool.Update();
     }
 }
 

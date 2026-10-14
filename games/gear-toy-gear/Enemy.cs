@@ -1,8 +1,10 @@
 // Copyright 2009 Kenta Cho. Some rights reserved.
 using System;
 
-public class EnemyPool : ActorPool<Enemy>
+public class EnemyPool
 {
+    private ActorPool<Enemy> pool;
+    public Enemy[] Actors;
     private Random random;
     private GtgFrame frame;
     private GameState gameState;
@@ -13,9 +15,11 @@ public class EnemyPool : ActorPool<Enemy>
     private ParticlePool particles;
     private Sound sound;
     private PlayerHomingLaserPool playerHomingLasers;
-    private GearEdgeShape edgeShape;
-    public EnemyPool(int n, GtgFrame frame, GameState gameState, Field field, BulletPool bullets, Player player, PillarPool pillars, ParticlePool particles, Sound sound) : base(n, () => new Enemy())
+    private Shape edgeShape;
+    public EnemyPool(int n, GtgFrame frame, GameState gameState, Field field, BulletPool bullets, Player player, PillarPool pillars, ParticlePool particles, Sound sound)
     {
+        pool = new ActorPool<Enemy>(n, () => new Enemy(), a => UpdateT(a), a => DrawT(a), i => Remove(i));
+        Actors = pool.Actors;
         this.frame = frame;
         this.gameState = gameState;
         this.field = field;
@@ -24,8 +28,8 @@ public class EnemyPool : ActorPool<Enemy>
         this.pillars = pillars;
         this.particles = particles;
         this.sound = sound;
-        shape = new GearShape(frame, 1, 0.7f, 0.3f, new Color(240, 180, 180, 200), new Color(0, 0, 0, 200), true);
-        edgeShape = new GearEdgeShape(frame, 1, 0.7f, 0.3f, 0.2f);
+        pool.shape = GearShape.Create(frame, 1, 0.7f, 0.3f, new Color(240, 180, 180, 200), new Color(0, 0, 0, 200), true);
+        edgeShape = GearEdgeShape.Create(frame, 1, 0.7f, 0.3f, 0.2f);
     }
 
     public void SetParams(PlayerHomingLaserPool playerHomingLasers)
@@ -56,10 +60,10 @@ public class EnemyPool : ActorPool<Enemy>
         }
 
         a.Roll = 0;
-        AddT(a);
+        pool.AddT(a);
     }
 
-    public override bool UpdateT(Enemy a)
+    public bool UpdateT(Enemy a)
     {
         a.PPos = (a.Pos).Copy();
         a.Motion.Update();
@@ -97,7 +101,7 @@ public class EnemyPool : ActorPool<Enemy>
     public bool CheckHit(Vector3 pos)
     {
         bool isHit = false;
-        for (int i = 0; i < actorCount;)
+        for (int i = 0; i < pool.Count;)
         {
             if (Vector3.Distance((Actors[(i)].Pos).Copy(), (pos).Copy()) < Actors[(i)].Scale * 1.5f)
             {
@@ -128,7 +132,7 @@ public class EnemyPool : ActorPool<Enemy>
     {
         int ri = -1, i = 0;
         float md = distance;
-        ForEach((Enemy a) =>
+        pool.ForEach((Enemy a) =>
         {
             float d = Math.Abs(a.Pos.X - x) + Math.Abs(a.Pos.Y - y);
             if (!a.IsLocked && d < md && a.Pos.Z < 0)
@@ -144,20 +148,48 @@ public class EnemyPool : ActorPool<Enemy>
         return ri;
     }
 
-    public override void DrawT(Enemy a)
+    public void DrawT(Enemy a)
     {
         Shape.AddInstance((a.Pos).Copy(), a.Scale, (a.Orientation).Copy(), (a.Color).Copy());
     }
 
     public void DrawEdge()
     {
-        DrawShape(edgeShape);
+        pool.DrawShape(edgeShape);
     }
 
-    public override void Remove(int i)
+    public void Remove(int i)
     {
         playerHomingLasers.OnEnemyRemoved(false, i);
-        base.Remove(i);
+        pool.Remove(i);
+    }
+
+    public void Clear()
+    {
+        pool.Clear();
+    }
+
+    public void Update()
+    {
+        pool.Update();
+    }
+
+    public void Draw()
+    {
+        pool.Draw();
+    }
+
+    public int Count
+    {
+        get
+        {
+            return pool.Count;
+        }
+    }
+
+    public Enemy Get(int i)
+    {
+        return pool.Get(i);
     }
 }
 

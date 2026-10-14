@@ -75,7 +75,7 @@ for i=1,6500 do
 end
 assert(stage.stage_count>=15 and bosses==2)
 for kind=0,8 do
- a.pillars:clear();stage.pillar_type=kind;stage:add_pillars();assert(a.pillars:get_count()>0,'pillar '..kind)
+ a.pillars:clear();stage.pillar_type=kind;stage:add_pillars();assert(a.pillars.pool:get_count()>0,'pillar '..kind)
 end
 p.destroy=destroy
 f:start_game();tick(f,0,2);g=a.game_state
@@ -97,14 +97,14 @@ GtgPreference.load(record,'7654321,90000,80000,70000,60000,50000,40000,30000,200
 assert(record.stored_scores[1]==7654321 and record.stored_scores[10]==10000)
 GtgPreference.load(record,'1,2,3,4,5,6,7,8,9,10');assert(record.stored_scores[1]==7654321)
 print('PASS two boss stages, nine pillar types, multipliers, extends, pause, game over and scores')
-local pool=ActorPool.new(3,function()return MiddleEnemy.new()end)
+local pool=ActorPool.new(3,function()return MiddleEnemy.new()end,function()return true end,function()end,function()end)
 local enemy=MiddleEnemy.new();enemy.pos.x=10;enemy.turret_indexes[1]=7
 pool:add_t(enemy);enemy.pos.x=20;enemy.turret_indexes[1]=8;pool:add_t(enemy)
 local copy=pool:get(0);copy.pos.x=99;copy.turret_indexes[1]=99
 assert(pool:get(0).pos.x==10 and pool:get(0).turret_indexes[1]==7)
 pool:remove(0);assert(pool:get_count()==1 and pool:get(0).pos.x==20 and pool:get(0).turret_indexes[1]==8)
 Letter.bars:clear();Letter.addstring_vector3float_quaternionfloat('GEAR TOY GEAR',Vector3.new(),1,Quaternion.get_identity(),1)
-assert(Letter.bars:get_count()>20)
+assert(Letter.bars.pool:get_count()>20)
 local sound=Sound.new();local cue=sound:get_cue('HomingLaser')
 local listener=AudioListener.new();listener.position=Vector3.new(1,2,3)
 local emitter=AudioEmitter.new();emitter.position=Vector3.new(4,6,8)

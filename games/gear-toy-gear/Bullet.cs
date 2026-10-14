@@ -1,24 +1,28 @@
 // Copyright 2009 Kenta Cho. Some rights reserved.
 using System;
 
-public class BulletPool : ActorPool<Bullet>
+public class BulletPool
 {
+    private ActorPool<Bullet> pool;
+    public Bullet[] Actors;
     private GtgFrame frame;
     private Field field;
     private Player player;
     private PillarPool pillars;
     private ParticlePool particles;
-    private EllipseEdgeShape edgeShape;
+    private Shape edgeShape;
     private Quaternion rollQuaternion = new Quaternion();
-    public BulletPool(int n, GtgFrame frame, Field field, Player player, PillarPool pillars, ParticlePool particles) : base(n, () => new Bullet())
+    public BulletPool(int n, GtgFrame frame, Field field, Player player, PillarPool pillars, ParticlePool particles)
     {
+        pool = new ActorPool<Bullet>(n, () => new Bullet(), a => UpdateT(a), a => DrawT(a), i => pool.Remove(i));
+        Actors = pool.Actors;
         this.frame = frame;
         this.field = field;
         this.player = player;
         this.pillars = pillars;
         this.particles = particles;
-        shape = new EllipseShape(frame, 1, 0.6f);
-        edgeShape = new EllipseEdgeShape(frame, 1, 0.6f, 0.8f, 16);
+        pool.shape = EllipseShape.Create(frame, 1, 0.6f);
+        edgeShape = EllipseEdgeShape.Create(frame, 1, 0.6f, 0.8f, 16);
         rollQuaternion = (Quaternion.CreateFromYawPitchRoll(0, 0, 0.1f)).Copy();
     }
 
@@ -35,7 +39,7 @@ public class BulletPool : ActorPool<Bullet>
         a.Color.Y = 1;
         a.Color.Z = 1;
         a.Color.W = 0.7f;
-        AddT(a);
+        pool.AddT(a);
     }
 
     public void AddVector3float(Vector3 from, float speed)
@@ -49,10 +53,10 @@ public class BulletPool : ActorPool<Bullet>
         a.Color.Y = 1;
         a.Color.Z = 1;
         a.Color.W = 0.7f;
-        AddT(a);
+        pool.AddT(a);
     }
 
-    public override bool UpdateT(Bullet a)
+    public bool UpdateT(Bullet a)
     {
         a.Orientation *= GameMath.Rotation(rollQuaternion);
         a.Pos += (a.Vel * Stage.GameSpeed) * SimulationTime.Step;
@@ -71,14 +75,37 @@ public class BulletPool : ActorPool<Bullet>
         return (a.Pos.Z < Field.FrontDepth);
     }
 
-    public override void DrawT(Bullet a)
+    public void DrawT(Bullet a)
     {
         Shape.AddInstance((a.Pos).Copy(), a.Scale, (a.Orientation).Copy(), (a.Color).Copy());
     }
 
     public void DrawEdge()
     {
-        DrawShape(edgeShape);
+        pool.DrawShape(edgeShape);
+    }
+
+    public void Clear()
+    {
+        pool.Clear();
+    }
+
+    public void Update()
+    {
+        pool.Update();
+    }
+
+    public void Draw()
+    {
+        pool.Draw();
+    }
+
+    public int Count
+    {
+        get
+        {
+            return pool.Count;
+        }
     }
 }
 

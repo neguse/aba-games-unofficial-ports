@@ -1,21 +1,25 @@
 // Copyright 2009 Kenta Cho. Some rights reserved.
 using System;
 
-public class PlatePool : ActorPool<Plate>
+public class PlatePool
 {
+    private ActorPool<Plate> pool;
+    public Plate[] Actors;
     private GtgFrame frame;
     private Field field;
     private int count;
-    public PlatePool(int n, GtgFrame frame, Field field) : base(n, () => new Plate())
+    public PlatePool(int n, GtgFrame frame, Field field)
     {
+        pool = new ActorPool<Plate>(n, () => new Plate(), a => UpdateT(a), a => DrawT(a), i => pool.Remove(i));
+        Actors = pool.Actors;
         this.frame = frame;
         this.field = field;
     }
 
-    public override void Clear()
+    public void Clear()
     {
         count = 0;
-        base.Clear();
+        pool.Clear();
     }
 
     public void Add(float radius, float angle, float z, int number, float scale)
@@ -31,11 +35,11 @@ public class PlatePool : ActorPool<Plate>
         a.TargetNumber = number;
         a.Alpha = 0;
         a.Scale = scale;
-        AddT(a);
+        pool.AddT(a);
         count++;
     }
 
-    public override bool UpdateT(Plate a)
+    public bool UpdateT(Plate a)
     {
         a.Z += (a.TargetZ - a.Z) * SimulationTime.Blend(0.05f);
         a.Radius += (a.TargetRadius - a.Radius) * SimulationTime.Blend(0.05f);
@@ -58,15 +62,15 @@ public class PlatePool : ActorPool<Plate>
         return a.Ticks > 0;
     }
 
-    public override void Draw()
+    public void Draw()
     {
-        ForEach((Plate a) =>
+        pool.ForEach((Plate a) =>
         {
             DrawT(a);
         });
     }
 
-    public override void DrawT(Plate a)
+    public void DrawT(Plate a)
     {
         int n = a.Number;
         float ang = a.Angle;
@@ -82,6 +86,11 @@ public class PlatePool : ActorPool<Plate>
                 break;
             ang += 0.02f * a.Scale;
         }
+    }
+
+    public void Update()
+    {
+        pool.Update();
     }
 }
 
