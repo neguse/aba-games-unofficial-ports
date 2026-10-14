@@ -5,6 +5,23 @@ using static GameMath;
 
 public class Bullet : Actor
 {
+    public bool exists;
+    public int poolIndex;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public void setPoolIndex(int poolIndex)
+    {
+        this.poolIndex = poolIndex;
+    }
+
     public GameManager gameManager;
     public Field field;
     public Ship ship;
@@ -40,7 +57,7 @@ public class Bullet : Actor
         range = 1;
     }
 
-    public override void init(List<object> args)
+    public void init(List<object> args)
     {
         gameManager = (GameManager)args[0];
         field = (Field)args[1];
@@ -81,7 +98,7 @@ public class Bullet : Actor
         exists = true;
     }
 
-    public override void move()
+    public void move()
     {
         ppos.x = pos.x;
         ppos.y = pos.y;
@@ -148,7 +165,7 @@ public class Bullet : Actor
         exists = false;
     }
 
-    public override void draw(float[] model, Mesh particles = null)
+    public void draw(float[] model, Mesh particles = null)
     {
         if (!field.checkInOuterField_1(pos))
             return;
@@ -206,10 +223,34 @@ public class Bullet : Actor
     }
 }
 
-public class BulletPool : ActorPool<Bullet>
+public class BulletPool
 {
-    public BulletPool(int n, List<object> args) : base(n, args, () => new Bullet())
+    public ActorPool<Bullet> pool;
+    public Bullet[] actor;
+    public BulletPool(int n, List<object> args)
     {
+        pool = new ActorPool<Bullet>(n, args, () => new Bullet());
+        actor = pool.actor;
+    }
+
+    public Bullet getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public void move()
+    {
+        pool.move();
+    }
+
+    public void draw(float[] model, Mesh particles = null)
+    {
+        pool.draw(model, particles);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 
     public int removeIndexedBullets(int idx)

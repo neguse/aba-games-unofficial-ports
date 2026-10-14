@@ -184,6 +184,23 @@ public class NumReel
 
 public class NumIndicator : Actor
 {
+    public bool exists;
+    public int poolIndex;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public void setPoolIndex(int poolIndex)
+    {
+        this.poolIndex = poolIndex;
+    }
+
     public static GunroarRand rand = new GunroarRand();
     public const float TARGET_Y_MIN = -7;
     public const float TARGET_Y_MAX = 7;
@@ -245,7 +262,7 @@ public class NumIndicator : Actor
         alpha = 1;
     }
 
-    public override void init(List<object> args)
+    public void init(List<object> args)
     {
         scoreReel = (ScoreReel)args[0];
     }
@@ -322,7 +339,7 @@ public class NumIndicator : Actor
         cnt = target[targetIdx].cnt;
     }
 
-    public override void move()
+    public void move()
     {
         if (targetIdx < 0)
             return;
@@ -386,7 +403,7 @@ public class NumIndicator : Actor
             gotoNextTarget();
     }
 
-    public override void draw(float[] model, Mesh particles = null)
+    public void draw(float[] model, Mesh particles = null)
     {
         float[] color = null;
         color = new float[] { alpha, alpha, alpha, 1 };
@@ -408,10 +425,32 @@ public class NumIndicator : Actor
     }
 }
 
-public class NumIndicatorPool : ActorPool<NumIndicator>
+public class NumIndicatorPool
 {
-    public NumIndicatorPool(int n, List<object> args) : base(n, args, () => new NumIndicator())
+    public ActorPool<NumIndicator> pool;
+    public NumIndicatorPool(int n, List<object> args)
     {
+        pool = new ActorPool<NumIndicator>(n, args, () => new NumIndicator());
+    }
+
+    public NumIndicator getInstanceForced()
+    {
+        return pool.getInstanceForced();
+    }
+
+    public void move()
+    {
+        pool.move();
+    }
+
+    public void draw(float[] model, Mesh particles = null)
+    {
+        pool.draw(model, particles);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 }
 

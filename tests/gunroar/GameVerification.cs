@@ -6,7 +6,7 @@ public static class GrVerification
     static int Count<T>(ActorPool<T> pool) where T : Actor
     {
         int count = 0;
-        foreach (T item in pool.actor) if (item.exists) count++;
+        foreach (T item in pool.actor) if (item.getExists()) count++;
         return count;
     }
     static void Input(GameManager game, int mode, int frame)
@@ -50,7 +50,7 @@ public static class GrVerification
             for (int frame = 0; frame < 600; frame++)
             {
                 Input(game, mode, frame); game.move();
-                maxShots = Math.Max(maxShots, Count(game.shots));
+                maxShots = Math.Max(maxShots, Count(game.shots.pool));
                 if (frame % 150 == 0) game.draw();
             }
             Check(maxShots > 0, "mode fires shots");
@@ -75,7 +75,7 @@ public static class GrVerification
                 Input(game, mode, frame);
                 for (int b = 0; b < game.ship.boatNum; b++) game.ship.boat[b].cnt = -1;
                 game.move(); if (game.enemies.hasBoss()) boss = true;
-                maxBullets = Math.Max(maxBullets, Count(game.bullets));
+                maxBullets = Math.Max(maxBullets, Count(game.bullets.pool));
                 if (frame % 500 == 0) game.draw();
             }
             Check(boss && maxBullets > 0 && game.stageManager.rank > 1, "progress to boss and rank growth");

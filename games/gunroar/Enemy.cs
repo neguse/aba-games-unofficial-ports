@@ -5,9 +5,26 @@ using static GameMath;
 
 public class Enemy : Actor
 {
+    public bool exists;
+    public int poolIndex;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public void setPoolIndex(int poolIndex)
+    {
+        this.poolIndex = poolIndex;
+    }
+
     public EnemySpec spec;
     public EnemyState _state;
-    public override void init(List<object> args)
+    public void init(List<object> args)
     {
         _state = new EnemyState((Field)args[0], (GrScreen)args[1], (BulletPool)args[2], (Ship)args[3], (SparkPool)args[4], (SmokePool)args[5], (FragmentPool)args[6], (SparkFragmentPool)args[7], (NumIndicatorPool)args[8], (ScoreReel)args[9]);
     }
@@ -28,7 +45,7 @@ public class Enemy : Actor
         exists = true;
     }
 
-    public override void move()
+    public void move()
     {
         if (!spec.move(state))
             remove();
@@ -71,7 +88,7 @@ public class Enemy : Actor
         exists = false;
     }
 
-    public override void draw(float[] model, Mesh particles = null)
+    public void draw(float[] model, Mesh particles = null)
     {
         spec.draw(model, _state);
     }
@@ -1594,12 +1611,36 @@ public class PlatformEnemySpec : EnemySpec
     }
 }
 
-public class EnemyPool : ActorPool<Enemy>
+public class EnemyPool
 {
-    public EnemyPool(int n, List<object> args) : base(n, args, () => new Enemy())
+    public ActorPool<Enemy> pool;
+    public Enemy[] actor;
+    public EnemyPool(int n, List<object> args)
     {
+        pool = new ActorPool<Enemy>(n, args, () => new Enemy());
+        actor = pool.actor;
         foreach (Enemy e in actor)
             e.setEnemyPool(this);
+    }
+
+    public Enemy getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public void move()
+    {
+        pool.move();
+    }
+
+    public void draw(float[] model, Mesh particles = null)
+    {
+        pool.draw(model, particles);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 
     public void setStageManager(StageManager stageManager)
