@@ -18,8 +18,8 @@ EM_JS(int, test_command, (float *value), {
 SDL_AppResult SDL_AppIterate(void *appstate) {
     float value;
     for (int command; (command = test_command(&value)) >= 0;)
-        tcs_entry_BrowserHooks_command(command, value);
+        tcs_entry_BrowserHooks_Command(command, value);
     SDL_AppResult result = game_iterate(appstate);
-    tcs_entry_BrowserHooks_report();
+    tcs_entry_BrowserHooks_Report();
     return result;
 }
