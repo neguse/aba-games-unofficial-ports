@@ -103,7 +103,7 @@ public static class RrVerification {
     }
     public static void Main(){
         RrAngles.tantbl=RrData.tangent;RrAngles.sctbl=RrData.sine;RrBarrage.initBarragemanager();RrAttract.initHiScore();RrAttract.initAttractManager();RrAttract.initGameStateFirst();RrCore.initTitle();Draw();
-        var command=new FoeCommand(-1,new Foe(),new PatternState());command.Direction=-90;Check(command.foe.d==768,"wrapped bullet heading");
+        var command=new FoeCommand(-1,new Foe(),new PatternState());command.SetDirection(-90);Check(command.foe.d==768,"wrapped bullet heading");
         RrRandom.setSeed(5489);Check(RrRandom.nextRand()==-795755684&&RrRandom.nextRand()==581869302,"MT reference");
         for(int mode=0;mode<4;mode++){
             ShipMotion(mode);RrAttract.setMode(mode);RrCore.initGame(0);
