@@ -4,10 +4,29 @@ using System.Collections.Generic;
 using static GameMath;
 using static Lub;
 
-public class EnemyPool : ActorPool<Enemy>
+public class EnemyPool
 {
-    public EnemyPool(int n) : base(n, null, () => new Enemy())
+    public ActorPool<Enemy> pool;
+    public Enemy[] actors;
+    public EnemyPool(int n)
     {
+        pool = new ActorPool<Enemy>(n, null, () => new Enemy());
+        actors = pool.actors;
+    }
+
+    public Enemy getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public void move_0()
+    {
+        pool.move_0();
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 
     public static bool trailEffect = false;

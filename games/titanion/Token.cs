@@ -6,9 +6,20 @@ using static Lub;
 
 public abstract class Token<ST, SP> : Actor where ST : TokenState where SP : TokenSpec<ST>
 {
+    public bool exists;
     public ST state;
     public SP spec;
-    public abstract override void init_1(List<object> args);
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool v)
+    {
+        exists = v;
+    }
+
+    public abstract void init_1(List<object> args);
     public virtual void setAt(SP spec, Vector pos, float deg, float speed)
     {
         set_5(spec, pos.x, pos.y, deg, speed);
@@ -31,7 +42,7 @@ public abstract class Token<ST, SP> : Actor where ST : TokenState where SP : Tok
         exists = true;
     }
 
-    public override void move_0()
+    public void move_0()
     {
         if (!((spec.move_1(state))))
             remove();
@@ -43,7 +54,7 @@ public abstract class Token<ST, SP> : Actor where ST : TokenState where SP : Tok
         spec.removed(state);
     }
 
-    public override void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
     {
         spec.draw_1(model, color, blend, state);
     }

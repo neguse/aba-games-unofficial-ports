@@ -4,20 +4,39 @@ using System.Collections.Generic;
 using static GameMath;
 using static Lub;
 
-public class BulletPool : ActorPool<Bullet>
+public class BulletPool
 {
-    public BulletPool(int n) : base(n, null, () => new Bullet())
+    public ActorPool<Bullet> pool;
+    public Bullet[] actors;
+    public BulletPool(int n)
     {
+        pool = new ActorPool<Bullet>(n, null, () => new Bullet());
+        actors = pool.actors;
+    }
+
+    public Bullet getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    {
+        pool.draw_0(model, color, blend);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 
     public const float BULLET_REMOVED_RANGE = 2.0f;
-    public override void move_0()
+    public void move_0()
     {
-        base.move_0();
+        pool.move_0();
         BulletState.move_0();
     }
 
-    public virtual int removeAround(int cnt, Vector pos, ParticlePool particles, ParticlePool bonusParticles, Player player)
+    public int removeAround(int cnt, Vector pos, ParticlePool particles, ParticlePool bonusParticles, Player player)
     {
         foreach (Bullet b in actors)
         {

@@ -3,16 +3,17 @@ using System;
 using static Lub;
 using System.Collections.Generic;
 
-public abstract class Actor
+public interface Actor
 {
-    public bool exists;
-    public abstract void init_1(List<object> args);
-    public abstract void move_0();
-    public abstract void draw_0(float[] model, float[] color, Gfx.Blend blend);
+    public bool getExists();
+    public void setExists(bool v);
+    public void init_1(List<object> args);
+    public void move_0();
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend);
 }
 
 public class ActorPool<T>
-    where T : Actor
+    where T : class, Actor
 {
     public T[] actors;
     public int actorIdx;
@@ -27,7 +28,7 @@ public class ActorPool<T>
         }
     }
 
-    public virtual T getInstance()
+    public T getInstance()
     {
         if (hasNoActor)
             return null;
@@ -36,7 +37,7 @@ public class ActorPool<T>
             actorIdx--;
             if (actorIdx < 0)
                 actorIdx = actors.Length - 1;
-            if (!((actors[actorIdx].exists)))
+            if (!((actors[actorIdx].getExists())))
                 return actors[actorIdx];
         }
 
@@ -44,7 +45,7 @@ public class ActorPool<T>
         return null;
     }
 
-    public virtual T getInstanceForced()
+    public T getInstanceForced()
     {
         actorIdx--;
         if (actorIdx < 0)
@@ -52,7 +53,7 @@ public class ActorPool<T>
         return actors[actorIdx];
     }
 
-    public virtual T[] getMultipleInstances(int n)
+    public T[] getMultipleInstances(int n)
     {
         T[] result = new T[n];
         for (int i = 0; i < n; i++)
@@ -61,38 +62,38 @@ public class ActorPool<T>
             if (item == null)
             {
                 for (int j = 0; j < i; j++)
-                    result[j].exists = false;
+                    result[j].setExists(false);
                 return null;
             }
 
-            item.exists = true;
+            item.setExists(true);
             result[i] = item;
         }
 
         for (int i = 0; i < n; i++)
-            result[i].exists = false;
+            result[i].setExists(false);
         return result;
     }
 
-    public virtual void move_0()
+    public void move_0()
     {
         hasNoActor = false;
         foreach (T item in actors)
-            if (item.exists)
+            if (item.getExists())
                 item.move_0();
     }
 
-    public virtual void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
     {
         foreach (T item in actors)
-            if (item.exists)
+            if (item.getExists())
                 item.draw_0(model, color, blend);
     }
 
-    public virtual void clear()
+    public void clear()
     {
         foreach (T item in actors)
-            item.exists = false;
+            item.setExists(false);
         actorIdx = 0;
     }
 }

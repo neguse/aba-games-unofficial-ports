@@ -852,13 +852,37 @@ public class PlayerSpec : TokenSpec<PlayerState>
     }
 }
 
-public class ShotPool : ActorPool<Shot>
+public class ShotPool
 {
-    public ShotPool(int n) : base(n, null, () => new Shot())
+    public ActorPool<Shot> pool;
+    public Shot[] actors;
+    public ShotPool(int n)
     {
+        pool = new ActorPool<Shot>(n, null, () => new Shot());
+        actors = pool.actors;
     }
 
-    public virtual void checkParent_0()
+    public Shot getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public void move_0()
+    {
+        pool.move_0();
+    }
+
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    {
+        pool.draw_0(model, color, blend);
+    }
+
+    public void clear()
+    {
+        pool.clear();
+    }
+
+    public void checkParent_0()
     {
         foreach (Shot a in actors)
             if (a.exists)
@@ -866,7 +890,7 @@ public class ShotPool : ActorPool<Shot>
                     a.remove();
     }
 
-    public virtual int num()
+    public int num()
     {
         int n = 0;
         foreach (Shot a in actors)

@@ -4,20 +4,39 @@ using System.Collections.Generic;
 using static GameMath;
 using static Lub;
 
-public class PillarPool : ActorPool<Pillar>
+public class PillarPool
 {
-    public PillarPool(int n) : base(n, null, () => new Pillar())
+    public ActorPool<Pillar> pool;
+    public Pillar[] actors;
+    public PillarPool(int n)
     {
+        pool = new ActorPool<Pillar>(n, null, () => new Pillar());
+        actors = pool.actors;
     }
 
-    public virtual void setEnd()
+    public Pillar getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public void move_0()
+    {
+        pool.move_0();
+    }
+
+    public void clear()
+    {
+        pool.clear();
+    }
+
+    public void setEnd()
     {
         foreach (Pillar a in actors)
             if (a.exists)
                 a.setEnd();
     }
 
-    public virtual void drawCenter(float[] model, float[] color, Gfx.Blend blend)
+    public void drawCenter(float[] model, float[] color, Gfx.Blend blend)
     {
         for (int i = 1; i < actors.Length; i++)
         {
@@ -38,7 +57,7 @@ public class PillarPool : ActorPool<Pillar>
                 a.draw_0(model, color, blend);
     }
 
-    public virtual void drawOutside(float[] model, float[] color, Gfx.Blend blend)
+    public void drawOutside(float[] model, float[] color, Gfx.Blend blend)
     {
         foreach (Pillar a in actors)
             if (((a.exists)) && ((a.state.isOutside)))
@@ -53,7 +72,7 @@ public class Pillar : Token<PillarState, PillarSpec>
         state = new PillarState();
     }
 
-    public virtual void set_7(PillarSpec ps, float y, float maxY, Pillar pp, PillarShape s, float vdeg, bool outside = false)
+    public void set_7(PillarSpec ps, float y, float maxY, Pillar pp, PillarShape s, float vdeg, bool outside = false)
     {
         base.set_5(ps, 0, y, 0, 0);
         state.maxY = maxY;
@@ -63,12 +82,12 @@ public class Pillar : Token<PillarState, PillarSpec>
         state.isOutside = outside;
     }
 
-    public virtual void setEnd()
+    public void setEnd()
     {
         state.isEnded = true;
     }
 
-    public virtual int opCmp(object o)
+    public int opCmp(object o)
     {
         Pillar p = (o is Pillar ? (Pillar)o : null);
         if ((!(((p) != null))))

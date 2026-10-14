@@ -4,10 +4,34 @@ using System.Collections.Generic;
 using static GameMath;
 using static Lub;
 
-public class ParticlePool : ActorPool<Particle>
+public class ParticlePool
 {
-    public ParticlePool(int n, List<object> args) : base(n, args, () => new Particle())
+    public ActorPool<Particle> pool;
+    public Particle[] actors;
+    public ParticlePool(int n, List<object> args)
     {
+        pool = new ActorPool<Particle>(n, args, () => new Particle());
+        actors = pool.actors;
+    }
+
+    public Particle getInstanceForced()
+    {
+        return pool.getInstanceForced();
+    }
+
+    public void move_0()
+    {
+        pool.move_0();
+    }
+
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    {
+        pool.draw_0(model, color, blend);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 }
 
