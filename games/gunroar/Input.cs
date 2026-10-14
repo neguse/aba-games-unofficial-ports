@@ -178,20 +178,17 @@ public class InputRecord<T>
     }
 }
 
-public class Pad
+public class RecordablePad
 {
     public PadState state = new PadState();
     public bool pause, escape;
+    public InputRecord<PadState> inputRecord;
     public PadState getNullState()
     {
         state.clear();
         return state;
     }
-}
 
-public class RecordablePad : Pad
-{
-    public InputRecord<PadState> inputRecord;
     public void startRecord()
     {
         inputRecord = new InputRecord<PadState>(new PadState());
@@ -216,19 +213,16 @@ public class RecordablePad : Pad
     }
 }
 
-public class TwinStick
+public class RecordableTwinStick
 {
     public TwinStickState state = new TwinStickState();
+    public InputRecord<TwinStickState> inputRecord;
     public TwinStickState getNullState()
     {
         state.clear();
         return state;
     }
-}
 
-public class RecordableTwinStick : TwinStick
-{
-    public InputRecord<TwinStickState> inputRecord;
     public void startRecord()
     {
         inputRecord = new InputRecord<TwinStickState>(new TwinStickState());
@@ -253,7 +247,7 @@ public class RecordableTwinStick : TwinStick
     }
 }
 
-public class Mouse
+public class RecordableMouse
 {
     public MouseState state = new MouseState();
     public MouseState getNullState()
@@ -261,10 +255,7 @@ public class Mouse
         state.clear();
         return state;
     }
-}
 
-public class RecordableMouse : Mouse
-{
     public MouseState getState(bool doRecord = true)
     {
         return state;
@@ -275,9 +266,9 @@ public class RecordableMouseAndPad
 {
     public InputRecord<MouseAndPadState> inputRecord;
     public MouseAndPadState state = new MouseAndPadState();
-    public Mouse mouse;
-    public Pad pad;
-    public RecordableMouseAndPad(Mouse mouse, Pad pad)
+    public RecordableMouse mouse;
+    public RecordablePad pad;
+    public RecordableMouseAndPad(RecordableMouse mouse, RecordablePad pad)
     {
         this.mouse = mouse;
         this.pad = pad;
