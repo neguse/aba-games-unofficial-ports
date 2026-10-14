@@ -14,7 +14,7 @@ public class Vector
 
 
 
-    public virtual Vector getElement(Vector v, float min = 0, float max = 1000000)
+    public Vector getElement(Vector v, float min = 0, float max = 1000000)
     {
         Vector result = new Vector();
         float lengthSquared = v.x * v.x + v.y * v.y;
@@ -33,7 +33,7 @@ public class Vector
         return result;
     }
 
-    public virtual void opAddAssign(Vector v)
+    public void opAddAssign(Vector v)
     {
         x = x + (v.x);
         y = y + (v.y);
@@ -41,13 +41,13 @@ public class Vector
 
 
 
-    public virtual void opMulAssign(float a)
+    public void opMulAssign(float a)
     {
         x = x * (a);
         y = y * (a);
     }
 
-    public virtual void opDivAssign(float a)
+    public void opDivAssign(float a)
     {
         x = x / (a);
         y = y / (a);
@@ -61,17 +61,17 @@ public class Vector
 
 
 
-    public virtual float vctSize()
+    public float vctSize()
     {
         return sqrt(x * x + y * y);
     }
 
-    public virtual float dist_1(Vector v)
+    public float dist_1(Vector v)
     {
         return dist_2(v.x, v.y);
     }
 
-    public virtual float dist_2(float px = 0, float py = 0)
+    public float dist_2(float px = 0, float py = 0)
     {
         float ax = fabs(x - px);
         float ay = fabs(y - py);
@@ -81,12 +81,12 @@ public class Vector
             return ay + ax / 2;
     }
 
-    public virtual bool contains_2(Vector p, float r = 1)
+    public bool contains_2(Vector p, float r = 1)
     {
         return contains_3(p.x, p.y, r);
     }
 
-    public virtual bool contains_3(float px, float py, float r = 1)
+    public bool contains_3(float px, float py, float r = 1)
     {
         if ((((((((((px >= -x * r))) && (((px <= x * r)))))) && (((py >= -y * r)))))) && (((py <= y * r))))
             return true;
@@ -105,14 +105,14 @@ public class Vector3
         this.z = z;
     }
 
-    public virtual void rollX(float d)
+    public void rollX(float d)
     {
         float ty = y * cos(d) - z * sin(d);
         z = y * sin(d) + z * cos(d);
         y = ty;
     }
 
-    public virtual void rollY(float d)
+    public void rollY(float d)
     {
         float tx = x * cos(d) - z * sin(d);
         z = x * sin(d) + z * cos(d);
@@ -123,7 +123,7 @@ public class Vector3
 
 
 
-    public virtual void opAddAssign(Vector3 v)
+    public void opAddAssign(Vector3 v)
     {
         x = x + (v.x);
         y = y + (v.y);
@@ -132,14 +132,14 @@ public class Vector3
 
 
 
-    public virtual void opMulAssign(float a)
+    public void opMulAssign(float a)
     {
         x = x * (a);
         y = y * (a);
         z = z * (a);
     }
 
-    public virtual void opDivAssign(float a)
+    public void opDivAssign(float a)
     {
         x = x / (a);
         y = y / (a);

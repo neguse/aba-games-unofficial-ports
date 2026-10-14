@@ -16,16 +16,16 @@ public class Title
     public Vector titlePos;
     public float titleSize;
     public int cursorIdx;
-    public Title(Preference preference, Pad pad, Frame frame)
+    public Title(Preference preference, RecordablePad pad, Frame frame)
     {
         this.preference = preference;
-        this.pad = (pad is RecordablePad ? (RecordablePad)pad : null);
+        this.pad = pad;
         this.frame = frame;
         titlePos = new Vector();
         cursorIdx = 0;
     }
 
-    public virtual void init_0()
+    public void init_0()
     {
         logo.Vertex(0, 0, 0, new float[] { 0, 0, 0, 1 });
         logo.Vertex(280, 0, 0, new float[] { 1, 0, 0, 1 });
@@ -42,16 +42,16 @@ public class Title
         marker.LineStrip(3, 3, true);
     }
 
-    public virtual void close()
+    public void close()
     {
     }
 
-    public virtual void setMode(int mode)
+    public void setMode(int mode)
     {
         cursorIdx = mode;
     }
 
-    public virtual void start_0()
+    public void start_0()
     {
         cnt = 0;
         aPressed = true;
@@ -61,7 +61,7 @@ public class Title
         titleSize = 1.0f;
     }
 
-    public virtual void move_0()
+    public void move_0()
     {
         PadState input = null;
         input = pad.getState(false);
@@ -110,7 +110,7 @@ public class Title
         cnt++;
     }
 
-    public virtual void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
     {
         color = new float[] { 1, 1, 1, 1 };
         drawBoard(model, color, blend, titlePos.x, titlePos.y, 280 * titleSize, 64 * titleSize);
@@ -143,7 +143,7 @@ public class Title
         Letter.drawString(model, color, blend, GameState.MODE_NAME[cursorIdx], 540, 400, 5);
     }
 
-    public virtual void drawBoard(float[] model, float[] color, Gfx.Blend blend, float x, float y, float w, float h)
+    public void drawBoard(float[] model, float[] color, Gfx.Blend blend, float x, float y, float w, float h)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, x, y, 0);
@@ -153,7 +153,7 @@ public class Title
         model = parent1;
     }
 
-    public virtual void drawTriangle(float[] model, float[] color, Gfx.Blend blend, float x, float y, float d)
+    public void drawTriangle(float[] model, float[] color, Gfx.Blend blend, float x, float y, float d)
     {
         model = Transform.Translate(model, x, y, 0);
         model = Transform.Rotate(model, d, 0, 0, 1);
@@ -162,7 +162,7 @@ public class Title
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public virtual void drawRanking(float[] model, float[] color, Gfx.Blend blend)
+    public void drawRanking(float[] model, float[] color, Gfx.Blend blend)
     {
         int rn = GameMath.integer((cnt - 240) / 30);
         if (rn > Preference.RANKING_NUM)

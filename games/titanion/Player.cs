@@ -365,9 +365,9 @@ public class PlayerSpec : TokenSpec<PlayerState>
     public GhostEnemySpec ghostEnemySpec;
     public EnemyShape ghostEnemyShape;
     public int shotMaxNum;
-    public PlayerSpec(Pad pad, GameState gameState, Field field, EnemyPool enemies, BulletPool bullets, ParticlePool particles)
+    public PlayerSpec(RecordablePad pad, GameState gameState, Field field, EnemyPool enemies, BulletPool bullets, ParticlePool particles)
     {
-        this.pad = (pad is RecordablePad ? (RecordablePad)pad : null);
+        this.pad = pad;
         this.gameState = gameState;
         this.field = field;
         this.enemies = enemies;

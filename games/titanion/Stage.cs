@@ -80,7 +80,7 @@ public class Stage
         outsidePillarShape = new OutsidePillarShape();
     }
 
-    public virtual void close()
+    public void close()
     {
         enemy1Shape.close();
         enemy2Shape.close();
@@ -99,7 +99,7 @@ public class Stage
         outsidePillarShape.close();
     }
 
-    public virtual void start_1(int randSeed)
+    public void start_1(int randSeed)
     {
         clear();
         rand.setSeed(randSeed);
@@ -130,7 +130,7 @@ public class Stage
         startPhase();
     }
 
-    public virtual void clear()
+    public void clear()
     {
         {
             smallEnemyFormationNum = 0;
@@ -172,7 +172,7 @@ public class Stage
         counterBulletEnabled = false;
     }
 
-    public virtual void startPhase()
+    public void startPhase()
     {
         phaseTime = 0;
         phaseNum++;
@@ -184,7 +184,7 @@ public class Stage
         initPillars();
     }
 
-    public virtual void calcHitRatioBonus()
+    public void calcHitRatioBonus()
     {
         shotFiredNumRsl = shotFiredNum;
         shotHitNumRsl = shotHitNum;
@@ -213,7 +213,7 @@ public class Stage
         gameState.addScore_2(hitRatioBonus, true);
     }
 
-    public virtual void setEnemySpecs()
+    public void setEnemySpecs()
     {
         rankTrg = rankTrg + (1.25f);
         rank = rank + ((rankTrg - rank) * 0.33f);
@@ -287,7 +287,7 @@ public class Stage
         waitNextFormationPhase = false;
     }
 
-    public virtual void initPillars()
+    public void initPillars()
     {
         pillars.setEnd();
         Pillar pp = null;
@@ -333,7 +333,7 @@ public class Stage
         }
     }
 
-    public virtual void move_0()
+    public void move_0()
     {
         if (appCnt <= 0)
         {
@@ -421,7 +421,7 @@ public class Stage
             startPhase();
     }
 
-    public virtual void moveOutsidePillars()
+    public void moveOutsidePillars()
     {
         if (cnt % 120 == 0)
         {
@@ -431,7 +431,7 @@ public class Stage
         }
     }
 
-    public virtual void countShotFired()
+    public void countShotFired()
     {
         if (phaseTime >= PHASE_RESULT_SHOW_CNT)
         {
@@ -440,7 +440,7 @@ public class Stage
         }
     }
 
-    public virtual void countShotHit()
+    public void countShotHit()
     {
         if (phaseTime >= PHASE_RESULT_SHOW_CNT)
         {
@@ -449,7 +449,7 @@ public class Stage
         }
     }
 
-    public virtual void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
     {
         if ((((((((gameState.mode_0() != GameStateMode.MODERN))) && ((phaseTime < PHASE_RESULT_SHOW_CNT))))) && ((phaseNum > 1))))
         {
@@ -469,12 +469,12 @@ public class Stage
         }
     }
 
-    public virtual void drawPhaseNum(float[] model, float[] color, Gfx.Blend blend)
+    public void drawPhaseNum(float[] model, float[] color, Gfx.Blend blend)
     {
         Letter.drawNum(model, color, blend, phaseNum, 622, 448, 10);
     }
 
-    public virtual void drawGameover(float[] model, float[] color, Gfx.Blend blend)
+    public void drawGameover(float[] model, float[] color, Gfx.Blend blend)
     {
         float hr = 0;
         if (shotFiredNumTotal > 0)
@@ -487,12 +487,12 @@ public class Stage
         Letter.drawNum(model, color, blend, GameMath.integer((hr * 10000)), 480, 310, 6, 3, -1, 2);
     }
 
-    public virtual int attackSmallEnemyNum()
+    public int attackSmallEnemyNum()
     {
         return _attackSmallEnemyNum;
     }
 
-    public virtual bool existsCounterBullet()
+    public bool existsCounterBullet()
     {
         return (((((counterBulletEnabled)) && ((stageStarted)))) && (((enemies.numBeforeAlign() <= 0))));
     }

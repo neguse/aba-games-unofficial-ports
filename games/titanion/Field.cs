@@ -45,7 +45,7 @@ public class Field
         set_0();
     }
 
-    public virtual void set_0()
+    public void set_0()
     {
         {
             {
@@ -60,37 +60,37 @@ public class Field
         cnt = 0;
     }
 
-    public virtual bool contains_1(Vector p)
+    public bool contains_1(Vector p)
     {
         return contains_2(p.x, p.y);
     }
 
-    public virtual bool contains_2(float x, float y)
+    public bool contains_2(float x, float y)
     {
         return _size.contains_3(x, y);
     }
 
-    public virtual bool containsOuter_1(Vector p)
+    public bool containsOuter_1(Vector p)
     {
         return containsOuter_2(p.x, p.y);
     }
 
-    public virtual bool containsOuter_2(float x, float y)
+    public bool containsOuter_2(float x, float y)
     {
         return _outerSize.contains_3(x, y);
     }
 
-    public virtual bool containsOuterY(float y)
+    public bool containsOuterY(float y)
     {
         return (((y >= -_outerSize.y)) && ((y <= _outerSize.y)));
     }
 
-    public virtual bool containsIncludingPit(Vector p)
+    public bool containsIncludingPit(Vector p)
     {
         return (((p.y >= -_outerSize.y)) && ((p.y <= _size.y * PIT_SIZE_Y_RATIO * 1.1f)));
     }
 
-    public virtual float normalizeX(float x)
+    public float normalizeX(float x)
     {
         float rx = x;
         float hd = CIRCLE_RADIUS * PI / X_EXPANSION_RATIO;
@@ -99,7 +99,7 @@ public class Field
         return (rx + hd) % (hd * 2) - hd;
     }
 
-    public virtual float calcCircularDist_2(Vector p1, Vector p2)
+    public float calcCircularDist_2(Vector p1, Vector p2)
     {
         float ax = fabs(normalizeX(p1.x - p2.x));
         float ay = fabs(p1.y - p2.y);
@@ -109,17 +109,17 @@ public class Field
             return ay + ax / 2;
     }
 
-    public virtual float circularDistance()
+    public float circularDistance()
     {
         return CIRCLE_RADIUS * PI * 2 / X_EXPANSION_RATIO;
     }
 
-    public virtual Vector3 calcCircularPos_1(Vector p)
+    public Vector3 calcCircularPos_1(Vector p)
     {
         return calcCircularPos_2(p.x, p.y);
     }
 
-    public virtual Vector3 calcCircularPos_2(float x, float y)
+    public Vector3 calcCircularPos_2(float x, float y)
     {
         float d = calcCircularDeg(x);
         if (y < _size.y)
@@ -155,17 +155,17 @@ public class Field
         return circlePos;
     }
 
-    public virtual float calcCircularDeg(float x)
+    public float calcCircularDeg(float x)
     {
         return x * X_EXPANSION_RATIO / CIRCLE_RADIUS;
     }
 
-    public virtual float calcCircularDist_1(float d)
+    public float calcCircularDist_1(float d)
     {
         return d * CIRCLE_RADIUS / X_EXPANSION_RATIO;
     }
 
-    public virtual bool checkHitDist_4(Vector pos, Vector p, Vector pp, float dist)
+    public bool checkHitDist_4(Vector pos, Vector p, Vector pp, float dist)
     {
         float bmvx = 0, bmvy = 0, inaa = 0;
         bmvx = pp.x;
@@ -194,45 +194,45 @@ public class Field
         return false;
     }
 
-    public virtual void addSlowdownRatio(float sr)
+    public void addSlowdownRatio(float sr)
     {
         frame.addSlowdownRatio(sr);
     }
 
-    public virtual void setEyePos(Vector p)
+    public void setEyePos(Vector p)
     {
         eyeDeg = calcCircularDeg(p.x) * 0.25f;
         _eyePos.x = sin(eyeDeg) * CIRCLE_RADIUS * EYE_POS_DIST_RATIO;
         _eyePos.z = cos(eyeDeg) * CIRCLE_RADIUS * EYE_POS_DIST_RATIO;
     }
 
-    public virtual float[] setLookAt()
+    public float[] setLookAt()
     {
         return Transform.Translate(Transform.Rotate(Transform.Perspective(), -eyeDeg * 180 / PI, 0, 1, 0), -_eyePos.x, -_eyePos.y, -_eyePos.z);
     }
 
-    public virtual float[] resetLookAt()
+    public float[] resetLookAt()
     {
         return Transform.Translate(Transform.Perspective(), 0, 0, -1);
     }
 
-    public virtual float[] beginDrawingFront()
+    public float[] beginDrawingFront()
     {
         float[] model = Transform.Ortho(); drawSidewall(model, null, Gfx.Blend.Additive); return model;
     }
 
-    public virtual void drawSidewall(float[] model, float[] color, Gfx.Blend blend)
+    public void drawSidewall(float[] model, float[] color, Gfx.Blend blend)
     {
         Gfx.Draw(sidewall.count, sidewall.Bindings(model, null, 1, false),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Alpha });
     }
 
-    public virtual void move_0()
+    public void move_0()
     {
         cnt++;
     }
 
-    public virtual void drawBack(float[] model, float[] color, Gfx.Blend blend)
+    public void drawBack(float[] model, float[] color, Gfx.Blend blend)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, 0, TORUS_Y, 0);
@@ -240,7 +240,7 @@ public class Field
         model = parent1;
     }
 
-    public virtual void drawFront(float[] model, float[] color, Gfx.Blend blend)
+    public void drawFront(float[] model, float[] color, Gfx.Blend blend)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, 0, TORUS_Y, 0);
@@ -248,7 +248,7 @@ public class Field
         model = parent1;
     }
 
-    public virtual void drawTorusShape(float[] model, float[] color, Gfx.Blend blend, float d1s)
+    public void drawTorusShape(float[] model, float[] color, Gfx.Blend blend, float d1s)
     {
         Vector3 cp = new Vector3();
         cp.y = 0;
@@ -313,7 +313,7 @@ public class Field
         blend = Gfx.Blend.Additive;
     }
 
-    public virtual void createRingOffset(Vector3 ringOfs, Vector3 centerPos, float rad, float d1, float d2)
+    public void createRingOffset(Vector3 ringOfs, Vector3 centerPos, float rad, float d1, float d2)
     {
         ringOfs.x = 0;
         ringOfs.y = 0;
@@ -323,12 +323,12 @@ public class Field
         ringOfs.opAddAssign(centerPos);
     }
 
-    public virtual Vector3 eyePos()
+    public Vector3 eyePos()
     {
         return _eyePos;
     }
 
-    public virtual Vector size()
+    public Vector size()
     {
         return _size;
     }

@@ -6,12 +6,12 @@ public class ReplayData
     public InputRecord<PadState> inputRecord;
     public int seed, score, mode;
     public bool stageRandomized;
-    public virtual string encode()
+    public string encode()
     {
         return "1|" + seed.ToString() + "|" + score.ToString() + "|" + mode.ToString() + "|" + (stageRandomized ? "1" : "0") + "|" + inputRecord.encode();
     }
 
-    public virtual bool decode(string data)
+    public bool decode(string data)
     {
         string[] parts = data.Split("|");
         if (((parts.Length != 6)) || ((parts[0] != "1")))

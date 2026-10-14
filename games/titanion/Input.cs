@@ -11,7 +11,7 @@ public interface ReplayInput
 public class PadState : ReplayInput
 {
     public int dir, button;
-    public virtual void clear()
+    public void clear()
     {
         {
             button = 0;
@@ -19,12 +19,12 @@ public class PadState : ReplayInput
         }
     }
 
-    public virtual string encode()
+    public string encode()
     {
         return (dir | button).ToString();
     }
 
-    public virtual void decode(string data)
+    public void decode(string data)
     {
         int v = int.Parse(data);
         dir = v & 15;
@@ -44,7 +44,7 @@ public class InputRecord<T>
         replayData = state;
     }
 
-    public virtual void add(T data)
+    public void add(T data)
     {
         string encoded = data.encode();
         int last = records.Count - 1;
@@ -57,7 +57,7 @@ public class InputRecord<T>
         }
     }
 
-    public virtual void reset()
+    public void reset()
     {
         {
             remaining = 0;
@@ -65,12 +65,12 @@ public class InputRecord<T>
         }
     }
 
-    public virtual bool hasNext()
+    public bool hasNext()
     {
         return index < records.Count;
     }
 
-    public virtual T next()
+    public T next()
     {
         if (index >= records.Count)
             return default(T);
@@ -83,7 +83,7 @@ public class InputRecord<T>
         return replayData;
     }
 
-    public virtual string encode()
+    public string encode()
     {
         string data = "";
         for (int i = 0; i < records.Count; i++)
@@ -91,7 +91,7 @@ public class InputRecord<T>
         return data;
     }
 
-    public virtual void decode(string data)
+    public void decode(string data)
     {
         string[] rows = data.Split(";");
         records.Clear();
@@ -110,39 +110,36 @@ public class InputRecord<T>
     }
 }
 
-public class Pad
+public class RecordablePad
 {
     public PadState state = new PadState();
     public bool pause, escape;
-    public virtual PadState getNullState()
+    public InputRecord<PadState> inputRecord;
+    public PadState getNullState()
     {
         state.clear();
         return state;
     }
-}
 
-public class RecordablePad : Pad
-{
-    public InputRecord<PadState> inputRecord;
-    public virtual void startRecord()
+    public void startRecord()
     {
         inputRecord = new InputRecord<PadState>(new PadState());
     }
 
-    public virtual void startReplay_1(InputRecord<PadState> record)
+    public void startReplay_1(InputRecord<PadState> record)
     {
         inputRecord = record;
         record.reset();
     }
 
-    public virtual PadState getState(bool doRecord = true)
+    public PadState getState(bool doRecord = true)
     {
         if (doRecord)
             inputRecord.add(state);
         return state;
     }
 
-    public virtual PadState replay()
+    public PadState replay()
     {
         return inputRecord.next();
     }
