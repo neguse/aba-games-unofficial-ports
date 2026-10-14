@@ -613,8 +613,17 @@ public class EnemyState
     }
 }
 
-public abstract class EnemySpec
+public interface EnemySpecKind
 {
+    public bool move(EnemyState es);
+    public void draw(float[] model, EnemyState es, float[] color = null);
+    public int score();
+    public bool isBoss();
+}
+
+public class EnemySpec
+{
+    public EnemySpecKind kind;
     public static GunroarRand rand = new GunroarRand();
     public Field field;
     public Ship ship;
@@ -850,14 +859,14 @@ public abstract class EnemySpec
         return shape.checkShipCollision(x - es.pos.x, y - es.pos.y, es.deg);
     }
 
-    public virtual bool move(EnemyState es)
+    public bool move(EnemyState es)
     {
-        return es.move();
+        return kind.move(es);
     }
 
-    public virtual void draw(float[] model, EnemyState es, float[] color = null)
+    public void draw(float[] model, EnemyState es, float[] color = null)
     {
-        es.draw(model, color);
+        kind.draw(model, es, color);
     }
 
     public float size
@@ -892,8 +901,15 @@ public abstract class EnemySpec
             return false;
     }
 
-    public abstract int score();
-    public abstract bool isBoss();
+    public int score()
+    {
+        return kind.score();
+    }
+
+    public bool isBoss()
+    {
+        return kind.isBoss();
+    }
 }
 
 public interface HasAppearType
@@ -901,14 +917,17 @@ public interface HasAppearType
     public bool setFirstState(EnemyState es, int appType);
 }
 
-public class SmallShipEnemySpec : EnemySpec, HasAppearType
+public class SmallShipEnemySpec : EnemySpecKind, HasAppearType
 {
+    public EnemySpec spec;
     public int movementType;
     public float accel, maxSpeed, staySpeed;
     public int moveDuration, stayDuration;
     public float speed, turnDeg;
-    public SmallShipEnemySpec(Field field, Ship ship, SparkPool sparks, SmokePool smokes, FragmentPool fragments, WakePool wakes) : base(field, ship, sparks, smokes, fragments, wakes)
+    public SmallShipEnemySpec(Field field, Ship ship, SparkPool sparks, SmokePool smokes, FragmentPool fragments, WakePool wakes)
     {
+        spec = new EnemySpec(field, ship, sparks, smokes, fragments, wakes);
+        spec.kind = this;
         movementType = 0;
         {
             staySpeed = 0;
@@ -929,10 +948,10 @@ public class SmallShipEnemySpec : EnemySpec, HasAppearType
 
     public void setParam(float rank, GunroarRand rand)
     {
-        set(EnemySpecEnemyType.SMALL);
-        shape = new EnemyShape(EnemyShapeEnemyShapeType.SMALL);
-        damagedShape = new EnemyShape(EnemyShapeEnemyShapeType.SMALL_DAMAGED);
-        bridgeShape = new EnemyShape(EnemyShapeEnemyShapeType.SMALL_BRIDGE);
+        spec.set(EnemySpecEnemyType.SMALL);
+        spec.shape = new EnemyShape(EnemyShapeEnemyShapeType.SMALL);
+        spec.damagedShape = new EnemyShape(EnemyShapeEnemyShapeType.SMALL_DAMAGED);
+        spec.bridgeShape = new EnemyShape(EnemyShapeEnemyShapeType.SMALL_BRIDGE);
         movementType = rand.nextInt(2);
         float sr = rand.nextFloat(rank * 0.8f);
         if (sr > 25)
@@ -941,8 +960,8 @@ public class SmallShipEnemySpec : EnemySpec, HasAppearType
         {
             case SmallShipEnemySpecMoveType.STOPANDGO:
             {
-                distRatio = 0.5f;
-                size = 0.47f + rand.nextFloat(0.1f);
+                spec.distRatio = 0.5f;
+                spec.size = 0.47f + rand.nextFloat(0.1f);
                 accel = 0.5f - 0.5f / (2.0f + rand.nextFloat(rank));
                 maxSpeed = 0.05f * (1.0f + sr);
                 staySpeed = 0.03f;
@@ -953,23 +972,23 @@ public class SmallShipEnemySpec : EnemySpec, HasAppearType
 
             case SmallShipEnemySpecMoveType.CHASE:
             {
-                distRatio = 0.5f;
-                size = 0.5f + rand.nextFloat(0.1f);
+                spec.distRatio = 0.5f;
+                spec.size = 0.5f + rand.nextFloat(0.1f);
                 speed = 0.036f * (1.0f + sr);
                 turnDeg = 0.02f + rand.nextSignedFloat(0.04f);
                 break;
             }
         }
 
-        shield = 1;
-        TurretGroupSpec tgs = getTurretGroupSpec();
+        spec.shield = 1;
+        TurretGroupSpec tgs = spec.getTurretGroupSpec();
         tgs.turretSpec.setParam_3(rank - sr * 0.5f, TurretSpecTurretType.SMALL, rand);
     }
 
     public bool setFirstState(EnemyState es, int appType)
     {
-        es.setSpec(this);
-        if (!es.setAppearancePos(field, ship, rand, appType))
+        es.setSpec(spec);
+        if (!es.setAppearancePos(spec.field, spec.ship, EnemySpec.rand, appType))
             return false;
         switch (movementType)
         {
@@ -991,9 +1010,9 @@ public class SmallShipEnemySpec : EnemySpec, HasAppearType
         return true;
     }
 
-    public override bool move(EnemyState es)
+    public bool move(EnemyState es)
     {
-        if (!base.move(es))
+        if (!es.move())
             return false;
         switch (movementType)
         {
@@ -1001,10 +1020,10 @@ public class SmallShipEnemySpec : EnemySpec, HasAppearType
             {
                 es.pos.x = es.pos.x + (sin(es.velDeg) * es.speed);
                 es.pos.y = es.pos.y + (cos(es.velDeg) * es.speed);
-                es.pos.y = es.pos.y - (field.lastScrollY);
-                if (es.pos.y <= -field.outerSize.y)
+                es.pos.y = es.pos.y - (spec.field.lastScrollY);
+                if (es.pos.y <= -spec.field.outerSize.y)
                     return false;
-                if ((field.getBlock_1(es.pos) >= 0) || (!field.checkInOuterHeightField(es.pos)))
+                if ((spec.field.getBlock_1(es.pos) >= 0) || (!spec.field.checkInOuterHeightField(es.pos)))
                 {
                     es.velDeg = es.velDeg + (PI);
                     es.pos.x = es.pos.x + (sin(es.velDeg) * es.speed * 2);
@@ -1019,7 +1038,7 @@ public class SmallShipEnemySpec : EnemySpec, HasAppearType
                         es.cnt--;
                         if (es.cnt <= 0)
                         {
-                            es.velDeg = rand.nextFloat(PI * 2);
+                            es.velDeg = EnemySpec.rand.nextFloat(PI * 2);
                             es.cnt = stayDuration;
                             es.state = SmallShipEnemySpecMoveState.STAYING;
                         }
@@ -1048,10 +1067,10 @@ public class SmallShipEnemySpec : EnemySpec, HasAppearType
             {
                 es.pos.x = es.pos.x + (sin(es.velDeg) * speed);
                 es.pos.y = es.pos.y + (cos(es.velDeg) * speed);
-                es.pos.y = es.pos.y - (field.lastScrollY);
-                if (es.pos.y <= -field.outerSize.y)
+                es.pos.y = es.pos.y - (spec.field.lastScrollY);
+                if (es.pos.y <= -spec.field.outerSize.y)
                     return false;
-                if ((field.getBlock_1(es.pos) >= 0) || (!field.checkInOuterHeightField(es.pos)))
+                if ((spec.field.getBlock_1(es.pos) >= 0) || (!spec.field.checkInOuterHeightField(es.pos)))
                 {
                     es.velDeg = es.velDeg + (PI);
                     es.pos.x = es.pos.x + (sin(es.velDeg) * es.speed * 2);
@@ -1059,7 +1078,7 @@ public class SmallShipEnemySpec : EnemySpec, HasAppearType
                 }
 
                 float ad = 0;
-                Vector shipPos = ship.nearPos(es.pos);
+                Vector shipPos = spec.ship.nearPos(es.pos);
                 if (shipPos.dist_1(es.pos) < 0.1f)
                     ad = 0;
                 else
@@ -1083,28 +1102,36 @@ public class SmallShipEnemySpec : EnemySpec, HasAppearType
         es.deg = es.deg + (od * 0.05f);
         es.deg = normalizeDeg(es.deg);
         if ((es.cnt % 6 == 0) && (es.speed >= 0.03f))
-            shape.addWake(wakes, es.pos, es.deg, es.speed);
+            spec.shape.addWake(spec.wakes, es.pos, es.deg, es.speed);
         return true;
     }
 
-    public override int score()
+    public void draw(float[] model, EnemyState es, float[] color = null)
+    {
+        es.draw(model, color);
+    }
+
+    public int score()
     {
         return 50;
     }
 
-    public override bool isBoss()
+    public bool isBoss()
     {
         return false;
     }
 }
 
-public class ShipEnemySpec : EnemySpec, HasAppearType
+public class ShipEnemySpec : EnemySpecKind, HasAppearType
 {
+    public EnemySpec spec;
     public const int SINK_INTERVAL = 120;
     public float speed, degVel;
     public int shipClass;
-    public ShipEnemySpec(Field field, Ship ship, SparkPool sparks, SmokePool smokes, FragmentPool fragments, WakePool wakes) : base(field, ship, sparks, smokes, fragments, wakes)
+    public ShipEnemySpec(Field field, Ship ship, SparkPool sparks, SmokePool smokes, FragmentPool fragments, WakePool wakes)
     {
+        spec = new EnemySpec(field, ship, sparks, smokes, fragments, wakes);
+        spec.kind = this;
         {
             degVel = 0;
             speed = degVel;
@@ -1114,12 +1141,12 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
     public void setParam(float rank, int cls, GunroarRand rand)
     {
         shipClass = cls;
-        set(EnemySpecEnemyType.LARGE);
-        shape = new EnemyShape(EnemyShapeEnemyShapeType.MIDDLE);
-        damagedShape = new EnemyShape(EnemyShapeEnemyShapeType.MIDDLE_DAMAGED);
-        destroyedShape = new EnemyShape(EnemyShapeEnemyShapeType.MIDDLE_DESTROYED);
-        bridgeShape = new EnemyShape(EnemyShapeEnemyShapeType.MIDDLE_BRIDGE);
-        distRatio = 0.7f;
+        spec.set(EnemySpecEnemyType.LARGE);
+        spec.shape = new EnemyShape(EnemyShapeEnemyShapeType.MIDDLE);
+        spec.damagedShape = new EnemyShape(EnemyShapeEnemyShapeType.MIDDLE_DAMAGED);
+        spec.destroyedShape = new EnemyShape(EnemyShapeEnemyShapeType.MIDDLE_DESTROYED);
+        spec.bridgeShape = new EnemyShape(EnemyShapeEnemyShapeType.MIDDLE_BRIDGE);
+        spec.distRatio = 0.7f;
         int mainTurretNum = 0, subTurretNum = 0;
         float movingTurretRatio = 0;
         float rk = rank;
@@ -1131,26 +1158,26 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
                 float ms = 2 + rand.nextFloat(0.5f);
                 if (sz > ms)
                     sz = ms;
-                size = sz;
+                spec.size = sz;
                 speed = 0.015f + rand.nextSignedFloat(0.005f);
                 degVel = 0.005f + rand.nextSignedFloat(0.003f);
                 switch (rand.nextInt(3))
                 {
                     case 0:
                     {
-                        mainTurretNum = GameMath.integer((size * (1 + rand.nextSignedFloat(0.25f)) + 1));
+                        mainTurretNum = GameMath.integer((spec.size * (1 + rand.nextSignedFloat(0.25f)) + 1));
                         break;
                     }
 
                     case 1:
                     {
-                        subTurretNum = GameMath.integer((size * 1.6f * (1 + rand.nextSignedFloat(0.5f)) + 2));
+                        subTurretNum = GameMath.integer((spec.size * 1.6f * (1 + rand.nextSignedFloat(0.5f)) + 2));
                         break;
                     }
 
                     case 2:
                     {
-                        mainTurretNum = GameMath.integer((size * (0.5f + rand.nextSignedFloat(0.12f)) + 1));
+                        mainTurretNum = GameMath.integer((spec.size * (0.5f + rand.nextSignedFloat(0.12f)) + 1));
                         movingTurretRatio = 0.5f + rand.nextFloat(0.25f);
                         rk = rank * (1 - movingTurretRatio);
                         movingTurretRatio = movingTurretRatio * (2);
@@ -1167,11 +1194,11 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
                 float ms = 3 + rand.nextFloat(1);
                 if (sz > ms)
                     sz = ms;
-                size = sz;
+                spec.size = sz;
                 speed = 0.01f + rand.nextSignedFloat(0.005f);
                 degVel = 0.003f + rand.nextSignedFloat(0.002f);
-                mainTurretNum = GameMath.integer((size * (0.7f + rand.nextSignedFloat(0.2f)) + 1));
-                subTurretNum = GameMath.integer((size * 1.6f * (0.7f + rand.nextSignedFloat(0.33f)) + 2));
+                mainTurretNum = GameMath.integer((spec.size * (0.7f + rand.nextSignedFloat(0.2f)) + 1));
+                subTurretNum = GameMath.integer((spec.size * 1.6f * (0.7f + rand.nextSignedFloat(0.33f)) + 2));
                 movingTurretRatio = 0.25f + rand.nextFloat(0.5f);
                 rk = rank * (1 - movingTurretRatio);
                 movingTurretRatio = movingTurretRatio * (3);
@@ -1184,11 +1211,11 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
                 float ms = 9 + rand.nextFloat(3);
                 if (sz > ms)
                     sz = ms;
-                size = sz;
-                speed = ship.scrollSpeedBase + 0.0025f + rand.nextSignedFloat(0.001f);
+                spec.size = sz;
+                speed = spec.ship.scrollSpeedBase + 0.0025f + rand.nextSignedFloat(0.001f);
                 degVel = 0.003f + rand.nextSignedFloat(0.002f);
-                mainTurretNum = GameMath.integer((size * 0.8f * (1.5f + rand.nextSignedFloat(0.4f)) + 2));
-                subTurretNum = GameMath.integer((size * 0.8f * (2.4f + rand.nextSignedFloat(0.6f)) + 2));
+                mainTurretNum = GameMath.integer((spec.size * 0.8f * (1.5f + rand.nextSignedFloat(0.4f)) + 2));
+                subTurretNum = GameMath.integer((spec.size * 0.8f * (2.4f + rand.nextSignedFloat(0.6f)) + 2));
                 movingTurretRatio = 0.2f + rand.nextFloat(0.3f);
                 rk = rank * (1 - movingTurretRatio);
                 movingTurretRatio = movingTurretRatio * (2.5f);
@@ -1196,12 +1223,12 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
             }
         }
 
-        shield = GameMath.integer((size * 10));
+        spec.shield = GameMath.integer((spec.size * 10));
         if (cls == ShipEnemySpecShipClass.BOSS)
-            shield = GameMath.integer(shield * 2.4f);
+            spec.shield = GameMath.integer(spec.shield * 2.4f);
         if (mainTurretNum + subTurretNum <= 0)
         {
-            TurretGroupSpec tgs = getTurretGroupSpec();
+            TurretGroupSpec tgs = spec.getTurretGroupSpec();
             tgs.turretSpec.setParam_3(0, TurretSpecTurretType.DUMMY, rand);
         }
         else
@@ -1214,20 +1241,20 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
                 int rearMainTurretNum = mainTurretNum - frontMainTurretNum;
                 if (frontMainTurretNum > 0)
                 {
-                    TurretGroupSpec tgs = getTurretGroupSpec();
+                    TurretGroupSpec tgs = spec.getTurretGroupSpec();
                     tgs.turretSpec.setParam_3(mainTurretRank, TurretSpecTurretType.MAIN, rand);
                     tgs.num = frontMainTurretNum;
                     tgs.alignType = TurretGroupSpecAlignType.STRAIGHT;
-                    tgs.offset.y = -size * (0.9f + rand.nextSignedFloat(0.05f));
+                    tgs.offset.y = -spec.size * (0.9f + rand.nextSignedFloat(0.05f));
                 }
 
                 if (rearMainTurretNum > 0)
                 {
-                    TurretGroupSpec tgs = getTurretGroupSpec();
+                    TurretGroupSpec tgs = spec.getTurretGroupSpec();
                     tgs.turretSpec.setParam_3(mainTurretRank, TurretSpecTurretType.MAIN, rand);
                     tgs.num = rearMainTurretNum;
                     tgs.alignType = TurretGroupSpecAlignType.STRAIGHT;
-                    tgs.offset.y = size * (0.9f + rand.nextSignedFloat(0.05f));
+                    tgs.offset.y = spec.size * (0.9f + rand.nextSignedFloat(0.05f));
                 }
 
                 TurretSpec pts = null;
@@ -1243,7 +1270,7 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
                             tn = rearSubTurretNum;
                         if (tn <= 0)
                             continue;
-                        TurretGroupSpec tgs = getTurretGroupSpec();
+                        TurretGroupSpec tgs = spec.getTurretGroupSpec();
                         if ((i == 0) || (i == 2))
                         {
                             if (rand.nextInt(2) == 0)
@@ -1262,8 +1289,8 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
                         tgs.alignDeg = ad;
                         ad = ad + (PI / 2);
                         tgs.alignWidth = PI / 6 + rand.nextFloat(PI / 8);
-                        tgs.radius = size * 0.75f;
-                        tgs.distRatio = distRatio;
+                        tgs.radius = spec.size * 0.75f;
+                        tgs.distRatio = spec.distRatio;
                     }
                 }
             }
@@ -1284,7 +1311,7 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
                             tn = rearMainTurretNum;
                         if (tn <= 0)
                             continue;
-                        TurretGroupSpec tgs = getTurretGroupSpec();
+                        TurretGroupSpec tgs = spec.getTurretGroupSpec();
                         if ((i == 0) || (i == 2))
                         {
                             tgs.turretSpec.setParam_3(mainTurretRank, TurretSpecTurretType.MAIN, rand);
@@ -1301,8 +1328,8 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
                         tgs.alignDeg = ad;
                         ad = ad + (PI / 2);
                         tgs.alignWidth = PI / 6 + rand.nextFloat(PI / 8);
-                        tgs.radius = size * 0.45f;
-                        tgs.distRatio = distRatio;
+                        tgs.radius = spec.size * 0.45f;
+                        tgs.distRatio = spec.distRatio;
                     }
                 }
 
@@ -1326,7 +1353,7 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
                         int idx = i / 2;
                         if (tn[idx] <= 0)
                             continue;
-                        TurretGroupSpec tgs = getTurretGroupSpec();
+                        TurretGroupSpec tgs = spec.getTurretGroupSpec();
                         if (((i == 0) || (i == 2)) || (i == 4))
                         {
                             if (rand.nextInt(2) == 0)
@@ -1345,8 +1372,8 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
                         tgs.alignType = TurretGroupSpecAlignType.ROUND;
                         tgs.alignDeg = ad[i];
                         tgs.alignWidth = PI / 7 + rand.nextFloat(PI / 9);
-                        tgs.radius = size * 0.75f;
-                        tgs.distRatio = distRatio;
+                        tgs.radius = spec.size * 0.75f;
+                        tgs.distRatio = spec.distRatio;
                     }
                 }
             }
@@ -1355,16 +1382,16 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
         if (movingTurretRatio > 0)
         {
             if (cls == ShipEnemySpecShipClass.BOSS)
-                addMovingTurret(rank * movingTurretRatio, true);
+                spec.addMovingTurret(rank * movingTurretRatio, true);
             else
-                addMovingTurret(rank * movingTurretRatio);
+                spec.addMovingTurret(rank * movingTurretRatio);
         }
     }
 
     public bool setFirstState(EnemyState es, int appType)
     {
-        es.setSpec(this);
-        if (!es.setAppearancePos(field, ship, rand, appType))
+        es.setSpec(spec);
+        if (!es.setAppearancePos(spec.field, spec.ship, EnemySpec.rand, appType))
             return false;
         es.speed = speed;
         if (es.pos.x < 0)
@@ -1373,41 +1400,41 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
             es.turnWay = 1;
         if (isBoss())
         {
-            es.trgDeg = rand.nextFloat(0.1f) + 0.1f;
-            if (rand.nextInt(2) == 0)
+            es.trgDeg = EnemySpec.rand.nextFloat(0.1f) + 0.1f;
+            if (EnemySpec.rand.nextInt(2) == 0)
                 es.trgDeg = es.trgDeg * (-1);
-            es.turnCnt = 250 + rand.nextInt(150);
+            es.turnCnt = 250 + EnemySpec.rand.nextInt(150);
         }
 
         return true;
     }
 
-    public override bool move(EnemyState es)
+    public bool move(EnemyState es)
     {
         if (es.destroyedCnt >= SINK_INTERVAL)
             return false;
-        if (!base.move(es))
+        if (!es.move())
             return false;
         es.pos.x = es.pos.x + (sin(es.deg) * es.speed);
         es.pos.y = es.pos.y + (cos(es.deg) * es.speed);
-        es.pos.y = es.pos.y - (field.lastScrollY);
-        if (((es.pos.x <= -field.outerSize.x - size) || (es.pos.x >= field.outerSize.x + size)) || (es.pos.y <= -field.outerSize.y - size))
+        es.pos.y = es.pos.y - (spec.field.lastScrollY);
+        if (((es.pos.x <= -spec.field.outerSize.x - spec.size) || (es.pos.x >= spec.field.outerSize.x + spec.size)) || (es.pos.y <= -spec.field.outerSize.y - spec.size))
             return false;
-        if (es.pos.y > field.outerSize.y * 2.2f + size)
-            es.pos.y = field.outerSize.y * 2.2f + size;
+        if (es.pos.y > spec.field.outerSize.y * 2.2f + spec.size)
+            es.pos.y = spec.field.outerSize.y * 2.2f + spec.size;
         if (isBoss())
         {
             es.turnCnt--;
             if (es.turnCnt <= 0)
             {
-                es.turnCnt = 250 + rand.nextInt(150);
-                es.trgDeg = rand.nextFloat(0.1f) + 0.2f;
+                es.turnCnt = 250 + EnemySpec.rand.nextInt(150);
+                es.trgDeg = EnemySpec.rand.nextFloat(0.1f) + 0.2f;
                 if (es.pos.x > 0)
                     es.trgDeg = es.trgDeg * (-1);
             }
 
             es.deg = es.deg + ((es.trgDeg - es.deg) * 0.0025f);
-            if (ship.higherPos().y > es.pos.y)
+            if (spec.ship.higherPos().y > es.pos.y)
                 es.speed = es.speed + ((speed * 2 - es.speed) * 0.005f);
             else
                 es.speed = es.speed + ((speed - es.speed) * 0.01f);
@@ -1430,18 +1457,18 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
 
         es.cnt++;
         if (((es.cnt % 6 == 0) && (es.speed >= 0.01f)) && (es.destroyedCnt < SINK_INTERVAL / 2))
-            shape.addWake(wakes, es.pos, es.deg, es.speed);
+            spec.shape.addWake(spec.wakes, es.pos, es.deg, es.speed);
         return true;
     }
 
-    public override void draw(float[] model, EnemyState es, float[] color = null)
+    public void draw(float[] model, EnemyState es, float[] color = null)
     {
         if (es.destroyedCnt >= 0)
             color = new float[] { EnemyShape.MIDDLE_COLOR_R * (1 - (float)es.destroyedCnt / SINK_INTERVAL) * 0.5f, EnemyShape.MIDDLE_COLOR_G * (1 - (float)es.destroyedCnt / SINK_INTERVAL) * 0.5f, EnemyShape.MIDDLE_COLOR_B * (1 - (float)es.destroyedCnt / SINK_INTERVAL) * 0.5f, 1 };
-        base.draw(model, es, color);
+        es.draw(model, color);
     }
 
-    public override int score()
+    public int score()
     {
         switch (shipClass)
         {
@@ -1464,7 +1491,7 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
         return 0;
     }
 
-    public override bool isBoss()
+    public bool isBoss()
     {
         if (shipClass == ShipEnemySpecShipClass.BOSS)
             return true;
@@ -1472,24 +1499,27 @@ public class ShipEnemySpec : EnemySpec, HasAppearType
     }
 }
 
-public class PlatformEnemySpec : EnemySpec
+public class PlatformEnemySpec : EnemySpecKind
 {
-    public PlatformEnemySpec(Field field, Ship ship, SparkPool sparks, SmokePool smokes, FragmentPool fragments, WakePool wakes) : base(field, ship, sparks, smokes, fragments, wakes)
+    public EnemySpec spec;
+    public PlatformEnemySpec(Field field, Ship ship, SparkPool sparks, SmokePool smokes, FragmentPool fragments, WakePool wakes)
     {
+        spec = new EnemySpec(field, ship, sparks, smokes, fragments, wakes);
+        spec.kind = this;
     }
 
     public void setParam(float rank, GunroarRand rand)
     {
-        set(EnemySpecEnemyType.PLATFORM);
-        shape = new EnemyShape(EnemyShapeEnemyShapeType.PLATFORM);
-        damagedShape = new EnemyShape(EnemyShapeEnemyShapeType.PLATFORM_DAMAGED);
-        destroyedShape = new EnemyShape(EnemyShapeEnemyShapeType.PLATFORM_DESTROYED);
-        bridgeShape = new EnemyShape(EnemyShapeEnemyShapeType.PLATFORM_BRIDGE);
-        distRatio = 0;
-        size = 1 + rank / 30 + rand.nextFloat(rank / 30);
+        spec.set(EnemySpecEnemyType.PLATFORM);
+        spec.shape = new EnemyShape(EnemyShapeEnemyShapeType.PLATFORM);
+        spec.damagedShape = new EnemyShape(EnemyShapeEnemyShapeType.PLATFORM_DAMAGED);
+        spec.destroyedShape = new EnemyShape(EnemyShapeEnemyShapeType.PLATFORM_DESTROYED);
+        spec.bridgeShape = new EnemyShape(EnemyShapeEnemyShapeType.PLATFORM_BRIDGE);
+        spec.distRatio = 0;
+        spec.size = 1 + rank / 30 + rand.nextFloat(rank / 30);
         float ms = 1 + rand.nextFloat(0.25f);
-        if (size > ms)
-            size = ms;
+        if (spec.size > ms)
+            spec.size = ms;
         int mainTurretNum = 0, frontTurretNum = 0, sideTurretNum = 0;
         float rk = rank;
         float movingTurretRatio = 0;
@@ -1497,7 +1527,7 @@ public class PlatformEnemySpec : EnemySpec
         {
             case 0:
             {
-                frontTurretNum = GameMath.integer((size * (2 + rand.nextSignedFloat(0.5f)) + 1));
+                frontTurretNum = GameMath.integer((spec.size * (2 + rand.nextSignedFloat(0.5f)) + 1));
                 movingTurretRatio = 0.33f + rand.nextFloat(0.46f);
                 rk = rk * ((1 - movingTurretRatio));
                 movingTurretRatio = movingTurretRatio * (2.5f);
@@ -1506,44 +1536,44 @@ public class PlatformEnemySpec : EnemySpec
 
             case 1:
             {
-                frontTurretNum = GameMath.integer((size * (0.5f + rand.nextSignedFloat(0.2f)) + 1));
-                sideTurretNum = GameMath.integer((size * (0.5f + rand.nextSignedFloat(0.2f)) + 1)) * 2;
+                frontTurretNum = GameMath.integer((spec.size * (0.5f + rand.nextSignedFloat(0.2f)) + 1));
+                sideTurretNum = GameMath.integer((spec.size * (0.5f + rand.nextSignedFloat(0.2f)) + 1)) * 2;
                 break;
             }
 
             case 2:
             {
-                mainTurretNum = GameMath.integer((size * (1 + rand.nextSignedFloat(0.33f)) + 1));
+                mainTurretNum = GameMath.integer((spec.size * (1 + rand.nextSignedFloat(0.33f)) + 1));
                 break;
             }
         }
 
-        shield = GameMath.integer((size * 20));
+        spec.shield = GameMath.integer((spec.size * 20));
         int subTurretNum = frontTurretNum + sideTurretNum;
         float subTurretRank = rk / (mainTurretNum * 3 + subTurretNum);
         float mainTurretRank = subTurretRank * 2.5f;
         if (mainTurretNum > 0)
         {
-            TurretGroupSpec tgs = getTurretGroupSpec();
+            TurretGroupSpec tgs = spec.getTurretGroupSpec();
             tgs.turretSpec.setParam_3(mainTurretRank, TurretSpecTurretType.MAIN, rand);
             tgs.num = mainTurretNum;
             tgs.alignType = TurretGroupSpecAlignType.ROUND;
             tgs.alignDeg = 0;
             tgs.alignWidth = PI * 0.66f + rand.nextFloat(PI / 2);
-            tgs.radius = size * 0.7f;
-            tgs.distRatio = distRatio;
+            tgs.radius = spec.size * 0.7f;
+            tgs.distRatio = spec.distRatio;
         }
 
         if (frontTurretNum > 0)
         {
-            TurretGroupSpec tgs = getTurretGroupSpec();
+            TurretGroupSpec tgs = spec.getTurretGroupSpec();
             tgs.turretSpec.setParam_3(subTurretRank, TurretSpecTurretType.SUB, rand);
             tgs.num = frontTurretNum;
             tgs.alignType = TurretGroupSpecAlignType.ROUND;
             tgs.alignDeg = 0;
             tgs.alignWidth = PI / 5 + rand.nextFloat(PI / 6);
-            tgs.radius = size * 0.8f;
-            tgs.distRatio = distRatio;
+            tgs.radius = spec.size * 0.8f;
+            tgs.distRatio = spec.distRatio;
         }
 
         sideTurretNum = sideTurretNum / (2);
@@ -1552,7 +1582,7 @@ public class PlatformEnemySpec : EnemySpec
             TurretSpec pts = null;
             for (int i = 0; i < 2; i++)
             {
-                TurretGroupSpec tgs = getTurretGroupSpec();
+                TurretGroupSpec tgs = spec.getTurretGroupSpec();
                 if (i == 0)
                 {
                     tgs.turretSpec.setParam_3(subTurretRank, TurretSpecTurretType.SUB, rand);
@@ -1567,20 +1597,20 @@ public class PlatformEnemySpec : EnemySpec
                 tgs.alignType = TurretGroupSpecAlignType.ROUND;
                 tgs.alignDeg = PI / 2 - PI * i;
                 tgs.alignWidth = PI / 5 + rand.nextFloat(PI / 6);
-                tgs.radius = size * 0.75f;
-                tgs.distRatio = distRatio;
+                tgs.radius = spec.size * 0.75f;
+                tgs.distRatio = spec.distRatio;
             }
         }
 
         if (movingTurretRatio > 0)
         {
-            addMovingTurret(rank * movingTurretRatio);
+            spec.addMovingTurret(rank * movingTurretRatio);
         }
     }
 
     public bool setFirstState(EnemyState es, float x, float y, float d)
     {
-        es.setSpec(this);
+        es.setSpec(spec);
         es.pos.x = x;
         es.pos.y = y;
         es.deg = d;
@@ -1590,22 +1620,27 @@ public class PlatformEnemySpec : EnemySpec
         return true;
     }
 
-    public override bool move(EnemyState es)
+    public bool move(EnemyState es)
     {
-        if (!base.move(es))
+        if (!es.move())
             return false;
-        es.pos.y = es.pos.y - (field.lastScrollY);
-        if (es.pos.y <= -field.outerSize.y)
+        es.pos.y = es.pos.y - (spec.field.lastScrollY);
+        if (es.pos.y <= -spec.field.outerSize.y)
             return false;
         return true;
     }
 
-    public override int score()
+    public void draw(float[] model, EnemyState es, float[] color = null)
+    {
+        es.draw(model, color);
+    }
+
+    public int score()
     {
         return 100;
     }
 
-    public override bool isBoss()
+    public bool isBoss()
     {
         return false;
     }

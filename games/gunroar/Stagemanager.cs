@@ -176,7 +176,7 @@ public class StageManager
                 if (en != null)
                 {
                     if (((HasAppearType)ses).setFirstState(en.state, EnemyStateAppearanceType.CENTER))
-                        en.set(ses);
+                        en.set(ses.spec);
                 }
                 else
                 {
@@ -215,7 +215,7 @@ public class StageManager
             tr = tr - (lr);
             ShipEnemySpec ses = new ShipEnemySpec(field, ship, sparks, smokes, fragments, wakes);
             ses.setParam(lr / largeShipNum, ShipEnemySpecShipClass.LARGE, rand);
-            enemyApp[0].set(ses, largeShipNum, appType, rand);
+            enemyApp[0].set(ses.spec, largeShipNum, appType, rand);
         }
         else
         {
@@ -243,7 +243,7 @@ public class StageManager
             tr = tr - (mr);
             ShipEnemySpec ses = new ShipEnemySpec(field, ship, sparks, smokes, fragments, wakes);
             ses.setParam(mr / middleShipNum, ShipEnemySpecShipClass.MIDDLE, rand);
-            enemyApp[1].set(ses, middleShipNum, appType, rand);
+            enemyApp[1].set(ses.spec, middleShipNum, appType, rand);
         }
         else
         {
@@ -258,7 +258,7 @@ public class StageManager
                 smallShipNum = 256;
             SmallShipEnemySpec sses = new SmallShipEnemySpec(field, ship, sparks, smokes, fragments, wakes);
             sses.setParam(tr / smallShipNum, rand);
-            enemyApp[2].set(sses, smallShipNum, appType, rand);
+            enemyApp[2].set(sses.spec, smallShipNum, appType, rand);
         }
         else
         {
@@ -303,7 +303,7 @@ public class StageManager
                 }
             }
 
-            en.set(platformEnemySpec);
+            en.set(platformEnemySpec.spec);
             bn--;
         }
     }
@@ -387,7 +387,7 @@ public class EnemyAppearance
         Enemy en = enemies.getInstance();
         if (en != null)
         {
-            if (((HasAppearType)spec).setFirstState(en.state, appType))
+            if (((HasAppearType)spec.kind).setFirstState(en.state, appType))
                 en.set(spec);
         }
     }
