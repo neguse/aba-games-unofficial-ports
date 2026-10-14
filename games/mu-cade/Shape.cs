@@ -57,14 +57,9 @@ public class ShapeGroup : Shape
     }
 }
 
-public abstract class ShapeBase : Shape
+public static class ShapeBase
 {
-    public World world;
-    public Vector3 pos;
-    public Vector3 size;
-    public float mass = 1;
-    public float shapeBoxScale = 1;
-    public virtual void addMass(OdeMass m, Vector3 sizeScale = null, float massScale = 1)
+    public static void addMass(Vector3 pos, Vector3 size, float mass, OdeMass m, Vector3 sizeScale, float massScale)
     {
         OdeMass sm = McdPhysics.Mass();
         if ((sizeScale) != null)
@@ -82,7 +77,7 @@ public abstract class ShapeBase : Shape
         McdPhysics.MassAdd(m, sm);
     }
 
-    public virtual void addGeom_3(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null)
+    public static void addGeom_3(Vector3 pos, Vector3 size, float shapeBoxScale, OdeActor oa, OdeHandle sid, Vector3 sizeScale)
     {
         if (pos.x == 0 && pos.y == 0 && pos.z == 0)
         {
@@ -118,14 +113,16 @@ public abstract class ShapeBase : Shape
             oa.addTransformedGeom(bg_1);
         }
     }
-
-    public abstract void recordLinePoints_1(LinePoint lp);
-    public abstract void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp);
 }
 
-public class Square : ShapeBase
+public class Square : Shape
 {
     static Mesh shadow;
+    public World world;
+    public Vector3 pos;
+    public Vector3 size;
+    public float mass = 1;
+    public float shapeBoxScale = 1;
     public Square(World world, float mass, float px, float py, float sx, float sy, float pz = 0, float sz = 1)
     {
         this.world = world;
@@ -134,7 +131,17 @@ public class Square : ShapeBase
         size = new Vector3(sx, sy, sz);
     }
 
-    public override void recordLinePoints_1(LinePoint lp)
+    public void addMass(OdeMass m, Vector3 sizeScale = null, float massScale = 1)
+    {
+        ShapeBase.addMass(pos, size, mass, m, sizeScale, massScale);
+    }
+
+    public void addGeom_3(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null)
+    {
+        ShapeBase.addGeom_3(pos, size, shapeBoxScale, oa, sid, sizeScale);
+    }
+
+    public void recordLinePoints_1(LinePoint lp)
     {
         lp.setPos(pos);
         lp.setSize(size);
@@ -148,7 +155,7 @@ public class Square : ShapeBase
         lp.record(-1, -1, 0);
     }
 
-    public override void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
+    public void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
     {
         lp.setPos(pos); lp.setSize(size);
         tint = lp.shadowColor();
@@ -171,9 +178,14 @@ public class Square : ShapeBase
     }
 }
 
-public class Sphere : ShapeBase
+public class Sphere : Shape
 {
     static Mesh shadow;
+    public World world;
+    public Vector3 pos;
+    public Vector3 size;
+    public float mass = 1;
+    public float shapeBoxScale = 1;
     public Sphere(World world, float mass, float px, float py, float rad)
     {
         this.world = world;
@@ -182,7 +194,7 @@ public class Sphere : ShapeBase
         size = new Vector3(rad, rad, rad);
     }
 
-    public override void addGeom_3(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null)
+    public void addGeom_3(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null)
     {
         if (pos.x == 0 && pos.y == 0 && pos.z == 0)
         {
@@ -219,7 +231,12 @@ public class Sphere : ShapeBase
         }
     }
 
-    public override void recordLinePoints_1(LinePoint lp)
+    public void addMass(OdeMass m, Vector3 sizeScale = null, float massScale = 1)
+    {
+        ShapeBase.addMass(pos, size, mass, m, sizeScale, massScale);
+    }
+
+    public void recordLinePoints_1(LinePoint lp)
     {
         lp.setPos(pos);
         lp.setSize(size);
@@ -233,7 +250,7 @@ public class Sphere : ShapeBase
         lp.record(-1, -1, 0);
     }
 
-    public override void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
+    public void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
     {
         lp.setPos(pos); lp.setSize(size);
         tint = lp.shadowColor();
@@ -256,9 +273,14 @@ public class Sphere : ShapeBase
     }
 }
 
-public class Triangle : ShapeBase
+public class Triangle : Shape
 {
     static Mesh shadow;
+    public World world;
+    public Vector3 pos;
+    public Vector3 size;
+    public float mass = 1;
+    public float shapeBoxScale = 1;
     public Triangle(World world, float mass, float px, float py, float sx, float sy)
     {
         this.world = world;
@@ -268,7 +290,17 @@ public class Triangle : ShapeBase
         shapeBoxScale = 1;
     }
 
-    public override void recordLinePoints_1(LinePoint lp)
+    public void addMass(OdeMass m, Vector3 sizeScale = null, float massScale = 1)
+    {
+        ShapeBase.addMass(pos, size, mass, m, sizeScale, massScale);
+    }
+
+    public void addGeom_3(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null)
+    {
+        ShapeBase.addGeom_3(pos, size, shapeBoxScale, oa, sid, sizeScale);
+    }
+
+    public void recordLinePoints_1(LinePoint lp)
     {
         lp.setPos(pos);
         lp.setSize(size);
@@ -280,7 +312,7 @@ public class Triangle : ShapeBase
         lp.record(0, 1, 0);
     }
 
-    public override void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
+    public void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
     {
         lp.setPos(pos); lp.setSize(size);
         tint = lp.shadowColor();
@@ -302,9 +334,14 @@ public class Triangle : ShapeBase
     }
 }
 
-public class Box : ShapeBase
+public class Box : Shape
 {
     static Mesh shadow;
+    public World world;
+    public Vector3 pos;
+    public Vector3 size;
+    public float mass = 1;
+    public float shapeBoxScale = 1;
     public Box(World world, float mass, float px, float py, float pz, float sx, float sy, float sz)
     {
         this.world = world;
@@ -313,7 +350,17 @@ public class Box : ShapeBase
         size = new Vector3(sx, sy, sz);
     }
 
-    public override void recordLinePoints_1(LinePoint lp)
+    public void addMass(OdeMass m, Vector3 sizeScale = null, float massScale = 1)
+    {
+        ShapeBase.addMass(pos, size, mass, m, sizeScale, massScale);
+    }
+
+    public void addGeom_3(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null)
+    {
+        ShapeBase.addGeom_3(pos, size, shapeBoxScale, oa, sid, sizeScale);
+    }
+
+    public void recordLinePoints_1(LinePoint lp)
     {
         lp.setPos(pos);
         lp.setSize(size);
@@ -343,7 +390,7 @@ public class Box : ShapeBase
         lp.record(-1, 1, -1);
     }
 
-    public override void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
+    public void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
     {
         lp.setPos(pos); lp.setSize(size);
         tint = lp.shadowColor();
