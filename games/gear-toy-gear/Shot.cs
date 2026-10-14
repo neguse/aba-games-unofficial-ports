@@ -5,6 +5,14 @@ public class ShotPool
 {
     private ActorPool<Shot> pool;
     public Shot[] Actors;
+
+    public int Count
+    {
+        get
+        {
+            return pool.Count;
+        }
+    }
     private GtgFrame frame;
     private Field field;
     private EnemyPool enemies;

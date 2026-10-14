@@ -5,6 +5,14 @@ public class PlayerHomingLaserPool
 {
     private ActorPool<PlayerHomingLaser> pool;
     public PlayerHomingLaser[] Actors;
+
+    public int Count
+    {
+        get
+        {
+            return pool.Count;
+        }
+    }
     private GtgFrame frame;
     private Field field;
     private LaserPool lasers;
