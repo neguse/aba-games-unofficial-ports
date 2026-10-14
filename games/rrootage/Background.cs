@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Lub;
+using Lub;
 using static RrConstants;
 using static RrArrays;
 using static RrRandom;

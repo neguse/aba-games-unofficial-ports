@@ -1,7 +1,7 @@
 // Copyright 2008 Kenta Cho. Some rights reserved.
 using System;
 using System.Collections.Generic;
-using static Lub;
+using Lub;
 
 public class MmFrame
 {
@@ -531,7 +531,7 @@ public class MmFrame
         if (Lub.Host.Available())
             Lub.Host.Send("quit", "");
         else
-            Lub.Quit();
+            App.Quit();
     }
 
     public float Interval()

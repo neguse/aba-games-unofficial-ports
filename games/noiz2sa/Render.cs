@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using static Lub;
+using Lub;
 public static class NrRender {
     static PixelLayer decay,smoke,blend,present;
     static bool initialized;

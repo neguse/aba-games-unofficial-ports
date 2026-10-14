@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Aba.Native;
-using static Lub;
+using Lub;
 
 static class ProtocolTests
 {

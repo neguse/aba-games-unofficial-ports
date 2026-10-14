@@ -1,4 +1,4 @@
-using static Lub;
+using Lub;
 
 #if MISSING_GAME
 public static class NotGame
@@ -13,7 +13,7 @@ public static class Game
     static string Mode => Environment.GetEnvironmentVariable("ABA_LIFECYCLE_FIXTURE") ?? "normal";
     public static void OnInit()
     {
-        Config(new ConfigOpts { Width = 640, Height = 480 });
+        App.Config(new ConfigOpts { Width = 640, Height = 480 });
         Host.Send("probe.init", (++starts).ToString());
         // Deliberately leave a delegate from this collectible assembly in Lub.
         // Reset must clear it before the assembly can actually be collected.

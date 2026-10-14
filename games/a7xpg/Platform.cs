@@ -1,5 +1,5 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
-using static Lub;
+using Lub;
 
 public class Input
 {

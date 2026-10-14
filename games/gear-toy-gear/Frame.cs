@@ -226,7 +226,7 @@ public class GtgFrame
         if (Lub.Host.Available())
             Lub.Host.Send("quit", "");
         else
-            Lub.Quit();
+            Lub.App.Quit();
     }
 
     public void Seed(int seed)

@@ -1,7 +1,7 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-using static Lub;
+using Lub;
 public class P47GameManager {
 
   public bool nowait = false;

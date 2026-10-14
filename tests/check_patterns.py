@@ -46,7 +46,7 @@ sources += sorted((source / "tinyxml").glob("tinyxml*.cpp"))
 run(["g++", "-std=gnu++11", "-O2", "-w", "-include", "cstring", "-include", "cstdlib", "-include", "cstdio", "-I" + str(source), "tests/pattern_oracle.cpp", *map(str, sources), "-o", str(build / "oracle")])
 run([sys.executable, "tools/compile_barrage.py", str(patterns), str(build / "BarrageCode.cs")])
 compiler = args.tcs / "Transpiler/bin/Release/net10.0/Transpiler.dll"
-result = run(["dotnet", str(compiler), "game/Pattern.cs", "game/PatternNumber.cs", str(build / "BarrageCode.cs"), "tests/PatternTrace.cs", "--entry", "PatternTrace", "--no-naming-check", "-o", str(build / "trace.lua")])
+result = run(["dotnet", str(compiler), "game/Pattern.cs", "game/PatternNumber.cs", str(build / "BarrageCode.cs"), "tests/PatternTrace.cs", "--entry", "PatternTrace", "-o", str(build / "trace.lua")])
 if result.strip(): print(result)
 (build / "run.lua").write_text('local trace = dofile(arg[1]); trace.main()\n')
 failures = []

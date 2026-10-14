@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using static Lub;
+using Lub;
 using static RrConstants;
 public static class Game {
     static float elapsed;
@@ -9,7 +9,7 @@ public static class Game {
     static string shaderSource;
     static bool pausePressed,escapePressed;
     public static void OnInit() {
-        Config(new ConfigOpts{Width=640,Height=480});
+        App.Config(new ConfigOpts{Width=640,Height=480});
         RrAngles.tantbl=RrData.tangent;RrAngles.sctbl=RrData.sine;
         RrAttract.initHiScore();RrBarrage.initBarragemanager();RrAttract.initAttractManager();RrAttract.initGameStateFirst();RrCore.initTitle();
         if(Host.Available()){Host.Send("scores.load","");Host.Send("ready","");}

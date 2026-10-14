@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using static Lub;
+using Lub;
 public static class WkRender {
  public static List<float> vertices=new List<float>();
  static int version;

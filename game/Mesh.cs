@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using static Lub;
+using Lub;
 
 public class DrawImage
 {

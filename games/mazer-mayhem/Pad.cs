@@ -1,3 +1,4 @@
+using Lub;
 public class Pad
 {
     static readonly string[] keys = new string[] { "up", "w", "Keypad 8", "down", "s", "Keypad 2", "left", "a", "Keypad 4", "right", "d", "Keypad 6",

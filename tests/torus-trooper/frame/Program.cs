@@ -1,4 +1,6 @@
 using System.Reflection;
+using Lubx;
+using Lub;
 
 public static class FrameTests
 {
@@ -23,7 +25,7 @@ public static class FrameTests
         int result = 1;
         try
         {
-            int runtime = Lub.Run(null, null, _ =>
+            int runtime = Lub.App.Run(null, null, _ =>
             {
                 try
                 {
@@ -130,7 +132,7 @@ public static class FrameTests
                     Console.WriteLine("PASS Frame trigger semantics and menu mapping");
                 }
                 catch (Exception e) { Console.Error.WriteLine(e); result = 1; }
-                finally { Lub.Quit(); }
+                finally { Lub.App.Quit(); }
             }, null, ["--backend", "vulkan"]);
             return runtime == 0 ? result : runtime;
         }

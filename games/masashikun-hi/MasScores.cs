@@ -1,6 +1,6 @@
 // Copyright (C) 2000 Kenta Cho. SPDX-License-Identifier: GPL-2.0-or-later
 // TinyC# browser adaptation (2026-09-24).
-using static Lub;
+using Lub;
 
 public static class MasScores
 {
