@@ -9,17 +9,21 @@ public interface Shape
     public void draw_3(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg);
 }
 
-public abstract class MeshShape : Shape
+public interface MeshBuilder
+{
+    public void createMesh(Mesh mesh);
+}
+
+public class MeshShape : Shape
 {
     static int nextMesh;
     public Mesh mesh;
-    public virtual void initializeShape()
+    public MeshShape(MeshBuilder builder)
     {
         mesh = new Mesh("shape-" + nextMesh.ToString()); nextMesh++;
-        createMesh();
+        builder.createMesh(mesh);
     }
-    public abstract void createMesh();
-    public virtual void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
     {
         foreach (MeshRange range in mesh.ranges)
         {
@@ -28,13 +32,13 @@ public abstract class MeshShape : Shape
                 new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = material });
         }
     }
-    public virtual void draw_3(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg)
+    public void draw_3(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg)
     {
         float[] parent1 = model; model = Transform.Translate(model, pos.x, pos.y, pos.z);
         model = Transform.Rotate(model, cd * 180 / PI, 0, 1, 0); model = Transform.Rotate(model, deg * 180 / PI, 0, 0, 1);
         draw_0(model, color, blend); model = parent1;
     }
-    public virtual void close() { mesh = null; }
+    public void close() { mesh = null; }
 }
 
 public class PyramidShape
@@ -116,14 +120,9 @@ public class PyramidShape
     }
 }
 
-public class PlayerShape : MeshShape
+public class PlayerShape : MeshBuilder
 {
-    public PlayerShape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         material = (int)Gfx.Blend.Alpha;
@@ -170,14 +169,9 @@ public class PlayerShape : MeshShape
     }
 }
 
-public class PlayerLineShape : MeshShape
+public class PlayerLineShape : MeshBuilder
 {
-    public PlayerLineShape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         material = (int)Gfx.Blend.Alpha;
@@ -203,14 +197,9 @@ public class PlayerLineShape : MeshShape
     }
 }
 
-public class ShotShape : MeshShape
+public class ShotShape : MeshBuilder
 {
-    public ShotShape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         float[] parent1 = model;
@@ -230,9 +219,9 @@ public class ShotShape : MeshShape
     }
 }
 
-public abstract class TractorBeamShape : MeshShape
+public static class TractorBeamShape
 {
-    public virtual void appendTractorBeam(Mesh mesh, float[] model, float[] color, int material, float r, float g, float b)
+    public static void appendTractorBeam(Mesh mesh, float[] model, float[] color, int material, float r, float g, float b)
     {
         color = new float[] { r, g, b, 0.5f };
         int part1 = mesh.vertexCount; int face1 = mesh.count;
@@ -250,7 +239,7 @@ public abstract class TractorBeamShape : MeshShape
         mesh.LineStrip(part2, mesh.vertexCount - part2, true); mesh.AddRange(face2, material);
     }
 
-    public virtual void appendTractorBeamLine(Mesh mesh, float[] model, float[] color, int material, float r, float g, float b)
+    public static void appendTractorBeamLine(Mesh mesh, float[] model, float[] color, int material, float r, float g, float b)
     {
         color = new float[] { r, g, b, 1 };
         int part1 = mesh.vertexCount; int face1 = mesh.count;
@@ -262,112 +251,107 @@ public abstract class TractorBeamShape : MeshShape
     }
 }
 
-public class TractorBeamShapeRed : TractorBeamShape
+public class TractorBeamShapeRed : MeshBuilder
 {
-    public TractorBeamShapeRed()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
-        appendTractorBeam(mesh, model, color, material, 0.5f, 0.2f, 0.2f);
+        TractorBeamShape.appendTractorBeam(mesh, model, color, material, 0.5f, 0.2f, 0.2f);
     }
 }
 
-public class TractorBeamShapeBlue : TractorBeamShape
+public class TractorBeamShapeBlue : MeshBuilder
 {
-    public TractorBeamShapeBlue()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
-        appendTractorBeam(mesh, model, color, material, 0.2f, 0.2f, 0.5f);
+        TractorBeamShape.appendTractorBeam(mesh, model, color, material, 0.2f, 0.2f, 0.5f);
     }
 }
 
-public class TractorBeamShapePurple : TractorBeamShape
+public class TractorBeamShapePurple : MeshBuilder
 {
-    public TractorBeamShapePurple()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
-        appendTractorBeam(mesh, model, color, material, 0.5f, 0.2f, 0.5f);
+        TractorBeamShape.appendTractorBeam(mesh, model, color, material, 0.5f, 0.2f, 0.5f);
     }
 }
 
-public class TractorBeamShapeDarkRed : TractorBeamShape
+public class TractorBeamShapeDarkRed : MeshBuilder
 {
-    public TractorBeamShapeDarkRed()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
-        appendTractorBeamLine(mesh, model, color, material, 0.4f, 0.1f, 0.1f);
+        TractorBeamShape.appendTractorBeamLine(mesh, model, color, material, 0.4f, 0.1f, 0.1f);
     }
 }
 
-public class TractorBeamShapeDarkBlue : TractorBeamShape
+public class TractorBeamShapeDarkBlue : MeshBuilder
 {
-    public TractorBeamShapeDarkBlue()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
-        appendTractorBeamLine(mesh, model, color, material, 0.1f, 0.1f, 0.4f);
+        TractorBeamShape.appendTractorBeamLine(mesh, model, color, material, 0.1f, 0.1f, 0.4f);
     }
 }
 
-public class TractorBeamShapeDarkPurple : TractorBeamShape
+public class TractorBeamShapeDarkPurple : MeshBuilder
 {
-    public TractorBeamShapeDarkPurple()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
-        appendTractorBeamLine(mesh, model, color, material, 0.4f, 0.1f, 0.4f);
+        TractorBeamShape.appendTractorBeamLine(mesh, model, color, material, 0.4f, 0.1f, 0.4f);
     }
 }
 
-public abstract class BulletShapeBase : MeshShape
+public class BulletShapeBase : Shape
 {
-    public virtual void draw_4(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg, float rd)
+    public MeshShape meshShape;
+    public bool roll;
+    public BulletShapeBase(MeshBuilder builder, bool roll)
     {
-        float[] parent1 = model;
-        model = Transform.Translate(model, pos.x, pos.y, pos.z);
-        model = Transform.Rotate(model, cd * 180 / PI, 0, 1, 0);
-        model = Transform.Rotate(model, deg * 180 / PI, 0, 0, 1);
-        model = Transform.Rotate(model, rd, 0, 1, 0);
-        draw_0(model, color, blend);
-        model = parent1;
+        meshShape = new MeshShape(builder);
+        this.roll = roll;
+    }
+
+    public void draw_3(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg)
+    {
+        meshShape.draw_3(model, color, blend, pos, cd, deg);
+    }
+
+    public void draw_4(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg, float rd)
+    {
+        if (roll)
+        {
+            float[] parent1 = model;
+            model = Transform.Translate(model, pos.x, pos.y, pos.z);
+            model = Transform.Rotate(model, cd * 180 / PI, 0, 1, 0);
+            model = Transform.Rotate(model, rd, 0, 0, 1);
+            meshShape.draw_0(model, color, blend);
+            model = parent1;
+        }
+        else
+        {
+            float[] parent1 = model;
+            model = Transform.Translate(model, pos.x, pos.y, pos.z);
+            model = Transform.Rotate(model, cd * 180 / PI, 0, 1, 0);
+            model = Transform.Rotate(model, deg * 180 / PI, 0, 0, 1);
+            model = Transform.Rotate(model, rd, 0, 1, 0);
+            meshShape.draw_0(model, color, blend);
+            model = parent1;
+        }
+    }
+
+    public void close()
+    {
+        meshShape.close();
     }
 }
 
-public class BulletShape : BulletShapeBase
+public class BulletShape : MeshBuilder
 {
-    public BulletShape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         material = (int)Gfx.Blend.Alpha;
@@ -402,14 +386,9 @@ public class BulletShape : BulletShapeBase
     }
 }
 
-public class BulletLineShape : BulletShapeBase
+public class BulletLineShape : MeshBuilder
 {
-    public BulletLineShape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         model = Transform.Scale(model, 1.2f, 1.2f, 1.2f);
@@ -429,14 +408,9 @@ public class BulletLineShape : BulletShapeBase
     }
 }
 
-public class MiddleBulletShape : BulletShapeBase
+public class MiddleBulletShape : MeshBuilder
 {
-    public MiddleBulletShape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         material = (int)Gfx.Blend.Alpha;
@@ -492,14 +466,9 @@ public class MiddleBulletShape : BulletShapeBase
     }
 }
 
-public class MiddleBulletLineShape : BulletShapeBase
+public class MiddleBulletLineShape : MeshBuilder
 {
-    public MiddleBulletLineShape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         model = Transform.Scale(model, 1.4f, 1.3f, 1.4f);
@@ -524,27 +493,9 @@ public class MiddleBulletLineShape : BulletShapeBase
     }
 }
 
-public abstract class RollBulletShapeBase : BulletShapeBase
+public class CounterBulletShape : MeshBuilder
 {
-    public override void draw_4(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg, float rd)
-    {
-        float[] parent1 = model;
-        model = Transform.Translate(model, pos.x, pos.y, pos.z);
-        model = Transform.Rotate(model, cd * 180 / PI, 0, 1, 0);
-        model = Transform.Rotate(model, rd, 0, 0, 1);
-        draw_0(model, color, blend);
-        model = parent1;
-    }
-}
-
-public class CounterBulletShape : RollBulletShapeBase
-{
-    public CounterBulletShape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         material = (int)Gfx.Blend.Alpha;
@@ -571,14 +522,9 @@ public class CounterBulletShape : RollBulletShapeBase
     }
 }
 
-public class CounterBulletLineShape : RollBulletShapeBase
+public class CounterBulletLineShape : MeshBuilder
 {
-    public CounterBulletLineShape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         model = Transform.Scale(model, 1.2f, 1.2f, 1.2f);
@@ -601,14 +547,25 @@ public class CounterBulletLineShape : RollBulletShapeBase
     }
 }
 
-public abstract class EnemyShape : MeshShape
+public class EnemyShape : Shape
 {
-    public virtual void draw_5(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg, float cnt, Vector size)
+    public MeshShape meshShape;
+    public EnemyShape(MeshBuilder builder)
+    {
+        meshShape = new MeshShape(builder);
+    }
+
+    public void draw_3(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg)
+    {
+        meshShape.draw_3(model, color, blend, pos, cd, deg);
+    }
+
+    public void draw_5(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg, float cnt, Vector size)
     {
         draw_6(model, color, blend, pos, cd, deg, cnt, size.x, size.y);
     }
 
-    public virtual void draw_6(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg, float cnt, float sx, float sy)
+    public void draw_6(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg, float cnt, float sx, float sy)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, pos.x, pos.y, pos.z);
@@ -616,19 +573,19 @@ public abstract class EnemyShape : MeshShape
         model = Transform.Rotate(model, deg * 180 / PI, 0, 0, 1);
         model = Transform.Scale(model, sx, sy, 1);
         model = Transform.Rotate(model, cnt * 3.0f, 0, 1, 0);
-        draw_0(model, color, blend);
+        meshShape.draw_0(model, color, blend);
         model = parent1;
+    }
+
+    public void close()
+    {
+        meshShape.close();
     }
 }
 
-public class Enemy1Shape : EnemyShape
+public class Enemy1Shape : MeshBuilder
 {
-    public Enemy1Shape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         material = (int)Gfx.Blend.Alpha;
@@ -674,14 +631,9 @@ public class Enemy1Shape : EnemyShape
     }
 }
 
-public class Enemy1TrailShape : EnemyShape
+public class Enemy1TrailShape : MeshBuilder
 {
-    public Enemy1TrailShape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         float[] parent1 = model;
@@ -704,14 +656,9 @@ public class Enemy1TrailShape : EnemyShape
     }
 }
 
-public class Enemy2Shape : EnemyShape
+public class Enemy2Shape : MeshBuilder
 {
-    public Enemy2Shape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         material = (int)Gfx.Blend.Alpha;
@@ -756,14 +703,9 @@ public class Enemy2Shape : EnemyShape
     }
 }
 
-public class Enemy2TrailShape : EnemyShape
+public class Enemy2TrailShape : MeshBuilder
 {
-    public Enemy2TrailShape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         float[] parent1 = model;
@@ -786,14 +728,9 @@ public class Enemy2TrailShape : EnemyShape
     }
 }
 
-public class Enemy3Shape : EnemyShape
+public class Enemy3Shape : MeshBuilder
 {
-    public Enemy3Shape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         material = (int)Gfx.Blend.Alpha;
@@ -839,14 +776,9 @@ public class Enemy3Shape : EnemyShape
     }
 }
 
-public class Enemy3TrailShape : EnemyShape
+public class Enemy3TrailShape : MeshBuilder
 {
-    public Enemy3TrailShape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         float[] parent1 = model;
@@ -869,14 +801,9 @@ public class Enemy3TrailShape : EnemyShape
     }
 }
 
-public class TriangleParticleShape : MeshShape
+public class TriangleParticleShape : MeshBuilder
 {
-    public TriangleParticleShape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         int part1 = mesh.vertexCount; int face1 = mesh.count;
@@ -887,11 +814,17 @@ public class TriangleParticleShape : MeshShape
     }
 }
 
-public abstract class PillarShape : MeshShape
+public class PillarShape
 {
     public const float TICKNESS = 4.0f;
     public const float RADIUS_RATIO = 0.3f;
-    public virtual void appendPillar(Mesh mesh, float[] model, float[] color, int material, float r, float g, float b, bool outside = false)
+    public MeshShape meshShape;
+    public PillarShape(MeshBuilder builder)
+    {
+        meshShape = new MeshShape(builder);
+    }
+
+    public static void appendPillar(Mesh mesh, float[] model, float[] color, int material, float r, float g, float b, bool outside = false)
     {
         material = (int)Gfx.Blend.Alpha;
         int part1 = mesh.vertexCount; int face1 = mesh.count;
@@ -946,86 +879,66 @@ public abstract class PillarShape : MeshShape
         material = (int)Gfx.Blend.Additive;
     }
 
-    public virtual void draw_2(float[] model, float[] color, Gfx.Blend blend, float y, float deg)
+    public void draw_2(float[] model, float[] color, Gfx.Blend blend, float y, float deg)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, 0, y, 0);
         model = Transform.Rotate(model, deg * 180 / PI, 0, 1, 0);
-        draw_0(model, color, blend);
+        meshShape.draw_0(model, color, blend);
         model = parent1;
+    }
+
+    public void close()
+    {
+        meshShape.close();
     }
 }
 
-public class Pillar1Shape : PillarShape
+public class Pillar1Shape : MeshBuilder
 {
-    public Pillar1Shape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         model = Transform.Scale(model, 0.6f, 1.0f, 0.6f);
-        appendPillar(mesh, model, color, material, 0.5f, 0.4f, 0.4f);
+        PillarShape.appendPillar(mesh, model, color, material, 0.5f, 0.4f, 0.4f);
     }
 }
 
-public class Pillar2Shape : PillarShape
+public class Pillar2Shape : MeshBuilder
 {
-    public Pillar2Shape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         model = Transform.Scale(model, 0.8f, 1.0f, 0.8f);
-        appendPillar(mesh, model, color, material, 0.6f, 0.3f, 0.3f);
+        PillarShape.appendPillar(mesh, model, color, material, 0.6f, 0.3f, 0.3f);
     }
 }
 
-public class Pillar3Shape : PillarShape
+public class Pillar3Shape : MeshBuilder
 {
-    public Pillar3Shape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
-        appendPillar(mesh, model, color, material, 0.5f, 0.5f, 0.4f);
+        PillarShape.appendPillar(mesh, model, color, material, 0.5f, 0.5f, 0.4f);
     }
 }
 
-public class Pillar4Shape : PillarShape
+public class Pillar4Shape : MeshBuilder
 {
-    public Pillar4Shape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         model = Transform.Scale(model, 1.1f, 1.0f, 1.1f);
-        appendPillar(mesh, model, color, material, 0.5f, 0.4f, 0.5f);
+        PillarShape.appendPillar(mesh, model, color, material, 0.5f, 0.4f, 0.5f);
     }
 }
 
-public class OutsidePillarShape : PillarShape
+public class OutsidePillarShape : MeshBuilder
 {
-    public OutsidePillarShape()
-    {
-        initializeShape();
-    }
-
-    public override void createMesh()
+    public void createMesh(Mesh mesh)
     {
         float[] model = Transform.Identity(); float[] color = null; int material = 0;
         model = Transform.Scale(model, 7.0f, 3.0f, 7.0f);
-        appendPillar(mesh, model, color, material, 0.2f, 0.2f, 0.3f, true);
+        PillarShape.appendPillar(mesh, model, color, material, 0.2f, 0.2f, 0.3f, true);
     }
 }

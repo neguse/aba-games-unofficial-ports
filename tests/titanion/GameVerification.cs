@@ -81,7 +81,7 @@ public static class TtnVerification
         var game = new Frame(); game.init_0(); game.start_0();
         Draw(game);
         Check(game.title.logo.count == 6, "title uses one textured quad");
-        var playerShape = new PlayerShape();
+        var playerShape = new MeshShape(new PlayerShape());
         Check(playerShape.mesh.ranges.Count > 0 && playerShape.mesh.ranges[0].material == (int)Lub.Gfx.Blend.Alpha, "player shape preserves alpha material");
         Vector3 circular = game.field.calcCircularPos_2(0, 36);
         Check(Math.Abs(circular.z - 51.2f) < 0.0001f && Math.Abs(circular.y - 24.8f) < 0.0001f, "circular field curve");

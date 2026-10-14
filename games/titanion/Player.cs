@@ -376,9 +376,9 @@ public class PlayerSpec : TokenSpec<PlayerState>
         shots = new ShotPool(16);
         capturedEnemiesShots = new ShotPool(64);
         shotSpec = new ShotSpec(field, enemies, bullets, gameState);
-        shape = new PlayerShape();
-        lineShape = new PlayerLineShape();
-        ghostEnemyShape = new Enemy1TrailShape();
+        shape = new MeshShape(new PlayerShape());
+        lineShape = new MeshShape(new PlayerLineShape());
+        ghostEnemyShape = new EnemyShape(new Enemy1TrailShape());
         ghostEnemySpec = new GhostEnemySpec(field, ghostEnemyShape);
     }
 
@@ -392,7 +392,7 @@ public class PlayerSpec : TokenSpec<PlayerState>
     public virtual void close()
     {
         ghostEnemyShape.close();
-        ((shape is PlayerShape ? (PlayerShape)shape : null)).close();
+        ((shape is MeshShape ? (MeshShape)shape : null)).close();
         shotSpec.close();
     }
 
@@ -913,7 +913,7 @@ public class ShotSpec : TokenSpec<ShotState>
         this.enemies = enemies;
         this.bullets = bullets;
         this.gameState = gameState;
-        shape = new ShotShape();
+        shape = new MeshShape(new ShotShape());
     }
 
     public virtual void setPlayerState(PlayerState ps)
@@ -923,7 +923,7 @@ public class ShotSpec : TokenSpec<ShotState>
 
     public virtual void close()
     {
-        ((shape is ShotShape ? (ShotShape)shape : null)).close();
+        ((shape is MeshShape ? (MeshShape)shape : null)).close();
     }
 
     public override void set_1(ShotState ss)
@@ -982,7 +982,7 @@ public class TractorBeam
     public Field field;
     public PlayerState playerState;
     public GameState gameState;
-    public List<TractorBeamShape> shapes = new List<TractorBeamShape>();
+    public List<MeshShape> shapes = new List<MeshShape>();
     public float length = 0;
     public int cnt;
     public bool isExtending;
@@ -991,12 +991,12 @@ public class TractorBeam
         this.field = field;
         this.playerState = playerState;
         this.gameState = gameState;
-        shapes.Add(new TractorBeamShapeRed());
-        shapes.Add(new TractorBeamShapeBlue());
-        shapes.Add(new TractorBeamShapePurple());
-        shapes.Add(new TractorBeamShapeDarkRed());
-        shapes.Add(new TractorBeamShapeDarkBlue());
-        shapes.Add(new TractorBeamShapeDarkPurple());
+        shapes.Add(new MeshShape(new TractorBeamShapeRed()));
+        shapes.Add(new MeshShape(new TractorBeamShapeBlue()));
+        shapes.Add(new MeshShape(new TractorBeamShapePurple()));
+        shapes.Add(new MeshShape(new TractorBeamShapeDarkRed()));
+        shapes.Add(new MeshShape(new TractorBeamShapeDarkBlue()));
+        shapes.Add(new MeshShape(new TractorBeamShapeDarkPurple()));
         clear();
     }
 

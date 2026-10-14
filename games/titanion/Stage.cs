@@ -23,7 +23,7 @@ public class Stage
     public EnemyShape enemy1TrailShape, enemy2TrailShape, enemy3TrailShape;
     public BulletSpec bulletSpec, middleBulletSpec, counterBulletSpec;
     public BulletShapeBase bulletShape, bulletLineShape, middleBulletShape, middleBulletLineShape;
-    public RollBulletShapeBase counterBulletShape, counterBulletLineShape;
+    public BulletShapeBase counterBulletShape, counterBulletLineShape;
     public PillarSpec pillarSpec;
     public List<PillarShape> pillarShapes = new List<PillarShape>();
     public PillarShape outsidePillarShape;
@@ -57,27 +57,27 @@ public class Stage
         this.pillars = pillars;
         this.gameState = gameState;
         rand = new TitanionRand();
-        enemy1Shape = new Enemy1Shape();
-        enemy2Shape = new Enemy2Shape();
-        enemy3Shape = new Enemy3Shape();
-        enemy1TrailShape = new Enemy1TrailShape();
-        enemy2TrailShape = new Enemy2TrailShape();
-        enemy3TrailShape = new Enemy3TrailShape();
-        bulletShape = new BulletShape();
-        bulletLineShape = new BulletLineShape();
-        middleBulletShape = new MiddleBulletShape();
-        middleBulletLineShape = new MiddleBulletLineShape();
-        counterBulletShape = new CounterBulletShape();
-        counterBulletLineShape = new CounterBulletLineShape();
+        enemy1Shape = new EnemyShape(new Enemy1Shape());
+        enemy2Shape = new EnemyShape(new Enemy2Shape());
+        enemy3Shape = new EnemyShape(new Enemy3Shape());
+        enemy1TrailShape = new EnemyShape(new Enemy1TrailShape());
+        enemy2TrailShape = new EnemyShape(new Enemy2TrailShape());
+        enemy3TrailShape = new EnemyShape(new Enemy3TrailShape());
+        bulletShape = new BulletShapeBase(new BulletShape(), false);
+        bulletLineShape = new BulletShapeBase(new BulletLineShape(), false);
+        middleBulletShape = new BulletShapeBase(new MiddleBulletShape(), false);
+        middleBulletLineShape = new BulletShapeBase(new MiddleBulletLineShape(), false);
+        counterBulletShape = new BulletShapeBase(new CounterBulletShape(), true);
+        counterBulletLineShape = new BulletShapeBase(new CounterBulletLineShape(), true);
         bulletSpec = new BulletSpec(field, player, enemies, particles, bulletShape, bulletLineShape, gameState);
         middleBulletSpec = new BulletSpec(field, player, enemies, particles, middleBulletShape, middleBulletLineShape, gameState);
         counterBulletSpec = new BulletSpec(field, player, enemies, particles, counterBulletShape, counterBulletLineShape, gameState);
         pillarSpec = new PillarSpec(field);
-        pillarShapes.Add(new Pillar1Shape());
-        pillarShapes.Add(new Pillar2Shape());
-        pillarShapes.Add(new Pillar3Shape());
-        pillarShapes.Add(new Pillar4Shape());
-        outsidePillarShape = new OutsidePillarShape();
+        pillarShapes.Add(new PillarShape(new Pillar1Shape()));
+        pillarShapes.Add(new PillarShape(new Pillar2Shape()));
+        pillarShapes.Add(new PillarShape(new Pillar3Shape()));
+        pillarShapes.Add(new PillarShape(new Pillar4Shape()));
+        outsidePillarShape = new PillarShape(new OutsidePillarShape());
     }
 
     public void close()

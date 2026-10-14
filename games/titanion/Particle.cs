@@ -179,7 +179,7 @@ public class TriangleParticleSpec : ParticleSpec
     public TriangleParticleSpec(Field field)
     {
         this.field = field;
-        particleShape = new TriangleParticleShape();
+        particleShape = new MeshShape(new TriangleParticleShape());
     }
 
     public virtual void setParticles(ParticlePool particles)

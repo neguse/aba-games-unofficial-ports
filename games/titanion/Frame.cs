@@ -255,8 +255,8 @@ public class GameState
     public int pauseCnt;
     public bool _isGameOver;
     public int gameOverCnt;
-    public PlayerShape playerShape;
-    public PlayerLineShape playerLineShape;
+    public MeshShape playerShape;
+    public MeshShape playerLineShape;
     public bool _inReplay;
     public int _mode;
     public int extendScore;
@@ -265,8 +265,8 @@ public class GameState
     {
         this.frame = frame;
         this.preference = preference;
-        playerShape = new PlayerShape();
-        playerLineShape = new PlayerLineShape();
+        playerShape = new MeshShape(new PlayerShape());
+        playerLineShape = new MeshShape(new PlayerLineShape());
         clear();
         _lastGameScore = -1;
     }
