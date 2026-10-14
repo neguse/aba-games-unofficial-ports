@@ -208,15 +208,62 @@ public class EnemyPool
     }
 }
 
-public class Enemy : Token<EnemyState, EnemySpec>
+public class Enemy : Actor
 {
-    public override void init_1(List<object> args)
+    public bool exists;
+    public EnemyState state;
+    public EnemySpec spec;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool v)
+    {
+        exists = v;
+    }
+
+    public void init_1(List<object> args)
     {
         state = new EnemyState();
         state.enemy = this;
     }
 
-    public virtual void setSmallEnemyState(float baseSpeed, float angVel, int waitCnt, int appPattern, float er = 0, float ed = 0, bool gd = false, float fireIntervalRatio = 0, Enemy firstEnemy = null)
+    public void set_5(EnemySpec spec, float x, float y, float deg, float speed)
+    {
+        this.spec = spec;
+        set_4(x, y, deg, speed);
+    }
+
+    public void set_4(float x, float y, float deg, float speed)
+    {
+        state.clear();
+        state.pos.x = x;
+        state.pos.y = y;
+        state.deg = deg;
+        state.speed = speed;
+        spec.set_1(state);
+        exists = true;
+    }
+
+    public void move_0()
+    {
+        if (!((spec.move_1(state))))
+            remove();
+    }
+
+    public void remove()
+    {
+        exists = false;
+        spec.removed(state);
+    }
+
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    {
+        spec.draw_1(model, color, blend, state);
+    }
+
+    public void setSmallEnemyState(float baseSpeed, float angVel, int waitCnt, int appPattern, float er = 0, float ed = 0, bool gd = false, float fireIntervalRatio = 0, Enemy firstEnemy = null)
     {
         {
             state.baseSpeed = baseSpeed;
@@ -254,7 +301,7 @@ public class Enemy : Token<EnemyState, EnemySpec>
         }
     }
 
-    public virtual void setMiddleEnemyState(float baseSpeed, float angVel, float er = 0, float ed = 0)
+    public void setMiddleEnemyState(float baseSpeed, float angVel, float er = 0, float ed = 0)
     {
         {
             state.baseSpeed = baseSpeed;
@@ -271,7 +318,7 @@ public class Enemy : Token<EnemyState, EnemySpec>
         spec.init_1(state);
     }
 
-    public virtual void setGhostEnemyState(float x, float y, float deg, int cnt)
+    public void setGhostEnemyState(float x, float y, float deg, int cnt)
     {
         state.pos.x = x;
         state.pos.y = y;
@@ -279,45 +326,45 @@ public class Enemy : Token<EnemyState, EnemySpec>
         state.cnt = cnt;
     }
 
-    public virtual void hitShot_1(float deg = 0)
+    public void hitShot_1(float deg = 0)
     {
         if (spec.hitShot_2(state, deg))
             remove();
     }
 
-    public virtual void hitCaptured_0()
+    public void hitCaptured_0()
     {
         SmallEnemySpec ses = (spec is SmallEnemySpec ? (SmallEnemySpec)spec : null);
         if ((ses) != null)
             ses.hitCaptured_1(state);
     }
 
-    public virtual void destroyed_0()
+    public void destroyed_0()
     {
         spec.destroyed_2(state);
         exists = false;
     }
 
-    public virtual bool isInAttack_0()
+    public bool isInAttack_0()
     {
         if (spec.isBeingCaptured_1(state))
             return false;
         return spec.isInAttack_1(state);
     }
 
-    public virtual bool isInScreen_0()
+    public bool isInScreen_0()
     {
         if (spec.isBeingCaptured_1(state))
             return false;
         return spec.isInScreen_1(state);
     }
 
-    public virtual bool isBeingCaptured_0()
+    public bool isBeingCaptured_0()
     {
         return spec.isBeingCaptured_1(state);
     }
 
-    public virtual bool isCaptured_0()
+    public bool isCaptured_0()
     {
         GhostEnemySpec ges = (spec is GhostEnemySpec ? (GhostEnemySpec)spec : null);
         if ((ges) != null)
@@ -328,19 +375,19 @@ public class Enemy : Token<EnemyState, EnemySpec>
         return ses.isCaptured_1(state);
     }
 
-    public virtual bool beforeAlign_0()
+    public bool beforeAlign_0()
     {
         if (spec.isBeingCaptured_1(state))
             return false;
         return spec.beforeAlign_1(state);
     }
 
-    public virtual void drawTrails_0(float[] model, float[] color, Gfx.Blend blend)
+    public void drawTrails_0(float[] model, float[] color, Gfx.Blend blend)
     {
         spec.drawTrails_1(model, color, blend, state);
     }
 
-    public override Vector pos()
+    public Vector pos()
     {
         return state.pos;
     }

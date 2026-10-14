@@ -4,10 +4,31 @@ using System.Collections.Generic;
 using static GameMath;
 using static Lub;
 
-public class Player : Token<PlayerState, PlayerSpec>
+public class Player
 {
-    public override void init_1(List<object> args)
+    public bool exists;
+    public PlayerState state;
+    public PlayerSpec spec;
+    public void move_0()
     {
+        if (!((spec.move_1(state))))
+            remove();
+    }
+
+    public void remove()
+    {
+        exists = false;
+        spec.removed(state);
+    }
+
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    {
+        spec.draw_1(model, color, blend, state);
+    }
+
+    public Vector pos()
+    {
+        return state.pos;
     }
 
     public Vector hitOffset;
@@ -20,13 +41,13 @@ public class Player : Token<PlayerState, PlayerSpec>
         hitOffset = new Vector();
     }
 
-    public virtual bool replayMode(bool v)
+    public bool replayMode(bool v)
     {
         state.replayMode = v;
         return state.replayMode;
     }
 
-    public virtual void set_0()
+    public void set_0()
     {
         state.set_0();
         spec.start_0();
@@ -38,7 +59,7 @@ public class Player : Token<PlayerState, PlayerSpec>
         spec.field.setEyePos(pos());
     }
 
-    public virtual bool checkBulletHit(Vector p, Vector pp)
+    public bool checkBulletHit(Vector p, Vector pp)
     {
         {
             if ((!((state.hasCollision()))))
@@ -53,7 +74,7 @@ public class Player : Token<PlayerState, PlayerSpec>
         }
     }
 
-    public virtual bool checkEnemyHit_3(Vector p, Vector v, Vector size)
+    public bool checkEnemyHit_3(Vector p, Vector v, Vector size)
     {
         if ((spec.gameState.mode_0() == GameStateMode.MODERN))
             return false;
@@ -81,74 +102,74 @@ public class Player : Token<PlayerState, PlayerSpec>
         }
     }
 
-    public virtual void destroy()
+    public void destroy()
     {
         remove();
         spec.destroyed_1(state);
     }
 
-    public virtual void drawState_0(float[] model, float[] color, Gfx.Blend blend)
+    public void drawState_0(float[] model, float[] color, Gfx.Blend blend)
     {
         if ((spec.gameState.mode_0() == GameStateMode.CLASSIC))
             spec.drawState_1(model, color, blend, state);
     }
 
-    public virtual void destroyCapturedEnemies(int idx)
+    public void destroyCapturedEnemies(int idx)
     {
         state.destroyCapturedEnemies(idx);
     }
 
-    public virtual bool isInTractorBeam(Vector p)
+    public bool isInTractorBeam(Vector p)
     {
         return spec.tractorBeam.contains_1(p);
     }
 
-    public virtual int addCapturedEnemy(Enemy e)
+    public int addCapturedEnemy(Enemy e)
     {
         return state.addCapturedEnemy(e);
     }
 
-    public virtual float capturedEnemyWidth()
+    public float capturedEnemyWidth()
     {
         return state.capturedEnemyWidth;
     }
 
-    public virtual void midEnemyProvacated()
+    public void midEnemyProvacated()
     {
         state.midEnemyProvacated = true;
     }
 
-    public virtual void addScore_1(int sc)
+    public void addScore_1(int sc)
     {
         spec.addScore_1(sc);
     }
 
-    public virtual void addMultiplier(float mp)
+    public void addMultiplier(float mp)
     {
         spec.addMultiplier(mp);
     }
 
-    public virtual float multiplier()
+    public float multiplier()
     {
         return spec.multiplier();
     }
 
-    public virtual float deg()
+    public float deg()
     {
         return state.deg;
     }
 
-    public virtual bool isActive()
+    public bool isActive()
     {
         return state.isActive();
     }
 
-    public virtual bool hasCollision()
+    public bool hasCollision()
     {
         return state.hasCollision();
     }
 
-    public virtual bool enemiesHasCollision()
+    public bool enemiesHasCollision()
     {
         switch (spec.gameState.mode_0())
         {
@@ -900,14 +921,71 @@ public class ShotPool
     }
 }
 
-public class Shot : Token<ShotState, ShotSpec>
+public class Shot : Actor
 {
-    public override void init_1(List<object> args)
+    public bool exists;
+    public ShotState state;
+    public ShotSpec spec;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool v)
+    {
+        exists = v;
+    }
+
+    public void init_1(List<object> args)
     {
         state = new ShotState();
     }
 
-    public virtual void setParent_1(Shot s)
+    public void setAt(ShotSpec spec, Vector pos, float deg, float speed)
+    {
+        set_5(spec, pos.x, pos.y, deg, speed);
+    }
+
+    public void set_5(ShotSpec spec, float x, float y, float deg, float speed)
+    {
+        this.spec = spec;
+        set_4(x, y, deg, speed);
+    }
+
+    public void set_4(float x, float y, float deg, float speed)
+    {
+        state.clear();
+        state.pos.x = x;
+        state.pos.y = y;
+        state.deg = deg;
+        state.speed = speed;
+        spec.set_1(state);
+        exists = true;
+    }
+
+    public void move_0()
+    {
+        if (!((spec.move_1(state))))
+            remove();
+    }
+
+    public void remove()
+    {
+        exists = false;
+        spec.removed(state);
+    }
+
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    {
+        spec.draw_1(model, color, blend, state);
+    }
+
+    public Vector pos()
+    {
+        return state.pos;
+    }
+
+    public void setParent_1(Shot s)
     {
         spec.setParent_2(state, s);
     }

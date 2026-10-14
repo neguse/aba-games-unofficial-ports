@@ -65,16 +65,68 @@ public class PillarPool
     }
 }
 
-public class Pillar : Token<PillarState, PillarSpec>
+public class Pillar : Actor
 {
-    public override void init_1(List<object> args)
+    public bool exists;
+    public PillarState state;
+    public PillarSpec spec;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool v)
+    {
+        exists = v;
+    }
+
+    public void init_1(List<object> args)
     {
         state = new PillarState();
     }
 
+    public void set_5(PillarSpec spec, float x, float y, float deg, float speed)
+    {
+        this.spec = spec;
+        set_4(x, y, deg, speed);
+    }
+
+    public void set_4(float x, float y, float deg, float speed)
+    {
+        state.clear();
+        state.pos.x = x;
+        state.pos.y = y;
+        state.deg = deg;
+        state.speed = speed;
+        spec.set_1(state);
+        exists = true;
+    }
+
+    public void move_0()
+    {
+        if (!((spec.move_1(state))))
+            remove();
+    }
+
+    public void remove()
+    {
+        exists = false;
+        spec.removed(state);
+    }
+
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    {
+        spec.draw_1(model, color, blend, state);
+    }
+
+    public Vector pos()
+    {
+        return state.pos;
+    }
+
     public void set_7(PillarSpec ps, float y, float maxY, Pillar pp, PillarShape s, float vdeg, bool outside = false)
     {
-        base.set_5(ps, 0, y, 0, 0);
+        set_5(ps, 0, y, 0, 0);
         state.maxY = maxY;
         state.previousPillar = pp;
         state.pshape = s;

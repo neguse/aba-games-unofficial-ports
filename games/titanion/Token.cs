@@ -4,67 +4,6 @@ using System.Collections.Generic;
 using static GameMath;
 using static Lub;
 
-public abstract class Token<ST, SP> : Actor where ST : TokenState where SP : TokenSpec<ST>
-{
-    public bool exists;
-    public ST state;
-    public SP spec;
-    public bool getExists()
-    {
-        return exists;
-    }
-
-    public void setExists(bool v)
-    {
-        exists = v;
-    }
-
-    public abstract void init_1(List<object> args);
-    public virtual void setAt(SP spec, Vector pos, float deg, float speed)
-    {
-        set_5(spec, pos.x, pos.y, deg, speed);
-    }
-
-    public virtual void set_5(SP spec, float x, float y, float deg, float speed)
-    {
-        this.spec = spec;
-        set_4(x, y, deg, speed);
-    }
-
-    public virtual void set_4(float x, float y, float deg, float speed)
-    {
-        state.clear();
-        state.pos.x = x;
-        state.pos.y = y;
-        state.deg = deg;
-        state.speed = speed;
-        spec.set_1(state);
-        exists = true;
-    }
-
-    public void move_0()
-    {
-        if (!((spec.move_1(state))))
-            remove();
-    }
-
-    public virtual void remove()
-    {
-        exists = false;
-        spec.removed(state);
-    }
-
-    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
-    {
-        spec.draw_1(model, color, blend, state);
-    }
-
-    public virtual Vector pos()
-    {
-        return state.pos;
-    }
-}
-
 public class TokenState
 {
     static int nextMesh;

@@ -35,13 +35,26 @@ public class ParticlePool
     }
 }
 
-public class Particle : Token<ParticleState, ParticleSpec>
+public class Particle : Actor
 {
+    public bool exists;
+    public ParticleState state;
+    public ParticleSpec spec;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool v)
+    {
+        exists = v;
+    }
+
     public TriangleParticleSpec triangleParticleSpec;
     public LineParticleSpec lineParticleSpec;
     public QuadParticleSpec quadParticleSpec;
     public BonusParticleSpec bonusParticleSpec;
-    public override void init_1(List<object> args)
+    public void init_1(List<object> args)
     {
         state = new ParticleState();
         triangleParticleSpec = (args[0] is TriangleParticleSpec ? (TriangleParticleSpec)args[0] : null);
@@ -50,7 +63,40 @@ public class Particle : Token<ParticleState, ParticleSpec>
         bonusParticleSpec = (args[3] is BonusParticleSpec ? (BonusParticleSpec)args[3] : null);
     }
 
-    public virtual void set_13(int type, float x, float y, float deg, float speed, float sz, float r, float g, float b, int c = 60, bool ebg = true, float num = 0, int waitCnt = 0)
+    public void set_4(float x, float y, float deg, float speed)
+    {
+        state.clear();
+        state.pos.x = x;
+        state.pos.y = y;
+        state.deg = deg;
+        state.speed = speed;
+        spec.set_1(state);
+        exists = true;
+    }
+
+    public void move_0()
+    {
+        if (!((spec.move_1(state))))
+            remove();
+    }
+
+    public void remove()
+    {
+        exists = false;
+        spec.removed(state);
+    }
+
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    {
+        spec.draw_1(model, color, blend, state);
+    }
+
+    public Vector pos()
+    {
+        return state.pos;
+    }
+
+    public void set_13(int type, float x, float y, float deg, float speed, float sz, float r, float g, float b, int c = 60, bool ebg = true, float num = 0, int waitCnt = 0)
     {
         switch (type)
         {
@@ -69,7 +115,7 @@ public class Particle : Token<ParticleState, ParticleSpec>
         }
 
         this.spec = spec;
-        base.set_4(x, y, deg, speed);
+        set_4(x, y, deg, speed);
         state.size = sz;
         state.vel.x = -sin(deg) * speed;
         state.vel.y = cos(deg) * speed;
@@ -88,10 +134,10 @@ public class Particle : Token<ParticleState, ParticleSpec>
             ((spec is BonusParticleSpec ? (BonusParticleSpec)spec : null)).setSize(state, sz);
     }
 
-    public virtual void setByVelocity(float x, float y, float vx, float vy, float sz, float r, float g, float b, float a, int c = 60, bool ebg = true)
+    public void setByVelocity(float x, float y, float vx, float vy, float sz, float r, float g, float b, float a, int c = 60, bool ebg = true)
     {
         spec = triangleParticleSpec;
-        base.set_4(x, y, 0, 0);
+        set_4(x, y, 0, 0);
         state.vel.x = vx;
         state.vel.y = vy;
         state.size = sz;

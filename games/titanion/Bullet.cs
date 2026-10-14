@@ -65,14 +65,71 @@ public class BulletPool
     }
 }
 
-public class Bullet : Token<BulletState, BulletSpec>
+public class Bullet : Actor
 {
-    public override void init_1(List<object> args)
+    public bool exists;
+    public BulletState state;
+    public BulletSpec spec;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool v)
+    {
+        exists = v;
+    }
+
+    public void init_1(List<object> args)
     {
         state = new BulletState();
     }
 
-    public virtual void setWaitCnt(int c)
+    public void setAt(BulletSpec spec, Vector pos, float deg, float speed)
+    {
+        set_5(spec, pos.x, pos.y, deg, speed);
+    }
+
+    public void set_5(BulletSpec spec, float x, float y, float deg, float speed)
+    {
+        this.spec = spec;
+        set_4(x, y, deg, speed);
+    }
+
+    public void set_4(float x, float y, float deg, float speed)
+    {
+        state.clear();
+        state.pos.x = x;
+        state.pos.y = y;
+        state.deg = deg;
+        state.speed = speed;
+        spec.set_1(state);
+        exists = true;
+    }
+
+    public void move_0()
+    {
+        if (!((spec.move_1(state))))
+            remove();
+    }
+
+    public void remove()
+    {
+        exists = false;
+        spec.removed(state);
+    }
+
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    {
+        spec.draw_1(model, color, blend, state);
+    }
+
+    public Vector pos()
+    {
+        return state.pos;
+    }
+
+    public void setWaitCnt(int c)
     {
         state.waitCnt = c;
     }
