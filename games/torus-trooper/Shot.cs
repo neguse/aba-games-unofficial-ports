@@ -6,6 +6,11 @@ using static Lub;
 
 public class Shot : Actor
 {
+    public string meshKey;
+    public bool exists;
+    public Shot() { meshKey = ActorMesh.nextKey(); }
+    public bool getExist() { return exists; }
+    public void setExist(bool value) { exists = value; }
     public const float SPEED = 0.75f;
     public const float RANGE_MIN = 2;
     public const float SIZE_MIN = 0.1f;
@@ -53,7 +58,7 @@ public class Shot : Actor
         shotShape.close();
     }
 
-    public override void init_1(List<object> args)
+    public void init_1(List<object> args)
     {
         tunnel = (Tunnel)args[0];
         enemies = (EnemyPool)args[1];
@@ -145,7 +150,7 @@ public class Shot : Actor
         exists = false;
     }
 
-    public override void move()
+    public void move()
     {
         if (inCharge)
         {
@@ -223,7 +228,7 @@ public class Shot : Actor
         }
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         Vector3 sp = tunnel.getPos_1_Vector(pos);
         float[] parent1 = model;
@@ -243,9 +248,18 @@ public class Shot : Actor
     }
 }
 
-public class ShotPool : ActorPool<Shot>
+public class ShotPool
 {
-    public ShotPool(int n, List<object> args) : base(n, args, () => new Shot())
+    ActorPool<Shot> pool;
+    public Shot[] actor;
+    public ShotPool(int n, List<object> args)
     {
+        pool = new ActorPool<Shot>(n, args, () => new Shot());
+        actor = pool.actor;
     }
+    public Shot getInstance() { return pool.getInstance(); }
+    public Shot getInstanceForced() { return pool.getInstanceForced(); }
+    public void move() { pool.move(); }
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth) { pool.draw(model, tint, blend, cull, lineWidth); }
+    public void clear() { pool.clear(); }
 }

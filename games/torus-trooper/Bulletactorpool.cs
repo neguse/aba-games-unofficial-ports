@@ -1,12 +1,17 @@
 // Copyright 2004 Kenta Cho. Some rights reserved.
 using System.Collections.Generic;
+using static Lub;
 
-public class BulletActorPool : ActorPool<BulletActor>
+public class BulletActorPool
 {
+    ActorPool<BulletActor> pool;
+    public BulletActor[] actor;
     public float cnt;
     public TtWorld world;
-    public BulletActorPool(int count, List<object> args) : base(count, args, () => new BulletActor())
+    public BulletActorPool(int count, List<object> args)
     {
+        pool = new ActorPool<BulletActor>(count, args, () => new BulletActor());
+        actor = pool.actor;
         Bullet.manager = this;
         world = new TtWorld(this);
     }
@@ -53,18 +58,21 @@ public class BulletActorPool : ActorPool<BulletActor>
         return actor;
     }
 
-    public override void move()
+    public BulletActor getInstance() { return pool.getInstance(); }
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth) { pool.draw(model, tint, blend, cull, lineWidth); }
+
+    public void move()
     {
-        base.move();
+        pool.move();
         cnt += SimulationTime.Step;
     }
 
-    public override void clear()
+    public void clear()
     {
         foreach (var item in actor)
             if (item.exists)
                 item.removeForced();
-        actorIdx = 0;
+        pool.actorIdx = 0;
         cnt = 0;
     }
 

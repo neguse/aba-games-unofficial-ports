@@ -3,24 +3,23 @@ using System;
 using static Lub;
 using System.Collections.Generic;
 
-public abstract class Actor
+public interface Actor
 {
-    static int nextMesh;
-    public string meshKey;
-    public Actor() { meshKey = nextMesh.ToString(); nextMesh++; }
-    public bool exists;
-    public abstract void init_1(List<object> args);
-    public abstract void move();
-    public abstract void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth);
+    bool getExist();
+    void setExist(bool value);
+    void init_1(List<object> args);
+    void move();
+    void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth);
 }
 
-public abstract class LuminousActor : Actor
+public static class ActorMesh
 {
-    public abstract void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth);
+    static int nextMesh;
+    public static string nextKey() { string key = nextMesh.ToString(); nextMesh++; return key; }
 }
 
 public class ActorPool<T>
-    where T : Actor
+    where T : class, Actor
 {
     public T[] actor;
     public int actorIdx;
@@ -41,7 +40,7 @@ public class ActorPool<T>
             actorIdx--;
             if (actorIdx < 0)
                 actorIdx = actor.Length - 1;
-            if (!(actor[actorIdx].exists))
+            if (!(actor[actorIdx].getExist()))
                 return actor[actorIdx];
         }
 
@@ -65,51 +64,37 @@ public class ActorPool<T>
             if (item == null)
             {
                 for (int j = 0; j < i; j++)
-                    result[j].exists = false;
+                    result[j].setExist(false);
                 return null;
             }
 
-            item.exists = true;
+            item.setExist(true);
             result[i] = item;
         }
 
         for (int i = 0; i < n; i++)
-            result[i].exists = false;
+            result[i].setExist(false);
         return result;
     }
 
-    public virtual void move()
+    public void move()
     {
         foreach (var item in actor)
-            if (item.exists)
+            if (item.getExist())
                 item.move();
     }
 
-    public virtual void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         foreach (var item in actor)
-            if (item.exists)
+            if (item.getExist())
                 item.draw(model, tint, blend, cull, lineWidth);
     }
 
-    public virtual void clear()
+    public void clear()
     {
         foreach (var item in actor)
-            item.exists = false;
+            item.setExist(false);
         actorIdx = 0;
-    }
-}
-
-public class LuminousActorPool<T> : ActorPool<T> where T : LuminousActor
-{
-    public LuminousActorPool(int n, List<object> args, Func<T> create) : base(n, args, create)
-    {
-    }
-
-    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
-    {
-        foreach (var a in actor)
-            if (a.exists)
-                a.drawLuminous(model, tint, blend, cull, lineWidth);
     }
 }
