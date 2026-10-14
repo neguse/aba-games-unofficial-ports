@@ -320,15 +320,28 @@ public class ShotPool
     }
 }
 
-public class ShotShape : CollidableDrawable
+public class ShotShape : DrawableShape, Collidable
 {
+    public Mesh mesh;
+    public int opaqueCount;
     public ShotShape()
     {
-        initializeShape();
+        mesh = ShapeMesh.create();
+        createMesh();
         setCollision();
     }
 
-    public override void createMesh()
+    public void close()
+    {
+        mesh = null;
+    }
+
+    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    {
+        ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
+    }
+
+    public void createMesh()
     {
         float[] color = null;
         color = new float[] { 0.1f, 0.33f, 0.1f, 1 };
@@ -348,9 +361,48 @@ public class ShotShape : CollidableDrawable
         mesh.Quads(first1, mesh.vertexCount - first1);
     }
 
-    public override void setCollision()
+    public Vector getCollision()
+    {
+        return collisionBounds;
+    }
+
+    public bool checkCollision(float ax, float ay, Collidable shape = null)
+    {
+        float cx = 0, cy = 0;
+        if (shape != null)
+        {
+            cx = collisionBounds.x + shape.getCollision().x;
+            cy = collisionBounds.y + shape.getCollision().y;
+        }
+        else
+        {
+            cx = collisionBounds.x;
+            cy = collisionBounds.y;
+        }
+
+        if ((ax <= cx) && (ay <= cy))
+            return true;
+        else
+            return false;
+    }
+
+    public Vector _collision;
+    public void setCollision()
     {
         _collision = new Vector(0.33f, 0.33f);
+    }
+
+    public Vector collisionBounds
+    {
+        get
+        {
+            return _collision;
+        }
+
+        set
+        {
+            _collision = value;
+        }
     }
 }
 

@@ -15,21 +15,21 @@ public interface Collidable
     public bool checkCollision(float ax, float ay, Collidable shape = null);
 }
 
-public abstract class DrawableShape : Drawable
+public interface DrawableShape : Drawable
+{
+    public void close();
+}
+
+public static class ShapeMesh
 {
     static int nextMesh;
-    public Mesh mesh;
-    public int opaqueCount;
-    public void initializeShape()
+    public static Mesh create()
     {
-        mesh = new Mesh("shape-" + nextMesh.ToString()); nextMesh++;
-        createMesh();
+        Mesh mesh = new Mesh("shape-" + nextMesh.ToString()); nextMesh++;
+        return mesh;
     }
 
-    public abstract void createMesh();
-    public void close() { mesh = null; }
-
-    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    public static void draw(Mesh mesh, int opaqueCount, float[] model, float[] color, Gfx.Blend blend)
     {
         if (opaqueCount > 0)
             Gfx.Draw(opaqueCount, mesh.Bindings(model, color, 1, false),
@@ -37,49 +37,6 @@ public abstract class DrawableShape : Drawable
         if (mesh.count > opaqueCount)
             Gfx.Draw(mesh.count - opaqueCount, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive, opaqueCount / 3),
                 new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
-    }
-}
-
-public abstract class CollidableDrawable : DrawableShape, Collidable
-{
-    public Vector getCollision()
-    {
-        return collisionBounds;
-    }
-
-    public bool checkCollision(float ax, float ay, Collidable shape = null)
-    {
-        float cx = 0, cy = 0;
-        if (shape != null)
-        {
-            cx = collisionBounds.x + shape.getCollision().x;
-            cy = collisionBounds.y + shape.getCollision().y;
-        }
-        else
-        {
-            cx = collisionBounds.x;
-            cy = collisionBounds.y;
-        }
-
-        if ((ax <= cx) && (ay <= cy))
-            return true;
-        else
-            return false;
-    }
-
-    public Vector _collision;
-    public abstract void setCollision();
-    public Vector collisionBounds
-    {
-        get
-        {
-            return _collision;
-        }
-
-        set
-        {
-            _collision = value;
-        }
     }
 }
 
@@ -151,7 +108,7 @@ public class ResizableDrawable : Drawable, Collidable
         get
         {
             Collidable cd = (Collidable)_shape;
-            if ((_shape is CollidableBaseShape) || (_shape is DestructiveBulletShape) || (_shape is CollidableDrawable))
+            if ((_shape is CollidableBaseShape) || (_shape is DestructiveBulletShape) || (_shape is ShotShape))
             {
                 _collision.x = cd.getCollision().x * _size;
                 _collision.y = cd.getCollision().y * _size;
