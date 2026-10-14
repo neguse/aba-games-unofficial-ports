@@ -26,7 +26,7 @@ runner.write_text('lub = {host = {available = function() return false end}}\n' +
     'lub.png = {load = function() return nil, 0, 0, 0, 0, 0, "pending" end}\n'
     'lub.gfx = {use_buffer = function(key, kind, data) assert(#data > 0, key); return {version=1} end, '
     'use_texture = function() return {version=1} end, draw = function() end}\n'
-    if args.game in ['gunroar', 'titanion', 'parsec47', 'tumiki', 'torus-trooper', 'a7xpg', 'rrootage'] else '') + 'local game = dofile(arg[1]); game.main()\n')
+    if args.game in ['gunroar', 'titanion', 'parsec47', 'tumiki', 'torus-trooper', 'a7xpg', 'rrootage'] else '') + 'local game = dofile(arg[1]); game.Main()\n')
 result = subprocess.run([str(args.lub / 'third_party/tcs/deps/lua/lua32'), str(runner), str(output)],
                         text=True, stdout=subprocess.PIPE, check=True)
 print(result.stdout, end='')
