@@ -116,7 +116,6 @@ public class Bullet : Actor
     public void remove()
     {
         exists = false;
-        spec.removed(state);
     }
 
     public void draw_0(float[] model, float[] color, Gfx.Blend blend)
@@ -135,8 +134,13 @@ public class Bullet : Actor
     }
 }
 
-public class BulletState : TokenState
+public class BulletState
 {
+    public string meshKey;
+    public bool isInitialized = false;
+    public Vector pos;
+    public float deg;
+    public float speed;
     public static int colorCnt = 0;
     public static float colorAlpha = 0;
     public Vector ppos;
@@ -144,8 +148,10 @@ public class BulletState : TokenState
     public int cnt;
     public int waitCnt;
     public float speedRatio;
-    public BulletState() : base()
+    public BulletState()
     {
+        meshKey = TokenState.nextMeshKey();
+        pos = new Vector();
         ppos = new Vector();
         tailPos = new Vector();
     }
@@ -160,7 +166,7 @@ public class BulletState : TokenState
             colorAlpha = 1 - (float)(c - 15) / 15;
     }
 
-    public override void clear()
+    public void clear()
     {
         {
             ppos.y = 0;
@@ -175,12 +181,21 @@ public class BulletState : TokenState
         cnt = 0;
         waitCnt = 0;
         speedRatio = 0;
-        base.clear();
+        {
+            pos.y = 0;
+            pos.x = pos.y;
+        }
+
+        deg = 0;
+        speed = 0;
+        isInitialized = true;
     }
 }
 
-public class BulletSpec : TokenSpec<BulletState>
+public class BulletSpec
 {
+    public Field field;
+    public Shape shape;
     public const float DISAPPEAR_CNT = 300;
     public Player player;
     public EnemyPool enemies;
@@ -198,7 +213,7 @@ public class BulletSpec : TokenSpec<BulletState>
         this.gameState = gameState;
     }
 
-    public override void set_1(BulletState bs)
+    public void set_1(BulletState bs)
     {
         {
             bs.ppos.x = bs.pos.x;
@@ -208,7 +223,7 @@ public class BulletSpec : TokenSpec<BulletState>
         }
     }
 
-    public override bool move_1(BulletState bs)
+    public bool move_1(BulletState bs)
     {
         {
             if (bs.waitCnt > 0)
@@ -249,7 +264,7 @@ public class BulletSpec : TokenSpec<BulletState>
         }
     }
 
-    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, BulletState bs)
+    public void draw_1(float[] model, float[] color, Gfx.Blend blend, BulletState bs)
     {
         {
             if (bs.waitCnt > 0)

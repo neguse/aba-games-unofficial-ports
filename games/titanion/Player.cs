@@ -18,7 +18,6 @@ public class Player
     public void remove()
     {
         exists = false;
-        spec.removed(state);
     }
 
     public void draw_0(float[] model, float[] color, Gfx.Blend blend)
@@ -185,8 +184,13 @@ public class Player
     }
 }
 
-public class PlayerState : TokenState
+public class PlayerState
 {
+    public string meshKey;
+    public bool isInitialized = false;
+    public Vector pos;
+    public float deg;
+    public float speed;
     public bool replayMode;
     public const int RESPAWN_INTERVAL = 72;
     public const int INVINCIBLE_INTERVAL_RESPAWN = 240;
@@ -212,16 +216,18 @@ public class PlayerState : TokenState
     public bool midEnemyProvacated;
     public PlayerState()
     {
+        meshKey = TokenState.nextMeshKey();
+        pos = new Vector();
         capturedEnemies = new Enemy[MAX_CAPTURED_ENEMIES_NUM];
         vel = new Vector();
     }
 
-    public virtual void setSpec(PlayerSpec spec)
+    public void setSpec(PlayerSpec spec)
     {
         this.spec = spec;
     }
 
-    public virtual void set_0()
+    public void set_0()
     {
         reset();
         pos.x = 0;
@@ -235,7 +241,7 @@ public class PlayerState : TokenState
         shotCnt = 60;
     }
 
-    public override void clear()
+    public void clear()
     {
         capturedEnemyNum = 0;
         {
@@ -263,10 +269,17 @@ public class PlayerState : TokenState
         ghostCnt = 0;
         ghostShotCnt = 0;
         midEnemyProvacated = false;
-        base.clear();
+        {
+            pos.y = 0;
+            pos.x = pos.y;
+        }
+
+        deg = 0;
+        speed = 0;
+        isInitialized = true;
     }
 
-    public virtual void reset()
+    public void reset()
     {
         float x = pos.x;
         clear();
@@ -280,7 +293,7 @@ public class PlayerState : TokenState
         spec.respawn(this);
     }
 
-    public virtual void move_0()
+    public void move_0()
     {
         colorCnt++;
         ghostCnt++;
@@ -303,17 +316,17 @@ public class PlayerState : TokenState
         midEnemyProvacated = false;
     }
 
-    public virtual bool isActive()
+    public bool isActive()
     {
         return !((isInRespawn));
     }
 
-    public virtual bool hasCollision()
+    public bool hasCollision()
     {
         return (((!((isInRespawn)))) && ((!((isInvincible)))));
     }
 
-    public virtual bool hasShape()
+    public bool hasShape()
     {
         if (isInRespawn)
             return false;
@@ -325,14 +338,14 @@ public class PlayerState : TokenState
             return true;
     }
 
-    public virtual void destroyed_0()
+    public void destroyed_0()
     {
         respawnCnt = RESPAWN_INTERVAL;
         destroyCapturedEnemies(0);
         isInRespawn = true;
     }
 
-    public virtual int addCapturedEnemy(Enemy e)
+    public int addCapturedEnemy(Enemy e)
     {
         if (((isInRespawn)) || ((capturedEnemyNum >= MAX_CAPTURED_ENEMIES_NUM)))
             return -1;
@@ -341,7 +354,7 @@ public class PlayerState : TokenState
         return capturedEnemyNum - 1;
     }
 
-    public virtual void destroyCapturedEnemies(int idx)
+    public void destroyCapturedEnemies(int idx)
     {
         for (int i = idx; i < capturedEnemyNum; i++)
             if (capturedEnemies[i].exists)
@@ -349,7 +362,7 @@ public class PlayerState : TokenState
         capturedEnemyNum = idx;
     }
 
-    public virtual void countShotHit()
+    public void countShotHit()
     {
         captureBeamEnergy = captureBeamEnergy + (0.02f / (capturedEnemyNum + 1));
         if (captureBeamEnergy > 1)
@@ -357,8 +370,10 @@ public class PlayerState : TokenState
     }
 }
 
-public class PlayerSpec : TokenSpec<PlayerState>
+public class PlayerSpec
 {
+    public Field field;
+    public Shape shape;
     public static TitanionRand rand = new TitanionRand();
     public static void setRandSeed(int seed)
     {
@@ -403,21 +418,21 @@ public class PlayerSpec : TokenSpec<PlayerState>
         ghostEnemySpec = new GhostEnemySpec(field, ghostEnemyShape);
     }
 
-    public virtual void setState(PlayerState ps)
+    public void setState(PlayerState ps)
     {
         playerState = ps;
         shotSpec.setPlayerState(ps);
         tractorBeam = new TractorBeam(field, ps, gameState);
     }
 
-    public virtual void close()
+    public void close()
     {
         ghostEnemyShape.close();
         ((shape is MeshShape ? (MeshShape)shape : null)).close();
         shotSpec.close();
     }
 
-    public virtual void start_0()
+    public void start_0()
     {
         clear();
         switch (gameState.mode_0())
@@ -437,7 +452,7 @@ public class PlayerSpec : TokenSpec<PlayerState>
         }
     }
 
-    public virtual void respawn(PlayerState ps)
+    public void respawn(PlayerState ps)
     {
         if ((gameState.mode_0() == GameStateMode.MODERN))
         {
@@ -452,14 +467,14 @@ public class PlayerSpec : TokenSpec<PlayerState>
         }
     }
 
-    public virtual void clear()
+    public void clear()
     {
         tractorBeam.clear();
         shots.clear();
         capturedEnemiesShots.clear();
     }
 
-    public override bool move_1(PlayerState ps)
+    public bool move_1(PlayerState ps)
     {
         {
             PadState input = null;
@@ -672,7 +687,7 @@ public class PlayerSpec : TokenSpec<PlayerState>
         }
     }
 
-    public virtual void fireShot(PlayerState ps)
+    public void fireShot(PlayerState ps)
     {
         {
             if ((shots.num() >= shotMaxNum))
@@ -721,7 +736,7 @@ public class PlayerSpec : TokenSpec<PlayerState>
         }
     }
 
-    public virtual void addShotParticle(Vector p, float d)
+    public void addShotParticle(Vector p, float d)
     {
         for (int i = 0; i < 5; i++)
         {
@@ -733,7 +748,7 @@ public class PlayerSpec : TokenSpec<PlayerState>
         }
     }
 
-    public virtual void addVelocity(PlayerState ps, Vector v, Vector o)
+    public void addVelocity(PlayerState ps, Vector v, Vector o)
     {
         Vector rv = v.getElement(o, 0.05f, 0.25f);
         rv.opMulAssign(5);
@@ -754,7 +769,7 @@ public class PlayerSpec : TokenSpec<PlayerState>
         Sound.playSe("flick.wav");
     }
 
-    public virtual void destroyed_1(PlayerState ps)
+    public void destroyed_1(PlayerState ps)
     {
         {
             if ((!((ps.isActive()))))
@@ -794,22 +809,22 @@ public class PlayerSpec : TokenSpec<PlayerState>
         }
     }
 
-    public virtual void addScore_1(int sc)
+    public void addScore_1(int sc)
     {
         gameState.addScore_2(sc);
     }
 
-    public virtual void addMultiplier(float mp)
+    public void addMultiplier(float mp)
     {
         gameState.addMultiplier(mp);
     }
 
-    public virtual float multiplier()
+    public float multiplier()
     {
         return gameState.multiplier();
     }
 
-    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, PlayerState ps)
+    public void draw_1(float[] model, float[] color, Gfx.Blend blend, PlayerState ps)
     {
         {
             shots.draw_0(model, color, blend);
@@ -832,7 +847,7 @@ public class PlayerSpec : TokenSpec<PlayerState>
         }
     }
 
-    public virtual void drawState_1(float[] model, float[] color, Gfx.Blend blend, PlayerState ps)
+    public void drawState_1(float[] model, float[] color, Gfx.Blend blend, PlayerState ps)
     {
         {
             color = new float[] { 1, 1, 1, 0.5f };
@@ -972,7 +987,6 @@ public class Shot : Actor
     public void remove()
     {
         exists = false;
-        spec.removed(state);
     }
 
     public void draw_0(float[] model, float[] color, Gfx.Blend blend)
@@ -991,20 +1005,45 @@ public class Shot : Actor
     }
 }
 
-public class ShotState : TokenState
+public class ShotState
 {
+    public string meshKey;
+    public bool isInitialized = false;
+    public Vector pos;
+    public float deg;
+    public float speed;
     public Shot parent;
     public int cnt;
-    public override void clear()
+    public ShotState()
+    {
+        meshKey = TokenState.nextMeshKey();
+        pos = new Vector();
+    }
+
+    public void stepForward()
+    {
+        TokenState.stepForward(pos, deg, speed);
+    }
+
+    public void clear()
     {
         parent = null;
         cnt = 0;
-        base.clear();
+        {
+            pos.y = 0;
+            pos.x = pos.y;
+        }
+
+        deg = 0;
+        speed = 0;
+        isInitialized = true;
     }
 }
 
-public class ShotSpec : TokenSpec<ShotState>
+public class ShotSpec
 {
+    public Field field;
+    public Shape shape;
     public EnemyPool enemies;
     public BulletPool bullets;
     public PlayerState playerState;
@@ -1018,28 +1057,28 @@ public class ShotSpec : TokenSpec<ShotState>
         shape = new MeshShape(new ShotShape());
     }
 
-    public virtual void setPlayerState(PlayerState ps)
+    public void setPlayerState(PlayerState ps)
     {
         playerState = ps;
     }
 
-    public virtual void close()
+    public void close()
     {
         ((shape is MeshShape ? (MeshShape)shape : null)).close();
     }
 
-    public override void set_1(ShotState ss)
+    public void set_1(ShotState ss)
     {
         ss.parent = null;
         ss.cnt = 0;
     }
 
-    public virtual void setParent_2(ShotState ss, Shot s)
+    public void setParent_2(ShotState ss, Shot s)
     {
         ss.parent = s;
     }
 
-    public override bool move_1(ShotState ss)
+    public bool move_1(ShotState ss)
     {
         {
             if ((ss.parent) != null)
@@ -1066,14 +1105,24 @@ public class ShotSpec : TokenSpec<ShotState>
         }
     }
 
-    public virtual bool checkParent_1(ShotState ss)
+    public bool checkParent_1(ShotState ss)
     {
         if ((ss.parent) != null)
             if (ss.parent.exists == false)
                 return false;
         return true;
     }
+
+    public void draw_1(float[] model, float[] color, Gfx.Blend blend, ShotState state)
+    {
+        {
+            Vector3 p = field.calcCircularPos_1(state.pos);
+            float cd = field.calcCircularDeg(state.pos.x);
+            shape.draw_3(model, color, blend, p, cd, state.deg);
+        }
+    }
 }
+
 
 public class TractorBeam
 {

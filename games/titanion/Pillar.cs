@@ -98,7 +98,6 @@ public class Pillar : Actor
         state.pos.y = y;
         state.deg = deg;
         state.speed = speed;
-        spec.set_1(state);
         exists = true;
     }
 
@@ -111,7 +110,6 @@ public class Pillar : Actor
     public void remove()
     {
         exists = false;
-        spec.removed(state);
     }
 
     public void draw_0(float[] model, float[] color, Gfx.Blend blend)
@@ -148,15 +146,26 @@ public class Pillar : Actor
     }
 }
 
-public class PillarState : TokenState
+public class PillarState
 {
+    public string meshKey;
+    public bool isInitialized = false;
+    public Vector pos;
+    public float deg;
+    public float speed;
     public Pillar previousPillar;
     public float vy, vdeg;
     public float maxY;
     public PillarShape pshape;
     public bool isEnded;
     public bool isOutside;
-    public override void clear()
+    public PillarState()
+    {
+        meshKey = TokenState.nextMeshKey();
+        pos = new Vector();
+    }
+
+    public void clear()
     {
         previousPillar = null;
         vy = 0;
@@ -164,19 +173,27 @@ public class PillarState : TokenState
         maxY = 0;
         isEnded = false;
         isOutside = false;
-        base.clear();
+        {
+            pos.y = 0;
+            pos.x = pos.y;
+        }
+
+        deg = 0;
+        speed = 0;
+        isInitialized = true;
     }
 }
 
-public class PillarSpec : TokenSpec<PillarState>
+public class PillarSpec
 {
+    public Field field;
     public const float VELOCITY_Y = 0.025f;
     public PillarSpec(Field field)
     {
         this.field = field;
     }
 
-    public override bool move_1(PillarState ps)
+    public bool move_1(PillarState ps)
     {
         {
             if (!((ps.isOutside)))
@@ -216,7 +233,7 @@ public class PillarSpec : TokenSpec<PillarState>
         }
     }
 
-    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, PillarState ps)
+    public void draw_1(float[] model, float[] color, Gfx.Blend blend, PillarState ps)
     {
         ps.pshape.draw_2(model, color, blend, ps.pos.y, ps.deg);
     }

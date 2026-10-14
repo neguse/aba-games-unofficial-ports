@@ -255,7 +255,6 @@ public class Enemy : Actor
     public void remove()
     {
         exists = false;
-        spec.removed(state);
     }
 
     public void draw_0(float[] model, float[] color, Gfx.Blend blend)
@@ -393,8 +392,13 @@ public class Enemy : Actor
     }
 }
 
-public class EnemyState : TokenState
+public class EnemyState
 {
+    public string meshKey;
+    public bool isInitialized = false;
+    public Vector pos;
+    public float deg;
+    public float speed;
     public const int TRAIL_NUM = 64;
     public const int TRAIL_INTERVAL = 8;
     public const int TURRET_MAX_NUM = 3;
@@ -418,8 +422,10 @@ public class EnemyState : TokenState
     public bool trailLooped;
     public bool isFirstEnemy;
     public float anger;
-    public EnemyState() : base()
+    public EnemyState()
     {
+        meshKey = TokenState.nextMeshKey();
+        pos = new Vector();
         for (int i = 0; i < TURRET_MAX_NUM; i++)
             turretStates[i] = new TurretState();
         vel = new Vector();
@@ -434,7 +440,7 @@ public class EnemyState : TokenState
             trails[i] = new Trail();
     }
 
-    public override void clear()
+    public void clear()
     {
         foreach (TurretState ts in turretStates)
             ts.clear();
@@ -501,16 +507,23 @@ public class EnemyState : TokenState
         trailLooped = false;
         isFirstEnemy = false;
         anger = 0;
-        base.clear();
+        {
+            pos.y = 0;
+            pos.x = pos.y;
+        }
+
+        deg = 0;
+        speed = 0;
+        isInitialized = true;
     }
 
-    public virtual void move_0()
+    public void move_0()
     {
         cnt++;
         anger = anger * (0.9995f);
     }
 
-    public virtual void recordTrail()
+    public void recordTrail()
     {
         trails[trailIdx].set_4(pos.x, pos.y, deg, cnt);
         trailIdx++;
@@ -521,7 +534,7 @@ public class EnemyState : TokenState
         }
     }
 
-    public virtual void drawTrails_6(float[] model, float[] color, Gfx.Blend blend, EnemyShape s, float r, float g, float b, Vector size, Field field)
+    public void drawTrails_6(float[] model, float[] color, Gfx.Blend blend, EnemyShape s, float r, float g, float b, Vector size, Field field)
     {
         int ti = trailIdx;
         float a = 1.0f;
@@ -546,8 +559,10 @@ public class EnemyState : TokenState
     }
 }
 
-public abstract class EnemySpec : TokenSpec<EnemyState>
+public abstract class EnemySpec
 {
+    public Field field;
+    public Shape shape;
     public static TitanionRand rand = new TitanionRand();
     public static void setRandSeed(int seed)
     {
@@ -590,14 +605,14 @@ public abstract class EnemySpec : TokenSpec<EnemyState>
         this.gameState = gameState;
     }
 
-    public override void set_1(EnemyState es)
+    public virtual void set_1(EnemyState es)
     {
         es.shield = shield;
         for (int i = 0; i < turretNum; i++)
             turretSpecs[i].set_1(es.turretStates[i]);
     }
 
-    public override bool move_1(EnemyState es)
+    public virtual bool move_1(EnemyState es)
     {
         {
             es.move_0();
@@ -1124,7 +1139,7 @@ public abstract class EnemySpec : TokenSpec<EnemyState>
     public abstract bool gotoNextPhase(EnemyState es);
     public abstract bool isInAttack_1(EnemyState es);
     public abstract int calcStandByTime(EnemyState es);
-    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
+    public virtual void draw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
     {
         Vector3 p = field.calcCircularPos_1(es.pos);
         float cd = field.calcCircularDeg(es.pos.x);
@@ -1682,12 +1697,23 @@ public class SE2Spec : SmallEnemySpec
     }
 }
 
-public class TurretState : TokenState
+public class TurretState
 {
+    public string meshKey;
+    public bool isInitialized = false;
+    public Vector pos;
+    public float deg;
+    public float speed;
     public float fireCnt, burstCnt;
     public int burstNum;
     public int nwaySpeedAccelDir;
-    public override void clear()
+    public TurretState()
+    {
+        meshKey = TokenState.nextMeshKey();
+        pos = new Vector();
+    }
+
+    public void clear()
     {
         {
             burstCnt = 0;
@@ -1696,10 +1722,17 @@ public class TurretState : TokenState
 
         burstNum = 0;
         nwaySpeedAccelDir = 1;
-        base.clear();
+        {
+            pos.y = 0;
+            pos.x = pos.y;
+        }
+
+        deg = 0;
+        speed = 0;
+        isInitialized = true;
     }
 
-    public virtual void update(float x, float y, float d)
+    public void update(float x, float y, float d)
     {
         pos.x = x;
         pos.y = y;
@@ -1708,8 +1741,9 @@ public class TurretState : TokenState
     }
 }
 
-public class TurretSpec : TokenSpec<TurretState>
+public class TurretSpec
 {
+    public Field field;
     public static TitanionRand rand = new TitanionRand();
     public static void setRandSeed(int seed)
     {
@@ -1746,7 +1780,7 @@ public class TurretSpec : TokenSpec<TurretState>
         initParam();
     }
 
-    public virtual void initParam()
+    public void initParam()
     {
         interval = 99999;
         speed = 1;
@@ -1763,7 +1797,7 @@ public class TurretSpec : TokenSpec<TurretState>
         minimumFireDist = 0;
     }
 
-    public virtual void copy(TurretSpec ts)
+    public void copy(TurretSpec ts)
     {
         interval = ts.interval;
         speed = ts.speed;
@@ -1777,17 +1811,17 @@ public class TurretSpec : TokenSpec<TurretState>
         fireingAtATime = ts.fireingAtATime;
     }
 
-    public override void set_1(TurretState ts)
+    public void set_1(TurretState ts)
     {
         setFireIntervalRatio(ts, fireIntervalRatio);
     }
 
-    public virtual void setFireIntervalRatio(TurretState ts, float fir)
+    public void setFireIntervalRatio(TurretState ts, float fir)
     {
         ts.fireCnt = fir * interval;
     }
 
-    public virtual void setRankNormal(float rank, bool isWide = false)
+    public void setRankNormal(float rank, bool isWide = false)
     {
         initParam();
         float rr = rand.nextFloat(0.5f);
@@ -1878,7 +1912,7 @@ public class TurretSpec : TokenSpec<TurretState>
         minimumFireDist = 10;
     }
 
-    public virtual void setRankMiddle(float rank)
+    public void setRankMiddle(float rank)
     {
         initParam();
         float nr = 0, br = 0, ir = 0;
@@ -2009,7 +2043,7 @@ public class TurretSpec : TokenSpec<TurretState>
         minimumFireDist = 5;
     }
 
-    public virtual bool move_3(TurretState ts, float time = 1, float anger = 0)
+    public bool move_3(TurretState ts, float time = 1, float anger = 0)
     {
         if (_disabled)
             return true;
@@ -2098,7 +2132,7 @@ public class TurretSpec : TokenSpec<TurretState>
         return true;
     }
 
-    public virtual bool isAbleToFire(Vector p)
+    public bool isAbleToFire(Vector p)
     {
         if ((gameState.mode_0() != GameStateMode.MODERN))
             return (p.y > 0);
@@ -2106,7 +2140,7 @@ public class TurretSpec : TokenSpec<TurretState>
             return (((p.y > 0)) && ((p.dist_1(player.pos()) > minimumFireDist)));
     }
 
-    public virtual bool disabled(bool v)
+    public bool disabled(bool v)
     {
         _disabled = v;
         return _disabled;

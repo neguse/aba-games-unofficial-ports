@@ -83,7 +83,6 @@ public class Particle : Actor
     public void remove()
     {
         exists = false;
-        spec.removed(state);
     }
 
     public void draw_0(float[] model, float[] color, Gfx.Blend blend)
@@ -154,8 +153,13 @@ public class Particle : Actor
     }
 }
 
-public class ParticleState : TokenState
+public class ParticleState
 {
+    public string meshKey;
+    public bool isInitialized = false;
+    public Vector pos;
+    public float deg;
+    public float speed;
     public Vector vel;
     public Vector tailPos;
     public float size;
@@ -167,13 +171,20 @@ public class ParticleState : TokenState
     public float num, trgNum;
     public float trgSize;
     public int waitCnt;
-    public ParticleState() : base()
+    public ParticleState()
     {
+        meshKey = TokenState.nextMeshKey();
+        pos = new Vector();
         vel = new Vector();
         tailPos = new Vector();
     }
 
-    public override void clear()
+    public void stepForward()
+    {
+        TokenState.stepForward(pos, deg, speed);
+    }
+
+    public void clear()
     {
         {
             vel.y = 0;
@@ -210,12 +221,33 @@ public class ParticleState : TokenState
 
         trgSize = 1;
         waitCnt = 0;
-        base.clear();
+        {
+            pos.y = 0;
+            pos.x = pos.y;
+        }
+
+        deg = 0;
+        speed = 0;
+        isInitialized = true;
     }
 }
 
-public class ParticleSpec : TokenSpec<ParticleState>
+public class ParticleSpec
 {
+    public Field field;
+    public virtual void set_1(ParticleState state)
+    {
+    }
+
+    public virtual bool move_1(ParticleState state)
+    {
+        return true;
+    }
+
+    public virtual void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState state)
+    {
+    }
+
     public static TitanionRand rand = new TitanionRand();
     public static void setRandSeed(int seed)
     {
