@@ -5,6 +5,11 @@ using static Lub;
 
 public class Particle : LuminousActor
 {
+    public string meshKey;
+    public bool isExist;
+    public Particle() { meshKey = ActorMesh.nextKey(); }
+    public bool getExist() { return isExist; }
+    public void setExist(bool value) { isExist = value; }
     public const float GRAVITY = 0.2f;
     public Field field;
     public Rand rand;
@@ -14,12 +19,12 @@ public class Particle : LuminousActor
     public float r, g, b;
     public float lumAlp;
     public int cnt;
-    public override Actor newActor()
+    public Actor newActor()
     {
         return new Particle();
     }
 
-    public override void init(ActorInitializer ini)
+    public void init(ActorInitializer ini)
     {
         ParticleInitializer pi = (ParticleInitializer)ini;
         field = pi.field;
@@ -46,7 +51,7 @@ public class Particle : LuminousActor
         isExist = true;
     }
 
-    public override void move()
+    public void move()
     {
         cnt--;
         if (cnt < 0)
@@ -84,7 +89,7 @@ public class Particle : LuminousActor
         lumAlp = lumAlp * (0.98f);
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
     {
         Mesh mesh = target; int first = mesh.vertexCount;
         tint = new float[] { r, g, b, 1 };
@@ -97,7 +102,7 @@ public class Particle : LuminousActor
         for (int i = first; i + 1 < mesh.vertexCount; i += 2) mesh.Line(i, i + 1);
     }
 
-    public override void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
+    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
     {
         Mesh mesh = target; int first = mesh.vertexCount;
         if (lumAlp < 0.2f)

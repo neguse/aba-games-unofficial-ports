@@ -3,6 +3,9 @@ using System;
 using static GameMath;
 using static Lub;
 public class MobileLetter: Actor {
+  public bool isExist;
+  public bool getExist() { return isExist; }
+  public void setExist(bool value) { isExist = value; }
 
   public static Rand rand = new Rand();
   public Vector pos;
@@ -18,11 +21,11 @@ public class MobileLetter: Actor {
 
 
 
-  public override Actor newActor() {
+  public Actor newActor() {
     return new MobileLetter();
   }
 
-  public override void init(ActorInitializer ini) {
+  public void init(ActorInitializer ini) {
     pos = new Vector();
     vel = new Vector();
     root = new Vector();
@@ -48,7 +51,7 @@ public class MobileLetter: Actor {
 
   public const float GRAVITY = 0.2f;
 
-  public override void move() {
+  public void move() {
     cnt--;
     if (cnt < 0) {
       pos.x += (root.x - pos.x) * 0.97f;
@@ -71,7 +74,7 @@ public class MobileLetter: Actor {
     deg *= 0.99f;
   }
 
-  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
     bool depth = false; Gfx.Cull cull = Gfx.Cull.None; float width = 1;
     LetterRender.drawLetter(model, tint, blend, depth, cull, width, str, pos.x, pos.y, size, deg, color);
   }
@@ -80,15 +83,23 @@ public class MobileLetter: Actor {
 public class MobileLetterInitializer: ActorInitializer {
 }
 
-public class MobileLetterPool: ActorPool {
+public class MobileLetterPool {
+  ActorPool pool;
+  public Actor[] actor;
 
   public Field field;
   public Rand rand;
 
-  public MobileLetterPool(int n, ActorInitializer ini, Field f) : base(n, new MobileLetter(), ini) {
+  public MobileLetterPool(int n, ActorInitializer ini, Field f) {
+    pool = new ActorPool(n, new MobileLetter(), ini);
+    actor = pool.actor;
     field = f;
     rand = new Rand();
   }
+  public Actor getInstance() { return pool.getInstance(); }
+  public void move() { pool.move(); }
+  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
+  public void clear() { pool.clear(); }
 
   public void add(string str, float x, float lgt, float size, int cnt, int col) {
     int color = col;

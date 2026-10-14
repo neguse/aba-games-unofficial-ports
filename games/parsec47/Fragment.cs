@@ -3,6 +3,11 @@ using System;
 using static GameMath;
 using static Lub;
 public class Fragment: LuminousActor {
+  public string meshKey;
+  public bool isExist;
+  public Fragment() { meshKey = ActorMesh.nextKey(); }
+  public bool getExist() { return isExist; }
+  public void setExist(bool value) { isExist = value; }
 
   public const float R = 1, G = 0.8f, B = 0.6f;
 
@@ -18,11 +23,11 @@ public class Fragment: LuminousActor {
 
 
 
-  public override Actor newActor() {
+  public Actor newActor() {
     return new Fragment();
   }
 
-  public override void init(ActorInitializer ini) {
+  public void init(ActorInitializer ini) {
     FragmentInitializer fi = (FragmentInitializer) ini;
     for (int index0 = 0; index0 < POINT_NUM; index0++) {
       pos[index0] = new Vector();
@@ -51,7 +56,7 @@ public class Fragment: LuminousActor {
     isExist = true;
   }
 
-  public override void move() {
+  public void move() {
     cnt--;
     if (cnt < 0) {
       isExist = false;
@@ -67,7 +72,7 @@ public class Fragment: LuminousActor {
     retro *= 0.97f;
   }
 
-  public override void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
     var mesh = new Mesh("Fragment-draw" + "-" + meshKey);
     P47Screen.setRetroZ(z);
     P47Screen.setRetroParam(retro, 0.2f);
@@ -77,7 +82,7 @@ public class Fragment: LuminousActor {
       new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
-  public override void drawLuminous(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+  public void drawLuminous(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
     Mesh mesh = target;
     if (lumAlp < 0.2f) return;
     color = new float[] { R, G, B, lumAlp };

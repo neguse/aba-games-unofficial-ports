@@ -61,16 +61,20 @@ public class VirtualBulletTarget : BulletTarget
 }
 
 public interface ActorInitializer { }
-public abstract class Actor
+public interface Actor
+{
+    bool getExist();
+    void setExist(bool value);
+    Actor newActor();
+    void init(ActorInitializer initializer);
+    void move();
+    void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null);
+}
+
+public static class ActorMesh
 {
     static int nextMesh;
-    public string meshKey;
-    public Actor() { meshKey = nextMesh.ToString(); nextMesh++; }
-    public bool isExist;
-    public abstract Actor newActor();
-    public abstract void init(ActorInitializer initializer);
-    public abstract void move();
-    public abstract void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null);
+    public static string nextKey() { string key = nextMesh.ToString(); nextMesh++; return key; }
 }
 
 public class ActorPool
@@ -93,7 +97,7 @@ public class ActorPool
         {
             actorIdx--;
             if (actorIdx < 0) actorIdx = actor.Length - 1;
-            if (!actor[actorIdx].isExist) return actor[actorIdx];
+            if (!actor[actorIdx].getExist()) return actor[actorIdx];
         }
         return null;
     }
@@ -103,7 +107,7 @@ public class ActorPool
         if (actorIdx < 0) actorIdx = actor.Length - 1;
         return actor[actorIdx];
     }
-    public virtual void move() { foreach (var a in actor) if (a.isExist) a.move(); }
-    public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) { foreach (var a in actor) if (a.isExist) a.draw(model, color, blend, target); }
-    public virtual void clear() { foreach (var a in actor) a.isExist = false; }
+    public void move() { foreach (var a in actor) if (a.getExist()) a.move(); }
+    public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) { foreach (var a in actor) if (a.getExist()) a.draw(model, color, blend, target); }
+    public void clear() { foreach (var a in actor) a.setExist(false); }
 }

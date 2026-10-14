@@ -3,6 +3,9 @@ using System;
 using static GameMath;
 using static Lub;
 public class Enemy: Actor {
+  public bool isExist;
+  public bool getExist() { return isExist; }
+  public void setExist(bool value) { isExist = value; }
 
   public static int totalNum;
 
@@ -28,11 +31,11 @@ public class Enemy: Actor {
     totalNum = 0;
   }
 
-  public override Actor newActor() {
+  public Actor newActor() {
     return new Enemy();
   }
 
-  public override void init(ActorInitializer ini) {
+  public void init(ActorInitializer ini) {
     EnemyInitializer ei = (EnemyInitializer) ini;
     manager = ei.manager;
     field = ei.field;
@@ -214,7 +217,7 @@ public class Enemy: Actor {
     }
   }
 
-  public override void move() {
+  public void move() {
     if (mv.moveBullet != null) {
       pos.x = mv.moveBullet.bullet.pos.x;
       pos.y = mv.moveBullet.bullet.pos.y;
@@ -253,7 +256,7 @@ public class Enemy: Actor {
     totalNum++;
   }
 
-  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
     bool depth = true; Gfx.Cull cull = Gfx.Cull.Front; float width = 1;
     float z = -0.5f;
     for (int i = 0 ; i < partsNum; i++) {
@@ -365,14 +368,22 @@ public class EnemyInitializer: ActorInitializer {
   }
 }
 
-public class EnemyPool: ActorPool {
+public class EnemyPool {
+  ActorPool pool;
+  public Actor[] actor;
 
-  public EnemyPool(int n, ActorInitializer ini) : base(n, new Enemy(), ini) {
+  public EnemyPool(int n, ActorInitializer ini) {
+    pool = new ActorPool(n, new Enemy(), ini);
+    actor = pool.actor;
   }
+  public Actor getInstance() { return pool.getInstance(); }
+  public void move() { pool.move(); }
+  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
+  public void clear() { pool.clear(); }
 
   public bool checkHit(Vector pos, float damage) {
     foreach (Actor ac in actor) {
-      if (ac.isExist) {
+      if (ac.getExist()) {
 	Enemy en = (Enemy) ac;
 	if (en.checkHit(pos, damage))
 	  return true;

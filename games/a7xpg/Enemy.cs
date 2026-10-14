@@ -5,6 +5,11 @@ using static Lub;
 
 public class Enemy : LuminousActor
 {
+    public string meshKey;
+    public bool isExist;
+    public Enemy() { meshKey = ActorMesh.nextKey(); }
+    public bool getExist() { return isExist; }
+    public void setExist(bool value) { isExist = value; }
     public static Mesh[] meshes;
     public Ship ship;
     public Field field;
@@ -27,12 +32,12 @@ public class Enemy : LuminousActor
     public int posHstIdx;
     public const int APPEAR_CNT = 60;
     public const int DESTROYED_CNT = 120;
-    public override Actor newActor()
+    public Actor newActor()
     {
         return new Enemy();
     }
 
-    public override void init(ActorInitializer ini)
+    public void init(ActorInitializer ini)
     {
         EnemyInitializer ei = (EnemyInitializer)ini;
         ship = ei.ship;
@@ -549,7 +554,7 @@ public class Enemy : LuminousActor
         }
     }
 
-    public override void move()
+    public void move()
     {
         cnt++;
         if (cnt < 0)
@@ -752,7 +757,7 @@ public class Enemy : LuminousActor
         }
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
     {
         switch (type)
         {
@@ -811,7 +816,7 @@ public class Enemy : LuminousActor
     {
     }
 
-    public override void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
+    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
     {
         if (cnt < APPEAR_CNT)
             return;

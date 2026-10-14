@@ -5,6 +5,11 @@ using static Lub;
 
 public class Gold : LuminousActor
 {
+    public string meshKey;
+    public bool isExist;
+    public Gold() { meshKey = ActorMesh.nextKey(); }
+    public bool getExist() { return isExist; }
+    public void setExist(bool value) { isExist = value; }
     public const float SIZE = 1;
     public static Mesh[] meshes;
     public Ship ship;
@@ -14,12 +19,12 @@ public class Gold : LuminousActor
     public Vector pos;
     public int cnt;
     public const float ROLL_DEG = 1.0f;
-    public override Actor newActor()
+    public Actor newActor()
     {
         return new Gold();
     }
 
-    public override void init(ActorInitializer ini)
+    public void init(ActorInitializer ini)
     {
         GoldInitializer gi = (GoldInitializer)ini;
         ship = gi.ship;
@@ -48,7 +53,7 @@ public class Gold : LuminousActor
         isExist = true;
     }
 
-    public override void move()
+    public void move()
     {
         cnt++;
         if (ship.checkHit(pos.x, pos.y - SIZE, pos.x, pos.y + SIZE) || ship.checkHit(pos.x - SIZE, pos.y, pos.x + SIZE, pos.y))
@@ -63,7 +68,7 @@ public class Gold : LuminousActor
         }
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, pos.x, pos.y, 0.5f);
@@ -79,7 +84,7 @@ public class Gold : LuminousActor
         model = parent1;
     }
 
-    public override void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
+    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, pos.x, pos.y, 0.5f);

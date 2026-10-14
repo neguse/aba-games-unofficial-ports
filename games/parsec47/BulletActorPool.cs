@@ -1,15 +1,22 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
 using static GameMath;
-public class BulletActorPool: ActorPool {
+using static Lub;
+public class BulletActorPool {
+  ActorPool pool;
+  public Actor[] actor;
 
   public int cnt;
 
-  public BulletActorPool(int n, ActorInitializer ini) : base(n, new BulletActor(), ini) {
+  public BulletActorPool(int n, ActorInitializer ini) {
+    pool = new ActorPool(n, new BulletActor(), ini);
+    actor = pool.actor;
     P47Bullet.world = new P47World(this);
     BulletActor.init_0();
     cnt = 0;
   }
+  public Actor getInstance() { return pool.getInstance(); }
+  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
 
   public void addBullet_2(float deg, float speed) {
     BulletActor ba = (BulletActor) getInstance();
@@ -87,8 +94,8 @@ public class BulletActorPool: ActorPool {
     return ba;
   }
 
-  public override void move() {
-    base.move();
+  public void move() {
+    pool.move();
     cnt++;
   }
 
@@ -100,9 +107,9 @@ public class BulletActorPool: ActorPool {
     bullet.owner.remove();
   }
 
-  public override void clear() {
+  public void clear() {
     for (int index0 = 0; index0 < actor.Length; index0++) {
-      if (actor[index0].isExist)
+      if (actor[index0].getExist())
 	((BulletActor) actor[index0]).remove();
     }
   }

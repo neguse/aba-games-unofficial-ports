@@ -5,17 +5,22 @@ using static Lub;
 
 public class Bonus : Actor
 {
+    public string meshKey;
+    public bool isExist;
+    public Bonus() { meshKey = ActorMesh.nextKey(); }
+    public bool getExist() { return isExist; }
+    public void setExist(bool value) { isExist = value; }
     public Vector pos;
     public int cnt;
     public float size;
     public float my;
     public int num;
-    public override Actor newActor()
+    public Actor newActor()
     {
         return new Bonus();
     }
 
-    public override void init(ActorInitializer ini)
+    public void init(ActorInitializer ini)
     {
         pos = new Vector();
     }
@@ -34,7 +39,7 @@ public class Bonus : Actor
         isExist = true;
     }
 
-    public override void move()
+    public void move()
     {
         cnt--;
         if (cnt <= 0)
@@ -47,7 +52,7 @@ public class Bonus : Actor
         my = my * (0.95f);
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
     {
         LetterRender.drawNumReverse(model, tint, blend, num, pos.x, pos.y, size);
     }
