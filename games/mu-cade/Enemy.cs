@@ -332,10 +332,14 @@ public class Enemy : OdeActor
     }
 }
 
-public class EnemyPool : OdeActorPool<Enemy>
+public class EnemyPool
 {
-    public EnemyPool(int n, object[] args) : base(n, args, () => new Enemy())
+    public OdeActorPool<Enemy> pool;
+    public Enemy[] actor;
+    public EnemyPool(int n, object[] args)
     {
+        pool = new OdeActorPool<Enemy>(n, args, () => new Enemy());
+        actor = pool.actor;
     }
 
     public void drawShadow_0(float[] model, float[] tint, Gfx.Blend blend, string key)
@@ -385,6 +389,46 @@ public class EnemyPool : OdeActorPool<Enemy>
         foreach (Enemy e in actor)
             if (e.exists)
                 e.slowdown();
+    }
+
+    public Enemy getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public Enemy[] getMultipleInstances(int n)
+    {
+        return pool.getMultipleInstances(n);
+    }
+
+    public void move_0()
+    {
+        pool.move_0();
+    }
+
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    {
+        pool.draw(model, tint, blend, key, target);
+    }
+
+    public void clear()
+    {
+        pool.clear();
+    }
+
+    public void init_1_World(World world)
+    {
+        pool.init_1_World(world);
+    }
+
+    public void clearContactJoint()
+    {
+        pool.clearContactJoint();
+    }
+
+    public void checkFeedbackForce()
+    {
+        pool.checkFeedbackForce();
     }
 }
 

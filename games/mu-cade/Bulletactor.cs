@@ -6,6 +6,8 @@ using static Lub;
 
 public class BulletActor : Actor
 {
+    public string meshKey;
+    public bool exists;
     public BulletImpl bullet;
     public bool activated;
     public const float SIZE = 0.8f;
@@ -24,7 +26,27 @@ public class BulletActor : Actor
     public bool isMorphSeed;
     public ShapeGroup shape;
     public LinePoint linePoint;
-    public override void init_1_(object[] args)
+    public BulletActor()
+    {
+        meshKey = ActorMesh.nextKey();
+    }
+
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public string getMeshKey()
+    {
+        return meshKey;
+    }
+
+    public void init_1_(object[] args)
     {
         field = (Field)args[0];
         ship = ((args[1] is Ship ? (Ship)args[1] : null));
@@ -111,7 +133,7 @@ public class BulletActor : Actor
         exists = false;
     }
 
-    public override void move_0()
+    public void move_0()
     {
         Vector tpos = bullet.target.getTargetPos();
         Bullet.target.x = tpos.x;
@@ -170,7 +192,7 @@ public class BulletActor : Actor
             removeForced();
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
     }
 

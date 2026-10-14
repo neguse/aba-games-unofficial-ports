@@ -140,10 +140,39 @@ public class Shot : OdeActor
     }
 }
 
-public class ShotPool : OdeActorPool<Shot>
+public class ShotPool
 {
-    public ShotPool(int n, object[] args) : base(n, args, () => new Shot())
+    public OdeActorPool<Shot> pool;
+    public Shot[] actor;
+    public ShotPool(int n, object[] args)
     {
+        pool = new OdeActorPool<Shot>(n, args, () => new Shot());
+        actor = pool.actor;
+    }
+
+    public Shot getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public void move_0()
+    {
+        pool.move_0();
+    }
+
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    {
+        pool.draw(model, tint, blend, key, target);
+    }
+
+    public void clear()
+    {
+        pool.clear();
+    }
+
+    public void init_1_World(World world)
+    {
+        pool.init_1_World(world);
     }
 }
 
@@ -282,9 +311,38 @@ public class EnhancedShot : OdeActor
     }
 }
 
-public class EnhancedShotPool : OdeActorPool<EnhancedShot>
+public class EnhancedShotPool
 {
-    public EnhancedShotPool(int n, object[] args) : base(n, args, () => new EnhancedShot())
+    public OdeActorPool<EnhancedShot> pool;
+    public EnhancedShot[] actor;
+    public EnhancedShotPool(int n, object[] args)
     {
+        pool = new OdeActorPool<EnhancedShot>(n, args, () => new EnhancedShot());
+        actor = pool.actor;
+    }
+
+    public EnhancedShot getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public void move_0()
+    {
+        pool.move_0();
+    }
+
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    {
+        pool.draw(model, tint, blend, key, target);
+    }
+
+    public void clear()
+    {
+        pool.clear();
+    }
+
+    public void init_1_World(World world)
+    {
+        pool.init_1_World(world);
     }
 }

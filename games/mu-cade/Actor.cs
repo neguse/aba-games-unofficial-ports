@@ -3,15 +3,25 @@ using System;
 using static Lub;
 using System.Collections.Generic;
 
-public abstract class Actor
+public static class ActorMesh
 {
     static int nextMesh;
-    public string meshKey;
-    public Actor() { meshKey = nextMesh.ToString(); nextMesh++; }
-    public bool exists;
-    public abstract void init_1_(object[] args);
-    public abstract void move_0();
-    public abstract void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null);
+    public static string nextKey()
+    {
+        string key = nextMesh.ToString();
+        nextMesh++;
+        return key;
+    }
+}
+
+public interface Actor
+{
+    public bool getExists();
+    public void setExists(bool exists);
+    public string getMeshKey();
+    public void init_1_(object[] args);
+    public void move_0();
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null);
 }
 
 public class ActorPool<T>
@@ -29,21 +39,21 @@ public class ActorPool<T>
         }
     }
 
-    public virtual T getInstance()
+    public T getInstance()
     {
         for (int i = 0; i < actor.Length; i++)
         {
             actorIdx--;
             if (actorIdx < 0)
                 actorIdx = actor.Length - 1;
-            if (!((actor[actorIdx].exists)))
+            if (!((actor[actorIdx].getExists())))
                 return actor[actorIdx];
         }
 
-        return null;
+        return default(T);
     }
 
-    public virtual T getInstanceForced()
+    public T getInstanceForced()
     {
         actorIdx--;
         if (actorIdx < 0)
@@ -51,7 +61,7 @@ public class ActorPool<T>
         return actor[actorIdx];
     }
 
-    public virtual T[] getMultipleInstances(int n)
+    public T[] getMultipleInstances(int n)
     {
         var result = new T[n];
         for (int i_0 = 0; i_0 < n; i_0++)
@@ -60,37 +70,37 @@ public class ActorPool<T>
             if (item == null)
             {
                 for (int j = 0; j < i_0; j++)
-                    result[j].exists = false;
+                    result[j].setExists(false);
                 return null;
             }
 
-            item.exists = true;
+            item.setExists(true);
             result[i_0] = item;
         }
 
         for (int i_1 = 0; i_1 < n; i_1++)
-            result[i_1].exists = false;
+            result[i_1].setExists(false);
         return result;
     }
 
-    public virtual void move_0()
+    public void move_0()
     {
         foreach (var item in actor)
-            if (item.exists)
+            if (item.getExists())
                 item.move_0();
     }
 
-    public virtual void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         foreach (var item in actor)
-            if (item.exists)
-                item.draw(model, tint, blend, key + "-" + item.meshKey, target);
+            if (item.getExists())
+                item.draw(model, tint, blend, key + "-" + item.getMeshKey(), target);
     }
 
-    public virtual void clear()
+    public void clear()
     {
         foreach (var item in actor)
-            item.exists = false;
+            item.setExists(false);
         actorIdx = 0;
     }
 }

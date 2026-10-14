@@ -2,13 +2,17 @@
 using System.Collections.Generic;
 using static Lub;
 
-public class BulletPool : ActorPool<BulletActor>
+public class BulletPool
 {
+    public ActorPool<BulletActor> pool;
+    public BulletActor[] actor;
     public int cnt;
     public McdPatternWorld world;
     public SimpleBulletPool simpleBullets;
-    public BulletPool(int n, int sn, object[] args) : base(n, args, () => new BulletActor())
+    public BulletPool(int n, int sn, object[] args)
     {
+        pool = new ActorPool<BulletActor>(n, args, () => new BulletActor());
+        actor = pool.actor;
         Bullet.manager = this;
         world = new McdPatternWorld(this);
         simpleBullets = new SimpleBulletPool(sn, args);
@@ -61,14 +65,19 @@ public class BulletPool : ActorPool<BulletActor>
         return ba;
     }
 
-    public override void move_0()
+    public BulletActor getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public void move_0()
     {
         simpleBullets.move_0();
-        base.move_0();
+        pool.move_0();
         cnt++;
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         simpleBullets.draw(model, tint, blend, key + "-draw-1");
     }
@@ -85,12 +94,12 @@ public class BulletPool : ActorPool<BulletActor>
         simpleBullets.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
     }
 
-    public override void clear()
+    public void clear()
     {
         foreach (var a in actor)
             if (a.exists)
                 a.removeForced();
-        actorIdx = 0;
+        pool.actorIdx = 0;
         cnt = 0;
         simpleBullets.clear();
     }
@@ -106,10 +115,14 @@ public class BulletPool : ActorPool<BulletActor>
     }
 }
 
-public class SimpleBulletPool : OdeActorPool<SimpleBullet>
+public class SimpleBulletPool
 {
-    public SimpleBulletPool(int n, object[] args) : base(n, args, () => new SimpleBullet())
+    public OdeActorPool<SimpleBullet> pool;
+    public SimpleBullet[] actor;
+    public SimpleBulletPool(int n, object[] args)
     {
+        pool = new OdeActorPool<SimpleBullet>(n, args, () => new SimpleBullet());
+        actor = pool.actor;
     }
 
     public void drawShadow_0(float[] model, float[] tint, Gfx.Blend blend, string key)
@@ -144,5 +157,30 @@ public class SimpleBulletPool : OdeActorPool<SimpleBullet>
         foreach (var a in actor)
             if (a.exists)
                 a.slowdown();
+    }
+
+    public SimpleBullet getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public void move_0()
+    {
+        pool.move_0();
+    }
+
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    {
+        pool.draw(model, tint, blend, key, target);
+    }
+
+    public void clear()
+    {
+        pool.clear();
+    }
+
+    public void init_1_World(World world)
+    {
+        pool.init_1_World(world);
     }
 }

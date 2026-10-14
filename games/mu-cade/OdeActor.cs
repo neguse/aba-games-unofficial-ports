@@ -13,6 +13,8 @@ public class ContactJoint
 
 public class OdeActor : Actor
 {
+    public string meshKey;
+    public bool exists;
     public static bool collided;
     public World world;
     public OdeHandle _bodyId;
@@ -21,6 +23,26 @@ public class OdeActor : Actor
     public ContactJoint[] contactJoint;
     public bool bodyCreated;
     public static Vector3 vvct = new Vector3(), force = new Vector3();
+    public OdeActor()
+    {
+        meshKey = ActorMesh.nextKey();
+    }
+
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public string getMeshKey()
+    {
+        return meshKey;
+    }
+
     public static void initFirst()
     {
     }
@@ -37,15 +59,15 @@ public class OdeActor : Actor
         bodyCreated = false;
     }
 
-    public override void init_1_(object[] args)
+    public virtual void init_1_(object[] args)
     {
     }
 
-    public override void move_0()
+    public virtual void move_0()
     {
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public virtual void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
     }
 
@@ -339,37 +361,61 @@ public class OdeActor : Actor
     }
 }
 
-public class OdeActorPool<T> : ActorPool<T> where T : OdeActor
+public class OdeActorPool<T> where T : OdeActor
 {
-    public OdeActorPool(int n, object[] args, Func<T> create) : base(n, args, create)
+    public ActorPool<T> pool;
+    public T[] actor;
+    public OdeActorPool(int n, object[] args, Func<T> create)
     {
+        pool = new ActorPool<T>(n, args, create);
+        actor = pool.actor;
     }
 
-    public virtual void init_1_World(World world)
+    public T getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public T[] getMultipleInstances(int n)
+    {
+        return pool.getMultipleInstances(n);
+    }
+
+    public void move_0()
+    {
+        pool.move_0();
+    }
+
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    {
+        pool.draw(model, tint, blend, key, target);
+    }
+
+    public void init_1_World(World world)
     {
         foreach (T a in actor)
             a.setWorld(world);
     }
 
-    public virtual void clearContactJoint()
+    public void clearContactJoint()
     {
         foreach (T a in actor)
             if (a.exists)
                 a.clearContactJoint();
     }
 
-    public virtual void checkFeedbackForce()
+    public void checkFeedbackForce()
     {
         foreach (T a in actor)
             if (a.exists)
                 a.checkFeedbackForce();
     }
 
-    public override void clear()
+    public void clear()
     {
         foreach (T a in actor)
             if (a.exists)
                 a.remove_0();
-        actorIdx = 0;
+        pool.actorIdx = 0;
     }
 }

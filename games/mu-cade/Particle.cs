@@ -6,6 +6,8 @@ using static Lub;
 
 public class Particle : Actor
 {
+    public string meshKey;
+    public bool exists;
     public static Rand rand;
     public Field field;
     public Vector3 pos;
@@ -18,6 +20,26 @@ public class Particle : Actor
     public float r, g, b;
     public float decayRatio;
     public LinePoint linePoint;
+    public Particle()
+    {
+        meshKey = ActorMesh.nextKey();
+    }
+
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public string getMeshKey()
+    {
+        return meshKey;
+    }
+
     public static void init_0()
     {
         rand = new Rand();
@@ -28,7 +50,7 @@ public class Particle : Actor
         rand.setSeed(seed);
     }
 
-    public override void init_1_(object[] args)
+    public void init_1_(object[] args)
     {
         field = (Field)args[0];
         pos = new Vector3();
@@ -86,7 +108,7 @@ public class Particle : Actor
         exists = true;
     }
 
-    public override void move_0()
+    public void move_0()
     {
         pos += vel;
         vel *= 0.98f;
@@ -114,22 +136,48 @@ public class Particle : Actor
         model = parent1;
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
         linePoint.drawWithSpectrumColor(model, tint, blend, key + "-drawWithSpectrumColor-1");
     }
 }
 
-public class ParticlePool : ActorPool<Particle>
+public class ParticlePool
 {
-    public ParticlePool(int n, object[] args) : base(n, args, () => new Particle())
+    public ActorPool<Particle> pool;
+    public Particle[] actor;
+    public ParticlePool(int n, object[] args)
     {
+        pool = new ActorPool<Particle>(n, args, () => new Particle());
+        actor = pool.actor;
+    }
+
+    public Particle getInstanceForced()
+    {
+        return pool.getInstanceForced();
+    }
+
+    public void move_0()
+    {
+        pool.move_0();
+    }
+
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    {
+        pool.draw(model, tint, blend, key, target);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 }
 
 public class ConnectedParticle : Actor
 {
+    public string meshKey;
+    public bool exists;
     public const float SPRING_CONSTANT = 0.04f;
     public static Rand rand;
     public Field field;
@@ -143,6 +191,26 @@ public class ConnectedParticle : Actor
     public float baseLength;
     public ConnectedParticle prevParticle;
     public LinePoint linePoint;
+    public ConnectedParticle()
+    {
+        meshKey = ActorMesh.nextKey();
+    }
+
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public string getMeshKey()
+    {
+        return meshKey;
+    }
+
     public static void init_0()
     {
         rand = new Rand();
@@ -153,7 +221,7 @@ public class ConnectedParticle : Actor
         rand.setSeed(seed);
     }
 
-    public override void init_1_(object[] args)
+    public void init_1_(object[] args)
     {
         field = (Field)args[0];
         _pos = new Vector3();
@@ -205,7 +273,7 @@ public class ConnectedParticle : Actor
         enableRotate = true;
     }
 
-    public override void move_0()
+    public void move_0()
     {
         _vel *= 0.96f;
         if (_vel.x > 2)
@@ -258,7 +326,7 @@ public class ConnectedParticle : Actor
         model = parent1;
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         if (!((prevParticle) != null) || !(prevParticle.exists))
             return;
@@ -287,10 +355,14 @@ public class ConnectedParticle : Actor
     }
 }
 
-public class ConnectedParticlePool : ActorPool<ConnectedParticle>
+public class ConnectedParticlePool
 {
-    public ConnectedParticlePool(int n, object[] args) : base(n, args, () => new ConnectedParticle())
+    public ActorPool<ConnectedParticle> pool;
+    public ConnectedParticle[] actor;
+    public ConnectedParticlePool(int n, object[] args)
     {
+        pool = new ActorPool<ConnectedParticle>(n, args, () => new ConnectedParticle());
+        actor = pool.actor;
     }
 
     public void recordLinePoints_0()
@@ -300,10 +372,32 @@ public class ConnectedParticlePool : ActorPool<ConnectedParticle>
             if (cp.exists)
                 cp.recordLinePoints_0();
     }
+
+    public ConnectedParticle[] getMultipleInstances(int n)
+    {
+        return pool.getMultipleInstances(n);
+    }
+
+    public void move_0()
+    {
+        pool.move_0();
+    }
+
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    {
+        pool.draw(model, tint, blend, key, target);
+    }
+
+    public void clear()
+    {
+        pool.clear();
+    }
 }
 
 public class TailParticle : Actor
 {
+    public string meshKey;
+    public bool exists;
     public const int COUNT = 60;
     public const float SIZE_CONST = 1;
     public static Rand rand;
@@ -321,6 +415,26 @@ public class TailParticle : Actor
     public float r, g, b;
     public ShapeGroup shape;
     public LinePoint linePoint;
+    public TailParticle()
+    {
+        meshKey = ActorMesh.nextKey();
+    }
+
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public string getMeshKey()
+    {
+        return meshKey;
+    }
+
     public static void init_0()
     {
         rand = new Rand();
@@ -337,7 +451,7 @@ public class TailParticle : Actor
         trgDeg = d;
     }
 
-    public override void init_1_(object[] args)
+    public void init_1_(object[] args)
     {
         field = (Field)args[0];
         ship = ((args[1] is Ship ? (Ship)args[1] : null));
@@ -378,7 +492,7 @@ public class TailParticle : Actor
         exists = true;
     }
 
-    public override void move_0()
+    public void move_0()
     {
         pos += vel;
         float vr = 1.0f - (float)cnt / COUNT;
@@ -420,28 +534,74 @@ public class TailParticle : Actor
         model = parent1;
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
         linePoint.drawWithSpectrumColor(model, tint, blend, key + "-drawWithSpectrumColor-1");
     }
 }
 
-public class TailParticlePool : ActorPool<TailParticle>
+public class TailParticlePool
 {
-    public TailParticlePool(int n, object[] args) : base(n, args, () => new TailParticle())
+    public ActorPool<TailParticle> pool;
+    public TailParticle[] actor;
+    public TailParticlePool(int n, object[] args)
     {
+        pool = new ActorPool<TailParticle>(n, args, () => new TailParticle());
+        actor = pool.actor;
+    }
+
+    public TailParticle getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public void move_0()
+    {
+        pool.move_0();
+    }
+
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    {
+        pool.draw(model, tint, blend, key, target);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 }
 
 public class StarParticle : Actor
 {
+    public string meshKey;
+    public bool exists;
     public Field field;
     public Vector3 pos;
     public Vector3 vel;
     public float size;
     public int cnt;
-    public override void init_1_(object[] args)
+    public StarParticle()
+    {
+        meshKey = ActorMesh.nextKey();
+    }
+
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public string getMeshKey()
+    {
+        return meshKey;
+    }
+
+    public void init_1_(object[] args)
     {
         field = (Field)args[0];
         pos = new Vector3();
@@ -461,14 +621,14 @@ public class StarParticle : Actor
         exists = true;
     }
 
-    public override void move_0()
+    public void move_0()
     {
         pos += vel;
         if (pos.z < -100)
             exists = false;
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         Mesh mesh = target;
         mesh.Vertex(pos.x, pos.y, pos.z, tint);
@@ -476,21 +636,67 @@ public class StarParticle : Actor
     }
 }
 
-public class StarParticlePool : ActorPool<StarParticle>
+public class StarParticlePool
 {
-    public StarParticlePool(int n, object[] args) : base(n, args, () => new StarParticle())
+    public ActorPool<StarParticle> pool;
+    public StarParticle[] actor;
+    public StarParticlePool(int n, object[] args)
     {
+        pool = new ActorPool<StarParticle>(n, args, () => new StarParticle());
+        actor = pool.actor;
+    }
+
+    public StarParticle getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public void move_0()
+    {
+        pool.move_0();
+    }
+
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    {
+        pool.draw(model, tint, blend, key, target);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 }
 
 public class NumIndicator : Actor
 {
+    public string meshKey;
+    public bool exists;
     public Vector pos;
     public Vector vel;
     public float size, trgSize;
     public int cnt;
     public int num1, num2;
-    public override void init_1_(object[] args)
+    public NumIndicator()
+    {
+        meshKey = ActorMesh.nextKey();
+    }
+
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public string getMeshKey()
+    {
+        return meshKey;
+    }
+
+    public void init_1_(object[] args)
     {
         pos = new Vector();
         vel = new Vector();
@@ -513,7 +719,7 @@ public class NumIndicator : Actor
         exists = true;
     }
 
-    public override void move_0()
+    public void move_0()
     {
         pos += vel;
         size += (trgSize - size) * 0.05f;
@@ -522,7 +728,7 @@ public class NumIndicator : Actor
             exists = false;
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         if (num2 <= 1)
         {
@@ -540,9 +746,33 @@ public class NumIndicator : Actor
     }
 }
 
-public class NumIndicatorPool : ActorPool<NumIndicator>
+public class NumIndicatorPool
 {
-    public NumIndicatorPool(int n, object[] args) : base(n, args, () => new NumIndicator())
+    public ActorPool<NumIndicator> pool;
+    public NumIndicator[] actor;
+    public NumIndicatorPool(int n, object[] args)
     {
+        pool = new ActorPool<NumIndicator>(n, args, () => new NumIndicator());
+        actor = pool.actor;
+    }
+
+    public NumIndicator getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public void move_0()
+    {
+        pool.move_0();
+    }
+
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    {
+        pool.draw(model, tint, blend, key, target);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 }
