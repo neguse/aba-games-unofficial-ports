@@ -34,7 +34,7 @@ g.pref_manager.pref_data:record_result(7654321,123456);assert(g.pref_manager.pre
 local old=g.pref_manager.pref_data.high_score[1];g.pref_manager:load_text('bad');assert(g.pref_manager.pref_data.high_score[1]==old)
 for _,kind in ipairs({CentHeadToAndFrom,CentHeadChase,CentHeadRoll})do
  for size=0,2 do
-  fresh();local spec=kind.new(g.field,g.ship,g.bullets,g.world,30,size)
+  fresh();local spec=kind.create(g.field,g.ship,g.bullets,g.world,30,size)
   local head=spec:set_jointed_enemies_5(g.enemies,0,10,0,0);assert(head and count(g.enemies)==spec.body_length)
   local most=0
   for i=1,240 do tick(0);most=math.max(most,count(g.bullets.simple_bullets))end
@@ -45,7 +45,7 @@ fresh();local before=g.score;local block=g.enemies:get_instance();assert(block:s
 mcdphysics.body_position(block._body_id,30,0,-11);tick(0,2);assert(not block.exists and g.score>before)
 draws=0;Letter.draw_string(Transform.ortho(),nil,lub.gfx.ADDITIVE,'test','ABC 123',10,20,3);assert(draws>100)
 local lp=LinePoint.new(g.field);assert(#lp.pos==8 and #lp.pos_hist==40 and #lp.pos_hist[1]==8)
-fresh();local spec=CentHeadChase.new(g.field,g.ship,g.bullets,g.world,30,1)
+fresh();local spec=CentHeadChase.create(g.field,g.ship,g.bullets,g.world,30,1)
 local head=spec:set_jointed_enemies_5(g.enemies,0,10,0,0);assert(head)
 mcdphysics.body_position(head._body_id,30,0,-11);tick(0,2);assert(not head.exists and count(g.tail_particles)>0)
 tick(0,180);assert(g.ship.tail_num>0 and g.ship:get_multiplier()==g.ship.tail_num+1)

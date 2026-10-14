@@ -37,7 +37,7 @@ public static class BrowserHooks
         }
         if (command == 2)
         {
-            var spec = new CentHeadChase(g.field, g.ship, g.bullets, g.world, 30, 2);
+            var spec = CentHeadChase.create(g.field, g.ship, g.bullets, g.world, 30, 2);
             spec.setJointedEnemies_5(g.enemies, 0, 10, 0, 0);
         }
         if (command == 3)

@@ -34,7 +34,7 @@ public class StageManager
         initRank();
         rand.setSeed(randSeed);
         Enemy.setRandSeed(randSeed);
-        EnemySpec.setRandSeed(randSeed);
+        EnemySpecBase.setRandSeed(randSeed);
         SimpleBullet.setRandSeed(randSeed);
         Ship.setRandSeed(randSeed);
         ShipTail.setRandSeed(randSeed);
@@ -283,13 +283,13 @@ public class Appearance
         switch (type)
         {
             case AppearanceEnemyType.TO_AND_FROM:
-                spec = new CentHeadToAndFrom(field, ship, bullets, world, rank, size);
+                spec = CentHeadToAndFrom.create(field, ship, bullets, world, rank, size);
                 break;
             case AppearanceEnemyType.CHASE:
-                spec = new CentHeadChase(field, ship, bullets, world, rank, size);
+                spec = CentHeadChase.create(field, ship, bullets, world, rank, size);
                 break;
             case AppearanceEnemyType.ROLL:
-                spec = new CentHeadRoll(field, ship, bullets, world, rank, size);
+                spec = CentHeadRoll.create(field, ship, bullets, world, rank, size);
                 break;
             case AppearanceEnemyType.BLOCK:
                 spec = stageManager.blockSpec();

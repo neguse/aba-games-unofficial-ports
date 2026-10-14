@@ -490,39 +490,37 @@ public class EnemyState
     }
 }
 
-public abstract class EnemySpec
+public interface EnemySpec
+{
+    public void initState(Enemy enemy, EnemyState state);
+    public bool move_2(Enemy enemy, EnemyState state);
+    public void destroyed_2(Enemy enemy, EnemyState state);
+    public void collide_3(Enemy enemy, EnemyState state, OdeActor actor);
+    public void recordLinePoints_2(EnemyState state, LinePoint lp);
+    public void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp);
+    public void drawSubShape(float[] model, float[] tint, Gfx.Blend blend, string key, EnemyState state);
+    public bool rotate2d();
+    public bool collideBullet();
+    public float colorR();
+    public float colorG();
+    public float colorB();
+}
+
+public static class EnemySpecBase
 {
     public static Rand rand = new Rand();
-    public Field field;
-    public Ship ship;
-    public BulletPool bullets;
-    public World world;
-    public ShapeGroup shape;
-    public Drawable subShape = null;
-    public bool _rotate2d = true;
-    public bool _collideBullet = false;
-    public float _colorR, _colorG, _colorB;
     public static void setRandSeed(int seed)
     {
         rand.setSeed(seed);
     }
 
-    public virtual void initState(Enemy enemy, EnemyState state)
+    public static void initState(ShapeGroup shape, World world, Enemy enemy, EnemyState state)
     {
         shape.setMass_3(enemy, state.sizeScale, state.massScale);
         shape.setGeom(enemy, world.space, state.sizeScale);
     }
 
-    public abstract bool move_2(Enemy enemy, EnemyState state);
-    public virtual void destroyed_2(Enemy enemy, EnemyState state)
-    {
-    }
-
-    public virtual void collide_3(Enemy enemy, EnemyState state, OdeActor actor)
-    {
-    }
-
-    public virtual void recordLinePoints_2(EnemyState state, LinePoint lp)
+    public static void recordLinePoints_2(ShapeGroup shape, EnemyState state, LinePoint lp)
     {
         float[] model = Transform.Identity();
         float[] parent1 = model;
@@ -533,40 +531,6 @@ public abstract class EnemySpec
         shape.recordLinePoints_1(lp);
         lp.endRecord();
         model = parent1;
-    }
-
-    public virtual void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
-    {
-        shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", lp);
-    }
-
-    public virtual void drawSubShape(float[] model, float[] tint, Gfx.Blend blend, string key, EnemyState state)
-    {
-    }
-
-    public virtual bool rotate2d()
-    {
-        return _rotate2d;
-    }
-
-    public virtual bool collideBullet()
-    {
-        return _collideBullet;
-    }
-
-    public virtual float colorR()
-    {
-        return _colorR;
-    }
-
-    public virtual float colorG()
-    {
-        return _colorG;
-    }
-
-    public virtual float colorB()
-    {
-        return _colorB;
     }
 }
 
