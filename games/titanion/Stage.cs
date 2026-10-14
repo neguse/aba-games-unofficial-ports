@@ -263,12 +263,12 @@ public class Stage
         }
 
         smallEnemyFormationNum = (int)(GameMath.integer(en / smallEnemyNum)) + 1;
-        middleEnemySpec = new MiddleEnemySpec(field, bullets, player, particles, bonusParticles, enemies, this, enemy3Shape, enemy3TrailShape, middleBulletSpec, counterBulletSpec, gameState);
+        middleEnemySpec = new MiddleEnemySpec(field, bullets, player, particles, bonusParticles, enemies, this, enemy3Shape, enemy3TrailShape, middleBulletSpec, counterBulletSpec, gameState).spec;
         middleEnemySpec.setRank(rank * 0.15f);
-        smallEnemy1Spec = new SE1Spec(field, bullets, player, particles, bonusParticles, enemies, this, enemy1Shape, enemy1TrailShape, bulletSpec, counterBulletSpec, gameState);
-        ((smallEnemy1Spec is SE1Spec ? (SE1Spec)smallEnemy1Spec : null)).setRank(rank * 0.22f);
-        smallEnemy2Spec = new SE2Spec(field, bullets, player, particles, bonusParticles, enemies, this, enemy2Shape, enemy2TrailShape, bulletSpec, counterBulletSpec, gameState);
-        ((smallEnemy2Spec is SE2Spec ? (SE2Spec)smallEnemy2Spec : null)).setRank(rank * 0.22f);
+        smallEnemy1Spec = new SE1Spec(field, bullets, player, particles, bonusParticles, enemies, this, enemy1Shape, enemy1TrailShape, bulletSpec, counterBulletSpec, gameState).spec;
+        smallEnemy1Spec.setRank(rank * 0.22f);
+        smallEnemy2Spec = new SE2Spec(field, bullets, player, particles, bonusParticles, enemies, this, enemy2Shape, enemy2TrailShape, bulletSpec, counterBulletSpec, gameState).spec;
+        smallEnemy2Spec.setRank(rank * 0.22f);
         _attackSmallEnemyNum = GameMath.integer(sqrt(rank + 2));
         goingDownBeforeStandByRatio = 0;
         if (rand.nextFloat(rank + 1) > 2)
@@ -366,16 +366,16 @@ public class Stage
                 Enemy e = enemies.getInstance();
                 if ((!(((e) != null))))
                     break;
-                SmallEnemySpec ses = null;
+                EnemySpec ses = null;
                 int appPattern = formationIdx % 2;
                 switch (formationIdx % 3)
                 {
                     case 0:
                     case 1:
-                        ses = (smallEnemy1Spec is SmallEnemySpec ? (SmallEnemySpec)smallEnemy1Spec : null);
+                        ses = smallEnemy1Spec;
                         break;
                     case 2:
-                        ses = (smallEnemy2Spec is SmallEnemySpec ? (SmallEnemySpec)smallEnemy2Spec : null);
+                        ses = smallEnemy2Spec;
                         break;
                 }
 

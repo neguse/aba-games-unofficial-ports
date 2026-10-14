@@ -398,7 +398,7 @@ public class PlayerSpec
     public TractorBeam tractorBeam;
     public Shape lineShape;
     public float bulletHitWidth;
-    public GhostEnemySpec ghostEnemySpec;
+    public EnemySpec ghostEnemySpec;
     public EnemyShape ghostEnemyShape;
     public int shotMaxNum;
     public PlayerSpec(RecordablePad pad, GameState gameState, Field field, EnemyPool enemies, BulletPool bullets, ParticlePool particles)
@@ -415,7 +415,7 @@ public class PlayerSpec
         shape = new MeshShape(new PlayerShape());
         lineShape = new MeshShape(new PlayerLineShape());
         ghostEnemyShape = new EnemyShape(new Enemy1TrailShape());
-        ghostEnemySpec = new GhostEnemySpec(field, ghostEnemyShape);
+        ghostEnemySpec = new GhostEnemySpec(field, ghostEnemyShape).spec;
     }
 
     public void setState(PlayerState ps)
@@ -1151,14 +1151,14 @@ public class TractorBeam
         clear();
     }
 
-    public virtual void clear()
+    public void clear()
     {
         length = 0;
         cnt = 0;
         isExtending = false;
     }
 
-    public virtual void move_0()
+    public void move_0()
     {
         if (length <= 0)
             return;
@@ -1167,13 +1167,13 @@ public class TractorBeam
             Sound.playSe("tractor.wav");
     }
 
-    public virtual void extendLength(float ratio = 1)
+    public void extendLength(float ratio = 1)
     {
         length = length + ((MAX_LENGTH - length) * 0.05f * ratio);
         isExtending = true;
     }
 
-    public virtual bool reduceLength(float ratio = 1)
+    public bool reduceLength(float ratio = 1)
     {
         length = length + ((0 - length) * 0.1f * ratio);
         if (length < 0.33f)
@@ -1186,14 +1186,14 @@ public class TractorBeam
         return false;
     }
 
-    public virtual bool contains_1(Vector p)
+    public bool contains_1(Vector p)
     {
         if (length <= 0)
             return false;
         return (((((((p.x > playerState.pos.x - WIDTH / 2)) && ((p.x < playerState.pos.x + WIDTH / 2)))) && ((p.y > playerState.pos.y)))) && ((p.y < playerState.pos.y + length + WIDTH)));
     }
 
-    public virtual void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
     {
         if (length <= 0)
             return;

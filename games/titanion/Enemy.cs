@@ -31,7 +31,7 @@ public class EnemyPool
 
     public static bool trailEffect = false;
     public Field _field;
-    public virtual Enemy getNearestEnemy(Vector p)
+    public Enemy getNearestEnemy(Vector p)
     {
         float dst = 99999;
         Enemy ne = null;
@@ -48,14 +48,14 @@ public class EnemyPool
         return ne;
     }
 
-    public virtual Enemy getNearestMiddleEnemy(Vector p)
+    public Enemy getNearestMiddleEnemy(Vector p)
     {
         float dst = 99999;
         Enemy ne = null;
         foreach (Enemy e in actors)
         {
             if ((((e.exists)) && (((!((e.isBeingCaptured_0())))))))
-                if (((e.spec is MiddleEnemySpec ? (MiddleEnemySpec)e.spec : null)) != null)
+                if (((e.spec.kind is MiddleEnemySpec ? (MiddleEnemySpec)e.spec.kind : null)) != null)
                     if (_field.calcCircularDist_2(e.pos(), p) < dst)
                     {
                         dst = _field.calcCircularDist_2(e.pos(), p);
@@ -66,7 +66,7 @@ public class EnemyPool
         return ne;
     }
 
-    public virtual bool checkShotHit(Vector p, float deg, float widthRatio = 1.0f)
+    public bool checkShotHit(Vector p, float deg, float widthRatio = 1.0f)
     {
         Enemy e = getNearestEnemy(p);
         if ((e) != null)
@@ -83,7 +83,7 @@ public class EnemyPool
         return false;
     }
 
-    public virtual bool checkBulletHit(Vector p, Vector pp)
+    public bool checkBulletHit(Vector p, Vector pp)
     {
         bool hitf = false;
         foreach (Enemy e in actors)
@@ -99,7 +99,7 @@ public class EnemyPool
         return hitf;
     }
 
-    public virtual bool checkEnemyHit_2(Vector p, Vector size)
+    public bool checkEnemyHit_2(Vector p, Vector size)
     {
         bool hitf = false;
         foreach (Enemy e in actors)
@@ -119,12 +119,12 @@ public class EnemyPool
         return hitf;
     }
 
-    public virtual bool checkMiddleEnemyExists(float x, float px)
+    public bool checkMiddleEnemyExists(float x, float px)
     {
         foreach (Enemy e in actors)
         {
             if ((((e.exists)) && (((!((e.isBeingCaptured_0())))))))
-                if (((e.spec is MiddleEnemySpec ? (MiddleEnemySpec)e.spec : null)) != null)
+                if (((e.spec.kind is MiddleEnemySpec ? (MiddleEnemySpec)e.spec.kind : null)) != null)
                     if ((e.pos().x - x) * (e.pos().x - px) < 0)
                         return true;
         }
@@ -132,7 +132,7 @@ public class EnemyPool
         return false;
     }
 
-    public virtual int num()
+    public int num()
     {
         int n = 0;
         foreach (Enemy e in actors)
@@ -141,7 +141,7 @@ public class EnemyPool
         return n;
     }
 
-    public virtual int numInAttack()
+    public int numInAttack()
     {
         int n = 0;
         foreach (Enemy e in actors)
@@ -150,7 +150,7 @@ public class EnemyPool
         return n;
     }
 
-    public virtual int numInScreen()
+    public int numInScreen()
     {
         int n = 0;
         foreach (Enemy e in actors)
@@ -159,7 +159,7 @@ public class EnemyPool
         return n;
     }
 
-    public virtual int numBeforeAlign()
+    public int numBeforeAlign()
     {
         int n = 0;
         foreach (Enemy e in actors)
@@ -168,7 +168,7 @@ public class EnemyPool
         return n;
     }
 
-    public virtual void drawFront(float[] model, float[] color, Gfx.Blend blend)
+    public void drawFront(float[] model, float[] color, Gfx.Blend blend)
     {
         if (trailEffect)
             foreach (Enemy a in actors)
@@ -179,7 +179,7 @@ public class EnemyPool
                 a.draw_0(model, color, blend);
     }
 
-    public virtual void drawBack(float[] model, float[] color, Gfx.Blend blend)
+    public void drawBack(float[] model, float[] color, Gfx.Blend blend)
     {
         if (trailEffect)
             foreach (Enemy a in actors)
@@ -190,7 +190,7 @@ public class EnemyPool
                 a.draw_0(model, color, blend);
     }
 
-    public virtual void drawPillarBack(float[] model, float[] color, Gfx.Blend blend)
+    public void drawPillarBack(float[] model, float[] color, Gfx.Blend blend)
     {
         if (trailEffect)
             foreach (Enemy a in actors)
@@ -201,7 +201,7 @@ public class EnemyPool
                 a.draw_0(model, color, blend);
     }
 
-    public virtual Field field(Field v)
+    public Field field(Field v)
     {
         _field = v;
         return _field;
@@ -290,7 +290,7 @@ public class Enemy : Actor
 
         if ((firstEnemy) != null)
         {
-            ((spec is SmallEnemySpec ? (SmallEnemySpec)spec : null)).init_2(state, firstEnemy.state);
+            ((spec.kind is SmallEnemySpec ? (SmallEnemySpec)spec.kind : null)).init_2(state, firstEnemy.state);
             state.isFirstEnemy = false;
         }
         else
@@ -333,9 +333,9 @@ public class Enemy : Actor
 
     public void hitCaptured_0()
     {
-        SmallEnemySpec ses = (spec is SmallEnemySpec ? (SmallEnemySpec)spec : null);
+        SmallEnemySpec ses = (spec.kind is SmallEnemySpec ? (SmallEnemySpec)spec.kind : null);
         if ((ses) != null)
-            ses.hitCaptured_1(state);
+            spec.hitCaptured_1(state);
     }
 
     public void destroyed_0()
@@ -365,10 +365,10 @@ public class Enemy : Actor
 
     public bool isCaptured_0()
     {
-        GhostEnemySpec ges = (spec is GhostEnemySpec ? (GhostEnemySpec)spec : null);
+        GhostEnemySpec ges = (spec.kind is GhostEnemySpec ? (GhostEnemySpec)spec.kind : null);
         if ((ges) != null)
             return true;
-        SmallEnemySpec ses = (spec is SmallEnemySpec ? (SmallEnemySpec)spec : null);
+        SmallEnemySpec ses = (spec.kind is SmallEnemySpec ? (SmallEnemySpec)spec.kind : null);
         if ((!(((ses) != null))))
             return false;
         return ses.isCaptured_1(state);
@@ -559,8 +559,9 @@ public class EnemyState
     }
 }
 
-public abstract class EnemySpec
+public class EnemySpec
 {
+    public EnemyKind kind;
     public Field field;
     public Shape shape;
     public static TitanionRand rand = new TitanionRand();
@@ -605,14 +606,14 @@ public abstract class EnemySpec
         this.gameState = gameState;
     }
 
-    public virtual void set_1(EnemyState es)
+    public void defaultSet_1(EnemyState es)
     {
         es.shield = shield;
         for (int i = 0; i < turretNum; i++)
             turretSpecs[i].set_1(es.turretStates[i]);
     }
 
-    public virtual bool move_1(EnemyState es)
+    public bool defaultMove_1(EnemyState es)
     {
         {
             es.move_0();
@@ -741,7 +742,7 @@ public abstract class EnemySpec
         }
     }
 
-    public virtual void moveCaptured(EnemyState es)
+    public void moveCaptured(EnemyState es)
     {
         {
             switch (es.captureState)
@@ -778,7 +779,7 @@ public abstract class EnemySpec
         }
     }
 
-    public virtual float calcCapturePosX(int idx)
+    public float calcCapturePosX(int idx)
     {
         if (idx % 2 == 0)
             return ((GameMath.integer(idx / 2)) + 0.5f) * PlayerSpec.CAPTURED_ENEMIES_INTERVAL_LENGTH * player.capturedEnemyWidth();
@@ -786,7 +787,7 @@ public abstract class EnemySpec
             return -((GameMath.integer(idx / 2)) + 0.5f) * PlayerSpec.CAPTURED_ENEMIES_INTERVAL_LENGTH * player.capturedEnemyWidth();
     }
 
-    public virtual void checkCaptured(EnemyState es)
+    public void checkCaptured(EnemyState es)
     {
         {
             if (player.isInTractorBeam(es.pos))
@@ -808,27 +809,27 @@ public abstract class EnemySpec
         }
     }
 
-    public virtual void hitCaptured_1(EnemyState es)
+    public void hitCaptured_1(EnemyState es)
     {
         player.destroyCapturedEnemies(es.captureIdx);
     }
 
-    public virtual bool isBeingCaptured_1(EnemyState es)
+    public bool defaultIsBeingCaptured_1(EnemyState es)
     {
         return (es.captureState > 0);
     }
 
-    public virtual bool isCaptured_1(EnemyState es)
+    public bool defaultIsCaptured_1(EnemyState es)
     {
         return (es.captureState == 3);
     }
 
-    public virtual bool beforeAlign_1(EnemyState es)
+    public bool beforeAlign_1(EnemyState es)
     {
         return (es.phase < -10);
     }
 
-    public virtual bool hitShot_2(EnemyState es, float dd = 0)
+    public bool hitShot_2(EnemyState es, float dd = 0)
     {
         {
             es.shield--;
@@ -875,7 +876,7 @@ public abstract class EnemySpec
         }
     }
 
-    public virtual void destroyed_2(EnemyState es, float dd = 0)
+    public void defaultDestroyed_2(EnemyState es, float dd)
     {
         {
             float r = 0.5f + rand.nextFloat(0.5f);
@@ -948,7 +949,7 @@ public abstract class EnemySpec
         }
     }
 
-    public virtual void provacated(EnemyState es)
+    public void provacated(EnemyState es)
     {
         {
             es.anger = es.anger + ((1 - es.anger) * 0.05f);
@@ -968,7 +969,7 @@ public abstract class EnemySpec
         }
     }
 
-    public virtual bool gotoNextPhaseInAppearing(EnemyState es)
+    public bool gotoNextPhaseInAppearing(EnemyState es)
     {
         {
             switch (es.phase)
@@ -1096,7 +1097,7 @@ public abstract class EnemySpec
         return true;
     }
 
-    public virtual void movePhase(EnemyState es)
+    public void defaultMovePhase(EnemyState es)
     {
         {
             switch (es.phase)
@@ -1129,17 +1130,72 @@ public abstract class EnemySpec
         }
     }
 
-    public virtual bool isInScreen_1(EnemyState es)
+    public bool isInScreen_1(EnemyState es)
     {
         return (field.size().contains_2(es.pos));
     }
 
-    public abstract void setRank(float rank);
-    public abstract void init_1(EnemyState es);
-    public abstract bool gotoNextPhase(EnemyState es);
-    public abstract bool isInAttack_1(EnemyState es);
-    public abstract int calcStandByTime(EnemyState es);
-    public virtual void draw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
+    public void set_1(EnemyState es)
+    {
+        kind.set_1(es);
+    }
+
+    public bool move_1(EnemyState es)
+    {
+        return kind.move_1(es);
+    }
+
+    public void destroyed_2(EnemyState es, float dd = 0)
+    {
+        kind.destroyed_2(es, dd);
+    }
+
+    public void draw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
+    {
+        kind.draw_1(model, color, blend, es);
+    }
+
+    public bool isBeingCaptured_1(EnemyState es)
+    {
+        return kind.isBeingCaptured_1(es);
+    }
+
+    public bool isCaptured_1(EnemyState es)
+    {
+        return kind.isCaptured_1(es);
+    }
+
+    public void movePhase(EnemyState es)
+    {
+        kind.movePhase(es);
+    }
+
+    public void setRank(float rank)
+    {
+        kind.setRank(rank);
+    }
+
+    public void init_1(EnemyState es)
+    {
+        kind.init_1(es);
+    }
+
+    public bool gotoNextPhase(EnemyState es)
+    {
+        return kind.gotoNextPhase(es);
+    }
+
+    public bool isInAttack_1(EnemyState es)
+    {
+        return kind.isInAttack_1(es);
+    }
+
+    public int calcStandByTime(EnemyState es)
+    {
+        return kind.calcStandByTime(es);
+    }
+
+    public void defaultDraw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
     {
         Vector3 p = field.calcCircularPos_1(es.pos);
         float cd = field.calcCircularDeg(es.pos.x);
@@ -1164,7 +1220,7 @@ public abstract class EnemySpec
         }
     }
 
-    public virtual void drawTrails_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
+    public void drawTrails_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
     {
         if (es.captureState > 0)
             return;
@@ -1183,7 +1239,7 @@ public class Trail
         deg = 0;
     }
 
-    public virtual void set_4(float x, float y, float d, int c)
+    public void set_4(float x, float y, float d, int c)
     {
         pos.x = x;
         pos.y = y;
@@ -1192,101 +1248,135 @@ public class Trail
     }
 }
 
-public class GhostEnemySpec : EnemySpec
+public interface EnemyKind
 {
+    public void set_1(EnemyState es);
+    public bool move_1(EnemyState es);
+    public void destroyed_2(EnemyState es, float dd);
+    public void draw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es);
+    public bool isBeingCaptured_1(EnemyState es);
+    public bool isCaptured_1(EnemyState es);
+    public void movePhase(EnemyState es);
+    public void setRank(float rank);
+    public void init_1(EnemyState es);
+    public bool gotoNextPhase(EnemyState es);
+    public bool isInAttack_1(EnemyState es);
+    public int calcStandByTime(EnemyState es);
+}
+
+public interface SmallEnemyKind
+{
+    public void movePhase(EnemyState es);
+    public bool gotoNextPhase(EnemyState es);
+    public bool isInAttack_1(EnemyState es);
+}
+
+public class GhostEnemySpec : EnemyKind
+{
+    public EnemySpec spec;
     public GhostEnemySpec(Field field, Shape shape)
     {
-        this.field = field;
-        this.shape = shape;
+        spec = new EnemySpec();
+        spec.kind = this;
+        spec.field = field;
+        spec.shape = shape;
     }
 
-    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
+    public void draw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
     {
         {
-            Vector3 p = field.calcCircularPos_1(es.pos);
-            float cd = field.calcCircularDeg(es.pos.x);
+            Vector3 p = spec.field.calcCircularPos_1(es.pos);
+            float cd = spec.field.calcCircularDeg(es.pos.x);
             color = new float[] { 0.5f, 0.5f, 1, 0.8f };
-            ((shape is EnemyShape ? (EnemyShape)shape : null)).draw_5(model, color, blend, p, cd, es.deg, es.cnt, es.size);
+            ((spec.shape is EnemyShape ? (EnemyShape)spec.shape : null)).draw_5(model, color, blend, p, cd, es.deg, es.cnt, es.size);
         }
     }
 
-    public override void set_1(EnemyState es)
+    public void set_1(EnemyState es)
     {
     }
 
-    public override bool move_1(EnemyState es)
+    public bool move_1(EnemyState es)
     {
         return true;
     }
 
-    public override void destroyed_2(EnemyState es, float dd = 0)
+    public void destroyed_2(EnemyState es, float dd)
     {
     }
 
-    public override void setRank(float rank)
+    public void setRank(float rank)
     {
     }
 
-    public override void init_1(EnemyState es)
+    public void init_1(EnemyState es)
     {
     }
 
-    public override bool gotoNextPhase(EnemyState es)
-    {
-        return false;
-    }
-
-    public override bool isInAttack_1(EnemyState es)
+    public bool gotoNextPhase(EnemyState es)
     {
         return false;
     }
 
-    public override int calcStandByTime(EnemyState es)
+    public bool isInAttack_1(EnemyState es)
+    {
+        return false;
+    }
+
+    public int calcStandByTime(EnemyState es)
     {
         return 0;
     }
 
-    public override bool isBeingCaptured_1(EnemyState es)
+    public bool isBeingCaptured_1(EnemyState es)
     {
         return true;
     }
 
-    public override bool isCaptured_1(EnemyState es)
+    public bool isCaptured_1(EnemyState es)
     {
         return true;
+    }
+
+    public void movePhase(EnemyState es)
+    {
+        spec.defaultMovePhase(es);
     }
 }
 
-public class MiddleEnemySpec : EnemySpec
+public class MiddleEnemySpec : EnemyKind
 {
-    public MiddleEnemySpec(Field field, BulletPool bullets, Player player, ParticlePool particles, ParticlePool bonusParticles, EnemyPool enemies, Stage stage, Shape shape, EnemyShape trailShape, BulletSpec bulletSpec, BulletSpec counterBulletSpec, GameState gameState) : base(field, bullets, player, particles, bonusParticles, enemies, stage, shape, trailShape, bulletSpec, counterBulletSpec, gameState)
+    public EnemySpec spec;
+    public MiddleEnemySpec(Field field, BulletPool bullets, Player player, ParticlePool particles, ParticlePool bonusParticles, EnemyPool enemies, Stage stage, Shape shape, EnemyShape trailShape, BulletSpec bulletSpec, BulletSpec counterBulletSpec, GameState gameState)
     {
-        for (int i = 0; i < TURRET_MAX_NUM; i++)
-            turretSpecs[i] = new TurretSpec(field, bullets, player, enemies, particles, stage, bulletSpec, gameState);
+        spec = new EnemySpec(field, bullets, player, particles, bonusParticles, enemies, stage, shape, trailShape, bulletSpec, counterBulletSpec, gameState);
+        spec.kind = this;
+        for (int i = 0; i < EnemySpec.TURRET_MAX_NUM; i++)
+            spec.turretSpecs[i] = new TurretSpec(field, bullets, player, enemies, particles, stage, bulletSpec, gameState);
         switch (gameState.mode_0())
         {
             case GameStateMode.CLASSIC:
-                shield = 2;
-                capturable = false;
-                removeBullets = false;
+                spec.shield = 2;
+                spec.capturable = false;
+                spec.removeBullets = false;
                 break;
             case GameStateMode.BASIC:
-                shield = 3;
-                capturable = false;
-                removeBullets = false;
+                spec.shield = 3;
+                spec.capturable = false;
+                spec.removeBullets = false;
                 break;
             case GameStateMode.MODERN:
-                shield = 32;
-                capturable = true;
-                removeBullets = true;
+                spec.shield = 32;
+                spec.capturable = true;
+                spec.removeBullets = true;
                 break;
         }
 
-        score = 100;
-        explosionSeName = "explosion3.wav";
+        spec.score = 100;
+        spec.explosionSeName = "explosion3.wav";
     }
 
-    public override void init_1(EnemyState es)
+    public void init_1(EnemyState es)
     {
         {
             {
@@ -1295,37 +1385,37 @@ public class MiddleEnemySpec : EnemySpec
             }
 
             es.phase = -300;
-            gotoNextPhaseInAppearing(es);
+            spec.gotoNextPhaseInAppearing(es);
         }
     }
 
-    public override void setRank(float r)
+    public void setRank(float r)
     {
-        rank = sqrt(r);
+        spec.rank = sqrt(r);
         float tr = 0;
-        switch (gameState.mode_0())
+        switch (spec.gameState.mode_0())
         {
             case GameStateMode.CLASSIC:
-                rank = sqrt(rank);
+                spec.rank = sqrt(spec.rank);
                 tr = r * 2;
                 break;
             case GameStateMode.BASIC:
                 tr = r * 3;
                 break;
             case GameStateMode.MODERN:
-                rank = 1;
+                spec.rank = 1;
                 tr = r * 15;
                 break;
         }
 
-        if (rank < 1.5f)
-            rank = 1.5f;
-        turretSpecs[0].setRankMiddle(tr);
-        turretNum = 1;
-        if ((gameState.mode_0() == GameStateMode.MODERN))
+        if (spec.rank < 1.5f)
+            spec.rank = 1.5f;
+        spec.turretSpecs[0].setRankMiddle(tr);
+        spec.turretNum = 1;
+        if ((spec.gameState.mode_0() == GameStateMode.MODERN))
         {
-            TurretSpec ts = turretSpecs[0];
-            int ptn = rand.nextInt(6);
+            TurretSpec ts = spec.turretSpecs[0];
+            int ptn = EnemySpec.rand.nextInt(6);
             switch (ptn)
             {
                 case 0:
@@ -1333,75 +1423,75 @@ public class MiddleEnemySpec : EnemySpec
                 case 1:
                 case 2:
                 case 4:
-                    turretSpecs[1].copy(turretSpecs[0]);
-                    turretSpecs[2].copy(turretSpecs[0]);
-                    if (((ts.nway > 1)) && ((rand.nextInt(2) == 0)))
+                    spec.turretSpecs[1].copy(spec.turretSpecs[0]);
+                    spec.turretSpecs[2].copy(spec.turretSpecs[0]);
+                    if (((ts.nway > 1)) && ((EnemySpec.rand.nextInt(2) == 0)))
                     {
-                        float nsa = (ts.speed * (0.2f + ts.nway * 0.05f + rand.nextFloat(0.1f))) / (ts.nway - 1);
-                        if (rand.nextInt(2) == 0)
+                        float nsa = (ts.speed * (0.2f + ts.nway * 0.05f + EnemySpec.rand.nextFloat(0.1f))) / (ts.nway - 1);
+                        if (EnemySpec.rand.nextInt(2) == 0)
                             nsa = nsa * (-1);
-                        turretSpecs[1].nwaySpeedAccel = nsa;
-                        turretSpecs[2].nwaySpeedAccel = -nsa;
+                        spec.turretSpecs[1].nwaySpeedAccel = nsa;
+                        spec.turretSpecs[2].nwaySpeedAccel = -nsa;
                     }
 
-                    turretWidth = 1.0f + rand.nextFloat(1.0f);
-                    turretNum = 3;
+                    spec.turretWidth = 1.0f + EnemySpec.rand.nextFloat(1.0f);
+                    spec.turretNum = 3;
                     if (ptn == 4)
                     {
-                        turretSpecs[0].setRankMiddle(tr * 2);
-                        turretSpecs[1].interval = turretSpecs[1].interval * (4);
-                        turretSpecs[2].interval = turretSpecs[2].interval * (4);
-                        turretSpecs[0].interval = turretSpecs[1].interval;
-                        turretSpecs[2].fireIntervalRatio = 0.25f;
-                        turretSpecs[0].fireIntervalRatio = 0.5f;
+                        spec.turretSpecs[0].setRankMiddle(tr * 2);
+                        spec.turretSpecs[1].interval = spec.turretSpecs[1].interval * (4);
+                        spec.turretSpecs[2].interval = spec.turretSpecs[2].interval * (4);
+                        spec.turretSpecs[0].interval = spec.turretSpecs[1].interval;
+                        spec.turretSpecs[2].fireIntervalRatio = 0.25f;
+                        spec.turretSpecs[0].fireIntervalRatio = 0.5f;
                     }
                     else
                     {
-                        turretSpecs[0].disabled(true);
-                        turretSpecs[1].interval = turretSpecs[1].interval * (2);
-                        turretSpecs[2].interval = turretSpecs[2].interval * (2);
-                        if (rand.nextInt(2) == 0)
-                            turretSpecs[2].fireIntervalRatio = 0.5f;
+                        spec.turretSpecs[0].disabled(true);
+                        spec.turretSpecs[1].interval = spec.turretSpecs[1].interval * (2);
+                        spec.turretSpecs[2].interval = spec.turretSpecs[2].interval * (2);
+                        if (EnemySpec.rand.nextInt(2) == 0)
+                            spec.turretSpecs[2].fireIntervalRatio = 0.5f;
                     }
 
                     break;
                 case 3:
                 case 5:
-                    turretSpecs[0].interval = turretSpecs[0].interval * (2);
-                    if (rand.nextInt(3) == 0)
-                        turretSpecs[0].nwayAngle = turretSpecs[0].nwayAngle * (0.1f);
-                    turretSpecs[1].setRankMiddle(tr);
-                    turretSpecs[1].interval = turretSpecs[1].interval * (2);
-                    turretSpecs[2].copy(turretSpecs[1]);
-                    if (((ts.nway > 1)) && ((rand.nextInt(2) == 0)))
+                    spec.turretSpecs[0].interval = spec.turretSpecs[0].interval * (2);
+                    if (EnemySpec.rand.nextInt(3) == 0)
+                        spec.turretSpecs[0].nwayAngle = spec.turretSpecs[0].nwayAngle * (0.1f);
+                    spec.turretSpecs[1].setRankMiddle(tr);
+                    spec.turretSpecs[1].interval = spec.turretSpecs[1].interval * (2);
+                    spec.turretSpecs[2].copy(spec.turretSpecs[1]);
+                    if (((ts.nway > 1)) && ((EnemySpec.rand.nextInt(2) == 0)))
                     {
-                        float nsa = (ts.speed * (0.2f + ts.nway * 0.05f + rand.nextFloat(0.1f))) / (ts.nway - 1);
-                        if (rand.nextInt(2) == 0)
+                        float nsa = (ts.speed * (0.2f + ts.nway * 0.05f + EnemySpec.rand.nextFloat(0.1f))) / (ts.nway - 1);
+                        if (EnemySpec.rand.nextInt(2) == 0)
                             nsa = nsa * (-1);
-                        turretSpecs[1].nwaySpeedAccel = nsa;
-                        turretSpecs[2].nwaySpeedAccel = -nsa;
+                        spec.turretSpecs[1].nwaySpeedAccel = nsa;
+                        spec.turretSpecs[2].nwaySpeedAccel = -nsa;
                     }
 
-                    turretSpecs[1].nwayBaseDeg = -PI / 8 - rand.nextFloat(PI / 12);
-                    if (turretSpecs[1].nway > 1)
-                        turretSpecs[1].nwayBaseDeg = turretSpecs[1].nwayBaseDeg - (turretSpecs[1].nwayAngle * (turretSpecs[1].nway - 1) / 2);
-                    turretSpecs[2].nwayBaseDeg = -turretSpecs[1].nwayBaseDeg;
-                    turretWidth = 1.5f + rand.nextFloat(0.5f);
-                    turretNum = 3;
+                    spec.turretSpecs[1].nwayBaseDeg = -PI / 8 - EnemySpec.rand.nextFloat(PI / 12);
+                    if (spec.turretSpecs[1].nway > 1)
+                        spec.turretSpecs[1].nwayBaseDeg = spec.turretSpecs[1].nwayBaseDeg - (spec.turretSpecs[1].nwayAngle * (spec.turretSpecs[1].nway - 1) / 2);
+                    spec.turretSpecs[2].nwayBaseDeg = -spec.turretSpecs[1].nwayBaseDeg;
+                    spec.turretWidth = 1.5f + EnemySpec.rand.nextFloat(0.5f);
+                    spec.turretNum = 3;
                     break;
             }
         }
     }
 
-    public override bool gotoNextPhase(EnemyState es)
+    public bool gotoNextPhase(EnemyState es)
     {
         {
             if (es.phase < 0)
-                return gotoNextPhaseInAppearing(es);
+                return spec.gotoNextPhaseInAppearing(es);
             switch (es.phase)
             {
                 case 1:
-                    if (((((gameState.mode_0() != GameStateMode.MODERN))) && (((!((player.hasCollision())))))))
+                    if (((((spec.gameState.mode_0() != GameStateMode.MODERN))) && (((!((spec.player.hasCollision())))))))
                     {
                         es.phase = 0;
                         es.nextPhaseCnt = calcStandByTime(es);
@@ -1409,28 +1499,28 @@ public class MiddleEnemySpec : EnemySpec
                     }
 
                     Sound.playSe("flying_down.wav");
-                    if ((gameState.mode_0() != GameStateMode.MODERN))
+                    if ((spec.gameState.mode_0() != GameStateMode.MODERN))
                     {
-                        es.centerPos.x = field.size().x * (0.6f + rand.nextSignedFloat(0.1f));
-                        if (rand.nextInt(2) == 0)
+                        es.centerPos.x = spec.field.size().x * (0.6f + EnemySpec.rand.nextSignedFloat(0.1f));
+                        if (EnemySpec.rand.nextInt(2) == 0)
                             es.centerPos.x = es.centerPos.x * (-1);
-                        es.centerPos.y = field.size().y * (0.2f + rand.nextFloat(0.2f));
+                        es.centerPos.y = spec.field.size().y * (0.2f + EnemySpec.rand.nextFloat(0.2f));
                         es.nextPhaseCnt = 60;
                     }
                     else
                     {
                         es.centerPos.x = es.standByPos.x;
-                        es.centerPos.y = field.size().y * 0.95f;
+                        es.centerPos.y = spec.field.size().y * 0.95f;
                         es.baseSpeed = es.baseBaseSpeed * 0.3f;
                         es.nextPhaseCnt = 60;
                     }
 
                     break;
                 case 2:
-                    if ((gameState.mode_0() != GameStateMode.MODERN))
+                    if ((spec.gameState.mode_0() != GameStateMode.MODERN))
                     {
                         es.centerPos.x = es.centerPos.x * (-0.9f);
-                        es.centerPos.y = field.size().y * (0.2f + rand.nextFloat(0.2f));
+                        es.centerPos.y = spec.field.size().y * (0.2f + EnemySpec.rand.nextFloat(0.2f));
                         es.nextPhaseCnt = 60;
                     }
                     else
@@ -1443,7 +1533,7 @@ public class MiddleEnemySpec : EnemySpec
 
                     break;
                 case 3:
-                    if ((gameState.mode_0() != GameStateMode.MODERN))
+                    if ((spec.gameState.mode_0() != GameStateMode.MODERN))
                     {
                         es.centerPos.x = es.standByPos.x;
                         es.centerPos.y = es.standByPos.y;
@@ -1453,7 +1543,7 @@ public class MiddleEnemySpec : EnemySpec
                     else
                     {
                         es.centerPos.x = es.standByPos.x;
-                        es.centerPos.y = -field.size().y * 1.5f;
+                        es.centerPos.y = -spec.field.size().y * 1.5f;
                         es.baseSpeed = es.baseBaseSpeed * 0.5f;
                         es.nextPhaseCnt = 10;
                     }
@@ -1463,54 +1553,93 @@ public class MiddleEnemySpec : EnemySpec
                     return false;
             }
 
-            es.nextPhaseCnt = GameMath.integer(es.nextPhaseCnt / (rank));
+            es.nextPhaseCnt = GameMath.integer(es.nextPhaseCnt / (spec.rank));
             es.phaseCnt = 0;
         }
 
         return true;
     }
 
-    public override bool isInAttack_1(EnemyState es)
+    public bool isInAttack_1(EnemyState es)
     {
         return (((es.phase == 1)) || ((es.phase == 2)));
     }
 
-    public override int calcStandByTime(EnemyState es)
+    public int calcStandByTime(EnemyState es)
     {
-        if ((((es.phase < 0)) || (((gameState.mode_0() == GameStateMode.MODERN)))))
-            return 30 + rand.nextInt(30);
+        if ((((es.phase < 0)) || (((spec.gameState.mode_0() == GameStateMode.MODERN)))))
+            return 30 + EnemySpec.rand.nextInt(30);
         else
-            return 200 + rand.nextInt(150);
+            return 200 + EnemySpec.rand.nextInt(150);
+    }
+
+    public void set_1(EnemyState es)
+    {
+        spec.defaultSet_1(es);
+    }
+
+    public bool move_1(EnemyState es)
+    {
+        return spec.defaultMove_1(es);
+    }
+
+    public void destroyed_2(EnemyState es, float dd)
+    {
+        spec.defaultDestroyed_2(es, dd);
+    }
+
+    public void draw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
+    {
+        spec.defaultDraw_1(model, color, blend, es);
+    }
+
+    public bool isBeingCaptured_1(EnemyState es)
+    {
+        return spec.defaultIsBeingCaptured_1(es);
+    }
+
+    public bool isCaptured_1(EnemyState es)
+    {
+        return spec.defaultIsCaptured_1(es);
+    }
+
+    public void movePhase(EnemyState es)
+    {
+        spec.defaultMovePhase(es);
     }
 }
 
-public abstract class SmallEnemySpec : EnemySpec
+public class SmallEnemySpec : EnemyKind
 {
-    public SmallEnemySpec(Field field, BulletPool bullets, Player player, ParticlePool particles, ParticlePool bonusParticles, EnemyPool enemies, Stage stage, Shape shape, EnemyShape trailShape, BulletSpec bulletSpec, BulletSpec counterBulletSpec, GameState gameState) : base(field, bullets, player, particles, bonusParticles, enemies, stage, shape, trailShape, bulletSpec, counterBulletSpec, gameState)
+    public EnemySpec spec;
+    public SmallEnemyKind kind;
+    public SmallEnemySpec(Field field, BulletPool bullets, Player player, ParticlePool particles, ParticlePool bonusParticles, EnemyPool enemies, Stage stage, Shape shape, EnemyShape trailShape, BulletSpec bulletSpec, BulletSpec counterBulletSpec, GameState gameState)
     {
-        turretSpecs[0] = new TurretSpec(field, bullets, player, enemies, particles, stage, bulletSpec, gameState);
+        spec = new EnemySpec(field, bullets, player, particles, bonusParticles, enemies, stage, shape, trailShape, bulletSpec, counterBulletSpec, gameState);
+        spec.kind = this;
+        spec.turretSpecs[0] = new TurretSpec(field, bullets, player, enemies, particles, stage, bulletSpec, gameState);
         switch (gameState.mode_0())
         {
             case GameStateMode.CLASSIC:
             case GameStateMode.BASIC:
-                shield = 1;
+                spec.shield = 1;
                 break;
             case GameStateMode.MODERN:
-                shield = 2;
+                spec.shield = 2;
                 break;
         }
 
-        capturable = true;
-        score = 10;
-        removeBullets = false;
+        spec.capturable = true;
+        spec.score = 10;
+        spec.removeBullets = false;
     }
 
-    public override void init_1(EnemyState es)
+    public void init_1(EnemyState es)
     {
-        gotoNextPhaseInAppearing(es);
+        spec.gotoNextPhaseInAppearing(es);
     }
 
-    public virtual void init_2(EnemyState es, EnemyState fes)
+    public void init_2(EnemyState es, EnemyState fes)
     {
         {
             es.centerPos.x = fes.centerPos.x;
@@ -1528,130 +1657,188 @@ public abstract class SmallEnemySpec : EnemySpec
         }
     }
 
-    public override void setRank(float r)
+    public void setRank(float r)
     {
-        rank = sqrt(r * 0.5f);
+        spec.rank = sqrt(r * 0.5f);
         float tr = 0;
-        switch (gameState.mode_0())
+        switch (spec.gameState.mode_0())
         {
             case GameStateMode.CLASSIC:
-                rank = sqrt(rank);
+                spec.rank = sqrt(spec.rank);
                 tr = r;
                 break;
             case GameStateMode.BASIC:
                 tr = r * 2;
                 break;
             case GameStateMode.MODERN:
-                rank = 1;
+                spec.rank = 1;
                 tr = r;
                 break;
         }
 
-        if (rank < 1)
-            rank = 1;
-        turretSpecs[0].setRankNormal(tr);
-        turretNum = 1;
+        if (spec.rank < 1)
+            spec.rank = 1;
+        spec.turretSpecs[0].setRankNormal(tr);
+        spec.turretNum = 1;
     }
 
-    public override int calcStandByTime(EnemyState es)
+    public int calcStandByTime(EnemyState es)
     {
-        return 60 + rand.nextInt(120);
+        return 60 + EnemySpec.rand.nextInt(120);
+    }
+
+    public void set_1(EnemyState es)
+    {
+        spec.defaultSet_1(es);
+    }
+
+    public bool move_1(EnemyState es)
+    {
+        return spec.defaultMove_1(es);
+    }
+
+    public void destroyed_2(EnemyState es, float dd)
+    {
+        spec.defaultDestroyed_2(es, dd);
+    }
+
+    public void draw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
+    {
+        spec.defaultDraw_1(model, color, blend, es);
+    }
+
+    public bool isBeingCaptured_1(EnemyState es)
+    {
+        return spec.defaultIsBeingCaptured_1(es);
+    }
+
+    public bool isCaptured_1(EnemyState es)
+    {
+        return spec.defaultIsCaptured_1(es);
+    }
+
+    public void movePhase(EnemyState es)
+    {
+        kind.movePhase(es);
+    }
+
+    public bool gotoNextPhase(EnemyState es)
+    {
+        return kind.gotoNextPhase(es);
+    }
+
+    public bool isInAttack_1(EnemyState es)
+    {
+        return kind.isInAttack_1(es);
     }
 }
 
-public class SE1Spec : SmallEnemySpec
+public class SE1Spec : SmallEnemyKind
 {
-    public SE1Spec(Field field, BulletPool bullets, Player player, ParticlePool particles, ParticlePool bonusParticles, EnemyPool enemies, Stage stage, Shape shape, EnemyShape trailShape, BulletSpec bulletSpec, BulletSpec counterBulletSpec, GameState gameState) : base(field, bullets, player, particles, bonusParticles, enemies, stage, shape, trailShape, bulletSpec, counterBulletSpec, gameState)
+    public EnemySpec spec;
+    public SE1Spec(Field field, BulletPool bullets, Player player, ParticlePool particles, ParticlePool bonusParticles, EnemyPool enemies, Stage stage, Shape shape, EnemyShape trailShape, BulletSpec bulletSpec, BulletSpec counterBulletSpec, GameState gameState)
     {
-        explosionSeName = "explosion1.wav";
+        SmallEnemySpec small = new SmallEnemySpec(field, bullets, player, particles, bonusParticles, enemies, stage, shape, trailShape, bulletSpec, counterBulletSpec, gameState);
+        small.kind = this;
+        spec = small.spec;
+        spec.explosionSeName = "explosion1.wav";
     }
 
-    public override bool gotoNextPhase(EnemyState es)
+    public bool gotoNextPhase(EnemyState es)
     {
         {
             if (es.phase < 0)
-                return gotoNextPhaseInAppearing(es);
+                return spec.gotoNextPhaseInAppearing(es);
             switch (es.phase)
             {
                 case 1:
-                    if (((((!((player.hasCollision()))))) || (((enemies.numInAttack() > stage.attackSmallEnemyNum())))))
+                    if (((((!((spec.player.hasCollision()))))) || (((spec.enemies.numInAttack() > spec.stage.attackSmallEnemyNum())))))
                     {
                         es.phase = 0;
-                        es.nextPhaseCnt = calcStandByTime(es);
+                        es.nextPhaseCnt = spec.calcStandByTime(es);
                         break;
                     }
 
                     Sound.playSe("flying_down.wav");
                     es.centerPos.y = 0;
-                    es.centerPos.x = (es.standByPos.x + player.pos().x) / 2;
+                    es.centerPos.x = (es.standByPos.x + spec.player.pos().x) / 2;
                     es.nextPhaseCnt = 60;
                     break;
                 case 2:
-                    es.centerPos.y = -field.size().y * 0.7f;
-                    es.centerPos.x = player.pos().x;
+                    es.centerPos.y = -spec.field.size().y * 0.7f;
+                    es.centerPos.x = spec.player.pos().x;
                     es.nextPhaseCnt = 30;
                     break;
                 case 3:
                     es.centerPos.x = es.standByPos.x;
                     es.centerPos.y = es.standByPos.y;
                     es.phase = 0;
-                    es.nextPhaseCnt = calcStandByTime(es);
+                    es.nextPhaseCnt = spec.calcStandByTime(es);
                     break;
             }
 
-            es.nextPhaseCnt = GameMath.integer(es.nextPhaseCnt / (rank));
+            es.nextPhaseCnt = GameMath.integer(es.nextPhaseCnt / (spec.rank));
             es.phaseCnt = 0;
         }
 
         return true;
     }
 
-    public override bool isInAttack_1(EnemyState es)
+    public bool isInAttack_1(EnemyState es)
     {
         return (((((es.phase < -10)) || ((es.phase == 1)))) || ((es.phase == 2)));
     }
+
+    public void movePhase(EnemyState es)
+    {
+        spec.defaultMovePhase(es);
+    }
 }
 
-public class SE2Spec : SmallEnemySpec
+public class SE2Spec : SmallEnemyKind
 {
-    public SE2Spec(Field field, BulletPool bullets, Player player, ParticlePool particles, ParticlePool bonusParticles, EnemyPool enemies, Stage stage, Shape shape, EnemyShape trailShape, BulletSpec bulletSpec, BulletSpec counterBulletSpec, GameState gameState) : base(field, bullets, player, particles, bonusParticles, enemies, stage, shape, trailShape, bulletSpec, counterBulletSpec, gameState)
+    public EnemySpec spec;
+    public SE2Spec(Field field, BulletPool bullets, Player player, ParticlePool particles, ParticlePool bonusParticles, EnemyPool enemies, Stage stage, Shape shape, EnemyShape trailShape, BulletSpec bulletSpec, BulletSpec counterBulletSpec, GameState gameState)
     {
-        explosionSeName = "explosion2.wav";
+        SmallEnemySpec small = new SmallEnemySpec(field, bullets, player, particles, bonusParticles, enemies, stage, shape, trailShape, bulletSpec, counterBulletSpec, gameState);
+        small.kind = this;
+        spec = small.spec;
+        spec.explosionSeName = "explosion2.wav";
     }
 
-    public override bool gotoNextPhase(EnemyState es)
+    public bool gotoNextPhase(EnemyState es)
     {
         {
             if (es.phase < 0)
-                return gotoNextPhaseInAppearing(es);
+                return spec.gotoNextPhaseInAppearing(es);
             switch (es.phase)
             {
                 case 1:
-                    if (((((!((player.hasCollision()))))) || (((enemies.numInAttack() > stage.attackSmallEnemyNum())))))
+                    if (((((!((spec.player.hasCollision()))))) || (((spec.enemies.numInAttack() > spec.stage.attackSmallEnemyNum())))))
                     {
                         es.phase = 0;
-                        es.nextPhaseCnt = calcStandByTime(es);
+                        es.nextPhaseCnt = spec.calcStandByTime(es);
                         break;
                     }
 
                     Sound.playSe("flying_down.wav");
-                    es.centerPos.y = -field.size().y * 0.3f;
-                    es.centerPos.x = (es.standByPos.x + player.pos().x) / 2;
+                    es.centerPos.y = -spec.field.size().y * 0.3f;
+                    es.centerPos.x = (es.standByPos.x + spec.player.pos().x) / 2;
                     es.baseSpeed = es.baseBaseSpeed;
                     es.angVel = es.baseAngVel;
-                    es.nextPhaseCnt = 30 + rand.nextInt(60);
+                    es.nextPhaseCnt = 30 + EnemySpec.rand.nextInt(60);
                     break;
                 case 2:
-                    es.centerPos.y = -field.size().y * 1.3f;
+                    es.centerPos.y = -spec.field.size().y * 1.3f;
                     es.centerPos.x = es.centerPos.x * (-1);
                     es.nextPhaseCnt = 30;
                     break;
                 case 3:
-                    es.centerPos.y = -field.size().y * 1.0f;
+                    es.centerPos.y = -spec.field.size().y * 1.0f;
                     if (es.centerPos.x < 0)
-                        es.centerPos.x = -field.size().x * 1.5f;
+                        es.centerPos.x = -spec.field.size().x * 1.5f;
                     else
-                        es.centerPos.x = field.size().x * 1.5f;
+                        es.centerPos.x = spec.field.size().x * 1.5f;
                     es.baseSpeed = es.baseBaseSpeed * 1.5f;
                     es.angVel = es.baseAngVel * 1.5f;
                     es.nextPhaseCnt = 30;
@@ -1660,38 +1847,38 @@ public class SE2Spec : SmallEnemySpec
                     es.centerPos.x = es.standByPos.x;
                     es.centerPos.y = es.standByPos.y;
                     es.phase = 0;
-                    es.nextPhaseCnt = calcStandByTime(es);
+                    es.nextPhaseCnt = spec.calcStandByTime(es);
                     break;
             }
 
-            es.nextPhaseCnt = GameMath.integer(es.nextPhaseCnt / (rank));
+            es.nextPhaseCnt = GameMath.integer(es.nextPhaseCnt / (spec.rank));
             es.phaseCnt = 0;
         }
 
         return true;
     }
 
-    public override void movePhase(EnemyState es)
+    public void movePhase(EnemyState es)
     {
-        base.movePhase(es);
+        spec.defaultMovePhase(es);
         {
             if (es.phase == 3)
             {
                 if (es.centerPos.x < 0)
                 {
-                    if (es.pos.x > -field.size().x * 1.2f)
+                    if (es.pos.x > -spec.field.size().x * 1.2f)
                         es.pos.x = es.pos.x + ((es.centerPos.x - es.pos.x) * 0.2f);
                 }
                 else
                 {
-                    if (es.pos.x < field.size().x * 1.2f)
+                    if (es.pos.x < spec.field.size().x * 1.2f)
                         es.pos.x = es.pos.x + ((es.centerPos.x - es.pos.x) * 0.2f);
                 }
             }
         }
     }
 
-    public override bool isInAttack_1(EnemyState es)
+    public bool isInAttack_1(EnemyState es)
     {
         return (((((((es.phase < -10)) || ((es.phase == 1)))) || ((es.phase == 2)))) || ((es.phase == 3)));
     }
