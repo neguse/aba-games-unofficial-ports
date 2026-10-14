@@ -4,8 +4,11 @@ using System.Collections.Generic;
 using static GameMath;
 using static Lub;
 
-public class Shot : OdeActor
+public class Shot : Actor, OdeActor
 {
+    public string meshKey;
+    public bool exists;
+    public OdeBody ode;
     public Field field;
     public ParticlePool particles;
     public Vector pos;
@@ -14,29 +17,55 @@ public class Shot : OdeActor
     public float _deg;
     public ShapeGroup shape;
     public LinePoint linePoint;
+    public Shot()
+    {
+        meshKey = ActorMesh.nextKey();
+        ode = new OdeBody(this);
+    }
+
+    public OdeBody getOde()
+    {
+        return ode;
+    }
+
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public string getMeshKey()
+    {
+        return meshKey;
+    }
+
     public void set_2(Vector3 p, float d)
     {
-        base.set_1();
+        ode.set_1();
         pos.x = p.x - sin(d) * 0.5f;
         pos.y = p.y + cos(d) * 0.5f;
-        McdPhysics.BodyPosition(_bodyId, pos.x, pos.y, 0);
+        McdPhysics.BodyPosition(ode._bodyId, pos.x, pos.y, 0);
         _deg = d;
-        setDeg(d);
+        ode.setDeg(d);
         shape.setMass_3(this);
         shape.setGeom(this, null);
-        addForce(-sin(d) * FORCE, cos(d) * FORCE);
+        ode.addForce(-sin(d) * FORCE, cos(d) * FORCE);
         cnt = 0;
         removeCnt = 0;
         linePoint.init_0();
     }
 
-    public override void move_0()
+    public void move_0()
     {
         cnt++;
-        float[] p = McdPhysics.BodyVector(_bodyId, 0);
+        float[] p = McdPhysics.BodyVector(ode._bodyId, 0);
         pos.x = p[0];
         pos.y = p[1];
-        McdPhysics.BodyPosition(_bodyId, pos.x, pos.y, 0);
+        McdPhysics.BodyPosition(ode._bodyId, pos.x, pos.y, 0);
         if (removeCnt > 0)
         {
             removeCnt++;
@@ -54,10 +83,10 @@ public class Shot : OdeActor
         }
 
         recordLinePoints_0();
-        doCollide();
+        ode.doCollide();
     }
 
-    public override void collide_2(OdeActor actor, Collision flags)
+    public void collide_2(OdeActor actor, Collision flags)
     {
         flags.feedback = false;
         flags.hit = flags.feedback;
@@ -94,7 +123,7 @@ public class Shot : OdeActor
         model = parent1;
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         if (removeCnt > 0)
             return;
@@ -124,19 +153,33 @@ public class Shot : OdeActor
         rand.setSeed(seed);
     }
 
-    public override void init_1_(object[] args)
+    public void init_1_(object[] args)
     {
-        base.init_1_Boolean();
+        ode.init_1_Boolean();
         field = (Field)args[0];
         particles = (ParticlePool)args[1];
         pos = new Vector();
         _deg = 0;
         cnt = 0;
         shape = new ShapeGroup();
-        shape.addShape(new Square(world, MASS, 0, 0, SIZE * 0.2f, SIZE));
+        shape.addShape(new Square(ode.world, MASS, 0, 0, SIZE * 0.2f, SIZE));
         linePoint = new LinePoint(field);
         linePoint.setSpectrumParams(0.2f, 0.4f, 0, 0.8f);
         linePoint.alpha(0.5f);
+    }
+
+    public void clearContactJoint()
+    {
+        ode.clearContactJoint();
+    }
+
+    public void checkFeedbackForce()
+    {
+    }
+
+    public void remove_0()
+    {
+        ode.remove_0();
     }
 }
 
@@ -176,8 +219,11 @@ public class ShotPool
     }
 }
 
-public class EnhancedShot : OdeActor
+public class EnhancedShot : Actor, OdeActor
 {
+    public string meshKey;
+    public bool exists;
+    public OdeBody ode;
     public Field field;
     public ParticlePool particles;
     public Vector pos;
@@ -186,29 +232,55 @@ public class EnhancedShot : OdeActor
     public float _deg;
     public ShapeGroup shape;
     public LinePoint linePoint;
+    public EnhancedShot()
+    {
+        meshKey = ActorMesh.nextKey();
+        ode = new OdeBody(this);
+    }
+
+    public OdeBody getOde()
+    {
+        return ode;
+    }
+
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public string getMeshKey()
+    {
+        return meshKey;
+    }
+
     public void set_2(Vector3 p, float d)
     {
-        base.set_1();
+        ode.set_1();
         pos.x = p.x - sin(d) * 0.5f;
         pos.y = p.y + cos(d) * 0.5f;
-        McdPhysics.BodyPosition(_bodyId, pos.x, pos.y, 0);
+        McdPhysics.BodyPosition(ode._bodyId, pos.x, pos.y, 0);
         _deg = d;
-        setDeg(d);
+        ode.setDeg(d);
         shape.setMass_3(this);
         shape.setGeom(this, null);
-        addForce(-sin(d) * FORCE, cos(d) * FORCE);
+        ode.addForce(-sin(d) * FORCE, cos(d) * FORCE);
         cnt = 0;
         removeCnt = 0;
         linePoint.init_0();
     }
 
-    public override void move_0()
+    public void move_0()
     {
         cnt++;
-        float[] p = McdPhysics.BodyVector(_bodyId, 0);
+        float[] p = McdPhysics.BodyVector(ode._bodyId, 0);
         pos.x = p[0];
         pos.y = p[1];
-        McdPhysics.BodyPosition(_bodyId, pos.x, pos.y, 0);
+        McdPhysics.BodyPosition(ode._bodyId, pos.x, pos.y, 0);
         if (removeCnt > 0)
         {
             removeCnt++;
@@ -226,10 +298,10 @@ public class EnhancedShot : OdeActor
         }
 
         recordLinePoints_0();
-        doCollide();
+        ode.doCollide();
     }
 
-    public override void collide_2(OdeActor actor, Collision flags)
+    public void collide_2(OdeActor actor, Collision flags)
     {
         flags.feedback = false;
         flags.hit = flags.feedback;
@@ -266,7 +338,7 @@ public class EnhancedShot : OdeActor
         model = parent1;
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         if (removeCnt > 0)
             return;
@@ -296,18 +368,32 @@ public class EnhancedShot : OdeActor
         rand.setSeed(seed);
     }
 
-    public override void init_1_(object[] args)
+    public void init_1_(object[] args)
     {
-        base.init_1_Boolean();
+        ode.init_1_Boolean();
         field = (Field)args[0];
         particles = (ParticlePool)args[1];
         pos = new Vector();
         _deg = 0;
         cnt = 0;
         shape = new ShapeGroup();
-        shape.addShape(new Triangle(world, MASS, 0, 0, SIZE * 0.33f, SIZE));
+        shape.addShape(new Triangle(ode.world, MASS, 0, 0, SIZE * 0.33f, SIZE));
         linePoint = new LinePoint(field);
         linePoint.setSpectrumParams(0.9f, 0.6f, 0.3f, 0.75f);
+    }
+
+    public void clearContactJoint()
+    {
+        ode.clearContactJoint();
+    }
+
+    public void checkFeedbackForce()
+    {
+    }
+
+    public void remove_0()
+    {
+        ode.remove_0();
     }
 }
 

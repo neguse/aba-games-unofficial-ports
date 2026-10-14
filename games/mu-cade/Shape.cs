@@ -24,7 +24,7 @@ public class ShapeGroup : Shape
     {
         OdeMass m = McdPhysics.Mass();
         addMass(m, sizeScale, massScale);
-        oa.setMass_1(m);
+        oa.getOde().setMass_1(m);
     }
 
     public void setGeom(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null)
@@ -91,7 +91,7 @@ public static class ShapeBase
                 bg_0 = McdPhysics.Box(sid, size.x * shapeBoxScale, size.y * shapeBoxScale, size.z * shapeBoxScale);
             }
 
-            oa.addGeom_1(bg_0);
+            oa.getOde().addGeom_1(bg_0);
         }
         else
         {
@@ -109,8 +109,8 @@ public static class ShapeBase
             }
 
             McdPhysics.TransformGeom(tg, bg_1);
-            oa.addGeom_1(tg);
-            oa.addTransformedGeom(bg_1);
+            oa.getOde().addGeom_1(tg);
+            oa.getOde().addTransformedGeom(bg_1);
         }
     }
 }
@@ -208,7 +208,7 @@ public class Sphere : Shape
                 bg_0 = McdPhysics.Sphere(sid, size.x * shapeBoxScale);
             }
 
-            oa.addGeom_1(bg_0);
+            oa.getOde().addGeom_1(bg_0);
         }
         else
         {
@@ -226,8 +226,8 @@ public class Sphere : Shape
             }
 
             McdPhysics.TransformGeom(tg, bg_1);
-            oa.addGeom_1(tg);
-            oa.addTransformedGeom(bg_1);
+            oa.getOde().addGeom_1(tg);
+            oa.getOde().addTransformedGeom(bg_1);
         }
     }
 

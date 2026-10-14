@@ -835,20 +835,20 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
         if (field.checkInField_1_Vector3(state.pos))
         {
             if (state.isHead)
-                enemy.addRelForce(0, FORWARD_FORCE_BASE * state.forwardForceScale);
+                enemy.ode.addRelForce(0, FORWARD_FORCE_BASE * state.forwardForceScale);
             if ((state.topBullet) != null)
                 state.topBullet.activated = true;
             state.linePoint.enableSpectrumColor(true);
             switch (state.type)
             {
                 case CentHeadCentType.TO_AND_FROM:
-                    enemy.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * (1 + (state.turnCnt * 0.1f)));
+                    enemy.ode.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * (1 + (state.turnCnt * 0.1f)));
                     break;
                 case CentHeadCentType.CHASE:
-                    enemy.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * 0.25f);
+                    enemy.ode.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * 0.25f);
                     break;
                 case CentHeadCentType.ROLL:
-                    enemy.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * 5);
+                    enemy.ode.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * 5);
                     break;
             }
         }
@@ -859,11 +859,11 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
             state.linePoint.enableSpectrumColor(false);
         }
 
-        enemy.slowAngularVel(CentHead.SLOW_ANGULAR_RATIO);
+        enemy.ode.slowAngularVel(CentHead.SLOW_ANGULAR_RATIO);
         if (!(state.isHead))
             return true;
         if (field.checkInField_1_Vector3(state.pos))
-            enemy.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio);
+            enemy.ode.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio);
         if (state.turnCnt > 0)
             state.turnCnt--;
         float ad = default(float);
@@ -923,7 +923,7 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
 
                 float sd = atan2(-ship.pos().x + state.pos.x, ship.pos().y - state.pos.y);
                 float sf = FORWARD_FORCE_BASE * state.forwardForceScale * 0.16f;
-                enemy.addForce(-sin(sd) * sf, cos(sd) * sf);
+                enemy.ode.addForce(-sin(sd) * sf, cos(sd) * sf);
                 break;
         }
 
@@ -935,7 +935,7 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
             f = 1;
         else if (f < -1)
             f = -1;
-        enemy.addRelForceAtRelPos(0, state.sizeScale.x * SIZE / 2, 0, angularForce * f, 0, 0);
+        enemy.ode.addRelForceAtRelPos(0, state.sizeScale.x * SIZE / 2, 0, angularForce * f, 0, 0);
         Enemy e_1 = enemy;
         for (;;)
         {
@@ -947,7 +947,7 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
             s_1.moveFlag = state.moveFlag;
         }
 
-        enemy.addForce(0, 0, -Field.GRAVITY * state.massScale);
+        enemy.ode.addForce(0, 0, -Field.GRAVITY * state.massScale);
         return true;
     }
 
@@ -1107,7 +1107,7 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
             OdeHandle jid = McdPhysics.Hinge(World.world);
             McdPhysics.HingeLimit(jid, 0, -1);
             McdPhysics.HingeLimit(jid, 1, 1);
-            McdPhysics.JointAttach(jid, je[i_0].bodyId(), je[i_0 + 1].bodyId());
+            McdPhysics.JointAttach(jid, je[i_0].ode.bodyId(), je[i_0 + 1].ode.bodyId());
             McdPhysics.HingeAnchor(jid, (je[i_0].pos().x + je[i_0 + 1].pos().x) / 2, (je[i_0].pos().y + je[i_0 + 1].pos().y) / 2, (je[i_0].pos().z + je[i_0 + 1].pos().z) / 2);
             McdPhysics.HingeAxis(jid, 0, 0, 1);
             OdeHandle[] joints = null;
@@ -1251,20 +1251,20 @@ public class CentBody : EnemySpec, ConnectedParticlesBodyAddable
         if (field.checkInField_1_Vector3(state.pos))
         {
             if (state.isHead)
-                enemy.addRelForce(0, FORWARD_FORCE_BASE * state.forwardForceScale);
+                enemy.ode.addRelForce(0, FORWARD_FORCE_BASE * state.forwardForceScale);
             if ((state.topBullet) != null)
                 state.topBullet.activated = true;
             state.linePoint.enableSpectrumColor(true);
             switch (state.type)
             {
                 case CentBodyCentType.TO_AND_FROM:
-                    enemy.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * (1 + (state.turnCnt * 0.1f)));
+                    enemy.ode.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * (1 + (state.turnCnt * 0.1f)));
                     break;
                 case CentBodyCentType.CHASE:
-                    enemy.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * 0.25f);
+                    enemy.ode.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * 0.25f);
                     break;
                 case CentBodyCentType.ROLL:
-                    enemy.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * 5);
+                    enemy.ode.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * 5);
                     break;
             }
         }
@@ -1275,11 +1275,11 @@ public class CentBody : EnemySpec, ConnectedParticlesBodyAddable
             state.linePoint.enableSpectrumColor(false);
         }
 
-        enemy.slowAngularVel(CentHead.SLOW_ANGULAR_RATIO);
+        enemy.ode.slowAngularVel(CentHead.SLOW_ANGULAR_RATIO);
         if (!(state.isHead))
             return true;
         if (field.checkInField_1_Vector3(state.pos))
-            enemy.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio);
+            enemy.ode.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio);
         if (state.turnCnt > 0)
             state.turnCnt--;
         float ad = default(float);
@@ -1339,7 +1339,7 @@ public class CentBody : EnemySpec, ConnectedParticlesBodyAddable
 
                 float sd = atan2(-ship.pos().x + state.pos.x, ship.pos().y - state.pos.y);
                 float sf = FORWARD_FORCE_BASE * state.forwardForceScale * 0.16f;
-                enemy.addForce(-sin(sd) * sf, cos(sd) * sf);
+                enemy.ode.addForce(-sin(sd) * sf, cos(sd) * sf);
                 break;
         }
 
@@ -1351,7 +1351,7 @@ public class CentBody : EnemySpec, ConnectedParticlesBodyAddable
             f = 1;
         else if (f < -1)
             f = -1;
-        enemy.addRelForceAtRelPos(0, state.sizeScale.x * SIZE / 2, 0, angularForce * f, 0, 0);
+        enemy.ode.addRelForceAtRelPos(0, state.sizeScale.x * SIZE / 2, 0, angularForce * f, 0, 0);
         Enemy e_1 = enemy;
         for (;;)
         {
@@ -1363,7 +1363,7 @@ public class CentBody : EnemySpec, ConnectedParticlesBodyAddable
             s_1.moveFlag = state.moveFlag;
         }
 
-        enemy.addForce(0, 0, -Field.GRAVITY * state.massScale);
+        enemy.ode.addForce(0, 0, -Field.GRAVITY * state.massScale);
         return true;
     }
 
@@ -1542,7 +1542,7 @@ public class Block : EnemySpec
     {
         if (field.checkInField_1_Vector3(state.pos))
         {
-            enemy.slowLinearVel(SLOW_VELOCITY_RATIO * state.massScale);
+            enemy.ode.slowLinearVel(SLOW_VELOCITY_RATIO * state.massScale);
             state.linePoint.enableSpectrumColor(true);
         }
         else
@@ -1550,8 +1550,8 @@ public class Block : EnemySpec
             state.linePoint.enableSpectrumColor(false);
         }
 
-        enemy.slowAngularVel(SLOW_ANGULAR_RATIO);
-        enemy.addForce(0, 0, -Field.GRAVITY * 0.25f * state.massScale);
+        enemy.ode.slowAngularVel(SLOW_ANGULAR_RATIO);
+        enemy.ode.addForce(0, 0, -Field.GRAVITY * 0.25f * state.massScale);
         return true;
     }
 

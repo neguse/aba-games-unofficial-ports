@@ -97,9 +97,9 @@ public class World
         foreach (var c in McdPhysics.Contacts(world, contactGroup, o1, o2, f1.feedback || f2.feedback))
         {
             if (f1.feedback)
-                a1.addContactJoint(c.X, c.Y, c.Z, c.Joint, 1);
+                a1.getOde().addContactJoint(c.X, c.Y, c.Z, c.Joint, 1);
             if (f2.feedback)
-                a2.addContactJoint(c.X, c.Y, c.Z, c.Joint, 2);
+                a2.getOde().addContactJoint(c.X, c.Y, c.Z, c.Joint, 2);
         }
     }
 }

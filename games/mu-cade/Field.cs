@@ -36,14 +36,14 @@ public class Field
         _size = new Vector(20, 15);
         eyePos = new Vector();
         eyePosSize = new Vector(_size.x - 12, size().y - 9);
-        floorWall = new FloorWall();
-        floorWall.setWorld(world);
+        floorWall = new Wall();
+        floorWall.ode.setWorld(world);
         floorWall.init_1_(null);
     }
 
     public void start_0()
     {
-        floorWall.set_1(false);
+        floorWall.ode.set_1(false);
         ShapeGroup s = new ShapeGroup();
         s.addShape(new Square(world, 9999999, 0, 0, _size.x * 2, _size.y * 2, -6, 10));
         s.addGeom_3(floorWall, world.space);
@@ -355,20 +355,58 @@ public class Field
 
 public class Wall : OdeActor
 {
-    public override void init_1_(object[] args)
+    public string meshKey;
+    public bool exists;
+    public OdeBody ode;
+    public Wall()
     {
-        base.init_1_Boolean();
+        meshKey = ActorMesh.nextKey();
+        ode = new OdeBody(this);
     }
 
-    public override void move_0()
+    public OdeBody getOde()
+    {
+        return ode;
+    }
+
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public void init_1_(object[] args)
+    {
+        ode.init_1_Boolean();
+    }
+
+    public void move_0()
     {
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
     }
-}
 
-public class FloorWall : Wall
-{
+    public void collide_2(OdeActor actor, Collision flags)
+    {
+    }
+
+    public void clearContactJoint()
+    {
+        ode.clearContactJoint();
+    }
+
+    public void checkFeedbackForce()
+    {
+    }
+
+    public void remove_0()
+    {
+        ode.remove_0();
+    }
 }

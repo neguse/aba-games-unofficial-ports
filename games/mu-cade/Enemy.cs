@@ -4,8 +4,11 @@ using System.Collections.Generic;
 using static GameMath;
 using static Lub;
 
-public class Enemy : OdeActor
+public class Enemy : Actor, OdeActor
 {
+    public string meshKey;
+    public bool exists;
+    public OdeBody ode;
     public static Rand rand = new Rand();
     public Field field;
     public ParticlePool particles;
@@ -17,6 +20,32 @@ public class Enemy : OdeActor
     public EnemySpec spec;
     public EnemyState state;
     public Vector3 lastForce;
+    public Enemy()
+    {
+        meshKey = ActorMesh.nextKey();
+        ode = new OdeBody(this);
+    }
+
+    public OdeBody getOde()
+    {
+        return ode;
+    }
+
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public string getMeshKey()
+    {
+        return meshKey;
+    }
+
     public static void init_0()
     {
         rand = new Rand();
@@ -27,9 +56,9 @@ public class Enemy : OdeActor
         rand.setSeed(seed);
     }
 
-    public override void init_1_(object[] args)
+    public void init_1_(object[] args)
     {
-        base.init_1_Boolean(true);
+        ode.init_1_Boolean(true);
         field = (Field)args[0];
         particles = (ParticlePool)args[1];
         connectedParticles = (ConnectedParticlePool)args[2];
@@ -51,7 +80,7 @@ public class Enemy : OdeActor
 
     public bool set_10(EnemySpec spec, float x, float y, float z, float deg, float sx, float sy, float sz, float massScale = 1, int type = 0)
     {
-        base.set_1();
+        ode.set_1();
         this.spec = spec;
         state.clear();
         state.pos.x = x;
@@ -66,9 +95,9 @@ public class Enemy : OdeActor
         lastForce.z = 0;
         lastForce.y = lastForce.z;
         lastForce.x = lastForce.y;
-        McdPhysics.BodyPosition(_bodyId, x, y, z);
+        McdPhysics.BodyPosition(ode._bodyId, x, y, z);
         if (spec.rotate2d())
-            setDeg(deg);
+            ode.setDeg(deg);
         spec.initState(this, state);
         state.linePoint.alpha(0);
         state.linePoint.alphaTrg(1);
@@ -91,7 +120,7 @@ public class Enemy : OdeActor
         state.joints = joints;
     }
 
-    public override void move_0()
+    public void move_0()
     {
         if (checkDestroyed())
             return;
@@ -102,19 +131,19 @@ public class Enemy : OdeActor
             return;
         }
 
-        Vector3 f = getForce();
+        Vector3 f = ode.getForce();
         lastForce.x = f.x;
         lastForce.y = f.y;
         lastForce.z = f.z;
         if (spec.rotate2d() && field.checkInField_1_Vector3(state.pos))
-            setDeg(state.deg);
+            ode.setDeg(state.deg);
         spec.recordLinePoints_2(state, state.linePoint);
     }
 
-    public override void remove_0()
+    public void remove_0()
     {
         removeCleaning();
-        base.remove_0();
+        ode.remove_0();
     }
 
     public void removeAsTail(int idx)
@@ -138,14 +167,14 @@ public class Enemy : OdeActor
 
     public void updateState()
     {
-        float[] p = McdPhysics.BodyVector(_bodyId, 0);
+        float[] p = McdPhysics.BodyVector(ode._bodyId, 0);
         state.pos.x = p[0];
         state.pos.y = p[1];
         state.pos.z = p[2];
-        state.deg = getDeg();
-        getRot(state.rot);
-        float[] lv = getLinearVel();
-        float[] av = getAngularVel();
+        state.deg = ode.getDeg();
+        ode.getRot(state.rot);
+        float[] lv = ode.getLinearVel();
+        float[] av = ode.getAngularVel();
         for (int i = 0; i < 3; i++)
         {
             state.linearVel[i] = lv[i];
@@ -177,7 +206,7 @@ public class Enemy : OdeActor
         }
     }
 
-    public override void collide_2(OdeActor actor, Collision flags)
+    public void collide_2(OdeActor actor, Collision flags)
     {
         flags.feedback = false;
         flags.hit = flags.feedback;
@@ -194,14 +223,14 @@ public class Enemy : OdeActor
         spec.collide_3(this, state, actor);
     }
 
-    public override void checkFeedbackForce()
+    public void checkFeedbackForce()
     {
-        if (contactJointNum <= 0)
+        if (ode.contactJointNum <= 0)
             return;
-        getFeedbackForce();
-        for (int i = 0; i < contactJointNum; i++)
+        ode.getFeedbackForce();
+        for (int i = 0; i < ode.contactJointNum; i++)
         {
-            ContactJoint cj = contactJoint[i];
+            ContactJoint cj = ode.contactJoint[i];
             Vector3 ff = cj.feedbackForce;
             ff.x += lastForce.x * 0.9f;
             ff.y += lastForce.y * 0.9f;
@@ -227,9 +256,9 @@ public class Enemy : OdeActor
         if (state.destroyable && state.pos.z < -10)
         {
             removeCleaning();
-            removeBodyAndGeom();
+            ode.removeBodyAndGeom();
             spec.destroyed_2(this, state);
-            removeExistence();
+            ode.removeExistence();
             SoundManager.playSe("destroyed.wav");
             return true;
         }
@@ -299,7 +328,7 @@ public class Enemy : OdeActor
         spec.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", state.linePoint);
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         state.linePoint.draw(model, tint, blend, key + "-draw-1");
         spec.drawSubShape(model, tint, blend, key + "-drawSubShape-1", state);
@@ -329,6 +358,11 @@ public class Enemy : OdeActor
     public void slowdown()
     {
         state.slowdown();
+    }
+
+    public void clearContactJoint()
+    {
+        ode.clearContactJoint();
     }
 }
 

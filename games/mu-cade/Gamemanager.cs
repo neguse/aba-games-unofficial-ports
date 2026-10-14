@@ -44,7 +44,7 @@ public class GameManager
         SoundManager.loadSounds();
         prefManager = new PrefManager();
         prefManager.load();
-        OdeActor.initFirst();
+        OdeBody.initFirst();
         Letter.init_0();
         Ship.init_0();
         Enemy.init_0();
