@@ -5,7 +5,7 @@ public sealed class XrInput { public bool Active, Primary, Secondary, Menu, Stic
 public sealed class Bytes { public string Path = ""; }
 public class PlayOpts { public float? Volume, Pitch, Pan; }
 public class VoiceOpts : PlayOpts { public bool? Loop; }
-public static class Lub
+namespace Lub
 {
     public static class Session
     {
