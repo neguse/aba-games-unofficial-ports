@@ -77,10 +77,10 @@ public class Ship : BulletTarget
     public float screenShakeIntense;
     public Camera camera;
     public bool btnPressed;
-    public Ship(Pad pad, Tunnel tunnel)
+    public Ship(RecordablePad pad, Tunnel tunnel)
     {
         rand = new Rand();
-        this.pad = (RecordablePad)pad;
+        this.pad = pad;
         this.tunnel = tunnel;
         _pos = new Vector();
         _relPos = new Vector();

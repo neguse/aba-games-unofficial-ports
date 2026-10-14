@@ -10,7 +10,7 @@ public class TitleManager
     public const int AUTO_REPEAT_START_TIME = 30;
     public const int AUTO_REPEAT_CNT = 5;
     public PrefManager prefManager;
-    public Pad pad;
+    public RecordablePad pad;
     public Ship ship;
     public GameManager gameManager;
     static int nextMesh;
@@ -23,7 +23,7 @@ public class TitleManager
     public float replayCnt;
     public bool _replayMode;
     public float _replayChangeRatio;
-    public TitleManager(PrefManager pm, Pad p, Ship s, GameManager gm)
+    public TitleManager(PrefManager pm, RecordablePad p, Ship s, GameManager gm)
     {
         prefManager = pm;
         pad = p;

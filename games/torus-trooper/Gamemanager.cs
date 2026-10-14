@@ -15,7 +15,7 @@ public class GameManager
             clock.AdvanceReplay(seconds, .016f, replayStep, advanceUpdate);
         else clock.Advance(seconds, .016f, advanceUpdate);
     }
-    public Pad pad;
+    public RecordablePad pad;
     public PrefManager prefManager;
     public Tunnel tunnel;
     public Ship ship;
@@ -36,7 +36,7 @@ public class GameManager
     public void init_0()
     {
         advanceUpdate = () => move();
-        replayStep = () => ((RecordablePad)pad).padRecord.NextStep();
+        replayStep = () => pad.padRecord.NextStep();
         BarrageManager.load();
         Letter.init_0();
         Shot.init_0();
@@ -245,7 +245,7 @@ public class InGameState : GameState
     public const int NEXT_LEVEL_ADDITION_TIME = 45000;
     public const string NEXT_LEVEL_ADDITION_TIME_MSG = "+45 SEC.";
     public const int BEEP_START_TIME = 15000;
-    public Pad pad;
+    public RecordablePad pad;
     public PrefManager prefManager;
     public GameManager gameManager;
     public int score;
@@ -260,7 +260,7 @@ public class InGameState : GameState
     public float pauseCnt;
     public bool pausePressed;
     public ReplayData _replayData;
-    public InGameState(Tunnel tunnel, Ship ship, ShotPool shots, BulletActorPool bullets, EnemyPool enemies, ParticlePool particles, FloatLetterPool floatLetters, StageManager stageManager, Pad pad, PrefManager prefManager, GameManager gameManager) : base(tunnel, ship, shots, bullets, enemies, particles, floatLetters, stageManager)
+    public InGameState(Tunnel tunnel, Ship ship, ShotPool shots, BulletActorPool bullets, EnemyPool enemies, ParticlePool particles, FloatLetterPool floatLetters, StageManager stageManager, RecordablePad pad, PrefManager prefManager, GameManager gameManager) : base(tunnel, ship, shots, bullets, enemies, particles, floatLetters, stageManager)
     {
         this.pad = pad;
         this.prefManager = prefManager;
@@ -276,7 +276,7 @@ public class InGameState : GameState
         enemies.clear();
         particles.clear();
         floatLetters.clear();
-        RecordablePad rp = (RecordablePad)pad;
+        RecordablePad rp = pad;
         rp.startRecord();
         _replayData = new ReplayData();
         _replayData.padRecord = rp.padRecord;
@@ -543,13 +543,13 @@ public class InGameState : GameState
 
 public class TitleState : GameState
 {
-    public Pad pad;
+    public RecordablePad pad;
     public TitleManager titleManager;
     public EnemyPool passedEnemies;
     public InGameState inGameState;
     public ReplayData replayData;
     public float gameOverCnt;
-    public TitleState(Tunnel tunnel, Ship ship, ShotPool shots, BulletActorPool bullets, EnemyPool enemies, ParticlePool particles, FloatLetterPool floatLetters, StageManager stageManager, Pad pad, TitleManager titleManager, EnemyPool passedEnemies, InGameState inGameState) : base(tunnel, ship, shots, bullets, enemies, particles, floatLetters, stageManager)
+    public TitleState(Tunnel tunnel, Ship ship, ShotPool shots, BulletActorPool bullets, EnemyPool enemies, ParticlePool particles, FloatLetterPool floatLetters, StageManager stageManager, RecordablePad pad, TitleManager titleManager, EnemyPool passedEnemies, InGameState inGameState) : base(tunnel, ship, shots, bullets, enemies, particles, floatLetters, stageManager)
     {
         this.pad = pad;
         this.titleManager = titleManager;
@@ -590,7 +590,7 @@ public class TitleState : GameState
     public void startReplay()
     {
         Ship.replayMode = true;
-        RecordablePad rp = (RecordablePad)pad;
+        RecordablePad rp = pad;
         rp.startReplay(replayData.padRecord);
         _level = replayData.level;
         _grade = replayData.grade;
