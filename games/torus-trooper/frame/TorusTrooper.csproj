@@ -19,4 +19,7 @@
     <Content Include="../../../build/torus-trooper/images/*.png" CopyToOutputDirectory="PreserveNewest" Link="images/%(Filename)%(Extension)" />
     <Content Include="run.sh" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+  <!-- Math / MathF を TinySystem.Math にし、.NET 実行の Math の超越関数を
+       web (tcs2c) と bit 単位で同じ結果にする -->
+  <Import Project="$(LubRoot)/third_party/tcs/TinySystem/TinySystem.props" />
 </Project>
