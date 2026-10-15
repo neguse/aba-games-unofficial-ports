@@ -16,15 +16,25 @@ export function prepare(module, files, saves) {
         fs.writeFile('/' + path, data);
     }
     const keys = new Map(saves);
+    // The text each save last had in common with localStorage. Only a save the game
+    // changed since then is written back, so closing a page does not overwrite what
+    // another page stored under the same key in the meantime.
+    const synced = new Map();
     for (const [path, key] of keys) {
         fs.mkdirTree(path.slice(0, path.lastIndexOf('/')));
         let text = '';
         try { text = localStorage.getItem(key) || ''; } catch {}
         fs.writeFile(path, text);
+        synced.set(path, text);
     }
     const persist = path => {
         if (keys.has(path)) {
-            try { localStorage.setItem(keys.get(path), fs.readFile(path, { encoding: 'utf8' })); } catch {}
+            try {
+                const text = fs.readFile(path, { encoding: 'utf8' });
+                if (text === synced.get(path)) return;
+                localStorage.setItem(keys.get(path), text);
+                synced.set(path, text);
+            } catch {}
         }
     };
     module.persistSaves = () => { for (const path of keys.keys()) persist(path); };
