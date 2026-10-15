@@ -57,6 +57,7 @@ shutil.copytree(original / 'sounds', dist / 'audio', dirs_exist_ok=True)
 licenses = Path('LICENSE').read_text() + '\n\nlub\n---\n' + (args.lub / 'LICENSE').read_text()
 licenses += '\n\n' + (args.lub / 'THIRD_PARTY_LICENSES.md').read_text()
 licenses += '\n\ntcs2c runtime\n---\n' + (args.tcs / 'LICENSE').read_text()
+licenses += '\n\n' + (args.tcs / 'THIRD_PARTY_LICENSES.md').read_text()
 (dist / 'LICENSE.txt').write_text(licenses)
 archive = Path('.cache/p47_0_21.zip')
 if not archive.exists():

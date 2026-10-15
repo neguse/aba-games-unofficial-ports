@@ -98,6 +98,7 @@ shutil.copy2(root / 'games' / args.game / 'index.html', output / 'index.html')
 (output / 'LICENSE.txt').write_text(game['license'](args.original)
     + '\n\n' + (root / 'LICENSE').read_text() + '\n\nlub\n---\n' + (lub / 'LICENSE').read_text()
     + '\n\n' + (lub / 'THIRD_PARTY_LICENSES.md').read_text()
-    + '\n\ntcs2c runtime\n---\n' + (args.tcs / 'LICENSE').read_text(), encoding='utf-8')
+    + '\n\ntcs2c runtime\n---\n' + (args.tcs / 'LICENSE').read_text()
+    + '\n\n' + (args.tcs / 'THIRD_PARTY_LICENSES.md').read_text(), encoding='utf-8')
 for name in ['main.js', 'compiled.js', 'style.css']:
     shutil.copy2(root / 'web' / name, output.parent / name)

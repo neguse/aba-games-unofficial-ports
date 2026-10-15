@@ -56,16 +56,23 @@ runner.write_text('''extern "C" {
 #include <lauxlib.h>
 #include <lualib.h>
 int luaopen_mcd_ode(lua_State*);
+int luaopen_tcs_math(lua_State*);
 }
 int main(int argc,char** argv){
  lua_State* L=luaL_newstate();luaL_openlibs(L);luaopen_mcd_ode(L);lua_setglobal(L,"mcdphysics");
+ luaL_requiref(L,"tcs_math",luaopen_tcs_math,1);lua_pop(L,1);
  lua_newtable(L);for(int i=1;i<argc;i++){lua_pushstring(L,argv[i]);lua_rawseti(L,-2,i-1);}lua_setglobal(L,"arg");
  int result=luaL_dofile(L,argv[1]);if(result)fprintf(stderr,"%s\\n",lua_tostring(L,-1));lua_close(L);return result?1:0;
 }
 ''')
+# tcs の Lua 出力は Math の超越関数で tcs_math (tcs の runtime/lua、Lua の lua32 と同じ build) を呼ぶ
+tcs = args.lub.resolve() / 'third_party/tcs'
+subprocess.run(['cc', '-O2', '-DLUA_32BITS', '-I' + str(tcs / 'deps/lua'), '-c',
+                str(tcs / 'runtime/lua/tcs_math_lua.c'), '-o', str(output / 'tcs_math_lua.o')], check=True)
 subprocess.run(['c++', '-O2', '-w', '-DLUA_32BITS', '-DdNODEBUG',
-                '-I' + str(ode / 'include'), '-I' + str(args.lub.resolve() / 'third_party/tcs/deps/lua'),
-                str(runner), str(bridge), *sources, str(args.lub.resolve() / 'third_party/tcs/build/libliblua32.a'),
+                '-I' + str(ode / 'include'), '-I' + str(tcs / 'deps/lua'),
+                str(runner), str(bridge), *sources, str(output / 'tcs_math_lua.o'),
+                str(tcs / 'build/libtcs_math.a'), str(tcs / 'build/libliblua32.a'),
                 '-lm', '-ldl', '-o', str(output / 'lua-ode')], check=True)
 if args.native_only:
     raise SystemExit(0)
