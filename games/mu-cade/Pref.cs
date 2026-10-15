@@ -3,12 +3,12 @@ using static Lub;
 public class PrefManager
 {
     public PrefData prefData = new PrefData();
-    public virtual void load()
+    public void load()
     {
         prefData.init_0();
     }
 
-    public virtual void loadText(string text)
+    public void loadText(string text)
     {
         string[] parts = text.Split(",");
         if (parts.Length != 20)
@@ -28,7 +28,7 @@ public class PrefManager
         }
     }
 
-    public virtual void save()
+    public void save()
     {
         string text = "";
         for (int i = 0; i < 10; i++)
@@ -47,7 +47,7 @@ public class PrefData
 {
     public const int RANKING_NUM = 10;
     public int[] highScore = McdArrays.Make(10, () => 0), time = McdArrays.Make(10, () => 0);
-    public virtual void init_0()
+    public void init_0()
     {
         for (int i = 0; i < 10; i++)
         {
@@ -56,7 +56,7 @@ public class PrefData
         }
     }
 
-    public virtual void recordResult(int score, int t)
+    public void recordResult(int score, int t)
     {
         for (int i = 0; i < 10; i++)
         {

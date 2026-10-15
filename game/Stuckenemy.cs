@@ -3,6 +3,9 @@ using System;
 using static GameMath;
 using static Lub;
 public class StuckEnemy: Actor {
+  public bool isExist;
+  public bool getExist() { return isExist; }
+  public void setExist(bool value) { isExist = value; }
 
   public bool isConnected;
 
@@ -31,11 +34,11 @@ public class StuckEnemy: Actor {
   public StuckEnemyPool stuckEnemies;
   public SplinterPool splinters;
 
-  public override Actor newActor() {
+  public Actor newActor() {
     return new StuckEnemy();
   }
 
-  public override void init(ActorInitializer ini) {
+  public void init(ActorInitializer ini) {
     StuckEnemyInitializer sei = (StuckEnemyInitializer) ini;
     ship = sei.ship;
     field = sei.field;
@@ -172,7 +175,7 @@ public class StuckEnemy: Actor {
     colDatums[3].y = pos.y + tumikiSet.sizeYp * cd;
   }
 
-  public override void move() {
+  public void move() {
     deg = stDeg + ship.deg;
     float osd, ocd;
     osd = sin(ship.deg);
@@ -217,7 +220,7 @@ public class StuckEnemy: Actor {
     }
   }
 
-  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
     bool depth = true; Gfx.Cull cull = Gfx.Cull.Front; float width = 1;
     if (!isMyShip) {
       if (manager.mode == GameMode.EXTRA && stuckEnemies.pullInRatio < 1)
@@ -295,7 +298,9 @@ public class StuckEnemyInitializer: ActorInitializer {
   }
 }
 
-public class StuckEnemyPool: ActorPool {
+public class StuckEnemyPool {
+  ActorPool pool;
+  public Actor[] actor;
 
   public float pullInRatio;
   public float totalSize;
@@ -304,9 +309,13 @@ public class StuckEnemyPool: ActorPool {
   public int pullInCnt;
   public GameManager manager;
 
-  public StuckEnemyPool(int n, ActorInitializer ini) : base(n, new StuckEnemy(), ini) {
+  public StuckEnemyPool(int n, ActorInitializer ini) {
+    pool = new ActorPool(n, new StuckEnemy(), ini);
+    actor = pool.actor;
     manager = ((StuckEnemyInitializer) ini).manager;
   }
+  public Actor getInstance() { return pool.getInstance(); }
+  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
 
   public void init() {
     foreach (Actor ac in actor) {
@@ -325,7 +334,7 @@ public class StuckEnemyPool: ActorPool {
     if (pullInCnt > 0)
       return false;
     foreach (Actor ac in actor) {
-      if (ac.isExist) {
+      if (ac.getExist()) {
 	StuckEnemy se = (StuckEnemy) ac;
 	if (se.checkHit(pos))
 	  return true;
@@ -338,7 +347,7 @@ public class StuckEnemyPool: ActorPool {
     if (pullInCnt > 0)
       return null;
     foreach (Actor ac in actor) {
-      if (ac.isExist) {
+      if (ac.getExist()) {
 	StuckEnemy se = (StuckEnemy) ac;
 	if (!se.isMyShip && se.checkHit(pos))
 	  return se;
@@ -349,7 +358,7 @@ public class StuckEnemyPool: ActorPool {
 
   public void removeAllEnemies() {
     foreach (Actor ac in actor) {
-      if (ac.isExist) {
+      if (ac.getExist()) {
 	StuckEnemy se = (StuckEnemy) ac;
 	if (!se.isMyShip) {
 	  se.breakIntoFragments();
@@ -362,7 +371,7 @@ public class StuckEnemyPool: ActorPool {
 
   public void flyinAllEnemies() {
     foreach (Actor ac in actor) {
-      if (ac.isExist) {
+      if (ac.getExist()) {
 	StuckEnemy se = (StuckEnemy) ac;
 	if (!se.isMyShip) {
 	  se.breakIntoSplinter();
@@ -376,7 +385,7 @@ public class StuckEnemyPool: ActorPool {
   public bool checkConnected(StuckEnemy nse) {
     bool connected = false;
     foreach (Actor ac in actor) {
-      if (ac.isExist) {
+      if (ac.getExist()) {
 	StuckEnemy se = (StuckEnemy) ac;
 	if (se.checkConnected(nse))
 	  connected = true;
@@ -390,7 +399,7 @@ public class StuckEnemyPool: ActorPool {
     hse.remove();
     scanConnected();
     foreach (Actor ac in actor) {
-      if (ac.isExist) {
+      if (ac.getExist()) {
 	StuckEnemy se = (StuckEnemy) ac;
 	if (!se.isMyShip && !se.isConnected) {
 	  se.breakIntoFragments();
@@ -403,7 +412,7 @@ public class StuckEnemyPool: ActorPool {
   public void scanConnected() {
     StuckEnemy myShip = null;
     foreach (Actor ac in actor) {
-      if (ac.isExist) {
+      if (ac.getExist()) {
 	StuckEnemy se = (StuckEnemy) ac;
 	if (se.isMyShip)
 	  myShip = se;
@@ -432,7 +441,7 @@ public class StuckEnemyPool: ActorPool {
   public void activateTopBullets() {
     StuckEnemy myShip = null;
     foreach (Actor ac in actor) {
-      if (ac.isExist) {
+      if (ac.getExist()) {
 	StuckEnemy se = (StuckEnemy) ac;
 	if (!se.isMyShip)
 	  se.activateTopBullets();
@@ -443,7 +452,7 @@ public class StuckEnemyPool: ActorPool {
   public void deactivateTopBullets() {
     StuckEnemy myShip = null;
     foreach (Actor ac in actor) {
-      if (ac.isExist) {
+      if (ac.getExist()) {
 	StuckEnemy se = (StuckEnemy) ac;
 	if (!se.isMyShip)
 	  se.deactivateTopBullets();
@@ -451,10 +460,10 @@ public class StuckEnemyPool: ActorPool {
     }
   }
 
-  public override void move() {
+  public void move() {
     totalSize = 0;
     foreach (Actor ac in actor) {
-      if (ac.isExist)
+      if (ac.getExist())
 	ac.move();
     }
     if (manager.mode == GameMode.EXTRA)

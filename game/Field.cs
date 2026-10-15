@@ -146,6 +146,9 @@ public class Field {
 }
 
 public class FieldObj: Actor {
+  public bool isExist;
+  public bool getExist() { return isExist; }
+  public void setExist(bool value) { isExist = value; }
 
   public Field field;
   public Vector pos;
@@ -154,11 +157,11 @@ public class FieldObj: Actor {
   public float fx;
   public TumikiSet tumikiSet;
 
-  public override Actor newActor() {
+  public Actor newActor() {
     return new FieldObj();
   }
 
-  public override void init(ActorInitializer ini) {
+  public void init(ActorInitializer ini) {
     FieldObjInitializer foi = (FieldObjInitializer) ini;
     field = foi.field;
     pos = new Vector();
@@ -199,13 +202,13 @@ public class FieldObj: Actor {
     pos.y = calcSkyHeight(rand);
   }
 
-  public override void move() {
+  public void move() {
     pos.x -= speed;
     if (pos.x < fx)
       isExist = false;
   }
 
-  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
     bool depth = true; Gfx.Cull cull = Gfx.Cull.Front; float width = 1;
     tumikiSet.drawShade(model, tint, blend, depth, cull, width, pos, z, 2);
   }

@@ -1,8 +1,10 @@
 // Copyright 2009 Kenta Cho. Some rights reserved.
 using System;
 
-public class TurretPool : ActorPool<Turret>
+public class TurretPool
 {
+    private ActorPool<Turret> pool;
+    public Turret[] Actors;
     private const float LaserBaseLength = 7.0f;
     private GtgFrame frame;
     private Field field;
@@ -12,8 +14,10 @@ public class TurretPool : ActorPool<Turret>
     private ParticlePool particles;
     private Sound sound;
     private MiddleEnemyPool enemies;
-    public TurretPool(int n, GtgFrame frame, Field field, LaserPool lasers, PillarPool pillars, Player player, ParticlePool particles, Sound sound) : base(n, () => new Turret())
+    public TurretPool(int n, GtgFrame frame, Field field, LaserPool lasers, PillarPool pillars, Player player, ParticlePool particles, Sound sound)
     {
+        pool = new ActorPool<Turret>(n, () => new Turret(), a => UpdateT(a), a => { }, i => Remove(i));
+        Actors = pool.Actors;
         this.frame = frame;
         this.field = field;
         this.lasers = lasers;
@@ -28,14 +32,14 @@ public class TurretPool : ActorPool<Turret>
         this.enemies = enemies;
     }
 
-    public override void Clear()
+    public void Clear()
     {
-        ForEach((Turret a) =>
+        pool.ForEach((Turret a) =>
         {
             if (a.Cue != null)
                 a.Cue.Stop(AudioStopOptions.Immediate);
         });
-        base.Clear();
+        pool.Clear();
     }
 
     public int Add(Vector3 pos, Vector3 vel, bool hasLaser)
@@ -51,10 +55,10 @@ public class TurretPool : ActorPool<Turret>
             a.LaserSpeed = 5.0f;
         }
 
-        return AddT(a);
+        return pool.AddT(a);
     }
 
-    public override bool UpdateT(Turret a)
+    public bool UpdateT(Turret a)
     {
         float pl = a.Pos.Length();
         bool isInTube = (pl < Tube.Radius * 1.2f);
@@ -124,7 +128,7 @@ public class TurretPool : ActorPool<Turret>
         return true;
     }
 
-    public override void Remove(int i)
+    public void Remove(int i)
     {
         if (Actors[(i)].HasLaser)
         {
@@ -133,7 +137,12 @@ public class TurretPool : ActorPool<Turret>
         }
 
         enemies.OnTurretRemovedint(i);
-        base.Remove(i);
+        pool.Remove(i);
+    }
+
+    public void Update()
+    {
+        pool.Update();
     }
 }
 

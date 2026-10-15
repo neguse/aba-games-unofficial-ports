@@ -2,14 +2,36 @@
 using System;
 using System.Collections.Generic;
 
-public class TurretPool : ActorPool<Turret>
+public class TurretPool : IActorIdListener
 {
     private const int maxTurretLinkedNum = 10;
     private BulletPool bullets;
     private BallPool balls;
-    public TurretPool(int n, BulletPool bullets) : base(n, () => new Turret())
+    public ActorPool<Turret> pool;
+    public Turret[] actors;
+    public TurretPool(int n, BulletPool bullets)
     {
+        pool = new ActorPool<Turret>(n, () => new Turret(), this);
+        actors = pool.actors;
         this.bullets = bullets;
+    }
+
+    public int Add(Turret a)
+    {
+        return pool.Add(a);
+    }
+
+    public bool IsAbleToAdd
+    {
+        get
+        {
+            return pool.IsAbleToAdd;
+        }
+    }
+
+    public void Gc()
+    {
+        pool.Gc();
     }
 
     public void SetParams(BallPool balls)
@@ -31,12 +53,12 @@ public class TurretPool : ActorPool<Turret>
         }
     }
 
-    public override void Removeint(int id)
+    public void Removeint(int id)
     {
         Turret a = (actors[(id)]).Copy();
         if (a.BulletId >= 0)
             bullets.Removeint(a.BulletId);
-        base.Removeint(id);
+        pool.Removeint(id);
         if (a.NextId >= 0)
             Removeint(a.NextId);
     }
@@ -79,7 +101,7 @@ public class TurretPool : ActorPool<Turret>
             actors[(id)].NextBallId = nid;
     }
 
-    protected override void OnIdChanged(int before, int after)
+    public void OnIdChanged(int before, int after)
     {
         balls.ChangeTurretId(before, after);
         ChangeTurretId(before, after);
@@ -87,7 +109,7 @@ public class TurretPool : ActorPool<Turret>
 
     public void ChangeBulletId(int before, int after)
     {
-        ForEach((Turret a) =>
+        pool.ForEach((Turret a) =>
         {
             if (a.BulletId == before)
             {
@@ -99,7 +121,7 @@ public class TurretPool : ActorPool<Turret>
 
     private void ChangeTurretId(int before, int after)
     {
-        ForEach((Turret a) =>
+        pool.ForEach((Turret a) =>
         {
             if (a.NextId == before)
             {
@@ -111,7 +133,7 @@ public class TurretPool : ActorPool<Turret>
 
     public void ClearAll()
     {
-        Clear();
+        pool.Clear();
         for (int i = 0; i < actors.Length; i++)
             actors[(i)].Clear();
     }

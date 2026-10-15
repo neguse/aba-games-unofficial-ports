@@ -3,6 +3,9 @@ using System;
 using static GameMath;
 using static Lub;
 public class Splinter: Actor {
+  public bool isExist;
+  public bool getExist() { return isExist; }
+  public void setExist(bool value) { isExist = value; }
 
   public static int signNum;
   public static Rand rand = new Rand();
@@ -26,11 +29,11 @@ public class Splinter: Actor {
     signNum = n;
   }
 
-  public override Actor newActor() {
+  public Actor newActor() {
     return new Splinter();
   }
 
-  public override void init(ActorInitializer ini) {
+  public void init(ActorInitializer ini) {
     SplinterInitializer si = (SplinterInitializer) ini;
     ship = si.ship;
     field = si.field;
@@ -90,7 +93,7 @@ public class Splinter: Actor {
 
   public const float COLLISION_RATIO = 0.8f;
 
-  public override void move() {
+  public void move() {
     pos.add(vel);
     deg += md;
     cnt++;
@@ -167,7 +170,7 @@ public class Splinter: Actor {
     }
   }
 
-  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
     bool depth = true; Gfx.Cull cull = Gfx.Cull.Front; float width = 1;
     tumikiSet.drawShadeRotated(model, tint, blend, depth, cull, width, pos, -0.7f, 1, deg);
     if (hasSign && (cnt & 31) < 24) {
@@ -201,14 +204,22 @@ public class SplinterInitializer: ActorInitializer {
   }
 }
 
-public class SplinterPool: ActorPool {
+public class SplinterPool {
+  ActorPool pool;
+  public Actor[] actor;
 
-  public SplinterPool(int n, ActorInitializer ini) : base(n, new Splinter(), ini) {
+  public SplinterPool(int n, ActorInitializer ini) {
+    pool = new ActorPool(n, new Splinter(), ini);
+    actor = pool.actor;
   }
+  public Actor getInstance() { return pool.getInstance(); }
+  public void move() { pool.move(); }
+  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
+  public void clear() { pool.clear(); }
 
   public bool checkHit(Vector pos) {
     foreach (Actor ac in actor) {
-      if (ac.isExist) {
+      if (ac.getExist()) {
 	Splinter sp = (Splinter) ac;
 	if (sp.checkHit(pos))
 	  return true;

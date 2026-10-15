@@ -1,7 +1,7 @@
 // Copyright 2008 Kenta Cho. Some rights reserved.
 using System;
 
-public class ShotPool : ActorPool<Shot>
+public class ShotPool
 {
     private const float WIDTH = 0.3f;
     private MmFrame frame;
@@ -14,8 +14,12 @@ public class ShotPool : ActorPool<Shot>
     private Sound sound;
     private TriangleListShape shape;
     private Matrix vertexRotate = new Matrix();
-    public ShotPool(int n, MmFrame frame, Field field, BallPool balls, WallPool walls, ParticlePool particles, BonusPool bonuses, Player player, Sound sound) : base(n, () => new Shot())
+    public ActorPool<Shot> pool;
+    public Shot[] actors;
+    public ShotPool(int n, MmFrame frame, Field field, BallPool balls, WallPool walls, ParticlePool particles, BonusPool bonuses, Player player, Sound sound)
     {
+        pool = new ActorPool<Shot>(n, () => new Shot(), null);
+        actors = pool.actors;
         this.frame = frame;
         this.field = field;
         this.balls = balls;
@@ -29,21 +33,39 @@ public class ShotPool : ActorPool<Shot>
         vertexRotate = (Matrix.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)Math.PI * 2 / 4)).Copy();
     }
 
-    public override void Update()
+    public int Add(Shot a)
+    {
+        return pool.Add(a);
+    }
+
+    public void Gc()
+    {
+        pool.Gc();
+    }
+
+    public int Length()
+    {
+        return pool.Length();
+    }
+
+    public void Update()
     {
         shape.BeginAdd();
-        base.Update();
+        pool.ForEach((Shot a) =>
+        {
+            UpdateT(a);
+        });
         shape.EndAdd();
     }
 
-    public override void UpdateT(Shot a)
+    public void UpdateT(Shot a)
     {
         a.Pos += a.Vel * SimulationTime.Step;
         a.Pos2.X = a.Pos.X;
         a.Pos2.Y = a.Pos.Y;
         if (!field.ContainsInner((a.Pos2).Copy()))
         {
-            RemoveT(a);
+            pool.RemoveT(a);
             return;
         }
 
@@ -56,7 +78,7 @@ public class ShotPool : ActorPool<Shot>
             p.Set((a.Pos).Copy(), (qd).Copy(), a.Speed * 0.5f, 30, 0, 0, 50, 50, 50, 200, 0.15f);
             for (int i = 0; i < 3; i++)
                 particles.Add(p);
-            RemoveT(a);
+            pool.RemoveT(a);
             return;
         }
 
@@ -80,7 +102,7 @@ public class ShotPool : ActorPool<Shot>
             balls.AddDamageintVector3float(bid, (a.Vel).Copy(), 1.0f);
             player.AddScoreint(1);
             sound.PlaySe("Hit");
-            RemoveT(a);
+            pool.RemoveT(a);
             return;
         }
 
@@ -127,14 +149,14 @@ public class ShotPool : ActorPool<Shot>
         }
     }
 
-    public override void Draw()
+    public void Draw()
     {
         shape.Draw();
     }
 
     public void ClearAll()
     {
-        Clear();
+        pool.Clear();
         for (int i = 0; i < actors.Length; i++)
             actors[(i)].Clear();
     }

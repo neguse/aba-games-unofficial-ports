@@ -8,14 +8,14 @@ public class Title
     private Record record;
     private bool isButtonPressed;
     private float ticks;
-    private GearShape shape;
+    private Shape shape;
     private GearData[] data;
     public Title(GtgFrame frame, Pad pad, Record record)
     {
         this.frame = frame;
         this.pad = pad;
         this.record = record;
-        shape = new GearShape(frame, 1, 0.8f, 0.2f, new Color(255, 255, 255, 255), new Color(255, 255, 255, 255), false);
+        shape = GearShape.Create(frame, 1, 0.8f, 0.2f, new Color(255, 255, 255, 255), new Color(255, 255, 255, 255), false);
         data = GtgArrays.Make(1, () => new GearData());
         data[(0)].Pos.X = -12;
         data[(0)].Pos.Y = 11;

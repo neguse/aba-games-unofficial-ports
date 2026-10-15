@@ -13,7 +13,7 @@ public class CentBarrage
     public float wayMorphRank;
     public string barMorphBml;
     public float barMorphRank;
-    public virtual void set_4_BulletPool_Ship_EnemyState_Single(BulletPool bullets, Ship ship, EnemyState state, float orderRatio = 0)
+    public void set_4_BulletPool_Ship_EnemyState_Single(BulletPool bullets, Ship ship, EnemyState state, float orderRatio = 0)
     {
         state.barrage.clear();
         switch (type)
@@ -63,33 +63,33 @@ public class CentBarrage
     }
 }
 
-public class CentHeadToAndFrom : CentHead
+public static class CentHeadToAndFrom
 {
-    public virtual void initLengthAndSize(int size)
+    public static void initLengthAndSize(CentHead h, int size)
     {
         float ss = default(float);
         switch (size)
         {
             case 0:
-                bodyLength = 4 + rand.nextInt(4);
-                ss = 0.9f + rand.nextFloat(0.3f);
+                h.bodyLength = 4 + EnemySpecBase.rand.nextInt(4);
+                ss = 0.9f + EnemySpecBase.rand.nextFloat(0.3f);
                 break;
             case 1:
-                bodyLength = 5 + rand.nextInt(3);
-                ss = 1.3f + rand.nextFloat(0.2f);
+                h.bodyLength = 5 + EnemySpecBase.rand.nextInt(3);
+                ss = 1.3f + EnemySpecBase.rand.nextFloat(0.2f);
                 break;
             case 2:
-                bodyLength = 7 + rand.nextInt(2);
-                ss = 1.6f + rand.nextFloat(0.1f);
+                h.bodyLength = 7 + EnemySpecBase.rand.nextInt(2);
+                ss = 1.6f + EnemySpecBase.rand.nextFloat(0.1f);
                 break;
         }
 
-        baseSize = size;
-        sizeScale = new Vector3(ss, ss, 1);
-        massScale = ss * ss;
+        h.baseSize = size;
+        h.sizeScale = new Vector3(ss, ss, 1);
+        h.massScale = ss * ss;
     }
 
-    public virtual float calcBarrageRank(float br)
+    public static float calcBarrageRank(float br)
     {
         if (br < 0.01f)
             return 0;
@@ -97,11 +97,11 @@ public class CentHeadToAndFrom : CentHead
             return 1 - 1 / sqrt(br);
     }
 
-    public virtual float[] calcBarrageSpeedAndInterval(float rank, float br, float minInterval = 20, float maxInterval = 120)
+    public static float[] calcBarrageSpeedAndInterval(float rank, float br, float minInterval = 20, float maxInterval = 120)
     {
         float speed = 0;
         int interval = 0;
-        float sr = br * (0.5f + rand.nextSignedFloat(0.2f));
+        float sr = br * (0.5f + EnemySpecBase.rand.nextSignedFloat(0.2f));
         float ir = br - sr;
         if (sr < 1)
         {
@@ -127,25 +127,25 @@ public class CentHeadToAndFrom : CentHead
         };
     }
 
-    public virtual float[] calcForwardForceAndSlowVelocity(float rank, int size)
+    public static float[] calcForwardForceAndSlowVelocity(CentHead h, float rank, int size)
     {
         float forwardForceScale = 0;
         float slowVelocityRatio = 0;
         forwardForceScale = 1;
-        if (rand.nextInt(5) == 0)
+        if (EnemySpecBase.rand.nextInt(5) == 0)
         {
-            float ff = rank * (0.1f + rand.nextFloat(0.3f - size * 0.1f));
+            float ff = rank * (0.1f + EnemySpecBase.rand.nextFloat(0.3f - size * 0.1f));
             if (ff < 0)
                 ff = 0;
             forwardForceScale = 1 + sqrt(ff);
             rank -= ff * 0.2f;
         }
 
-        forwardForceScale *= (float)bodyLength / 5;
+        forwardForceScale *= (float)h.bodyLength / 5;
         slowVelocityRatio = 1;
         if (size >= 1)
         {
-            float sv = rank * (0.1f + rand.nextFloat(0.1f)) * size;
+            float sv = rank * (0.1f + EnemySpecBase.rand.nextFloat(0.1f)) * size;
             if (sv < 0)
                 sv = 0;
             slowVelocityRatio = 1 + sv * 3;
@@ -171,35 +171,36 @@ public class CentHeadToAndFrom : CentHead
         "slidebaraccel.xml",
         "slidewhip.xml"
     };
-    public CentHeadToAndFrom(Field field, Ship ship, BulletPool bullets, World world, float rank, int size) : base(field, ship, bullets, world)
+    public static CentHead create(Field field, Ship ship, BulletPool bullets, World world, float rank, int size)
     {
-        headSpec = this;
-        bodySpec = new CentBodyToAndFrom(field, ship, bullets, world, this);
-        initLengthAndSize(size);
+        CentHead h = new CentHead(field, ship, bullets, world, CentHeadCentType.TO_AND_FROM);
+        h.headSpec = h;
+        h.bodySpec = new CentBody(field, ship, bullets, world, h, CentBodyCentType.TO_AND_FROM, COLOR_R, COLOR_G, COLOR_B);
+        initLengthAndSize(h, size);
         float rk = rank;
         if (size <= 0)
         {
-            bodyBarrage = null;
+            h.bodyBarrage = null;
         }
         else
         {
-            bodyBarrage = new CentBarrage();
-            if (rand.nextInt(2) == 0)
-                bodyBarrage.type = CentBarrageBasicBarrageType.PLUMB;
+            h.bodyBarrage = new CentBarrage();
+            if (EnemySpecBase.rand.nextInt(2) == 0)
+                h.bodyBarrage.type = CentBarrageBasicBarrageType.PLUMB;
             else
-                bodyBarrage.type = CentBarrageBasicBarrageType.SIDE;
-            bodyBarrage.wayMorphBml = null;
-            float br_0 = rk * (0.1f * size + rand.nextFloat(0.1f));
+                h.bodyBarrage.type = CentBarrageBasicBarrageType.SIDE;
+            h.bodyBarrage.wayMorphBml = null;
+            float br_0 = rk * (0.1f * size + EnemySpecBase.rand.nextFloat(0.1f));
             float brv_0 = calcBarrageRank(br_0);
             if (brv_0 >= 0.1f)
             {
-                bodyBarrage.barMorphBml = BAR_MORPH_BML[rand.nextInt(BAR_MORPH_BML.Length)];
-                bodyBarrage.barMorphRank = brv_0;
+                h.bodyBarrage.barMorphBml = BAR_MORPH_BML[EnemySpecBase.rand.nextInt(BAR_MORPH_BML.Length)];
+                h.bodyBarrage.barMorphRank = brv_0;
                 rk -= br_0 * 2;
             }
             else
             {
-                bodyBarrage.barMorphBml = null;
+                h.bodyBarrage.barMorphBml = null;
             }
 
             float sp_0 = default(float);
@@ -211,36 +212,36 @@ public class CentHeadToAndFrom : CentHead
                 iv_0 = integer(values_0[2]);
             }
 
-            bodyBarrage.speedRank = sp_0;
-            bodyBarrage.interval = iv_0;
+            h.bodyBarrage.speedRank = sp_0;
+            h.bodyBarrage.interval = iv_0;
         }
 
-        headBarrage = new CentBarrage();
-        headBarrage.type = CentBarrageBasicBarrageType.FRONT;
-        headBarrage.wayMorphBml = null;
-        float br_1 = rk * (0.1f * size + rand.nextFloat(0.3f));
+        h.headBarrage = new CentBarrage();
+        h.headBarrage.type = CentBarrageBasicBarrageType.FRONT;
+        h.headBarrage.wayMorphBml = null;
+        float br_1 = rk * (0.1f * size + EnemySpecBase.rand.nextFloat(0.3f));
         float brv_1 = calcBarrageRank(br_1);
         if (brv_1 >= 0.1f)
         {
-            headBarrage.barMorphBml = BAR_MORPH_BML[rand.nextInt(BAR_MORPH_BML.Length)];
-            headBarrage.barMorphRank = brv_1;
+            h.headBarrage.barMorphBml = BAR_MORPH_BML[EnemySpecBase.rand.nextInt(BAR_MORPH_BML.Length)];
+            h.headBarrage.barMorphRank = brv_1;
             rk -= br_1 * 2;
         }
         else
         {
-            headBarrage.barMorphBml = null;
+            h.headBarrage.barMorphBml = null;
         }
 
         float ffs = default(float), svr = default(float);
         {
-            float[] values_1 = calcForwardForceAndSlowVelocity(rk, size);
+            float[] values_1 = calcForwardForceAndSlowVelocity(h, rk, size);
             rk = values_1[0];
             ffs = values_1[1];
             svr = values_1[2];
         }
 
-        forwardForceScale = ffs;
-        slowVelocityRatio = svr;
+        h.forwardForceScale = ffs;
+        h.slowVelocityRatio = svr;
         float sp_1 = default(float);
         int iv_1 = default(int);
         switch (size)
@@ -274,48 +275,42 @@ public class CentHeadToAndFrom : CentHead
                 break;
         }
 
-        headBarrage.speedRank = sp_1;
-        headBarrage.interval = iv_1;
-        _colorR = COLOR_R;
-        _colorG = COLOR_G;
-        _colorB = COLOR_B;
-    }
-
-    public override void initState(Enemy enemy, EnemyState state)
-    {
-        state.type = CentHeadCentType.TO_AND_FROM;
-        base.initState(enemy, state);
-        state.linePoint.setSpectrumParams(_colorR, _colorG, _colorB, 1.0f);
+        h.headBarrage.speedRank = sp_1;
+        h.headBarrage.interval = iv_1;
+        h._colorR = COLOR_R;
+        h._colorG = COLOR_G;
+        h._colorB = COLOR_B;
+        return h;
     }
 }
 
-public class CentHeadChase : CentHead
+public static class CentHeadChase
 {
-    public virtual void initLengthAndSize(int size)
+    public static void initLengthAndSize(CentHead h, int size)
     {
         float ss = default(float);
         switch (size)
         {
             case 0:
-                bodyLength = 4 + rand.nextInt(4);
-                ss = 0.9f + rand.nextFloat(0.3f);
+                h.bodyLength = 4 + EnemySpecBase.rand.nextInt(4);
+                ss = 0.9f + EnemySpecBase.rand.nextFloat(0.3f);
                 break;
             case 1:
-                bodyLength = 5 + rand.nextInt(3);
-                ss = 1.3f + rand.nextFloat(0.2f);
+                h.bodyLength = 5 + EnemySpecBase.rand.nextInt(3);
+                ss = 1.3f + EnemySpecBase.rand.nextFloat(0.2f);
                 break;
             case 2:
-                bodyLength = 7 + rand.nextInt(2);
-                ss = 1.6f + rand.nextFloat(0.1f);
+                h.bodyLength = 7 + EnemySpecBase.rand.nextInt(2);
+                ss = 1.6f + EnemySpecBase.rand.nextFloat(0.1f);
                 break;
         }
 
-        baseSize = size;
-        sizeScale = new Vector3(ss, ss, 1);
-        massScale = ss * ss;
+        h.baseSize = size;
+        h.sizeScale = new Vector3(ss, ss, 1);
+        h.massScale = ss * ss;
     }
 
-    public virtual float calcBarrageRank(float br)
+    public static float calcBarrageRank(float br)
     {
         if (br < 0.01f)
             return 0;
@@ -323,11 +318,11 @@ public class CentHeadChase : CentHead
             return 1 - 1 / sqrt(br);
     }
 
-    public virtual float[] calcBarrageSpeedAndInterval(float rank, float br, float minInterval = 20, float maxInterval = 120)
+    public static float[] calcBarrageSpeedAndInterval(float rank, float br, float minInterval = 20, float maxInterval = 120)
     {
         float speed = 0;
         int interval = 0;
-        float sr = br * (0.5f + rand.nextSignedFloat(0.2f));
+        float sr = br * (0.5f + EnemySpecBase.rand.nextSignedFloat(0.2f));
         float ir = br - sr;
         if (sr < 1)
         {
@@ -353,25 +348,25 @@ public class CentHeadChase : CentHead
         };
     }
 
-    public virtual float[] calcForwardForceAndSlowVelocity(float rank, int size)
+    public static float[] calcForwardForceAndSlowVelocity(CentHead h, float rank, int size)
     {
         float forwardForceScale = 0;
         float slowVelocityRatio = 0;
         forwardForceScale = 1;
-        if (rand.nextInt(5) == 0)
+        if (EnemySpecBase.rand.nextInt(5) == 0)
         {
-            float ff = rank * (0.1f + rand.nextFloat(0.3f - size * 0.1f));
+            float ff = rank * (0.1f + EnemySpecBase.rand.nextFloat(0.3f - size * 0.1f));
             if (ff < 0)
                 ff = 0;
             forwardForceScale = 1 + sqrt(ff);
             rank -= ff * 0.2f;
         }
 
-        forwardForceScale *= (float)bodyLength / 5;
+        forwardForceScale *= (float)h.bodyLength / 5;
         slowVelocityRatio = 1;
         if (size >= 1)
         {
-            float sv = rank * (0.1f + rand.nextFloat(0.1f)) * size;
+            float sv = rank * (0.1f + EnemySpecBase.rand.nextFloat(0.1f)) * size;
             if (sv < 0)
                 sv = 0;
             slowVelocityRatio = 1 + sv * 3;
@@ -401,32 +396,33 @@ public class CentHeadChase : CentHead
         "baraccel.xml",
         "whip.xml"
     };
-    public CentHeadChase(Field field, Ship ship, BulletPool bullets, World world, float rank, int size) : base(field, ship, bullets, world)
+    public static CentHead create(Field field, Ship ship, BulletPool bullets, World world, float rank, int size)
     {
-        headSpec = this;
-        bodySpec = new CentBodyChase(field, ship, bullets, world, this);
-        initLengthAndSize(size);
+        CentHead h = new CentHead(field, ship, bullets, world, CentHeadCentType.CHASE);
+        h.headSpec = h;
+        h.bodySpec = new CentBody(field, ship, bullets, world, h, CentBodyCentType.CHASE, COLOR_R, COLOR_G, COLOR_B);
+        initLengthAndSize(h, size);
         float rk = rank;
         if (size <= 1)
         {
-            bodyBarrage = null;
+            h.bodyBarrage = null;
         }
         else
         {
-            bodyBarrage = new CentBarrage();
-            bodyBarrage.type = CentBarrageBasicBarrageType.AIM_IN_ORDER;
-            bodyBarrage.wayMorphBml = null;
-            float br_0 = rk * (0.1f + rand.nextFloat(0.1f));
+            h.bodyBarrage = new CentBarrage();
+            h.bodyBarrage.type = CentBarrageBasicBarrageType.AIM_IN_ORDER;
+            h.bodyBarrage.wayMorphBml = null;
+            float br_0 = rk * (0.1f + EnemySpecBase.rand.nextFloat(0.1f));
             float brv_0 = calcBarrageRank(br_0);
             if (brv_0 >= 0.1f)
             {
-                bodyBarrage.barMorphBml = BAR_MORPH_BML[rand.nextInt(BAR_MORPH_BML.Length)];
-                bodyBarrage.barMorphRank = brv_0;
+                h.bodyBarrage.barMorphBml = BAR_MORPH_BML[EnemySpecBase.rand.nextInt(BAR_MORPH_BML.Length)];
+                h.bodyBarrage.barMorphRank = brv_0;
                 rk -= br_0 * 2;
             }
             else
             {
-                bodyBarrage.barMorphBml = null;
+                h.bodyBarrage.barMorphBml = null;
             }
 
             float sp_0 = default(float);
@@ -438,12 +434,12 @@ public class CentHeadChase : CentHead
                 iv_0 = integer(values_0[2]);
             }
 
-            bodyBarrage.speedRank = sp_0;
-            bodyBarrage.interval = iv_0;
+            h.bodyBarrage.speedRank = sp_0;
+            h.bodyBarrage.interval = iv_0;
         }
 
-        headBarrage = new CentBarrage();
-        headBarrage.type = CentBarrageBasicBarrageType.FRONT;
+        h.headBarrage = new CentBarrage();
+        h.headBarrage.type = CentBarrageBasicBarrageType.FRONT;
         float wr = default(float);
         switch (size)
         {
@@ -451,48 +447,48 @@ public class CentHeadChase : CentHead
                 wr = 0;
                 break;
             case 1:
-                wr = rk * (0.2f + rand.nextFloat(0.1f));
+                wr = rk * (0.2f + EnemySpecBase.rand.nextFloat(0.1f));
                 break;
             case 2:
-                wr = rk * (0.1f + rand.nextFloat(0.1f));
+                wr = rk * (0.1f + EnemySpecBase.rand.nextFloat(0.1f));
                 break;
         }
 
-        float br_1 = rk * rand.nextFloat(0.3f);
+        float br_1 = rk * EnemySpecBase.rand.nextFloat(0.3f);
         float wrv = calcBarrageRank(wr);
         float brv_1 = calcBarrageRank(br_1);
         if (wrv >= 0.2f)
         {
-            headBarrage.wayMorphBml = WAY_MORPH_BML[rand.nextInt(WAY_MORPH_BML.Length)];
-            headBarrage.wayMorphRank = wrv;
+            h.headBarrage.wayMorphBml = WAY_MORPH_BML[EnemySpecBase.rand.nextInt(WAY_MORPH_BML.Length)];
+            h.headBarrage.wayMorphRank = wrv;
             rk -= wr * 2;
         }
         else
         {
-            headBarrage.wayMorphBml = null;
+            h.headBarrage.wayMorphBml = null;
         }
 
         if (brv_1 >= 0.1f)
         {
-            headBarrage.barMorphBml = BAR_MORPH_BML[rand.nextInt(BAR_MORPH_BML.Length)];
-            headBarrage.barMorphRank = brv_1;
+            h.headBarrage.barMorphBml = BAR_MORPH_BML[EnemySpecBase.rand.nextInt(BAR_MORPH_BML.Length)];
+            h.headBarrage.barMorphRank = brv_1;
             rk -= br_1 * 2;
         }
         else
         {
-            headBarrage.barMorphBml = null;
+            h.headBarrage.barMorphBml = null;
         }
 
         float ffs = default(float), svr = default(float);
         {
-            float[] values_1 = calcForwardForceAndSlowVelocity(rk, size);
+            float[] values_1 = calcForwardForceAndSlowVelocity(h, rk, size);
             rk = values_1[0];
             ffs = values_1[1];
             svr = values_1[2];
         }
 
-        forwardForceScale = ffs;
-        slowVelocityRatio = svr;
+        h.forwardForceScale = ffs;
+        h.slowVelocityRatio = svr;
         float sp_1 = default(float);
         int iv_1 = default(int);
         if (size <= 0)
@@ -510,48 +506,42 @@ public class CentHeadChase : CentHead
             iv_1 = integer(values_3[2]);
         }
 
-        headBarrage.speedRank = sp_1;
-        headBarrage.interval = iv_1;
-        _colorR = COLOR_R;
-        _colorG = COLOR_G;
-        _colorB = COLOR_B;
-    }
-
-    public override void initState(Enemy enemy, EnemyState state)
-    {
-        state.type = CentHeadCentType.CHASE;
-        base.initState(enemy, state);
-        state.linePoint.setSpectrumParams(_colorR, _colorG, _colorB, 1.0f);
+        h.headBarrage.speedRank = sp_1;
+        h.headBarrage.interval = iv_1;
+        h._colorR = COLOR_R;
+        h._colorG = COLOR_G;
+        h._colorB = COLOR_B;
+        return h;
     }
 }
 
-public class CentHeadRoll : CentHead
+public static class CentHeadRoll
 {
-    public virtual void initLengthAndSize(int size)
+    public static void initLengthAndSize(CentHead h, int size)
     {
         float ss = default(float);
         switch (size)
         {
             case 0:
-                bodyLength = 4 + rand.nextInt(4);
-                ss = 0.9f + rand.nextFloat(0.3f);
+                h.bodyLength = 4 + EnemySpecBase.rand.nextInt(4);
+                ss = 0.9f + EnemySpecBase.rand.nextFloat(0.3f);
                 break;
             case 1:
-                bodyLength = 5 + rand.nextInt(3);
-                ss = 1.3f + rand.nextFloat(0.2f);
+                h.bodyLength = 5 + EnemySpecBase.rand.nextInt(3);
+                ss = 1.3f + EnemySpecBase.rand.nextFloat(0.2f);
                 break;
             case 2:
-                bodyLength = 7 + rand.nextInt(2);
-                ss = 1.6f + rand.nextFloat(0.1f);
+                h.bodyLength = 7 + EnemySpecBase.rand.nextInt(2);
+                ss = 1.6f + EnemySpecBase.rand.nextFloat(0.1f);
                 break;
         }
 
-        baseSize = size;
-        sizeScale = new Vector3(ss, ss, 1);
-        massScale = ss * ss;
+        h.baseSize = size;
+        h.sizeScale = new Vector3(ss, ss, 1);
+        h.massScale = ss * ss;
     }
 
-    public virtual float calcBarrageRank(float br)
+    public static float calcBarrageRank(float br)
     {
         if (br < 0.01f)
             return 0;
@@ -559,11 +549,11 @@ public class CentHeadRoll : CentHead
             return 1 - 1 / sqrt(br);
     }
 
-    public virtual float[] calcBarrageSpeedAndInterval(float rank, float br, float minInterval = 20, float maxInterval = 120)
+    public static float[] calcBarrageSpeedAndInterval(float rank, float br, float minInterval = 20, float maxInterval = 120)
     {
         float speed = 0;
         int interval = 0;
-        float sr = br * (0.5f + rand.nextSignedFloat(0.2f));
+        float sr = br * (0.5f + EnemySpecBase.rand.nextSignedFloat(0.2f));
         float ir = br - sr;
         if (sr < 1)
         {
@@ -589,25 +579,25 @@ public class CentHeadRoll : CentHead
         };
     }
 
-    public virtual float[] calcForwardForceAndSlowVelocity(float rank, int size)
+    public static float[] calcForwardForceAndSlowVelocity(CentHead h, float rank, int size)
     {
         float forwardForceScale = 0;
         float slowVelocityRatio = 0;
         forwardForceScale = 1;
-        if (rand.nextInt(5) == 0)
+        if (EnemySpecBase.rand.nextInt(5) == 0)
         {
-            float ff = rank * (0.1f + rand.nextFloat(0.3f - size * 0.1f));
+            float ff = rank * (0.1f + EnemySpecBase.rand.nextFloat(0.3f - size * 0.1f));
             if (ff < 0)
                 ff = 0;
             forwardForceScale = 1 + sqrt(ff);
             rank -= ff * 0.2f;
         }
 
-        forwardForceScale *= (float)bodyLength / 5;
+        forwardForceScale *= (float)h.bodyLength / 5;
         slowVelocityRatio = 1;
         if (size >= 1)
         {
-            float sv = rank * (0.1f + rand.nextFloat(0.1f)) * size;
+            float sv = rank * (0.1f + EnemySpecBase.rand.nextFloat(0.1f)) * size;
             if (sv < 0)
                 sv = 0;
             slowVelocityRatio = 1 + sv * 3;
@@ -639,27 +629,28 @@ public class CentHeadRoll : CentHead
         "slidebaraccel.xml",
         "slidewhip.xml"
     };
-    public CentHeadRoll(Field field, Ship ship, BulletPool bullets, World world, float rank, int size) : base(field, ship, bullets, world)
+    public static CentHead create(Field field, Ship ship, BulletPool bullets, World world, float rank, int size)
     {
-        headSpec = this;
-        bodySpec = new CentBodyRoll(field, ship, bullets, world, this);
-        initLengthAndSize(size);
-        bodyLength = 6;
+        CentHead h = new CentHead(field, ship, bullets, world, CentHeadCentType.ROLL);
+        h.headSpec = h;
+        h.bodySpec = new CentBody(field, ship, bullets, world, h, CentBodyCentType.ROLL, COLOR_R, COLOR_G, COLOR_B);
+        initLengthAndSize(h, size);
+        h.bodyLength = 6;
         float rk = rank;
-        bodyBarrage = new CentBarrage();
-        bodyBarrage.type = CentBarrageBasicBarrageType.ONE_SIDE;
-        bodyBarrage.wayMorphBml = null;
-        float br_0 = rk * (0.1f * size + rand.nextFloat(0.1f));
+        h.bodyBarrage = new CentBarrage();
+        h.bodyBarrage.type = CentBarrageBasicBarrageType.ONE_SIDE;
+        h.bodyBarrage.wayMorphBml = null;
+        float br_0 = rk * (0.1f * size + EnemySpecBase.rand.nextFloat(0.1f));
         float brv_0 = calcBarrageRank(br_0);
         if (brv_0 >= 0.1f)
         {
-            bodyBarrage.barMorphBml = BAR_MORPH_BML[rand.nextInt(BAR_MORPH_BML.Length)];
-            bodyBarrage.barMorphRank = brv_0;
+            h.bodyBarrage.barMorphBml = BAR_MORPH_BML[EnemySpecBase.rand.nextInt(BAR_MORPH_BML.Length)];
+            h.bodyBarrage.barMorphRank = brv_0;
             rk -= br_0 * 2;
         }
         else
         {
-            bodyBarrage.barMorphBml = null;
+            h.bodyBarrage.barMorphBml = null;
         }
 
         float sp_0 = default(float);
@@ -695,62 +686,62 @@ public class CentHeadRoll : CentHead
                 break;
         }
 
-        bodyBarrage.speedRank = sp_0;
-        bodyBarrage.interval = iv_0;
+        h.bodyBarrage.speedRank = sp_0;
+        h.bodyBarrage.interval = iv_0;
         if (size <= 0)
         {
-            headBarrage = bodyBarrage;
+            h.headBarrage = h.bodyBarrage;
             float ffs_0 = default(float), svr_0 = default(float);
             {
-                float[] values_3 = calcForwardForceAndSlowVelocity(rk, size);
+                float[] values_3 = calcForwardForceAndSlowVelocity(h, rk, size);
                 rk = values_3[0];
                 ffs_0 = values_3[1];
                 svr_0 = values_3[2];
             }
 
-            forwardForceScale = ffs_0;
-            slowVelocityRatio = svr_0;
+            h.forwardForceScale = ffs_0;
+            h.slowVelocityRatio = svr_0;
         }
         else
         {
-            headBarrage = new CentBarrage();
-            headBarrage.type = CentBarrageBasicBarrageType.FRONT;
-            float wr = rk * (size * 0.2f + rand.nextFloat(0.2f));
-            float br_1 = rk * rand.nextFloat(0.2f);
+            h.headBarrage = new CentBarrage();
+            h.headBarrage.type = CentBarrageBasicBarrageType.FRONT;
+            float wr = rk * (size * 0.2f + EnemySpecBase.rand.nextFloat(0.2f));
+            float br_1 = rk * EnemySpecBase.rand.nextFloat(0.2f);
             float wrv = calcBarrageRank(wr);
             float brv_1 = calcBarrageRank(br_1);
             if (wrv >= 0.2f)
             {
-                headBarrage.wayMorphBml = WAY_MORPH_BML[rand.nextInt(WAY_MORPH_BML.Length)];
-                headBarrage.wayMorphRank = wrv;
+                h.headBarrage.wayMorphBml = WAY_MORPH_BML[EnemySpecBase.rand.nextInt(WAY_MORPH_BML.Length)];
+                h.headBarrage.wayMorphRank = wrv;
                 rk -= wr * 2;
             }
             else
             {
-                headBarrage.wayMorphBml = null;
+                h.headBarrage.wayMorphBml = null;
             }
 
             if (brv_1 >= 0.1f)
             {
-                headBarrage.barMorphBml = BAR_MORPH_BML[rand.nextInt(BAR_MORPH_BML.Length)];
-                headBarrage.barMorphRank = brv_1;
+                h.headBarrage.barMorphBml = BAR_MORPH_BML[EnemySpecBase.rand.nextInt(BAR_MORPH_BML.Length)];
+                h.headBarrage.barMorphRank = brv_1;
                 rk -= br_1 * 2;
             }
             else
             {
-                headBarrage.barMorphBml = null;
+                h.headBarrage.barMorphBml = null;
             }
 
             float ffs_1 = default(float), svr_1 = default(float);
             {
-                float[] values_4 = calcForwardForceAndSlowVelocity(rk, size);
+                float[] values_4 = calcForwardForceAndSlowVelocity(h, rk, size);
                 rk = values_4[0];
                 ffs_1 = values_4[1];
                 svr_1 = values_4[2];
             }
 
-            forwardForceScale = ffs_1;
-            slowVelocityRatio = svr_1;
+            h.forwardForceScale = ffs_1;
+            h.slowVelocityRatio = svr_1;
             float sp_1 = default(float);
             int iv_1 = default(int);
             {
@@ -760,20 +751,14 @@ public class CentHeadRoll : CentHead
                 iv_1 = integer(values_5[2]);
             }
 
-            headBarrage.speedRank = sp_1;
-            headBarrage.interval = iv_1;
+            h.headBarrage.speedRank = sp_1;
+            h.headBarrage.interval = iv_1;
         }
 
-        _colorR = COLOR_R;
-        _colorG = COLOR_G;
-        _colorB = COLOR_B;
-    }
-
-    public override void initState(Enemy enemy, EnemyState state)
-    {
-        state.type = CentHeadCentType.ROLL;
-        base.initState(enemy, state);
-        state.linePoint.setSpectrumParams(_colorR, _colorG, _colorB, 1.0f);
+        h._colorR = COLOR_R;
+        h._colorG = COLOR_G;
+        h._colorB = COLOR_B;
+        return h;
     }
 }
 
@@ -835,25 +820,35 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
     public const float SLOW_ANGULAR_RATIO = 0.1f;
     public CentHead headSpec;
     public int bodyLength, baseSize;
-    public override bool move_2(Enemy enemy, EnemyState state)
+    public int centType;
+    public Field field;
+    public Ship ship;
+    public BulletPool bullets;
+    public World world;
+    public ShapeGroup shape;
+    public Drawable subShape = null;
+    public bool _rotate2d = true;
+    public bool _collideBullet = false;
+    public float _colorR, _colorG, _colorB;
+    public bool move_2(Enemy enemy, EnemyState state)
     {
         if (field.checkInField_1_Vector3(state.pos))
         {
             if (state.isHead)
-                enemy.addRelForce(0, FORWARD_FORCE_BASE * state.forwardForceScale);
+                enemy.ode.addRelForce(0, FORWARD_FORCE_BASE * state.forwardForceScale);
             if ((state.topBullet) != null)
                 state.topBullet.activated = true;
             state.linePoint.enableSpectrumColor(true);
             switch (state.type)
             {
                 case CentHeadCentType.TO_AND_FROM:
-                    enemy.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * (1 + (state.turnCnt * 0.1f)));
+                    enemy.ode.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * (1 + (state.turnCnt * 0.1f)));
                     break;
                 case CentHeadCentType.CHASE:
-                    enemy.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * 0.25f);
+                    enemy.ode.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * 0.25f);
                     break;
                 case CentHeadCentType.ROLL:
-                    enemy.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * 5);
+                    enemy.ode.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * 5);
                     break;
             }
         }
@@ -864,11 +859,11 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
             state.linePoint.enableSpectrumColor(false);
         }
 
-        enemy.slowAngularVel(CentHead.SLOW_ANGULAR_RATIO);
+        enemy.ode.slowAngularVel(CentHead.SLOW_ANGULAR_RATIO);
         if (!(state.isHead))
             return true;
         if (field.checkInField_1_Vector3(state.pos))
-            enemy.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio);
+            enemy.ode.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio);
         if (state.turnCnt > 0)
             state.turnCnt--;
         float ad = default(float);
@@ -928,7 +923,7 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
 
                 float sd = atan2(-ship.pos().x + state.pos.x, ship.pos().y - state.pos.y);
                 float sf = FORWARD_FORCE_BASE * state.forwardForceScale * 0.16f;
-                enemy.addForce(-sin(sd) * sf, cos(sd) * sf);
+                enemy.ode.addForce(-sin(sd) * sf, cos(sd) * sf);
                 break;
         }
 
@@ -940,7 +935,7 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
             f = 1;
         else if (f < -1)
             f = -1;
-        enemy.addRelForceAtRelPos(0, state.sizeScale.x * SIZE / 2, 0, angularForce * f, 0, 0);
+        enemy.ode.addRelForceAtRelPos(0, state.sizeScale.x * SIZE / 2, 0, angularForce * f, 0, 0);
         Enemy e_1 = enemy;
         for (;;)
         {
@@ -952,11 +947,11 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
             s_1.moveFlag = state.moveFlag;
         }
 
-        enemy.addForce(0, 0, -Field.GRAVITY * state.massScale);
+        enemy.ode.addForce(0, 0, -Field.GRAVITY * state.massScale);
         return true;
     }
 
-    public virtual void remove_1(Enemy enemy)
+    public void remove_1(Enemy enemy)
     {
         Enemy e = enemy;
         for (;;)
@@ -969,7 +964,7 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
         }
     }
 
-    public override void destroyed_2(Enemy enemy, EnemyState state)
+    public void destroyed_2(Enemy enemy, EnemyState state)
     {
         if (state.isHead)
         {
@@ -990,20 +985,20 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
         }
     }
 
-    public virtual void addConnectedParticlesHead(Enemy enemy, EnemyState state)
+    public void addConnectedParticlesHead(Enemy enemy, EnemyState state)
     {
         float d = atan2(state.pos.x, -state.pos.y);
         for (int i = 0; i < 6; i++)
-            enemy.addConnectedParticles_3_Single_Single_Boolean(d + rand.nextSignedFloat(PI / 4), 6.0f, false);
+            enemy.addConnectedParticles_3_Single_Single_Boolean(d + EnemySpecBase.rand.nextSignedFloat(PI / 4), 6.0f, false);
     }
 
-    public virtual void addConnectedParticlesBody(Enemy enemy, EnemyState state)
+    public void addConnectedParticlesBody(Enemy enemy, EnemyState state)
     {
         enemy.addConnectedParticles_3_Single_Single_Boolean(state.deg + PI / 2, 1.5f * state.sizeScale.x);
         enemy.addConnectedParticles_3_Single_Single_Boolean(state.deg - PI / 2, 1.5f * state.sizeScale.x);
     }
 
-    public override void drawSubShape(float[] model, float[] tint, Gfx.Blend blend, string key, EnemyState state)
+    public void drawSubShape(float[] model, float[] tint, Gfx.Blend blend, string key, EnemyState state)
     {
         if (state.isHead)
         {
@@ -1022,8 +1017,9 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
     public float forwardForceScale;
     public float slowVelocityRatio;
     public CentBarrage headBarrage, bodyBarrage;
-    public CentHead(Field field, Ship ship, BulletPool bullets, World world)
+    public CentHead(Field field, Ship ship, BulletPool bullets, World world, int centType)
     {
+        this.centType = centType;
         this.field = field;
         this.ship = ship;
         this.bullets = bullets;
@@ -1033,9 +1029,10 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
         subShape = new EyeShape();
     }
 
-    public override void initState(Enemy enemy, EnemyState state)
+    public void initState(Enemy enemy, EnemyState state)
     {
-        base.initState(enemy, state);
+        state.type = centType;
+        EnemySpecBase.initState(shape, world, enemy, state);
         setHeadBarrage(state);
         if (state.pos.x < 0)
         {
@@ -1057,9 +1054,10 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
         state.forwardForceScale = forwardForceScale;
         state.slowVelocityRatio = slowVelocityRatio;
         state.isHead = true;
+        state.linePoint.setSpectrumParams(_colorR, _colorG, _colorB, 1.0f);
     }
 
-    public virtual void setHeadBarrage(EnemyState state)
+    public void setHeadBarrage(EnemyState state)
     {
         if ((state.topBullet) != null)
         {
@@ -1071,7 +1069,7 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
             headBarrage.set_4_BulletPool_Ship_EnemyState_Single(bullets, ship, state);
     }
 
-    public virtual Enemy setJointedEnemies_5(EnemyPool enemies, float x, float y, float z, float deg)
+    public Enemy setJointedEnemies_5(EnemyPool enemies, float x, float y, float z, float deg)
     {
         if (bodyLength <= 0)
             return null;
@@ -1109,7 +1107,7 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
             OdeHandle jid = McdPhysics.Hinge(World.world);
             McdPhysics.HingeLimit(jid, 0, -1);
             McdPhysics.HingeLimit(jid, 1, 1);
-            McdPhysics.JointAttach(jid, je[i_0].bodyId(), je[i_0 + 1].bodyId());
+            McdPhysics.JointAttach(jid, je[i_0].ode.bodyId(), je[i_0 + 1].ode.bodyId());
             McdPhysics.HingeAnchor(jid, (je[i_0].pos().x + je[i_0 + 1].pos().x) / 2, (je[i_0].pos().y + je[i_0 + 1].pos().y) / 2, (je[i_0].pos().z + je[i_0 + 1].pos().z) / 2);
             McdPhysics.HingeAxis(jid, 0, 0, 1);
             OdeHandle[] joints = null;
@@ -1138,56 +1136,44 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
 
         return je[0];
     }
-}
 
-public class CentBodyToAndFrom : CentBody
-{
-    public CentBodyToAndFrom(Field field, Ship ship, BulletPool bullets, World world, CentHead headSpec) : base(field, ship, bullets, world, headSpec)
+    public void collide_3(Enemy enemy, EnemyState state, OdeActor actor)
     {
     }
 
-    public override void initState(Enemy enemy, EnemyState state)
+    public void recordLinePoints_2(EnemyState state, LinePoint lp)
     {
-        state.type = CentBodyCentType.TO_AND_FROM;
-        base.initState(enemy, state);
-        _colorR = CentHeadToAndFrom.COLOR_R;
-        _colorG = CentHeadToAndFrom.COLOR_G;
-        _colorB = CentHeadToAndFrom.COLOR_B;
-        state.linePoint.setSpectrumParams(_colorR, _colorG, _colorB, 1.0f);
-    }
-}
-
-public class CentBodyChase : CentBody
-{
-    public CentBodyChase(Field field, Ship ship, BulletPool bullets, World world, CentHead headSpec) : base(field, ship, bullets, world, headSpec)
-    {
+        EnemySpecBase.recordLinePoints_2(shape, state, lp);
     }
 
-    public override void initState(Enemy enemy, EnemyState state)
+    public void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
     {
-        state.type = CentBodyCentType.CHASE;
-        base.initState(enemy, state);
-        _colorR = CentHeadChase.COLOR_R;
-        _colorG = CentHeadChase.COLOR_G;
-        _colorB = CentHeadChase.COLOR_B;
-        state.linePoint.setSpectrumParams(_colorR, _colorG, _colorB, 1.0f);
-    }
-}
-
-public class CentBodyRoll : CentBody
-{
-    public CentBodyRoll(Field field, Ship ship, BulletPool bullets, World world, CentHead headSpec) : base(field, ship, bullets, world, headSpec)
-    {
+        shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", lp);
     }
 
-    public override void initState(Enemy enemy, EnemyState state)
+    public bool rotate2d()
     {
-        state.type = CentBodyCentType.ROLL;
-        base.initState(enemy, state);
-        _colorR = CentHeadRoll.COLOR_R;
-        _colorG = CentHeadRoll.COLOR_G;
-        _colorB = CentHeadRoll.COLOR_B;
-        state.linePoint.setSpectrumParams(_colorR, _colorG, _colorB, 1.0f);
+        return _rotate2d;
+    }
+
+    public bool collideBullet()
+    {
+        return _collideBullet;
+    }
+
+    public float colorR()
+    {
+        return _colorR;
+    }
+
+    public float colorG()
+    {
+        return _colorG;
+    }
+
+    public float colorB()
+    {
+        return _colorB;
     }
 }
 
@@ -1249,25 +1235,36 @@ public class CentBody : EnemySpec, ConnectedParticlesBodyAddable
     public const float SLOW_ANGULAR_RATIO = 0.1f;
     public CentHead headSpec;
     public int bodyLength, baseSize;
-    public override bool move_2(Enemy enemy, EnemyState state)
+    public int centType;
+    public float centColorR, centColorG, centColorB;
+    public Field field;
+    public Ship ship;
+    public BulletPool bullets;
+    public World world;
+    public ShapeGroup shape;
+    public Drawable subShape = null;
+    public bool _rotate2d = true;
+    public bool _collideBullet = false;
+    public float _colorR, _colorG, _colorB;
+    public bool move_2(Enemy enemy, EnemyState state)
     {
         if (field.checkInField_1_Vector3(state.pos))
         {
             if (state.isHead)
-                enemy.addRelForce(0, FORWARD_FORCE_BASE * state.forwardForceScale);
+                enemy.ode.addRelForce(0, FORWARD_FORCE_BASE * state.forwardForceScale);
             if ((state.topBullet) != null)
                 state.topBullet.activated = true;
             state.linePoint.enableSpectrumColor(true);
             switch (state.type)
             {
                 case CentBodyCentType.TO_AND_FROM:
-                    enemy.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * (1 + (state.turnCnt * 0.1f)));
+                    enemy.ode.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * (1 + (state.turnCnt * 0.1f)));
                     break;
                 case CentBodyCentType.CHASE:
-                    enemy.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * 0.25f);
+                    enemy.ode.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * 0.25f);
                     break;
                 case CentBodyCentType.ROLL:
-                    enemy.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * 5);
+                    enemy.ode.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio * 5);
                     break;
             }
         }
@@ -1278,11 +1275,11 @@ public class CentBody : EnemySpec, ConnectedParticlesBodyAddable
             state.linePoint.enableSpectrumColor(false);
         }
 
-        enemy.slowAngularVel(CentHead.SLOW_ANGULAR_RATIO);
+        enemy.ode.slowAngularVel(CentHead.SLOW_ANGULAR_RATIO);
         if (!(state.isHead))
             return true;
         if (field.checkInField_1_Vector3(state.pos))
-            enemy.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio);
+            enemy.ode.slowLinearVel(CentHead.SLOW_VELOCITY_RATIO_CONST * state.slowVelocityRatio);
         if (state.turnCnt > 0)
             state.turnCnt--;
         float ad = default(float);
@@ -1342,7 +1339,7 @@ public class CentBody : EnemySpec, ConnectedParticlesBodyAddable
 
                 float sd = atan2(-ship.pos().x + state.pos.x, ship.pos().y - state.pos.y);
                 float sf = FORWARD_FORCE_BASE * state.forwardForceScale * 0.16f;
-                enemy.addForce(-sin(sd) * sf, cos(sd) * sf);
+                enemy.ode.addForce(-sin(sd) * sf, cos(sd) * sf);
                 break;
         }
 
@@ -1354,7 +1351,7 @@ public class CentBody : EnemySpec, ConnectedParticlesBodyAddable
             f = 1;
         else if (f < -1)
             f = -1;
-        enemy.addRelForceAtRelPos(0, state.sizeScale.x * SIZE / 2, 0, angularForce * f, 0, 0);
+        enemy.ode.addRelForceAtRelPos(0, state.sizeScale.x * SIZE / 2, 0, angularForce * f, 0, 0);
         Enemy e_1 = enemy;
         for (;;)
         {
@@ -1366,11 +1363,11 @@ public class CentBody : EnemySpec, ConnectedParticlesBodyAddable
             s_1.moveFlag = state.moveFlag;
         }
 
-        enemy.addForce(0, 0, -Field.GRAVITY * state.massScale);
+        enemy.ode.addForce(0, 0, -Field.GRAVITY * state.massScale);
         return true;
     }
 
-    public virtual void remove_1(Enemy enemy)
+    public void remove_1(Enemy enemy)
     {
         Enemy e = enemy;
         for (;;)
@@ -1383,7 +1380,7 @@ public class CentBody : EnemySpec, ConnectedParticlesBodyAddable
         }
     }
 
-    public override void destroyed_2(Enemy enemy, EnemyState state)
+    public void destroyed_2(Enemy enemy, EnemyState state)
     {
         if (state.isHead)
         {
@@ -1404,20 +1401,20 @@ public class CentBody : EnemySpec, ConnectedParticlesBodyAddable
         }
     }
 
-    public virtual void addConnectedParticlesHead(Enemy enemy, EnemyState state)
+    public void addConnectedParticlesHead(Enemy enemy, EnemyState state)
     {
         float d = atan2(state.pos.x, -state.pos.y);
         for (int i = 0; i < 6; i++)
-            enemy.addConnectedParticles_3_Single_Single_Boolean(d + rand.nextSignedFloat(PI / 4), 6.0f, false);
+            enemy.addConnectedParticles_3_Single_Single_Boolean(d + EnemySpecBase.rand.nextSignedFloat(PI / 4), 6.0f, false);
     }
 
-    public virtual void addConnectedParticlesBody(Enemy enemy, EnemyState state)
+    public void addConnectedParticlesBody(Enemy enemy, EnemyState state)
     {
         enemy.addConnectedParticles_3_Single_Single_Boolean(state.deg + PI / 2, 1.5f * state.sizeScale.x);
         enemy.addConnectedParticles_3_Single_Single_Boolean(state.deg - PI / 2, 1.5f * state.sizeScale.x);
     }
 
-    public override void drawSubShape(float[] model, float[] tint, Gfx.Blend blend, string key, EnemyState state)
+    public void drawSubShape(float[] model, float[] tint, Gfx.Blend blend, string key, EnemyState state)
     {
         if (state.isHead)
         {
@@ -1430,8 +1427,12 @@ public class CentBody : EnemySpec, ConnectedParticlesBodyAddable
         }
     }
 
-    public CentBody(Field field, Ship ship, BulletPool bullets, World world, CentHead headSpec)
+    public CentBody(Field field, Ship ship, BulletPool bullets, World world, CentHead headSpec, int centType, float centColorR, float centColorG, float centColorB)
     {
+        this.centType = centType;
+        this.centColorR = centColorR;
+        this.centColorG = centColorG;
+        this.centColorB = centColorB;
         this.field = field;
         this.ship = ship;
         this.bullets = bullets;
@@ -1442,14 +1443,58 @@ public class CentBody : EnemySpec, ConnectedParticlesBodyAddable
         subShape = new EyeShape();
     }
 
-    public override void initState(Enemy enemy, EnemyState state)
+    public void initState(Enemy enemy, EnemyState state)
     {
-        base.initState(enemy, state);
+        state.type = centType;
+        EnemySpecBase.initState(shape, world, enemy, state);
         state.trgDeg = 0;
         state.turnCnt = 0;
         state.moveFlag = 0;
         state.isHead = false;
         state.destroyable = state.isHead;
+        _colorR = centColorR;
+        _colorG = centColorG;
+        _colorB = centColorB;
+        state.linePoint.setSpectrumParams(_colorR, _colorG, _colorB, 1.0f);
+    }
+
+    public void collide_3(Enemy enemy, EnemyState state, OdeActor actor)
+    {
+    }
+
+    public void recordLinePoints_2(EnemyState state, LinePoint lp)
+    {
+        EnemySpecBase.recordLinePoints_2(shape, state, lp);
+    }
+
+    public void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
+    {
+        shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", lp);
+    }
+
+    public bool rotate2d()
+    {
+        return _rotate2d;
+    }
+
+    public bool collideBullet()
+    {
+        return _collideBullet;
+    }
+
+    public float colorR()
+    {
+        return _colorR;
+    }
+
+    public float colorG()
+    {
+        return _colorG;
+    }
+
+    public float colorB()
+    {
+        return _colorB;
     }
 }
 
@@ -1462,6 +1507,15 @@ public class Block : EnemySpec
 {
     public const float SLOW_VELOCITY_RATIO = 0.022f;
     public const float SLOW_ANGULAR_RATIO = 0.022f;
+    public Field field;
+    public Ship ship;
+    public BulletPool bullets;
+    public World world;
+    public ShapeGroup shape;
+    public Drawable subShape = null;
+    public bool _rotate2d = true;
+    public bool _collideBullet = false;
+    public float _colorR, _colorG, _colorB;
     public Block(Field field, Ship ship, BulletPool bullets, World world)
     {
         this.field = field;
@@ -1474,9 +1528,9 @@ public class Block : EnemySpec
         _collideBullet = true;
     }
 
-    public override void initState(Enemy enemy, EnemyState state)
+    public void initState(Enemy enemy, EnemyState state)
     {
-        base.initState(enemy, state);
+        EnemySpecBase.initState(shape, world, enemy, state);
         _colorR = 0;
         _colorG = 0;
         _colorB = 1;
@@ -1484,11 +1538,11 @@ public class Block : EnemySpec
         state.type = -1;
     }
 
-    public override bool move_2(Enemy enemy, EnemyState state)
+    public bool move_2(Enemy enemy, EnemyState state)
     {
         if (field.checkInField_1_Vector3(state.pos))
         {
-            enemy.slowLinearVel(SLOW_VELOCITY_RATIO * state.massScale);
+            enemy.ode.slowLinearVel(SLOW_VELOCITY_RATIO * state.massScale);
             state.linePoint.enableSpectrumColor(true);
         }
         else
@@ -1496,17 +1550,60 @@ public class Block : EnemySpec
             state.linePoint.enableSpectrumColor(false);
         }
 
-        enemy.slowAngularVel(SLOW_ANGULAR_RATIO);
-        enemy.addForce(0, 0, -Field.GRAVITY * 0.25f * state.massScale);
+        enemy.ode.slowAngularVel(SLOW_ANGULAR_RATIO);
+        enemy.ode.addForce(0, 0, -Field.GRAVITY * 0.25f * state.massScale);
         return true;
     }
 
-    public override void destroyed_2(Enemy enemy, EnemyState state)
+    public void destroyed_2(Enemy enemy, EnemyState state)
     {
         float d = atan2(state.pos.x, -state.pos.y);
         for (int i = 0; i < 5; i++)
-            enemy.addConnectedParticles_3_Single_Single_Boolean(d + rand.nextSignedFloat(PI / 4), 4.0f * state.sizeScale.x);
+            enemy.addConnectedParticles_3_Single_Single_Boolean(d + EnemySpecBase.rand.nextSignedFloat(PI / 4), 4.0f * state.sizeScale.x);
         enemy.addScore_2(100, 0.3f);
+    }
+
+    public void collide_3(Enemy enemy, EnemyState state, OdeActor actor)
+    {
+    }
+
+    public void recordLinePoints_2(EnemyState state, LinePoint lp)
+    {
+        EnemySpecBase.recordLinePoints_2(shape, state, lp);
+    }
+
+    public void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
+    {
+        shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", lp);
+    }
+
+    public bool rotate2d()
+    {
+        return _rotate2d;
+    }
+
+    public bool collideBullet()
+    {
+        return _collideBullet;
+    }
+
+    public float colorR()
+    {
+        return _colorR;
+    }
+
+    public float colorG()
+    {
+        return _colorG;
+    }
+
+    public float colorB()
+    {
+        return _colorB;
+    }
+
+    public void drawSubShape(float[] model, float[] tint, Gfx.Blend blend, string key, EnemyState state)
+    {
     }
 }
 

@@ -21,7 +21,7 @@ public static class GameVerification
         splinter.move();
         StuckEnemy attached = null;
         foreach (Actor actor in pool.actor)
-            if (actor.isExist && !((StuckEnemy)actor).isMyShip) attached = (StuckEnemy)actor;
+            if (actor.getExist() && !((StuckEnemy)actor).isMyShip) attached = (StuckEnemy)actor;
         Check(!splinter.isExist && attached != null, "collect and attach a falling part");
         if (attached == null) return;
         Check(game.score == score + 50, "collection score");
@@ -49,13 +49,13 @@ public static class GameVerification
         {
             game.bullets.move();
             foreach (Actor actor in game.bullets.actor)
-                if (actor.isExist && ((BulletActor)actor).isVisible && ((BulletActor)actor).bullet.type == BulletType.SHIP) fired = true;
+                if (actor.getExist() && ((BulletActor)actor).isVisible && ((BulletActor)actor).bullet.type == BulletType.SHIP) fired = true;
         }
         Check(fired, "captured part fires player bullets");
         pool.removeAllEnemies();
         StuckEnemy root = null;
         foreach (Actor actor in pool.actor)
-            if (actor.isExist && ((StuckEnemy)actor).isMyShip) root = (StuckEnemy)actor;
+            if (actor.getExist() && ((StuckEnemy)actor).isMyShip) root = (StuckEnemy)actor;
         var bridge = (StuckEnemy)pool.getInstance();
         bridge.tumikiSet = shape; bridge.setColSize();
         float spacing = root.colSize + bridge.colSize - 0.1f;
@@ -82,7 +82,7 @@ public static class GameVerification
         Check(enemy.isExist && enemy.parts[1].shield < 0 && enemy.parts[2].shield == 15, "partial enemy destruction");
         Check(enemy.parts[0].shield == 15 && game.score == score + 400, "part damage transferred to body and score");
         int fallen = 0;
-        foreach (Actor actor in game.splinters.actor) if (actor.isExist) fallen++;
+        foreach (Actor actor in game.splinters.actor) if (actor.getExist()) fallen++;
         Check(fallen == 1, "destroyed part becomes collectible");
         Check(enemy.checkHit(new Vector(-6, -3), 15) && !enemy.isExist, "remaining part destroys body");
     }

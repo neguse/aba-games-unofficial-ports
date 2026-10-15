@@ -3,6 +3,9 @@ using System;
 using static GameMath;
 using static Lub;
 public class Fragment: Actor {
+  public bool isExist;
+  public bool getExist() { return isExist; }
+  public void setExist(bool value) { isExist = value; }
 
   public static Rand rand = new Rand();
   public Vector pos;
@@ -15,11 +18,11 @@ public class Fragment: Actor {
 
 
 
-  public override Actor newActor() {
+  public Actor newActor() {
     return new Fragment();
   }
 
-  public override void init(ActorInitializer ini) {
+  public void init(ActorInitializer ini) {
     pos = new Vector();
     vel = new Vector();
     size = new Vector();
@@ -42,7 +45,7 @@ public class Fragment: Actor {
 
   public const float GRAVITY = 0.012f;
 
-  public override void move() {
+  public void move() {
     cnt--;
     if (cnt < 0) {
       isExist = false;
@@ -53,7 +56,7 @@ public class Fragment: Actor {
     deg += md;
   }
 
-  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
     bool depth = false; Gfx.Cull cull = Gfx.Cull.Front; float width = 1;
     if (cnt < 16) {
       if ((cnt & 1) == 1)

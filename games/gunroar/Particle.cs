@@ -6,6 +6,23 @@ using static Lub;
 
 public class Spark : LuminousActor
 {
+    public bool exists;
+    public int poolIndex;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public void setPoolIndex(int poolIndex)
+    {
+        this.poolIndex = poolIndex;
+    }
+
     public static GunroarRand rand = new GunroarRand();
     public Vector pos, ppos;
     public Vector vel;
@@ -30,7 +47,7 @@ public class Spark : LuminousActor
         cnt = 0;
     }
 
-    public override void init(List<object> args)
+    public void init(List<object> args)
     {
     }
 
@@ -55,7 +72,7 @@ public class Spark : LuminousActor
         exists = true;
     }
 
-    public override void move()
+    public void move()
     {
         cnt--;
         if ((cnt <= 0) || (vel.dist_2() < 0.005f))
@@ -70,7 +87,7 @@ public class Spark : LuminousActor
         vel.opMulAssign(0.96f);
     }
 
-    public override void draw(float[] model, Mesh particles = null)
+    public void draw(float[] model, Mesh particles = null)
     {
         float[] color = null;
         float ox = vel.x;
@@ -86,7 +103,7 @@ public class Spark : LuminousActor
         particles.Vertex(pos.x + oy, pos.y - ox, 0, color);
     }
 
-    public override void drawLuminous(float[] model, Mesh particles = null)
+    public void drawLuminous(float[] model, Mesh particles = null)
     {
         float[] color = null;
         float ox = vel.x;
@@ -103,15 +120,59 @@ public class Spark : LuminousActor
     }
 }
 
-public class SparkPool : LuminousActorPool<Spark>
+public class SparkPool
 {
-    public SparkPool(int n, List<object> args) : base(n, args, () => new Spark())
+    public LuminousActorPool<Spark> pool;
+    public SparkPool(int n, List<object> args)
     {
+        pool = new LuminousActorPool<Spark>(n, args, () => new Spark());
+    }
+
+    public Spark getInstanceForced()
+    {
+        return pool.getInstanceForced();
+    }
+
+    public void move()
+    {
+        pool.move();
+    }
+
+    public void draw(float[] model, Mesh particles = null)
+    {
+        pool.draw(model, particles);
+    }
+
+    public void drawLuminous(float[] model, Mesh particles = null)
+    {
+        pool.drawLuminous(model, particles);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 }
 
 public class Smoke : LuminousActor
 {
+    public bool exists;
+    public int poolIndex;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public void setPoolIndex(int poolIndex)
+    {
+        this.poolIndex = poolIndex;
+    }
+
     public static GunroarRand rand = new GunroarRand();
     public static Vector3 windVel = new Vector3(0.04f, 0.04f, 0.02f);
     public static Vector wakePos = new Vector();
@@ -144,7 +205,7 @@ public class Smoke : LuminousActor
         }
     }
 
-    public override void init(List<object> args)
+    public void init(List<object> args)
     {
         field = (Field)args[0];
         wakes = (WakePool)args[1];
@@ -247,7 +308,7 @@ public class Smoke : LuminousActor
         exists = true;
     }
 
-    public override void move()
+    public void move()
     {
         cnt--;
         if ((cnt <= 0) || (!field.checkInOuterField_2(pos.x, pos.y)))
@@ -345,7 +406,7 @@ public class Smoke : LuminousActor
         }
     }
 
-    public override void draw(float[] model, Mesh particles = null)
+    public void draw(float[] model, Mesh particles = null)
     {
         float[] color = null;
         float quadSize = size / 2;
@@ -356,7 +417,7 @@ public class Smoke : LuminousActor
         particles.Vertex(pos.x - quadSize, pos.y + quadSize, pos.z, color);
     }
 
-    public override void drawLuminous(float[] model, Mesh particles = null)
+    public void drawLuminous(float[] model, Mesh particles = null)
     {
         float[] color = null;
         if ((r + g > 0.8f) && (b < 0.5f))
@@ -371,15 +432,64 @@ public class Smoke : LuminousActor
     }
 }
 
-public class SmokePool : LuminousActorPool<Smoke>
+public class SmokePool
 {
-    public SmokePool(int n, List<object> args) : base(n, args, () => new Smoke())
+    public LuminousActorPool<Smoke> pool;
+    public SmokePool(int n, List<object> args)
     {
+        pool = new LuminousActorPool<Smoke>(n, args, () => new Smoke());
+    }
+
+    public Smoke getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public Smoke getInstanceForced()
+    {
+        return pool.getInstanceForced();
+    }
+
+    public void move()
+    {
+        pool.move();
+    }
+
+    public void draw(float[] model, Mesh particles = null)
+    {
+        pool.draw(model, particles);
+    }
+
+    public void drawLuminous(float[] model, Mesh particles = null)
+    {
+        pool.drawLuminous(model, particles);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 }
 
 public class Fragment : Actor
 {
+    public bool exists;
+    public int poolIndex;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public void setPoolIndex(int poolIndex)
+    {
+        this.poolIndex = poolIndex;
+    }
+
     public static Mesh mesh;
     public static GunroarRand rand;
     public Field field;
@@ -430,7 +540,7 @@ public class Fragment : Actor
         }
     }
 
-    public override void init(List<object> args)
+    public void init(List<object> args)
     {
         field = (Field)args[0];
         smokes = (SmokePool)args[1];
@@ -454,7 +564,7 @@ public class Fragment : Actor
         exists = true;
     }
 
-    public override void move()
+    public void move()
     {
         if (!field.checkInOuterField_2(pos.x, pos.y))
         {
@@ -481,7 +591,7 @@ public class Fragment : Actor
         d2 = d2 + (md2);
     }
 
-    public override void draw(float[] model, Mesh particles = null)
+    public void draw(float[] model, Mesh particles = null)
     {
         float[] color = null;
         model = Transform.Translate(model, pos.x, pos.y, pos.z);
@@ -491,15 +601,54 @@ public class Fragment : Actor
     }
 }
 
-public class FragmentPool : ActorPool<Fragment>
+public class FragmentPool
 {
-    public FragmentPool(int n, List<object> args) : base(n, args, () => new Fragment())
+    public ActorPool<Fragment> pool;
+    public FragmentPool(int n, List<object> args)
     {
+        pool = new ActorPool<Fragment>(n, args, () => new Fragment());
+    }
+
+    public Fragment getInstanceForced()
+    {
+        return pool.getInstanceForced();
+    }
+
+    public void move()
+    {
+        pool.move();
+    }
+
+    public void draw(float[] model, Mesh particles = null)
+    {
+        pool.draw(model, particles);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 }
 
 public class SparkFragment : LuminousActor
 {
+    public bool exists;
+    public int poolIndex;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public void setPoolIndex(int poolIndex)
+    {
+        this.poolIndex = poolIndex;
+    }
+
     public static Mesh mesh;
     public static GunroarRand rand;
     public Field field;
@@ -546,7 +695,7 @@ public class SparkFragment : LuminousActor
         cnt = 0;
     }
 
-    public override void init(List<object> args)
+    public void init(List<object> args)
     {
         field = (Field)args[0];
         smokes = (SmokePool)args[1];
@@ -575,7 +724,7 @@ public class SparkFragment : LuminousActor
         exists = true;
     }
 
-    public override void move()
+    public void move()
     {
         if (!field.checkInOuterField_2(pos.x, pos.y))
         {
@@ -609,7 +758,7 @@ public class SparkFragment : LuminousActor
         }
     }
 
-    public override void draw(float[] model, Mesh particles = null)
+    public void draw(float[] model, Mesh particles = null)
     {
         float[] color = null;
         color = new float[] { 1, rand.nextFloat(1), 0, 0.8f };
@@ -619,7 +768,7 @@ public class SparkFragment : LuminousActor
         Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, false), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Alpha });
     }
 
-    public override void drawLuminous(float[] model, Mesh particles = null)
+    public void drawLuminous(float[] model, Mesh particles = null)
     {
         float[] color = null;
         color = new float[] { 1, rand.nextFloat(1), 0, 0.8f };
@@ -630,15 +779,59 @@ public class SparkFragment : LuminousActor
     }
 }
 
-public class SparkFragmentPool : LuminousActorPool<SparkFragment>
+public class SparkFragmentPool
 {
-    public SparkFragmentPool(int n, List<object> args) : base(n, args, () => new SparkFragment())
+    public LuminousActorPool<SparkFragment> pool;
+    public SparkFragmentPool(int n, List<object> args)
     {
+        pool = new LuminousActorPool<SparkFragment>(n, args, () => new SparkFragment());
+    }
+
+    public SparkFragment getInstanceForced()
+    {
+        return pool.getInstanceForced();
+    }
+
+    public void move()
+    {
+        pool.move();
+    }
+
+    public void draw(float[] model, Mesh particles = null)
+    {
+        pool.draw(model, particles);
+    }
+
+    public void drawLuminous(float[] model, Mesh particles = null)
+    {
+        pool.drawLuminous(model, particles);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 }
 
 public class Wake : Actor
 {
+    public bool exists;
+    public int poolIndex;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public void setPoolIndex(int poolIndex)
+    {
+        this.poolIndex = poolIndex;
+    }
+
     public Field field;
     public Vector pos;
     public Vector vel;
@@ -657,7 +850,7 @@ public class Wake : Actor
         cnt = 0;
     }
 
-    public override void init(List<object> args)
+    public void init(List<object> args)
     {
         field = (Field)args[0];
     }
@@ -678,7 +871,7 @@ public class Wake : Actor
         exists = true;
     }
 
-    public override void move()
+    public void move()
     {
         cnt--;
         if (((cnt <= 0) || (vel.dist_2() < 0.005f)) || (!field.checkInOuterField_2(pos.x, pos.y)))
@@ -693,7 +886,7 @@ public class Wake : Actor
         size = size * (1.02f);
     }
 
-    public override void draw(float[] model, Mesh particles = null)
+    public void draw(float[] model, Mesh particles = null)
     {
         float[] color = null;
         float ox = vel.x;
@@ -713,10 +906,32 @@ public class Wake : Actor
     }
 }
 
-public class WakePool : ActorPool<Wake>
+public class WakePool
 {
-    public WakePool(int n, List<object> args) : base(n, args, () => new Wake())
+    public ActorPool<Wake> pool;
+    public WakePool(int n, List<object> args)
     {
+        pool = new ActorPool<Wake>(n, args, () => new Wake());
+    }
+
+    public Wake getInstanceForced()
+    {
+        return pool.getInstanceForced();
+    }
+
+    public void move()
+    {
+        pool.move();
+    }
+
+    public void draw(float[] model, Mesh particles = null)
+    {
+        pool.draw(model, particles);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 }
 

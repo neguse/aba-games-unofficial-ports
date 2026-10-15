@@ -1,15 +1,19 @@
 // Copyright 2009 Kenta Cho. Some rights reserved.
 using System;
 
-public class ParticlePool : ActorPool<Particle>
+public class ParticlePool
 {
+    private ActorPool<Particle> pool;
+    public Particle[] Actors;
     private const float MinimumScale = 1;
     private Vector3[] lightColors = GtgArrays.Make(24, () => new Vector3());
     private GtgFrame frame;
     private Random random;
-    public ParticlePool(int n, GtgFrame frame) : base(n, () => new Particle())
+    public ParticlePool(int n, GtgFrame frame)
     {
-        shape = new CubeShape(frame, 0.2f, 0.2f, 1);
+        pool = new ActorPool<Particle>(n, () => new Particle(), a => UpdateT(a), a => DrawT(a), i => pool.Remove(i));
+        Actors = pool.Actors;
+        pool.shape = CubeShape.Create(frame, 0.2f, 0.2f, 1);
         this.frame = frame;
     }
 
@@ -18,7 +22,7 @@ public class ParticlePool : ActorPool<Particle>
         random = new Random(seed);
     }
 
-    public override void Clear()
+    public void Clear()
     {
         for (int i = 0; i < lightColors.Length; i++)
         {
@@ -28,7 +32,7 @@ public class ParticlePool : ActorPool<Particle>
         }
 
         frame.LightColors = lightColors;
-        base.Clear();
+        pool.Clear();
     }
 
     public void AddintVector3Vector3floatfloatfloatfloatfloatfloat(int n, Vector3 p, Vector3 vel, float velFluctuation, float scale, float r, float g, float b, float alpha)
@@ -49,7 +53,7 @@ public class ParticlePool : ActorPool<Particle>
             a.Color.Y = g * ((float)random.NextDouble() * 0.5f + 0.75f);
             a.Color.Z = b * ((float)random.NextDouble() * 0.5f + 0.75f);
             a.Color.W = alpha;
-            AddT(a);
+            pool.AddT(a);
         }
     }
 
@@ -71,11 +75,11 @@ public class ParticlePool : ActorPool<Particle>
             a.Color.Y = g * ((float)random.NextDouble() * 0.5f + 0.75f);
             a.Color.Z = b * ((float)random.NextDouble() * 0.5f + 0.75f);
             a.Color.W = alpha;
-            AddT(a);
+            pool.AddT(a);
         }
     }
 
-    public override void Update()
+    public void Update()
     {
         for (int i = 0; i < lightColors.Length; i++)
         {
@@ -84,11 +88,11 @@ public class ParticlePool : ActorPool<Particle>
             lightColors[(i)].Z = 0;
         }
 
-        base.Update();
+        pool.Update();
         frame.LightColors = lightColors;
     }
 
-    public override bool UpdateT(Particle a)
+    public bool UpdateT(Particle a)
     {
         a.PPos = (a.Pos).Copy();
         a.Pos += a.Vel * SimulationTime.Step;
@@ -129,9 +133,22 @@ public class ParticlePool : ActorPool<Particle>
         return (a.Scale >= MinimumScale);
     }
 
-    public override void DrawT(Particle a)
+    public void DrawT(Particle a)
     {
         Shape.AddInstance(a.Pos, a.Scale, a.Orientation, a.Color);
+    }
+
+    public void Draw()
+    {
+        pool.Draw();
+    }
+
+    public int Count
+    {
+        get
+        {
+            return pool.Count;
+        }
     }
 }
 

@@ -3,6 +3,11 @@ using System;
 using static GameMath;
 using static Lub;
 public class Particle: LuminousActor {
+  public string meshKey;
+  public bool isExist;
+  public Particle() { meshKey = ActorMesh.nextKey(); }
+  public bool getExist() { return isExist; }
+  public void setExist(bool value) { isExist = value; }
 
   public const float R = 1, G = 1, B = 0.5f;
 
@@ -15,11 +20,11 @@ public class Particle: LuminousActor {
 
 
 
-  public override Actor newActor() {
+  public Actor newActor() {
     return new Particle();
   }
 
-  public override void init(ActorInitializer ini) {
+  public void init(ActorInitializer ini) {
     pos = new Vector();
     ppos = new Vector();
     vel = new Vector();
@@ -43,7 +48,7 @@ public class Particle: LuminousActor {
     isExist = true;
   }
 
-  public override void move() {
+  public void move() {
     cnt--;
     if (cnt < 0) {
       isExist = false;
@@ -56,13 +61,13 @@ public class Particle: LuminousActor {
     lumAlp *= 0.98f;
   }
 
-  public override void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
     Mesh mesh = target;
     mesh.Vertex(ppos.x, ppos.y, pz, color);
     mesh.Vertex(pos.x, pos.y, z, color);
   }
 
-  public override void drawLuminous(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+  public void drawLuminous(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
     Mesh mesh = target;
     if (lumAlp < 0.2f) return;
     color = new float[] { R, G, B, lumAlp };

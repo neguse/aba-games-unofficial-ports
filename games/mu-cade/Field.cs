@@ -36,14 +36,14 @@ public class Field
         _size = new Vector(20, 15);
         eyePos = new Vector();
         eyePosSize = new Vector(_size.x - 12, size().y - 9);
-        floorWall = new FloorWall();
-        floorWall.setWorld(world);
+        floorWall = new Wall();
+        floorWall.ode.setWorld(world);
         floorWall.init_1_(null);
     }
 
-    public virtual void start_0()
+    public void start_0()
     {
-        floorWall.set_1(false);
+        floorWall.ode.set_1(false);
         ShapeGroup s = new ShapeGroup();
         s.addShape(new Square(world, 9999999, 0, 0, _size.x * 2, _size.y * 2, -6, 10));
         s.addGeom_3(floorWall, world.space);
@@ -52,22 +52,22 @@ public class Field
         eyePos.x = eyePos.y;
     }
 
-    public virtual void clear()
+    public void clear()
     {
         floorWall.remove_0();
     }
 
-    public virtual void setShip(Ship ship)
+    public void setShip(Ship ship)
     {
         this.ship = ship;
     }
 
-    public virtual void setStarParticles(StarParticlePool starParticles)
+    public void setStarParticles(StarParticlePool starParticles)
     {
         this.starParticles = starParticles;
     }
 
-    public virtual void move_0()
+    public void move_0()
     {
         cnt--;
         if (cnt < 0)
@@ -101,7 +101,7 @@ public class Field
         setEyePos();
     }
 
-    public virtual void setEyePos()
+    public void setEyePos()
     {
         float tx = ship.pos().x, ty = ship.pos().y;
         if (checkInField_1_Vector3(ship.pos()))
@@ -120,11 +120,11 @@ public class Field
         eyePos.y += (ty - eyePos.y) * 0.05f;
     }
 
-    public virtual float[] setLookAt() { return Transform.LookAt(Transform.Perspective(), eyePos.x, eyePos.y + EYE_POS_Y, EYE_POS_Z, eyePos.x, eyePos.y, 0, 0, 1, 0); }
+    public float[] setLookAt() { return Transform.LookAt(Transform.Perspective(), eyePos.x, eyePos.y + EYE_POS_Y, EYE_POS_Z, eyePos.x, eyePos.y, 0, 0, 1, 0); }
 
-    public virtual float[] setLookAtTitle() { return Transform.LookAt(Transform.Perspective(), 0, EYE_POS_Y, EYE_POS_Z, 0, 0, 0, 0, 1, 0); }
+    public float[] setLookAtTitle() { return Transform.LookAt(Transform.Perspective(), 0, EYE_POS_Y, EYE_POS_Z, 0, 0, 0, 0, 1, 0); }
 
-    public virtual void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         if (fieldMesh == null) { var mesh = new Mesh("field");
         int part1 = mesh.vertexCount;
@@ -170,7 +170,7 @@ public class Field
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public virtual void appendSquare(Mesh mesh, float[] model, float[] tint, float x, float y, float w, float h, float z, float a)
+    public void appendSquare(Mesh mesh, float[] model, float[] tint, float x, float y, float w, float h, float z, float a)
     {
         LinePoint.appendLine(mesh, tint, x, y, z, x + w, y, z, a);
         LinePoint.appendLine(mesh, tint, x + w, y, z, x + w, y + h, z, a);
@@ -251,7 +251,7 @@ public class Field
             7
         }
     };
-    public virtual void drawOverlay(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawOverlay(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         model = Transform.Ortho();
         gameManager.drawState(model, tint, blend, key + "-drawState-1");
@@ -332,22 +332,22 @@ public class Field
 
 
 
-    public virtual bool checkInField_1_Vector(Vector p)
+    public bool checkInField_1_Vector(Vector p)
     {
         return _size.contains_2(p);
     }
 
-    public virtual bool checkInField_2(float x, float y)
+    public bool checkInField_2(float x, float y)
     {
         return _size.contains_3(x, y);
     }
 
-    public virtual bool checkInField_1_Vector3(Vector3 p)
+    public bool checkInField_1_Vector3(Vector3 p)
     {
         return (_size.contains_3(p.x, p.y) && fabs(p.z) < 1);
     }
 
-    public virtual Vector size()
+    public Vector size()
     {
         return _size;
     }
@@ -355,20 +355,58 @@ public class Field
 
 public class Wall : OdeActor
 {
-    public override void init_1_(object[] args)
+    public string meshKey;
+    public bool exists;
+    public OdeBody ode;
+    public Wall()
     {
-        base.init_1_Boolean();
+        meshKey = ActorMesh.nextKey();
+        ode = new OdeBody(this);
     }
 
-    public override void move_0()
+    public OdeBody getOde()
+    {
+        return ode;
+    }
+
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public void init_1_(object[] args)
+    {
+        ode.init_1_Boolean();
+    }
+
+    public void move_0()
     {
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
     }
-}
 
-public class FloorWall : Wall
-{
+    public void collide_2(OdeActor actor, Collision flags)
+    {
+    }
+
+    public void clearContactJoint()
+    {
+        ode.clearContactJoint();
+    }
+
+    public void checkFeedbackForce()
+    {
+    }
+
+    public void remove_0()
+    {
+        ode.remove_0();
+    }
 }

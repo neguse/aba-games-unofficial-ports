@@ -6,6 +6,9 @@ using static Lub;
 
 public class Ship : OdeActor, BulletTarget
 {
+    public string meshKey;
+    public bool exists;
+    public OdeBody ode;
     public const int RESTART_CNT_CONST = 72;
     public const int FIRE_INTERVAL_CONST = 2;
     public const int FIRE_INTERVAL_MAX = 4;
@@ -50,6 +53,21 @@ public class Ship : OdeActor, BulletTarget
     public int restartBulletDisapCnt;
     public int titleCnt;
     public bool _replayMode;
+    public OdeBody getOde()
+    {
+        return ode;
+    }
+
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
     public static void init_0()
     {
         rand = new Rand();
@@ -63,10 +81,12 @@ public class Ship : OdeActor, BulletTarget
         rand.setSeed(seed);
     }
 
-    public Ship(World world, TwinStickPad pad, Field field, ParticlePool particles, ConnectedParticlePool connectedParticles, GameManager gameManager)
+    public Ship(World world, RecordableTwinStickPad pad, Field field, ParticlePool particles, ConnectedParticlePool connectedParticles, GameManager gameManager)
     {
-        setWorld(world);
-        this.pad = (RecordableTwinStickPad)pad;
+        meshKey = ActorMesh.nextKey();
+        ode = new OdeBody(this);
+        ode.setWorld(world);
+        this.pad = pad;
         this.field = field;
         this.particles = particles;
         this.connectedParticles = connectedParticles;
@@ -90,31 +110,31 @@ public class Ship : OdeActor, BulletTarget
         subShape = new CenterShape();
         for (int idx_t = 0; idx_t < TAIL_MAX_NUM; idx_t++)
             tails[idx_t] = new ShipTail(world, field, this, particles, connectedParticles);
-        base.init_1_Boolean();
+        ode.init_1_Boolean();
     }
 
-    public virtual void setBullets(BulletPool bullets)
+    public void setBullets(BulletPool bullets)
     {
         this.bullets = bullets;
     }
 
-    public override void init_1_(object[] args)
+    public void init_1_(object[] args)
     {
     }
 
-    public virtual void initMassAndGeom()
+    public void initMassAndGeom()
     {
-        base.set_1();
+        ode.set_1();
         shape.setMass_3(this);
-        shape.setGeom(this, world.space);
+        shape.setGeom(this, ode.world.space);
     }
 
-    public virtual void start_0()
+    public void start_0()
     {
         initMassAndGeom();
         restart();
         _pos.z = 2;
-        McdPhysics.BodyPosition(_bodyId, _pos.x, _pos.y, _pos.z);
+        McdPhysics.BodyPosition(ode._bodyId, _pos.x, _pos.y, _pos.z);
         restartCnt = 0;
         bulletDisapCnt = 0;
         restartBulletDisapCnt = bulletDisapCnt;
@@ -123,7 +143,7 @@ public class Ship : OdeActor, BulletTarget
         aPressed = bPressed;
     }
 
-    public virtual void restart()
+    public void restart()
     {
         fireCnt = 99999;
         fireInterval = 99999;
@@ -136,16 +156,16 @@ public class Ship : OdeActor, BulletTarget
         trgPos.x = trgPos.y;
         slideVel.y = 0;
         slideVel.x = slideVel.y;
-        reset();
+        ode.reset();
         _pos.x = 0;
         _pos.y = 0;
         _pos.z = 5;
         deg = 0;
-        McdPhysics.BodyPosition(_bodyId, _pos.x, _pos.y, _pos.z);
-        setDeg(deg);
+        McdPhysics.BodyPosition(ode._bodyId, _pos.x, _pos.y, _pos.z);
+        ode.setDeg(deg);
     }
 
-    public virtual void clear()
+    public void clear()
     {
         shots.clear();
         enhancedShots.clear();
@@ -153,7 +173,7 @@ public class Ship : OdeActor, BulletTarget
         remove_0();
     }
 
-    public override void move_0()
+    public void move_0()
     {
         TwinStickPadState input = default(TwinStickPadState);
         if (!(_replayMode))
@@ -192,7 +212,7 @@ public class Ship : OdeActor, BulletTarget
         if (restartCnt == 0)
             restart();
         restartBulletDisapCnt--;
-        float[] p = McdPhysics.BodyVector(_bodyId, 0);
+        float[] p = McdPhysics.BodyVector(ode._bodyId, 0);
         _pos.x = p[0];
         _pos.y = p[1];
         _pos.z = p[2];
@@ -200,7 +220,7 @@ public class Ship : OdeActor, BulletTarget
         {
             if (tailNum > 0 && !(bPressed))
             {
-                slowLinearVel(SLOW_VELOCITY_RATIO * 10);
+                ode.slowLinearVel(SLOW_VELOCITY_RATIO * 10);
                 bulletDisapCnt = getMultiplier() * 5;
                 enhancedShotCnt = bulletDisapCnt;
                 restartBulletDisapCnt = 0;
@@ -222,9 +242,9 @@ public class Ship : OdeActor, BulletTarget
         if (slideVel.vctSize() > 1)
             slideVel /= slideVel.vctSize();
         slideVel *= SLIDE_FORCE_BASE;
-        addForce(slideVel.x, slideVel.y);
-        deg = getDeg();
-        getRot(rot);
+        ode.addForce(slideVel.x, slideVel.y);
+        deg = ode.getDeg();
+        ode.getRot(rot);
         deg = normalizeDeg(deg);
         float ad = default(float);
         bool adjustDeg = false;
@@ -265,15 +285,15 @@ public class Ship : OdeActor, BulletTarget
             if (sf > 1)
                 sf = 1;
             if (ad > 0.001f)
-                addRelForceAtRelPos(0, SIZE * 0.5f, 0, ANGULAR_FORCE_BASE * sf, 0, 0);
+                ode.addRelForceAtRelPos(0, SIZE * 0.5f, 0, ANGULAR_FORCE_BASE * sf, 0, 0);
             else if (ad < -0.001f)
-                addRelForceAtRelPos(0, SIZE * 0.5f, 0, -ANGULAR_FORCE_BASE * sf, 0, 0);
+                ode.addRelForceAtRelPos(0, SIZE * 0.5f, 0, -ANGULAR_FORCE_BASE * sf, 0, 0);
             deg += ad * 0.05f;
         }
 
         if (field.checkInField_1_Vector3(_pos))
         {
-            setDeg(deg);
+            ode.setDeg(deg);
             linePoint.enableSpectrumColor(true);
         }
         else
@@ -281,9 +301,9 @@ public class Ship : OdeActor, BulletTarget
             linePoint.enableSpectrumColor(false);
         }
 
-        addForce(0, 0, -Field.GRAVITY);
-        slowLinearVel(SLOW_VELOCITY_RATIO);
-        slowAngularVel(SLOW_ANGULAR_RATIO);
+        ode.addForce(0, 0, -Field.GRAVITY);
+        ode.slowLinearVel(SLOW_VELOCITY_RATIO);
+        ode.slowAngularVel(SLOW_ANGULAR_RATIO);
         if (_pos.z < -10)
             destroyed_0();
         if (fireCnt <= 0)
@@ -313,7 +333,7 @@ public class Ship : OdeActor, BulletTarget
             enhancedShotCnt--;
     }
 
-    public virtual void fireShot(float deg)
+    public void fireShot(float deg)
     {
         if (enhancedShotCnt > 0)
         {
@@ -333,21 +353,21 @@ public class Ship : OdeActor, BulletTarget
         }
     }
 
-    public override void clearContactJoint()
+    public void clearContactJoint()
     {
-        base.clearContactJoint();
+        ode.clearContactJoint();
         foreach (ShipTail ss in tails)
             ss.clearContactJoint();
     }
 
-    public virtual void addTail_1(float size)
+    public void addTail_1(float size)
     {
         if (restartCnt > 0 || !(field.checkInField_1_Vector3(_pos)))
             return;
         if (tailNum <= 0)
         {
             float id = (SIZE + size) * ShipTail.TAIL_INTERVAL;
-            tails[0].set_6(_pos.x + sin(deg) * id, _pos.y - cos(deg) * id, _pos.z, deg, size, _bodyId);
+            tails[0].set_6(_pos.x + sin(deg) * id, _pos.y - cos(deg) * id, _pos.z, deg, size, ode._bodyId);
             tailNum++;
             SoundManager.playSe("addtail.wav");
         }
@@ -361,7 +381,7 @@ public class Ship : OdeActor, BulletTarget
         }
     }
 
-    public override void collide_2(OdeActor actor, Collision flags)
+    public void collide_2(OdeActor actor, Collision flags)
     {
         flags.feedback = false;
         flags.hit = flags.feedback;
@@ -369,7 +389,7 @@ public class Ship : OdeActor, BulletTarget
             flags.hit = true;
     }
 
-    public virtual void destroyed_0()
+    public void destroyed_0()
     {
         if (restartCnt > 0)
             return;
@@ -389,21 +409,21 @@ public class Ship : OdeActor, BulletTarget
         SoundManager.playSe("shipdestroyed.wav");
     }
 
-    public virtual void removeAllTails()
+    public void removeAllTails()
     {
         for (int i = 0; i < tailNum; i++)
             tails[i].remove_0();
         tailNum = 0;
     }
 
-    public virtual void removeAllTailsWithoutParticles()
+    public void removeAllTailsWithoutParticles()
     {
         for (int i = 0; i < tailNum; i++)
             tails[i].removeWithoutParticles();
         tailNum = 0;
     }
 
-    public virtual void moveInTitle()
+    public void moveInTitle()
     {
         titleCnt++;
         float tcr = (float)(titleCnt % 600) / 600;
@@ -429,12 +449,12 @@ public class Ship : OdeActor, BulletTarget
         }
 
         _pos.z = 5;
-        McdPhysics.BodyPosition(_bodyId, _pos.x, _pos.y, _pos.z);
+        McdPhysics.BodyPosition(ode._bodyId, _pos.x, _pos.y, _pos.z);
         TailParticle.setTarget(_pos, deg);
         restartCnt = RESTART_CNT_CONST;
     }
 
-    public virtual void addConnectedParticles_3_Vector3_Single_Single(Vector3 p, float deg, float speed = 1)
+    public void addConnectedParticles_3_Vector3_Single_Single(Vector3 p, float deg, float speed = 1)
     {
         ConnectedParticle[] cps = connectedParticles.getMultipleInstances(9);
         if (!((cps) != null))
@@ -450,17 +470,17 @@ public class Ship : OdeActor, BulletTarget
         }
     }
 
-    public virtual int getMultiplier()
+    public int getMultiplier()
     {
         return tailNum + 1;
     }
 
-    public virtual bool inRestartBulletDisap()
+    public bool inRestartBulletDisap()
     {
         return (restartBulletDisapCnt > 0);
     }
 
-    public virtual void recordLinePoints_0()
+    public void recordLinePoints_0()
     {
         float[] model = Transform.Identity();
         float[] parent1 = model;
@@ -472,7 +492,7 @@ public class Ship : OdeActor, BulletTarget
         model = parent1;
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         shots.draw(model, tint, blend, key + "-draw-1");
         enhancedShots.draw(model, tint, blend, key + "-draw-2");
@@ -492,7 +512,7 @@ public class Ship : OdeActor, BulletTarget
         model = parent1;
     }
 
-    public virtual void drawLeft(float[] model, float[] tint, Gfx.Blend blend, string key, float x, float y)
+    public void drawLeft(float[] model, float[] tint, Gfx.Blend blend, string key, float x, float y)
     {
         float[] view = model;
         model = Transform.Identity();
@@ -517,32 +537,44 @@ public class Ship : OdeActor, BulletTarget
         model = parent2;
     }
 
-    public virtual Vector3 pos()
+    public Vector3 pos()
     {
         return _pos;
     }
 
-    public virtual Vector getTargetPos()
+    public Vector getTargetPos()
     {
         trgPos.x = _pos.x;
         trgPos.y = _pos.y;
         return trgPos;
     }
 
-    public virtual bool replayMode_1(bool v)
+    public bool replayMode_1(bool v)
     {
         _replayMode = v;
         return _replayMode;
     }
 
-    public virtual bool replayMode_0()
+    public bool replayMode_0()
     {
         return _replayMode;
+    }
+
+    public void checkFeedbackForce()
+    {
+    }
+
+    public void remove_0()
+    {
+        ode.remove_0();
     }
 }
 
 public class ShipTail : OdeActor
 {
+    public string meshKey;
+    public bool exists;
+    public OdeBody ode;
     public const float WIDTH = 0.25f;
     public const float COLOR_R = 0.1f;
     public const float COLOR_G = 0.4f;
@@ -563,6 +595,21 @@ public class ShipTail : OdeActor
     public Shape shape;
     public LinePoint linePoint;
     public OdeHandle joint;
+    public OdeBody getOde()
+    {
+        return ode;
+    }
+
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
     public static void init_0()
     {
         rand = new Rand();
@@ -575,7 +622,9 @@ public class ShipTail : OdeActor
 
     public ShipTail(World world, Field field, Ship ship, ParticlePool particles, ConnectedParticlePool connectedParticles)
     {
-        setWorld(world);
+        meshKey = ActorMesh.nextKey();
+        ode = new OdeBody(this);
+        ode.setWorld(world);
         this.field = field;
         this.ship = ship;
         this.particles = particles;
@@ -587,23 +636,23 @@ public class ShipTail : OdeActor
         linePoint = new LinePoint(field);
         linePoint.setSpectrumParams(COLOR_R, COLOR_G, COLOR_B, 0.6f);
         linePoint.alpha(0.5f);
-        base.init_1_Boolean();
+        ode.init_1_Boolean();
     }
 
-    public override void init_1_(object[] args)
+    public void init_1_(object[] args)
     {
     }
 
-    public virtual void initMassAndGeom()
+    public void initMassAndGeom()
     {
-        base.set_1();
+        ode.set_1();
         m = McdPhysics.Mass();
         shape.addMass(m, size);
-        setMass_1(m);
-        shape.addGeom_3(this, world.space, size);
+        ode.setMass_1(m);
+        shape.addGeom_3(this, ode.world.space, size);
     }
 
-    public virtual void set_6(float x, float y, float z, float deg, float sz, OdeHandle jointedBodyId)
+    public void set_6(float x, float y, float z, float deg, float sz, OdeHandle jointedBodyId)
     {
         size.y = sz;
         size.x = size.y;
@@ -612,30 +661,30 @@ public class ShipTail : OdeActor
         _pos.x = x;
         _pos.y = y;
         _pos.z = z;
-        McdPhysics.BodyPosition(_bodyId, _pos.x, _pos.y, _pos.z);
+        McdPhysics.BodyPosition(ode._bodyId, _pos.x, _pos.y, _pos.z);
         this.deg = deg;
-        setDeg(deg);
+        ode.setDeg(deg);
         joint = McdPhysics.Hinge(World.world);
         McdPhysics.HingeLimit(joint, 0, -1);
         McdPhysics.HingeLimit(joint, 1, 1);
-        McdPhysics.JointAttach(joint, _bodyId, jointedBodyId);
+        McdPhysics.JointAttach(joint, ode._bodyId, jointedBodyId);
         McdPhysics.HingeAnchor(joint, x - sin(deg) * SIZE_CONST / 2, y + cos(deg) * SIZE_CONST / 2, 0);
         McdPhysics.HingeAxis(joint, 0, 0, 1);
         linePoint.init_0();
     }
 
-    public override void move_0()
+    public void move_0()
     {
-        float[] p = McdPhysics.BodyVector(_bodyId, 0);
+        float[] p = McdPhysics.BodyVector(ode._bodyId, 0);
         _pos.x = p[0];
         _pos.y = p[1];
         _pos.z = p[2];
-        deg = getDeg();
-        getRot(rot);
-        addForce(0, 0, -Field.GRAVITY * 0.1f);
+        deg = ode.getDeg();
+        ode.getRot(rot);
+        ode.addForce(0, 0, -Field.GRAVITY * 0.1f);
         if (field.checkInField_1_Vector3(_pos))
         {
-            setDeg(deg);
+            ode.setDeg(deg);
             linePoint.enableSpectrumColor(true);
         }
         else
@@ -646,21 +695,21 @@ public class ShipTail : OdeActor
         recordLinePoints_0();
     }
 
-    public override void remove_0()
+    public void remove_0()
     {
         McdPhysics.JointDestroy(joint);
-        base.remove_0();
+        ode.remove_0();
         ship.addConnectedParticles_3_Vector3_Single_Single(_pos, deg + PI / 2);
         ship.addConnectedParticles_3_Vector3_Single_Single(_pos, deg - PI / 2);
     }
 
-    public virtual void removeWithoutParticles()
+    public void removeWithoutParticles()
     {
         McdPhysics.JointDestroy(joint);
-        base.remove_0();
+        ode.remove_0();
     }
 
-    public override void collide_2(OdeActor actor, Collision flags)
+    public void collide_2(OdeActor actor, Collision flags)
     {
         flags.feedback = false;
         flags.hit = flags.feedback;
@@ -668,21 +717,21 @@ public class ShipTail : OdeActor
             flags.hit = true;
     }
 
-    public virtual void setTailParticleTarget()
+    public void setTailParticleTarget()
     {
         TailParticle.setTarget(_pos, deg);
     }
 
-    public virtual bool addTail_2(ShipTail tail, float sz)
+    public bool addTail_2(ShipTail tail, float sz)
     {
         if (fabs(_pos.z) >= 1)
             return false;
         float id = (size.x + sz) * TAIL_INTERVAL;
-        tail.set_6(_pos.x + sin(deg) * id, _pos.y - cos(deg) * id, _pos.z, deg, sz, _bodyId);
+        tail.set_6(_pos.x + sin(deg) * id, _pos.y - cos(deg) * id, _pos.z, deg, sz, ode._bodyId);
         return true;
     }
 
-    public virtual void recordLinePoints_0()
+    public void recordLinePoints_0()
     {
         float[] model = Transform.Identity();
         float[] parent1 = model;
@@ -695,7 +744,7 @@ public class ShipTail : OdeActor
         model = parent1;
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
         blend = Gfx.Blend.Alpha;
@@ -704,8 +753,17 @@ public class ShipTail : OdeActor
         linePoint.draw(model, tint, blend, key + "-draw-1");
     }
 
-    public virtual Vector3 pos()
+    public Vector3 pos()
     {
         return _pos;
+    }
+
+    public void clearContactJoint()
+    {
+        ode.clearContactJoint();
+    }
+
+    public void checkFeedbackForce()
+    {
     }
 }

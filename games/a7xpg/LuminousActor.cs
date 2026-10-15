@@ -3,7 +3,7 @@ using System;
 using static GameMath;
 using static Lub;
 
-public abstract class LuminousActor : Actor
+public interface LuminousActor : Actor
 {
-    public abstract void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null);
+    void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null);
 }

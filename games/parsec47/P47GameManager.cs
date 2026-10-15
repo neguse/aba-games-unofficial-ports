@@ -155,7 +155,7 @@ public class P47GameManager {
 
   public void clearBullets() {
     for (int index1 = 0; index1 < bullets.actor.Length; index1++) {
-      if (!bullets.actor[index1].isExist)
+      if (!bullets.actor[index1].getExist())
 	continue;
       ((BulletActor) bullets.actor[index1]).toRetro();
     }
@@ -191,7 +191,7 @@ public class P47GameManager {
 
   public void releaseRoll() {
     for (int index2 = 0; index2 < rolls.actor.Length; index2++) {
-      if (!rolls.actor[index2].isExist)
+      if (!rolls.actor[index2].getExist())
 	continue;
       ((Roll) rolls.actor[index2]).released = true;
     }
@@ -199,7 +199,7 @@ public class P47GameManager {
 
   public void releaseLock() {
     for (int index3 = 0; index3 < targetLocks.actor.Length; index3++) {
-      if (!targetLocks.actor[index3].isExist)
+      if (!targetLocks.actor[index3].getExist())
 	continue;
       ((Lock) targetLocks.actor[index3]).released = true;
     }

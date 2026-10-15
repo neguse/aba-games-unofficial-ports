@@ -38,13 +38,13 @@ public class GameManager
     public bool _isGameOver;
     public int gameOverCnt;
     public PrefManager prefManager;
-    public virtual void init_0()
+    public void init_0()
     {
         BarrageManager.load();
         SoundManager.loadSounds();
         prefManager = new PrefManager();
         prefManager.load();
-        OdeActor.initFirst();
+        OdeBody.initFirst();
         Letter.init_0();
         Ship.init_0();
         Enemy.init_0();
@@ -92,19 +92,19 @@ public class GameManager
         rand = new Rand();
     }
 
-    public virtual void start_0()
+    public void start_0()
     {
         time = 0;
         score = time;
         startTitle();
     }
 
-    public virtual void startInGame()
+    public void startInGame()
     {
         state = GameManagerGameState.IN_GAME;
         ship.replayMode_1(false);
         _replayData = new ReplayData();
-        RecordableTwinStickPad rtsp = (RecordableTwinStickPad)pad;
+        RecordableTwinStickPad rtsp = pad;
         rtsp.startRecord();
         _replayData.twinStickPadInputRecord = rtsp.inputRecord;
         _replayData.seed = rand.nextInt32();
@@ -114,14 +114,14 @@ public class GameManager
         SoundManager.playBgm();
     }
 
-    public virtual void startTitle()
+    public void startTitle()
     {
         SoundManager.haltBgm();
         titleManager.start_0();
         restartTitle();
     }
 
-    public virtual void restartTitle()
+    public void restartTitle()
     {
         state = GameManagerGameState.TITLE;
         _replayData = new ReplayData();
@@ -130,7 +130,7 @@ public class GameManager
         aPressed = true;
     }
 
-    public virtual void initGame()
+    public void initGame()
     {
         clearAll();
         world.init_0();
@@ -147,7 +147,7 @@ public class GameManager
         left = 0;
     }
 
-    public virtual void clearAll()
+    public void clearAll()
     {
         enemies.clear();
         bullets.clear();
@@ -161,7 +161,7 @@ public class GameManager
         world.close();
     }
 
-    public virtual void close()
+    public void close()
     {
         world.close();
         SoundManager.haltBgm();
@@ -169,7 +169,7 @@ public class GameManager
         BarrageManager.unload();
     }
 
-    public virtual void move_0()
+    public void move_0()
     {
         handleEscKey();
         if (state == GameManagerGameState.IN_GAME && !(_isGameOver))
@@ -235,7 +235,7 @@ public class GameManager
         }
     }
 
-    public virtual void handleEscKey()
+    public void handleEscKey()
     {
         if (pad.escape)
         {
@@ -254,7 +254,7 @@ public class GameManager
         }
     }
 
-    public virtual void handlePauseKey()
+    public void handlePauseKey()
     {
         if (pad.pause)
         {
@@ -271,7 +271,7 @@ public class GameManager
         }
     }
 
-    public virtual void checkGameStart()
+    public void checkGameStart()
     {
         TwinStickPadState input = default(TwinStickPadState);
         input = pad.getState_1(false);
@@ -287,7 +287,7 @@ public class GameManager
         }
     }
 
-    public virtual void handleRank()
+    public void handleRank()
     {
         if (time >= rankDownTime)
         {
@@ -296,7 +296,7 @@ public class GameManager
         }
     }
 
-    public virtual void handleSound()
+    public void handleSound()
     {
         if (state != GameManagerGameState.IN_GAME)
             return;
@@ -316,7 +316,7 @@ public class GameManager
         }
     }
 
-    public virtual void addScore_1(int sc)
+    public void addScore_1(int sc)
     {
         if (state == GameManagerGameState.TITLE || _isGameOver)
             return;
@@ -335,14 +335,14 @@ public class GameManager
         }
     }
 
-    public virtual void shipDestroyed()
+    public void shipDestroyed()
     {
         left--;
         if (left < 0)
             startGameOver();
     }
 
-    public virtual void startGameOver()
+    public void startGameOver()
     {
         if (_isGameOver || state == GameManagerGameState.TITLE)
             return;
@@ -355,13 +355,13 @@ public class GameManager
         prefManager.save();
     }
 
-    public virtual void backToTitle()
+    public void backToTitle()
     {
         if (gameOverCnt > 60)
             startTitle();
     }
 
-    public virtual void draw()
+    public void draw()
     {
         float[] model = state == GameManagerGameState.IN_GAME || state == GameManagerGameState.REPLAY ? field.setLookAt() : field.setLookAtTitle();
         float[] tint = new float[] { 1, 1, 1, 1 }; Gfx.Blend blend = Gfx.Blend.Additive; string key = "scene";
@@ -395,7 +395,7 @@ public class GameManager
         field.drawOverlay(model, tint, blend, key + "-drawOverlay-1");
     }
 
-    public virtual void drawState(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawState(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         Letter.drawNum(model, tint, blend, key + "-drawNum-1", score, 120, 21, 6);
         Letter.drawTime(model, tint, blend, key + "-drawTime-1", time, 610, 30, 6);
@@ -434,12 +434,12 @@ public class GameManager
         }
     }
 
-    public virtual bool isGameOver_0()
+    public bool isGameOver_0()
     {
         return _isGameOver;
     }
 
-    public virtual bool isGameOver_1(bool v)
+    public bool isGameOver_1(bool v)
     {
         _isGameOver = v;
         return _isGameOver;

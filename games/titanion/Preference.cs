@@ -16,7 +16,7 @@ public class Preference
         }
     }
 
-    public virtual void load_1(string data)
+    public void load_1(string data)
     {
         string[] fields = data.Split(",");
         if (fields.Length != 31)
@@ -37,7 +37,7 @@ public class Preference
         lastMode = values[30];
     }
 
-    public virtual void save()
+    public void save()
     {
         string data = "";
         for (int j = 0; j < 3; j++)
@@ -47,12 +47,12 @@ public class Preference
             Host.Send("scores.save", data + lastMode.ToString());
     }
 
-    public virtual void setMode(int mode)
+    public void setMode(int mode)
     {
         lastMode = mode;
     }
 
-    public virtual void recordResult(int score, int mode)
+    public void recordResult(int score, int mode)
     {
         lastMode = mode;
         for (int i = 0; i < 10; i++)

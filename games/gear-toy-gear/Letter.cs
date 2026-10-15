@@ -127,11 +127,15 @@ public class BarData : ActorCopy
     }
 }
 
-public class BarPool : ActorPool<Bar>
+public class BarPool
 {
-    public BarPool(int n, GtgFrame frame) : base(n, () => new Bar())
+    private ActorPool<Bar> pool;
+    public Bar[] Actors;
+    public BarPool(int n, GtgFrame frame)
     {
-        shape = new CubeShape(frame, 6, 1, 1);
+        pool = new ActorPool<Bar>(n, () => new Bar(), a => true, a => DrawT(a), i => pool.Remove(i));
+        Actors = pool.Actors;
+        pool.shape = CubeShape.Create(frame, 6, 1, 1);
     }
 
     public void Add(Vector3 p, Quaternion o, float scale, float alpha)
@@ -144,12 +148,27 @@ public class BarPool : ActorPool<Bar>
         a.Color.Y = 1;
         a.Color.Z = 1;
         a.Color.W = alpha;
-        AddT(a);
+        pool.AddT(a);
     }
 
-    public override void DrawT(Bar a)
+    public void DrawT(Bar a)
     {
         Shape.AddInstance((a.Pos).Copy(), a.Scale, (a.Orientation).Copy(), (a.Color).Copy());
+    }
+
+    public void Clear()
+    {
+        pool.Clear();
+    }
+
+    public void Update()
+    {
+        pool.Update();
+    }
+
+    public void Draw()
+    {
+        pool.Draw();
     }
 }
 

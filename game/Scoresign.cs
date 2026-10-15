@@ -3,6 +3,9 @@ using System;
 using static GameMath;
 using static Lub;
 public class ScoreSign: Actor {
+  public bool isExist;
+  public bool getExist() { return isExist; }
+  public void setExist(bool value) { isExist = value; }
 
   public Vector pos;
   public float my;
@@ -10,11 +13,11 @@ public class ScoreSign: Actor {
   public int num;
   public int cnt;
 
-  public override Actor newActor() {
+  public Actor newActor() {
     return new ScoreSign();
   }
 
-  public override void init(ActorInitializer ini) {
+  public void init(ActorInitializer ini) {
     pos = new Vector();
   }
 
@@ -32,7 +35,7 @@ public class ScoreSign: Actor {
     isExist = true;
   }
 
-  public override void move() {
+  public void move() {
     cnt--;
     if (cnt < 0) {
       isExist = false;
@@ -42,7 +45,7 @@ public class ScoreSign: Actor {
     my *= 0.92f;
   }
 
-  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
     bool depth = false; Gfx.Cull cull = Gfx.Cull.Front; float width = 1;
     LetterRender.drawNumSign(model, tint, blend, depth, cull, width, num, pos.x, pos.y, size, 3);
   }

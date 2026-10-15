@@ -3,10 +3,10 @@ public static class TtnVerification
 {
     static int failures;
     static void Check(bool condition, string message) { if (!condition) { failures++; Console.WriteLine("FAIL " + message); } }
-    static int Count<T>(ActorPool<T> pool) where T : Actor
+    static int Count<T>(ActorPool<T> pool) where T : class, Actor
     {
         int count = 0;
-        foreach (T item in pool.actors) if (item.exists) count++;
+        foreach (T item in pool.actors) if (item.getExists()) count++;
         return count;
     }
     static void Input(Frame game, int frame)
@@ -58,7 +58,7 @@ public static class TtnVerification
             bullet.set_5(game.stage.bulletSpec, i * 1.5f, 0, 0, 0.1f);
         }
         int count = game.bullets.removeAround(1, new Vector(0, 0), game.particles, game.bonusParticles, game.player);
-        Check(count == 4 && Count(game.bullets) == 0 && game.gameState.score == 6, "recursive bullet chain scoring");
+        Check(count == 4 && Count(game.bullets.pool) == 0 && game.gameState.score == 6, "recursive bullet chain scoring");
         game.startInGame(2);
         for (int i = 0; i < 3; i++) {
             Bullet bullet = game.bullets.getInstance();
@@ -68,7 +68,7 @@ public static class TtnVerification
         enemy.set_5(game.stage.middleEnemySpec, 0, 0, 0, 0);
         enemy.state.cnt = 123;
         enemy.spec.destroyed_2(enemy.state);
-        Check(Count(game.bullets) == 0 && game.gameState.score == 6 + game.stage.middleEnemySpec.score * 4, "middle enemy chain multiplier uses removed bullets");
+        Check(Count(game.bullets.pool) == 0 && game.gameState.score == 6 + game.stage.middleEnemySpec.score * 4, "middle enemy chain multiplier uses removed bullets");
     }
     public static void Main()
     {
@@ -81,7 +81,7 @@ public static class TtnVerification
         var game = new Frame(); game.init_0(); game.start_0();
         Draw(game);
         Check(game.title.logo.count == 6, "title uses one textured quad");
-        var playerShape = new PlayerShape();
+        var playerShape = new MeshShape(new PlayerShape());
         Check(playerShape.mesh.ranges.Count > 0 && playerShape.mesh.ranges[0].material == (int)Lub.Gfx.Blend.Alpha, "player shape preserves alpha material");
         Vector3 circular = game.field.calcCircularPos_2(0, 36);
         Check(Math.Abs(circular.z - 51.2f) < 0.0001f && Math.Abs(circular.y - 24.8f) < 0.0001f, "circular field curve");
@@ -93,7 +93,7 @@ public static class TtnVerification
             for (int frame = 0; frame < 600; frame++)
             {
                 Input(game, frame); game.move_0();
-                maxShots = Math.Max(maxShots, Count(game.playerSpec.shots));
+                maxShots = Math.Max(maxShots, Count(game.playerSpec.shots.pool));
                 if (frame % 150 == 0) Draw(game);
             }
             Check(maxShots > 0, "mode fires shots");
@@ -117,7 +117,7 @@ public static class TtnVerification
             for (int frame = 0; frame < 7200; frame++)
             {
                 Input(game, frame); game.player.state.invincibleCnt = 300;
-                game.move_0(); maxBullets = Math.Max(maxBullets, Count(game.bullets));
+                game.move_0(); maxBullets = Math.Max(maxBullets, Count(game.bullets.pool));
                 if (frame % 500 == 0) Draw(game);
             }
             Check(maxBullets > 0, "mode enemy attack");

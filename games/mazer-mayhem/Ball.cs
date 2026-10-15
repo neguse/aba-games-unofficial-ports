@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-public class BallPool : ActorPool<Ball>
+public class BallPool : IActorIdListener
 {
     private const float shotHitHeight = 8.0f;
     private static Random random;
@@ -23,8 +23,12 @@ public class BallPool : ActorPool<Ball>
         random = new Random(s);
     }
 
-    public BallPool(int n, MmFrame frame, TurretPool turrets, BulletPool bullets, ParticlePool particles, BonusPool bonuses, Player player, Field field, Stage stage, Sound sound) : base(n, () => new Ball())
+    public ActorPool<Ball> pool;
+    public Ball[] actors;
+    public BallPool(int n, MmFrame frame, TurretPool turrets, BulletPool bullets, ParticlePool particles, BonusPool bonuses, Player player, Field field, Stage stage, Sound sound)
     {
+        pool = new ActorPool<Ball>(n, () => new Ball(), this);
+        actors = pool.actors;
         this.frame = frame;
         this.turrets = turrets;
         this.bullets = bullets;
@@ -39,7 +43,56 @@ public class BallPool : ActorPool<Ball>
         stateShape.Initializeintbytebytebytebyte(64, 10, 10, 10, 128);
     }
 
-    public override void UpdateT(Ball a)
+    public int Add(Ball a)
+    {
+        return pool.Add(a);
+    }
+
+    public void ForEach(Action<Ball> func)
+    {
+        pool.ForEach(func);
+    }
+
+    public Ball Get(int idx)
+    {
+        return pool.Get(idx);
+    }
+
+    public int Length()
+    {
+        return pool.Length();
+    }
+
+    public bool IsAbleToAdd
+    {
+        get
+        {
+            return pool.IsAbleToAdd;
+        }
+    }
+
+    public int RemainingActorNum
+    {
+        get
+        {
+            return pool.RemainingActorNum;
+        }
+    }
+
+    public void Gc()
+    {
+        pool.Gc();
+    }
+
+    public void Update()
+    {
+        pool.ForEach((Ball a) =>
+        {
+            UpdateT(a);
+        });
+    }
+
+    public void UpdateT(Ball a)
     {
         a.Cnt += SimulationTime.Step;
         if (!field.Contains((a.Pos2).Copy()))
@@ -142,7 +195,7 @@ public class BallPool : ActorPool<Ball>
     public void UpdateTurrets()
     {
         Vector3 tp = new Vector3();
-        ForEach((Ball a) =>
+        pool.ForEach((Ball a) =>
         {
             if (a.TurretActivateCnt >= 0)
             {
@@ -273,7 +326,7 @@ public class BallPool : ActorPool<Ball>
     private void ChangeToBonus(int id)
     {
         Bonus b = new Bonus();
-        ForEach((Ball a) =>
+        pool.ForEach((Ball a) =>
         {
             if (a.ParentBallId == id)
             {
@@ -286,11 +339,11 @@ public class BallPool : ActorPool<Ball>
         });
     }
 
-    public override void RemoveT(Ball a)
+    public void RemoveT(Ball a)
     {
         if (a.TurretId >= 0)
             turrets.Removeint(a.TurretId);
-        base.RemoveT(a);
+        pool.Removeint(a.GetId());
     }
 
     public void ResolveSpringConstraint(int id, Vector3 p, float r)
@@ -298,10 +351,10 @@ public class BallPool : ActorPool<Ball>
         SpringConstraint.Resolve(p, actors[(id)].State.Pos, 0, actors[(id)].State.InvMass, 0.1f, actors[(id)].State.Radius + r);
     }
 
-    public override void Draw()
+    public void Draw()
     {
         stateShape.BeginAdd();
-        ForEach((Ball a) =>
+        pool.ForEach((Ball a) =>
         {
             DrawT(a);
         });
@@ -313,7 +366,7 @@ public class BallPool : ActorPool<Ball>
         stateShape.DrawVector3((Vector3.Zero).Copy());
     }
 
-    public override void DrawT(Ball a)
+    public void DrawT(Ball a)
     {
         if (a.BaseRadius >= 2.0f && a.NextBallId < 0 && !a.IsSub)
             DrawMarker((a.State.Pos).Copy());
@@ -373,7 +426,7 @@ public class BallPool : ActorPool<Ball>
     public void DrawReflection()
     {
         Vector3 p = new Vector3();
-        ForEach((Ball a) =>
+        pool.ForEach((Ball a) =>
         {
             bv.X = a.BlurVelocity.X;
             bv.Y = a.BlurVelocity.Y;
@@ -397,7 +450,7 @@ public class BallPool : ActorPool<Ball>
     public int CheckHitShot(Vector2 p, float r)
     {
         int bid = -1;
-        ForEach((Ball a) =>
+        pool.ForEach((Ball a) =>
         {
             if (bid == -1 && a.IsActivated && !a.IsSub && Math.Abs(p.X - a.Pos2.X) < 15 && Math.Abs(p.Y - a.Pos2.Y) < 15 && Vector2.Distance((a.Pos2).Copy(), (p).Copy()) <= r + a.State.Radius && a.State.Pos.Z - a.State.Radius < shotHitHeight)
                 bid = a.GetId();
@@ -407,7 +460,7 @@ public class BallPool : ActorPool<Ball>
 
     public void CheckHitGrenade(Vector2 p, float r)
     {
-        ForEach((Ball b) =>
+        pool.ForEach((Ball b) =>
         {
             if (b.IsActivated && !b.IsSub && Vector2.Distance((b.Pos2).Copy(), (p).Copy()) <= r + b.State.Radius && b.State.Pos.Z - b.State.Radius < shotHitHeight)
                 AddDamageintVector3float(b.GetId(), (Vector3.Zero).Copy(), 1.0f);
@@ -416,14 +469,14 @@ public class BallPool : ActorPool<Ball>
 
     public void CheckCollisions()
     {
-        for (int i = 0; i < actorNum; i++)
+        for (int i = 0; i < pool.actorNum; i++)
             if (actors[(i)].IsActivated && !actors[(i)].IsSub)
-                for (int j = i + 1; j < actorNum; j++)
+                for (int j = i + 1; j < pool.actorNum; j++)
                     if (actors[(j)].IsActivated && !actors[(j)].IsSub)
                         actors[(i)].State.CheckCollision(actors[(j)].State);
     }
 
-    protected override void OnIdChanged(int before, int after)
+    public void OnIdChanged(int before, int after)
     {
         bullets.ChangeBallId(before, after);
         ChangeBallId(before, after);
@@ -431,7 +484,7 @@ public class BallPool : ActorPool<Ball>
 
     public void ChangeTurretId(int before, int after)
     {
-        ForEach((Ball a) =>
+        pool.ForEach((Ball a) =>
         {
             if (a.TurretId == before)
             {
@@ -443,7 +496,7 @@ public class BallPool : ActorPool<Ball>
 
     private void ChangeBallId(int before, int after)
     {
-        ForEach((Ball a) =>
+        pool.ForEach((Ball a) =>
         {
             if (a.ParentBallId == before)
                 a.ParentBallId = after;
@@ -456,16 +509,16 @@ public class BallPool : ActorPool<Ball>
 
     public void ClearAll()
     {
-        Clear();
+        pool.Clear();
         for (int i = 0; i < actors.Length; i++)
             actors[(i)].Clear();
     }
 
     public void DestroyAll()
     {
-        for (int i = 0; i < Length(); i++)
+        for (int i = 0; i < pool.Length(); i++)
         {
-            if (!isRemoved[(i)])
+            if (!pool.isRemoved[(i)])
             {
                 RemoveT(actors[(i)]);
                 Destroy(actors[(i)]);
@@ -477,7 +530,7 @@ public class BallPool : ActorPool<Ball>
     {
         get
         {
-            return actorNum;
+            return pool.actorNum;
         }
     }
 }

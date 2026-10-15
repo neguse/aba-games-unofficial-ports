@@ -3,6 +3,9 @@ using System;
 using static GameMath;
 using static Lub;
 public class BulletActor: Actor {
+  public bool isExist;
+  public bool getExist() { return isExist; }
+  public void setExist(bool value) { isExist = value; }
 
   public static float totalBulletsSpeed;
   public BulletInst bullet;
@@ -34,11 +37,11 @@ public class BulletActor: Actor {
     totalBulletsSpeed = 0;
   }
 
-  public override Actor newActor() {
+  public Actor newActor() {
     return new BulletActor();
   }
 
-  public override void init(ActorInitializer ini) {
+  public void init(ActorInitializer ini) {
     BulletActorInitializer bi = (BulletActorInitializer) ini;
     field = bi.field;
     ship = bi.ship;
@@ -176,7 +179,7 @@ public class BulletActor: Actor {
     }
   }
 
-  public override void move() {
+  public void move() {
     Vector tpos = bullet.target.getTargetPos();
     ppos.x = bullet.pos.x;
     ppos.y = bullet.pos.y;
@@ -253,7 +256,7 @@ public class BulletActor: Actor {
   public const int BULLET_COLOR = 8;
   public const int BULLET_SHADE = 3;
 
-  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
     bool depth = false; Gfx.Cull cull = Gfx.Cull.Front; float width = bullet.type == BulletType.ENEMY ? 2 : 1;
     if (!isVisible)
       return;

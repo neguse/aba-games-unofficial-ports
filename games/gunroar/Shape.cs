@@ -2,9 +2,12 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
+using static Lub;
 
 public class BaseShape : DrawableShape
 {
+    public Mesh mesh;
+    public int opaqueCount;
     public const int POINT_NUM = 16;
     public static GunroarRand rand = new GunroarRand();
     public static Vector wakePos = new Vector();
@@ -29,10 +32,21 @@ public class BaseShape : DrawableShape
         this.r = r;
         this.g = g;
         this.b = b;
-        initializeShape();
+        mesh = ShapeMesh.create();
+        createMesh();
     }
 
-    public override void createMesh()
+    public void close()
+    {
+        mesh = null;
+    }
+
+    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    {
+        ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
+    }
+
+    public void createMesh()
     {
         float[] color = null;
         float height = size * 0.5f;
@@ -278,8 +292,9 @@ public class BaseShape : DrawableShape
     }
 }
 
-public class CollidableBaseShape : BaseShape, Collidable
+public class CollidableBaseShape : DrawableShape, Collidable
 {
+    public BaseShape baseShape;
     public Vector getCollision()
     {
         return collisionBounds;
@@ -306,9 +321,20 @@ public class CollidableBaseShape : BaseShape, Collidable
     }
 
     public Vector _collision;
-    public CollidableBaseShape(float size, float distRatio, float spinyRatio, int type, float r, float g, float b) : base(size, distRatio, spinyRatio, type, r, g, b)
+    public CollidableBaseShape(float size, float distRatio, float spinyRatio, int type, float r, float g, float b)
     {
+        baseShape = new BaseShape(size, distRatio, spinyRatio, type, r, g, b);
         _collision = new Vector(size / 2, size / 2);
+    }
+
+    public void close()
+    {
+        baseShape.close();
+    }
+
+    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    {
+        baseShape.draw(model, color, blend);
     }
 
     public Vector collisionBounds
@@ -325,9 +351,10 @@ public class CollidableBaseShape : BaseShape, Collidable
     }
 }
 
-public class TurretShape : ResizableDrawable
+public class TurretShape
 {
-    public static List<BaseShape> shapes = new List<BaseShape>();
+    public static List<DrawableShape> shapes = new List<DrawableShape>();
+    public ResizableDrawable resizable = new ResizableDrawable();
     public static void init()
     {
         shapes.Add(new CollidableBaseShape(1, 0, 0, BaseShapeShapeType.TURRET, 1, 0.8f, 0.8f));
@@ -337,20 +364,45 @@ public class TurretShape : ResizableDrawable
 
     public static void close()
     {
-        foreach (BaseShape s in shapes)
+        foreach (DrawableShape s in shapes)
             s.close();
     }
 
     public TurretShape(int t)
     {
-        shape = shapes[t];
+        // tcs2c は派生 interface から基底 interface への暗黙の変換を通さないので cast する
+        resizable.shape = (Drawable)shapes[t];
+    }
+
+    public float size
+    {
+        get
+        {
+            return resizable.size;
+        }
+
+        set
+        {
+            resizable.size = value;
+        }
+    }
+
+    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    {
+        resizable.draw(model, color, blend);
+    }
+
+    public bool checkCollision(float ax, float ay, Collidable shape = null)
+    {
+        return resizable.checkCollision(ax, ay, shape);
     }
 }
 
-public class EnemyShape : ResizableDrawable
+public class EnemyShape
 {
     public const float MIDDLE_COLOR_R = 1, MIDDLE_COLOR_G = 0.6f, MIDDLE_COLOR_B = 0.5f;
-    public static List<BaseShape> shapes = new List<BaseShape>();
+    public static List<DrawableShape> shapes = new List<DrawableShape>();
+    public ResizableDrawable resizable = new ResizableDrawable();
     public static void init()
     {
         shapes.Add(new BaseShape(1, 0.5f, 0.1f, BaseShapeShapeType.SHIP, 0.9f, 0.7f, 0.5f));
@@ -368,13 +420,45 @@ public class EnemyShape : ResizableDrawable
 
     public static void close()
     {
-        foreach (BaseShape s in shapes)
+        foreach (DrawableShape s in shapes)
             s.close();
     }
 
     public EnemyShape(int t)
     {
-        shape = shapes[t];
+        // tcs2c は派生 interface から基底 interface への暗黙の変換を通さないので cast する
+        resizable.shape = (Drawable)shapes[t];
+    }
+
+    public Drawable shape
+    {
+        get
+        {
+            return resizable.shape;
+        }
+    }
+
+    public float size
+    {
+        get
+        {
+            return resizable.size;
+        }
+
+        set
+        {
+            resizable.size = value;
+        }
+    }
+
+    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    {
+        resizable.draw(model, color, blend);
+    }
+
+    public bool checkCollision(float ax, float ay, Collidable shape = null)
+    {
+        return resizable.checkCollision(ax, ay, shape);
     }
 
     public void addWake(WakePool wakes, Vector pos, float deg, float sp)
@@ -388,9 +472,10 @@ public class EnemyShape : ResizableDrawable
     }
 }
 
-public class BulletShape : ResizableDrawable
+public class BulletShape
 {
     public static List<DrawableShape> shapes = new List<DrawableShape>();
+    public ResizableDrawable resizable = new ResizableDrawable();
     public static void init()
     {
         shapes.Add(new NormalBulletShape());
@@ -407,18 +492,50 @@ public class BulletShape : ResizableDrawable
 
     public void set(int t)
     {
-        shape = shapes[t];
+        // tcs2c は派生 interface から基底 interface への暗黙の変換を通さないので cast する
+        resizable.shape = (Drawable)shapes[t];
+    }
+
+    public float size
+    {
+        get
+        {
+            return resizable.size;
+        }
+
+        set
+        {
+            resizable.size = value;
+        }
+    }
+
+    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    {
+        resizable.draw(model, color, blend);
     }
 }
 
 public class NormalBulletShape : DrawableShape
 {
+    public Mesh mesh;
+    public int opaqueCount;
     public NormalBulletShape()
     {
-        initializeShape();
+        mesh = ShapeMesh.create();
+        createMesh();
     }
 
-    public override void createMesh()
+    public void close()
+    {
+        mesh = null;
+    }
+
+    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    {
+        ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
+    }
+
+    public void createMesh()
     {
         float[] color = null;
         color = new float[] { 1, 1, 0.3f, 1 };
@@ -447,12 +564,25 @@ public class NormalBulletShape : DrawableShape
 
 public class SmallBulletShape : DrawableShape
 {
+    public Mesh mesh;
+    public int opaqueCount;
     public SmallBulletShape()
     {
-        initializeShape();
+        mesh = ShapeMesh.create();
+        createMesh();
     }
 
-    public override void createMesh()
+    public void close()
+    {
+        mesh = null;
+    }
+
+    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    {
+        ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
+    }
+
+    public void createMesh()
     {
         float[] color = null;
         color = new float[] { 0.6f, 0.9f, 0.3f, 1 };
@@ -481,12 +611,25 @@ public class SmallBulletShape : DrawableShape
 
 public class MovingTurretBulletShape : DrawableShape
 {
+    public Mesh mesh;
+    public int opaqueCount;
     public MovingTurretBulletShape()
     {
-        initializeShape();
+        mesh = ShapeMesh.create();
+        createMesh();
     }
 
-    public override void createMesh()
+    public void close()
+    {
+        mesh = null;
+    }
+
+    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    {
+        ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
+    }
+
+    public void createMesh()
     {
         float[] color = null;
         color = new float[] { 0.7f, 0.5f, 0.9f, 1 };
@@ -515,9 +658,12 @@ public class MovingTurretBulletShape : DrawableShape
 
 public class DestructiveBulletShape : DrawableShape, Collidable
 {
+    public Mesh mesh;
+    public int opaqueCount;
     public DestructiveBulletShape()
     {
-        initializeShape();
+        mesh = ShapeMesh.create();
+        createMesh();
     }
 
     public Vector getCollision()
@@ -546,7 +692,17 @@ public class DestructiveBulletShape : DrawableShape, Collidable
     }
 
     public Vector _collision;
-    public override void createMesh()
+    public void close()
+    {
+        mesh = null;
+    }
+
+    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    {
+        ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
+    }
+
+    public void createMesh()
     {
         float[] color = null;
         color = new float[] { 0.9f, 0.9f, 0.6f, 1 };
@@ -583,12 +739,25 @@ public class DestructiveBulletShape : DrawableShape, Collidable
 
 public class CrystalShape : DrawableShape
 {
+    public Mesh mesh;
+    public int opaqueCount;
     public CrystalShape()
     {
-        initializeShape();
+        mesh = ShapeMesh.create();
+        createMesh();
     }
 
-    public override void createMesh()
+    public void close()
+    {
+        mesh = null;
+    }
+
+    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    {
+        ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
+    }
+
+    public void createMesh()
     {
         float[] color = null;
         color = new float[] { 0.6f, 1, 0.7f, 1 };
@@ -603,12 +772,25 @@ public class CrystalShape : DrawableShape
 
 public class ShieldShape : DrawableShape
 {
+    public Mesh mesh;
+    public int opaqueCount;
     public ShieldShape()
     {
-        initializeShape();
+        mesh = ShapeMesh.create();
+        createMesh();
     }
 
-    public override void createMesh()
+    public void close()
+    {
+        mesh = null;
+    }
+
+    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    {
+        ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
+    }
+
+    public void createMesh()
     {
         float[] color = null;
         color = new float[] { 0.5f, 0.5f, 0.7f, 1 };

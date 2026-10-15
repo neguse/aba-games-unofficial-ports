@@ -6,6 +6,23 @@ using static Lub;
 
 public class Crystal : Actor
 {
+    public bool exists;
+    public int poolIndex;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public void setPoolIndex(int poolIndex)
+    {
+        this.poolIndex = poolIndex;
+    }
+
     public const int COUNT = 60;
     public static int PULLIN_COUNT = GameMath.integer((COUNT * 0.8f));
     public static CrystalShape _shape;
@@ -29,7 +46,7 @@ public class Crystal : Actor
         vel = new Vector();
     }
 
-    public override void init(List<object> args)
+    public void init(List<object> args)
     {
         ship = (Ship)args[0];
     }
@@ -44,7 +61,7 @@ public class Crystal : Actor
         exists = true;
     }
 
-    public override void move()
+    public void move()
     {
         cnt--;
         float dist = pos.dist_1(ship.midstPos());
@@ -65,7 +82,7 @@ public class Crystal : Actor
         pos.opAddAssign(vel);
     }
 
-    public override void draw(float[] model, Mesh particles = null)
+    public void draw(float[] model, Mesh particles = null)
     {
         float r = 0.25f;
         float d = cnt * 0.1f;
@@ -82,9 +99,31 @@ public class Crystal : Actor
     }
 }
 
-public class CrystalPool : ActorPool<Crystal>
+public class CrystalPool
 {
-    public CrystalPool(int n, List<object> args) : base(n, args, () => new Crystal())
+    public ActorPool<Crystal> pool;
+    public CrystalPool(int n, List<object> args)
     {
+        pool = new ActorPool<Crystal>(n, args, () => new Crystal());
+    }
+
+    public Crystal getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public void move()
+    {
+        pool.move();
+    }
+
+    public void draw(float[] model, Mesh particles = null)
+    {
+        pool.draw(model, particles);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 }

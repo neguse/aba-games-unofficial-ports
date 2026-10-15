@@ -12,10 +12,12 @@ public static class PadButton
     public const int A = 16, B = 32, ANY = 48;
 }
 
-public class Pad
+public class RecordablePad
 {
     public int directions, buttons, lastDirState, lastButtonState;
     public bool pause, escape;
+    public const int REPLAY_END = -1;
+    public PadRecord padRecord;
     public int getDirState()
     {
         lastDirState = directions;
@@ -27,12 +29,7 @@ public class Pad
         lastButtonState = buttons;
         return buttons;
     }
-}
 
-public class RecordablePad : Pad
-{
-    public const int REPLAY_END = -1;
-    public PadRecord padRecord;
     public void startRecord()
     {
         padRecord = new PadRecord();

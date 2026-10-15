@@ -23,7 +23,7 @@ public class Stage
     public EnemyShape enemy1TrailShape, enemy2TrailShape, enemy3TrailShape;
     public BulletSpec bulletSpec, middleBulletSpec, counterBulletSpec;
     public BulletShapeBase bulletShape, bulletLineShape, middleBulletShape, middleBulletLineShape;
-    public RollBulletShapeBase counterBulletShape, counterBulletLineShape;
+    public BulletShapeBase counterBulletShape, counterBulletLineShape;
     public PillarSpec pillarSpec;
     public List<PillarShape> pillarShapes = new List<PillarShape>();
     public PillarShape outsidePillarShape;
@@ -57,30 +57,30 @@ public class Stage
         this.pillars = pillars;
         this.gameState = gameState;
         rand = new TitanionRand();
-        enemy1Shape = new Enemy1Shape();
-        enemy2Shape = new Enemy2Shape();
-        enemy3Shape = new Enemy3Shape();
-        enemy1TrailShape = new Enemy1TrailShape();
-        enemy2TrailShape = new Enemy2TrailShape();
-        enemy3TrailShape = new Enemy3TrailShape();
-        bulletShape = new BulletShape();
-        bulletLineShape = new BulletLineShape();
-        middleBulletShape = new MiddleBulletShape();
-        middleBulletLineShape = new MiddleBulletLineShape();
-        counterBulletShape = new CounterBulletShape();
-        counterBulletLineShape = new CounterBulletLineShape();
+        enemy1Shape = new EnemyShape(new Enemy1Shape());
+        enemy2Shape = new EnemyShape(new Enemy2Shape());
+        enemy3Shape = new EnemyShape(new Enemy3Shape());
+        enemy1TrailShape = new EnemyShape(new Enemy1TrailShape());
+        enemy2TrailShape = new EnemyShape(new Enemy2TrailShape());
+        enemy3TrailShape = new EnemyShape(new Enemy3TrailShape());
+        bulletShape = new BulletShapeBase(new BulletShape(), false);
+        bulletLineShape = new BulletShapeBase(new BulletLineShape(), false);
+        middleBulletShape = new BulletShapeBase(new MiddleBulletShape(), false);
+        middleBulletLineShape = new BulletShapeBase(new MiddleBulletLineShape(), false);
+        counterBulletShape = new BulletShapeBase(new CounterBulletShape(), true);
+        counterBulletLineShape = new BulletShapeBase(new CounterBulletLineShape(), true);
         bulletSpec = new BulletSpec(field, player, enemies, particles, bulletShape, bulletLineShape, gameState);
         middleBulletSpec = new BulletSpec(field, player, enemies, particles, middleBulletShape, middleBulletLineShape, gameState);
         counterBulletSpec = new BulletSpec(field, player, enemies, particles, counterBulletShape, counterBulletLineShape, gameState);
         pillarSpec = new PillarSpec(field);
-        pillarShapes.Add(new Pillar1Shape());
-        pillarShapes.Add(new Pillar2Shape());
-        pillarShapes.Add(new Pillar3Shape());
-        pillarShapes.Add(new Pillar4Shape());
-        outsidePillarShape = new OutsidePillarShape();
+        pillarShapes.Add(new PillarShape(new Pillar1Shape()));
+        pillarShapes.Add(new PillarShape(new Pillar2Shape()));
+        pillarShapes.Add(new PillarShape(new Pillar3Shape()));
+        pillarShapes.Add(new PillarShape(new Pillar4Shape()));
+        outsidePillarShape = new PillarShape(new OutsidePillarShape());
     }
 
-    public virtual void close()
+    public void close()
     {
         enemy1Shape.close();
         enemy2Shape.close();
@@ -99,14 +99,14 @@ public class Stage
         outsidePillarShape.close();
     }
 
-    public virtual void start_1(int randSeed)
+    public void start_1(int randSeed)
     {
         clear();
         rand.setSeed(randSeed);
         EnemySpec.setRandSeed(randSeed);
         TurretSpec.setRandSeed(randSeed);
         PlayerSpec.setRandSeed(randSeed);
-        ParticleSpec.setRandSeed(randSeed);
+        ParticleSpecs.setRandSeed(randSeed);
         Sound.setRandSeed(randSeed);
         {
             rankTrg = 0;
@@ -130,7 +130,7 @@ public class Stage
         startPhase();
     }
 
-    public virtual void clear()
+    public void clear()
     {
         {
             smallEnemyFormationNum = 0;
@@ -172,7 +172,7 @@ public class Stage
         counterBulletEnabled = false;
     }
 
-    public virtual void startPhase()
+    public void startPhase()
     {
         phaseTime = 0;
         phaseNum++;
@@ -184,7 +184,7 @@ public class Stage
         initPillars();
     }
 
-    public virtual void calcHitRatioBonus()
+    public void calcHitRatioBonus()
     {
         shotFiredNumRsl = shotFiredNum;
         shotHitNumRsl = shotHitNum;
@@ -213,7 +213,7 @@ public class Stage
         gameState.addScore_2(hitRatioBonus, true);
     }
 
-    public virtual void setEnemySpecs()
+    public void setEnemySpecs()
     {
         rankTrg = rankTrg + (1.25f);
         rank = rank + ((rankTrg - rank) * 0.33f);
@@ -263,12 +263,12 @@ public class Stage
         }
 
         smallEnemyFormationNum = (int)(GameMath.integer(en / smallEnemyNum)) + 1;
-        middleEnemySpec = new MiddleEnemySpec(field, bullets, player, particles, bonusParticles, enemies, this, enemy3Shape, enemy3TrailShape, middleBulletSpec, counterBulletSpec, gameState);
+        middleEnemySpec = new MiddleEnemySpec(field, bullets, player, particles, bonusParticles, enemies, this, enemy3Shape, enemy3TrailShape, middleBulletSpec, counterBulletSpec, gameState).spec;
         middleEnemySpec.setRank(rank * 0.15f);
-        smallEnemy1Spec = new SE1Spec(field, bullets, player, particles, bonusParticles, enemies, this, enemy1Shape, enemy1TrailShape, bulletSpec, counterBulletSpec, gameState);
-        ((smallEnemy1Spec is SE1Spec ? (SE1Spec)smallEnemy1Spec : null)).setRank(rank * 0.22f);
-        smallEnemy2Spec = new SE2Spec(field, bullets, player, particles, bonusParticles, enemies, this, enemy2Shape, enemy2TrailShape, bulletSpec, counterBulletSpec, gameState);
-        ((smallEnemy2Spec is SE2Spec ? (SE2Spec)smallEnemy2Spec : null)).setRank(rank * 0.22f);
+        smallEnemy1Spec = new SE1Spec(field, bullets, player, particles, bonusParticles, enemies, this, enemy1Shape, enemy1TrailShape, bulletSpec, counterBulletSpec, gameState).spec;
+        smallEnemy1Spec.setRank(rank * 0.22f);
+        smallEnemy2Spec = new SE2Spec(field, bullets, player, particles, bonusParticles, enemies, this, enemy2Shape, enemy2TrailShape, bulletSpec, counterBulletSpec, gameState).spec;
+        smallEnemy2Spec.setRank(rank * 0.22f);
         _attackSmallEnemyNum = GameMath.integer(sqrt(rank + 2));
         goingDownBeforeStandByRatio = 0;
         if (rand.nextFloat(rank + 1) > 2)
@@ -287,7 +287,7 @@ public class Stage
         waitNextFormationPhase = false;
     }
 
-    public virtual void initPillars()
+    public void initPillars()
     {
         pillars.setEnd();
         Pillar pp = null;
@@ -333,7 +333,7 @@ public class Stage
         }
     }
 
-    public virtual void move_0()
+    public void move_0()
     {
         if (appCnt <= 0)
         {
@@ -366,16 +366,16 @@ public class Stage
                 Enemy e = enemies.getInstance();
                 if ((!(((e) != null))))
                     break;
-                SmallEnemySpec ses = null;
+                EnemySpec ses = null;
                 int appPattern = formationIdx % 2;
                 switch (formationIdx % 3)
                 {
                     case 0:
                     case 1:
-                        ses = (smallEnemy1Spec is SmallEnemySpec ? (SmallEnemySpec)smallEnemy1Spec : null);
+                        ses = smallEnemy1Spec;
                         break;
                     case 2:
-                        ses = (smallEnemy2Spec is SmallEnemySpec ? (SmallEnemySpec)smallEnemy2Spec : null);
+                        ses = smallEnemy2Spec;
                         break;
                 }
 
@@ -421,7 +421,7 @@ public class Stage
             startPhase();
     }
 
-    public virtual void moveOutsidePillars()
+    public void moveOutsidePillars()
     {
         if (cnt % 120 == 0)
         {
@@ -431,7 +431,7 @@ public class Stage
         }
     }
 
-    public virtual void countShotFired()
+    public void countShotFired()
     {
         if (phaseTime >= PHASE_RESULT_SHOW_CNT)
         {
@@ -440,7 +440,7 @@ public class Stage
         }
     }
 
-    public virtual void countShotHit()
+    public void countShotHit()
     {
         if (phaseTime >= PHASE_RESULT_SHOW_CNT)
         {
@@ -449,7 +449,7 @@ public class Stage
         }
     }
 
-    public virtual void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
     {
         if ((((((((gameState.mode_0() != GameStateMode.MODERN))) && ((phaseTime < PHASE_RESULT_SHOW_CNT))))) && ((phaseNum > 1))))
         {
@@ -469,12 +469,12 @@ public class Stage
         }
     }
 
-    public virtual void drawPhaseNum(float[] model, float[] color, Gfx.Blend blend)
+    public void drawPhaseNum(float[] model, float[] color, Gfx.Blend blend)
     {
         Letter.drawNum(model, color, blend, phaseNum, 622, 448, 10);
     }
 
-    public virtual void drawGameover(float[] model, float[] color, Gfx.Blend blend)
+    public void drawGameover(float[] model, float[] color, Gfx.Blend blend)
     {
         float hr = 0;
         if (shotFiredNumTotal > 0)
@@ -487,12 +487,12 @@ public class Stage
         Letter.drawNum(model, color, blend, GameMath.integer((hr * 10000)), 480, 310, 6, 3, -1, 2);
     }
 
-    public virtual int attackSmallEnemyNum()
+    public int attackSmallEnemyNum()
     {
         return _attackSmallEnemyNum;
     }
 
-    public virtual bool existsCounterBullet()
+    public bool existsCounterBullet()
     {
         return (((((counterBulletEnabled)) && ((stageStarted)))) && (((enemies.numBeforeAlign() <= 0))));
     }

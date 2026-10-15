@@ -17,7 +17,7 @@ public class Ship
     public float scrollSpeed, _scrollSpeedBase;
     public Vector _midstPos, _higherPos, _lowerPos, _nearPos, _nearVel;
     public BaseShape bridgeShape;
-    public Ship(Pad pad, TwinStick twinStick, Mouse mouse, RecordableMouseAndPad mouseAndPad, Field field, GrScreen screen, SparkPool sparks, SmokePool smokes, FragmentPool fragments, WakePool wakes)
+    public Ship(RecordablePad pad, RecordableTwinStick twinStick, RecordableMouse mouse, RecordableMouseAndPad mouseAndPad, Field field, GrScreen screen, SparkPool sparks, SmokePool smokes, FragmentPool fragments, WakePool wakes)
     {
         this.field = field;
         Boat.init();
@@ -388,13 +388,13 @@ public class Boat
         rand.setSeed(seed);
     }
 
-    public Boat(int idx, Ship ship, Pad pad, TwinStick twinStick, Mouse mouse, RecordableMouseAndPad mouseAndPad, Field field, GrScreen screen, SparkPool sparks, SmokePool smokes, FragmentPool fragments, WakePool wakes)
+    public Boat(int idx, Ship ship, RecordablePad pad, RecordableTwinStick twinStick, RecordableMouse mouse, RecordableMouseAndPad mouseAndPad, Field field, GrScreen screen, SparkPool sparks, SmokePool smokes, FragmentPool fragments, WakePool wakes)
     {
         this.idx = idx;
         this.ship = ship;
-        this.pad = (RecordablePad)pad;
-        this.twinStick = (RecordableTwinStick)twinStick;
-        this.mouse = (RecordableMouse)mouse;
+        this.pad = pad;
+        this.twinStick = twinStick;
+        this.mouse = mouse;
         this.mouseAndPad = mouseAndPad;
         this.field = field;
         this.screen = screen;

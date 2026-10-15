@@ -2,15 +2,20 @@
 using System;
 using static GameMath;
 using static Lub;
-public class BulletActorPool: ActorPool {
+public class BulletActorPool {
+  ActorPool pool;
+  public Actor[] actor;
 
   public int cnt;
 
-  public BulletActorPool(int n, ActorInitializer ini) : base(n, new BulletActor(), ini) {
+  public BulletActorPool(int n, ActorInitializer ini) {
+    pool = new ActorPool(n, new BulletActor(), ini);
+    actor = pool.actor;
     BulletInst.world = new BulletWorld(this);
     BulletActor.resetIds();
     cnt = 0;
   }
+  public Actor getInstance() { return pool.getInstance(); }
 
   public void setEnemies(EnemyPool enemies) {
     foreach (Actor a in actor)
@@ -93,14 +98,14 @@ public class BulletActorPool: ActorPool {
     return ba;
   }
 
-  public override void move() {
-    base.move();
+  public void move() {
+    pool.move();
     cnt++;
   }
 
   public void drawShots(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
     foreach (Actor ac in actor)
-      if (ac.isExist) {
+      if (ac.getExist()) {
 	BulletActor ba = (BulletActor) ac;
 	if (ba.bullet.type == BulletType.SHIP)
 	  ac.draw(model, tint, blend);
@@ -109,7 +114,7 @@ public class BulletActorPool: ActorPool {
 
   public void drawBullets(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
     foreach (Actor ac in actor)
-      if (ac.isExist) {
+      if (ac.getExist()) {
 	BulletActor ba = (BulletActor) ac;
 	if (ba.bullet.type == BulletType.ENEMY)
 	  ac.draw(model, tint, blend);
@@ -124,23 +129,23 @@ public class BulletActorPool: ActorPool {
     bullet.owner.remove();
   }
 
-  public override void clear() {
+  public void clear() {
     foreach (Actor ac in actor) {
-      if (ac.isExist)
+      if (ac.getExist())
 	((BulletActor) ac).removeForced();
     }
   }
 
   public void clearVisible() {
     foreach (Actor ac in actor) {
-      if (ac.isExist)
+      if (ac.getExist())
 	((BulletActor) ac).removeForcedVisible();
     }
   }
 
   public void clearVisibleEnemy() {
     foreach (Actor ac in actor) {
-      if (ac.isExist)
+      if (ac.getExist())
 	((BulletActor) ac).removeForcedVisibleEnemy();
     }
   }
@@ -148,7 +153,7 @@ public class BulletActorPool: ActorPool {
   public void clearStuckEnemyHit(StuckEnemy se) {
     se.setWideCollision();
     foreach (Actor ac in actor) {
-      if (ac.isExist) {
+      if (ac.getExist()) {
 	BulletActor ba = (BulletActor) ac;
 	if (se.checkHit(ba.bullet.pos)) {
 	  ba.removeForcedVisible();

@@ -4,20 +4,39 @@ using System.Collections.Generic;
 using static GameMath;
 using static Lub;
 
-public class PillarPool : ActorPool<Pillar>
+public class PillarPool
 {
-    public PillarPool(int n) : base(n, null, () => new Pillar())
+    public ActorPool<Pillar> pool;
+    public Pillar[] actors;
+    public PillarPool(int n)
     {
+        pool = new ActorPool<Pillar>(n, null, () => new Pillar());
+        actors = pool.actors;
     }
 
-    public virtual void setEnd()
+    public Pillar getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public void move_0()
+    {
+        pool.move_0();
+    }
+
+    public void clear()
+    {
+        pool.clear();
+    }
+
+    public void setEnd()
     {
         foreach (Pillar a in actors)
             if (a.exists)
                 a.setEnd();
     }
 
-    public virtual void drawCenter(float[] model, float[] color, Gfx.Blend blend)
+    public void drawCenter(float[] model, float[] color, Gfx.Blend blend)
     {
         for (int i = 1; i < actors.Length; i++)
         {
@@ -38,7 +57,7 @@ public class PillarPool : ActorPool<Pillar>
                 a.draw_0(model, color, blend);
     }
 
-    public virtual void drawOutside(float[] model, float[] color, Gfx.Blend blend)
+    public void drawOutside(float[] model, float[] color, Gfx.Blend blend)
     {
         foreach (Pillar a in actors)
             if (((a.exists)) && ((a.state.isOutside)))
@@ -46,16 +65,66 @@ public class PillarPool : ActorPool<Pillar>
     }
 }
 
-public class Pillar : Token<PillarState, PillarSpec>
+public class Pillar : Actor
 {
-    public override void init_1(List<object> args)
+    public bool exists;
+    public PillarState state;
+    public PillarSpec spec;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool v)
+    {
+        exists = v;
+    }
+
+    public void init_1(List<object> args)
     {
         state = new PillarState();
     }
 
-    public virtual void set_7(PillarSpec ps, float y, float maxY, Pillar pp, PillarShape s, float vdeg, bool outside = false)
+    public void set_5(PillarSpec spec, float x, float y, float deg, float speed)
     {
-        base.set_5(ps, 0, y, 0, 0);
+        this.spec = spec;
+        set_4(x, y, deg, speed);
+    }
+
+    public void set_4(float x, float y, float deg, float speed)
+    {
+        state.clear();
+        state.pos.x = x;
+        state.pos.y = y;
+        state.deg = deg;
+        state.speed = speed;
+        exists = true;
+    }
+
+    public void move_0()
+    {
+        if (!((spec.move_1(state))))
+            remove();
+    }
+
+    public void remove()
+    {
+        exists = false;
+    }
+
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    {
+        spec.draw_1(model, color, blend, state);
+    }
+
+    public Vector pos()
+    {
+        return state.pos;
+    }
+
+    public void set_7(PillarSpec ps, float y, float maxY, Pillar pp, PillarShape s, float vdeg, bool outside = false)
+    {
+        set_5(ps, 0, y, 0, 0);
         state.maxY = maxY;
         state.previousPillar = pp;
         state.pshape = s;
@@ -63,12 +132,12 @@ public class Pillar : Token<PillarState, PillarSpec>
         state.isOutside = outside;
     }
 
-    public virtual void setEnd()
+    public void setEnd()
     {
         state.isEnded = true;
     }
 
-    public virtual int opCmp(object o)
+    public int opCmp(object o)
     {
         Pillar p = (o is Pillar ? (Pillar)o : null);
         if ((!(((p) != null))))
@@ -77,15 +146,26 @@ public class Pillar : Token<PillarState, PillarSpec>
     }
 }
 
-public class PillarState : TokenState
+public class PillarState
 {
+    public string meshKey;
+    public bool isInitialized = false;
+    public Vector pos;
+    public float deg;
+    public float speed;
     public Pillar previousPillar;
     public float vy, vdeg;
     public float maxY;
     public PillarShape pshape;
     public bool isEnded;
     public bool isOutside;
-    public override void clear()
+    public PillarState()
+    {
+        meshKey = TokenState.nextMeshKey();
+        pos = new Vector();
+    }
+
+    public void clear()
     {
         previousPillar = null;
         vy = 0;
@@ -93,19 +173,27 @@ public class PillarState : TokenState
         maxY = 0;
         isEnded = false;
         isOutside = false;
-        base.clear();
+        {
+            pos.y = 0;
+            pos.x = pos.y;
+        }
+
+        deg = 0;
+        speed = 0;
+        isInitialized = true;
     }
 }
 
-public class PillarSpec : TokenSpec<PillarState>
+public class PillarSpec
 {
+    public Field field;
     public const float VELOCITY_Y = 0.025f;
     public PillarSpec(Field field)
     {
         this.field = field;
     }
 
-    public override bool move_1(PillarState ps)
+    public bool move_1(PillarState ps)
     {
         {
             if (!((ps.isOutside)))
@@ -145,7 +233,7 @@ public class PillarSpec : TokenSpec<PillarState>
         }
     }
 
-    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, PillarState ps)
+    public void draw_1(float[] model, float[] color, Gfx.Blend blend, PillarState ps)
     {
         ps.pshape.draw_2(model, color, blend, ps.pos.y, ps.deg);
     }

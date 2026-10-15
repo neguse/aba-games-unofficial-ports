@@ -6,6 +6,23 @@ using static Lub;
 
 public class Shot : Actor
 {
+    public bool exists;
+    public int poolIndex;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool exists)
+    {
+        this.exists = exists;
+    }
+
+    public void setPoolIndex(int poolIndex)
+    {
+        this.poolIndex = poolIndex;
+    }
+
     public const float SPEED = 0.6f;
     public const float LANCE_SPEED = 0.5f;
     public static ShotShape shape;
@@ -60,7 +77,7 @@ public class Shot : Actor
         lance = false;
     }
 
-    public override void init(List<object> args)
+    public void init(List<object> args)
     {
         field = (Field)args[0];
         enemies = (EnemyPool)args[1];
@@ -89,7 +106,7 @@ public class Shot : Actor
         exists = true;
     }
 
-    public override void move()
+    public void move()
     {
         cnt++;
         if (hitCnt > 0)
@@ -182,7 +199,7 @@ public class Shot : Actor
         }
     }
 
-    public override void draw(float[] model, Mesh particles = null)
+    public void draw(float[] model, Mesh particles = null)
     {
         if (lance)
         {
@@ -263,10 +280,34 @@ public class Shot : Actor
     }
 }
 
-public class ShotPool : ActorPool<Shot>
+public class ShotPool
 {
-    public ShotPool(int n, List<object> args) : base(n, args, () => new Shot())
+    public ActorPool<Shot> pool;
+    public Shot[] actor;
+    public ShotPool(int n, List<object> args)
     {
+        pool = new ActorPool<Shot>(n, args, () => new Shot());
+        actor = pool.actor;
+    }
+
+    public Shot getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public void move()
+    {
+        pool.move();
+    }
+
+    public void draw(float[] model, Mesh particles = null)
+    {
+        pool.draw(model, particles);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 
     public bool existsLance()
@@ -279,15 +320,28 @@ public class ShotPool : ActorPool<Shot>
     }
 }
 
-public class ShotShape : CollidableDrawable
+public class ShotShape : DrawableShape, Collidable
 {
+    public Mesh mesh;
+    public int opaqueCount;
     public ShotShape()
     {
-        initializeShape();
+        mesh = ShapeMesh.create();
+        createMesh();
         setCollision();
     }
 
-    public override void createMesh()
+    public void close()
+    {
+        mesh = null;
+    }
+
+    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    {
+        ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
+    }
+
+    public void createMesh()
     {
         float[] color = null;
         color = new float[] { 0.1f, 0.33f, 0.1f, 1 };
@@ -307,9 +361,48 @@ public class ShotShape : CollidableDrawable
         mesh.Quads(first1, mesh.vertexCount - first1);
     }
 
-    public override void setCollision()
+    public Vector getCollision()
+    {
+        return collisionBounds;
+    }
+
+    public bool checkCollision(float ax, float ay, Collidable shape = null)
+    {
+        float cx = 0, cy = 0;
+        if (shape != null)
+        {
+            cx = collisionBounds.x + shape.getCollision().x;
+            cy = collisionBounds.y + shape.getCollision().y;
+        }
+        else
+        {
+            cx = collisionBounds.x;
+            cy = collisionBounds.y;
+        }
+
+        if ((ax <= cx) && (ay <= cy))
+            return true;
+        else
+            return false;
+    }
+
+    public Vector _collision;
+    public void setCollision()
     {
         _collision = new Vector(0.33f, 0.33f);
+    }
+
+    public Vector collisionBounds
+    {
+        get
+        {
+            return _collision;
+        }
+
+        set
+        {
+            _collision = value;
+        }
     }
 }
 

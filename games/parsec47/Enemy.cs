@@ -3,6 +3,11 @@ using System;
 using static GameMath;
 using static Lub;
 public class Enemy: Actor {
+  public string meshKey;
+  public bool isExist;
+  public Enemy() { meshKey = ActorMesh.nextKey(); }
+  public bool getExist() { return isExist; }
+  public void setExist(bool value) { isExist = value; }
 
 
 
@@ -47,11 +52,11 @@ public class Enemy: Actor {
 
 
 
-  public override Actor newActor() {
+  public Actor newActor() {
     return new Enemy();
   }
 
-  public override void init(ActorInitializer ini) {
+  public void init(ActorInitializer ini) {
     for (int index0 = 0; index0 < EnemyType.BATTERY_MAX; index0++) battery[index0] = new Battery();
     EnemyInitializer ei = (EnemyInitializer) ini;
     field = ei.field;
@@ -346,7 +351,7 @@ public class Enemy: Actor {
     int ch=0;
 
     for (int index15 = 0; index15 < shots.actor.Length; index15++) {
-      if (!shots.actor[index15].isExist)
+      if (!shots.actor[index15].getExist())
 	continue;
       Vector sp = ((Shot) shots.actor[index15]).pos;
       ch = checkHit(sp, 0.7f, 0);
@@ -354,7 +359,7 @@ public class Enemy: Actor {
 	manager.addParticle(sp, rand.nextSignedFloat(0.3f), 0, Shot.SPEED / 4);
 	manager.addParticle(sp, rand.nextSignedFloat(0.3f), 0, Shot.SPEED / 4);
 	manager.addParticle(sp, PI + rand.nextSignedFloat(0.3f), 0, Shot.SPEED / 7);
-	shots.actor[index15].isExist = false;
+	shots.actor[index15].setExist(false);
 	if (ch == HIT)
 	  addDamage(SHOT_DAMAGE);
 	else
@@ -364,7 +369,7 @@ public class Enemy: Actor {
     if (manager.mode == P47GameManager.ROLL) {
 
       for (int index16 = 0; index16 < rolls.actor.Length; index16++) {
-	if (!rolls.actor[index16].isExist)
+	if (!rolls.actor[index16].getExist())
 	  continue;
 	Roll rl = (Roll) rolls.actor[index16];
 	ch = checkHit(rl.pos[0], 1.0f, 1.0f);
@@ -387,7 +392,7 @@ public class Enemy: Actor {
     } else if (type.type != EnemyType.SMALL) {
 
       for (int index18 = 0; index18 < targetLocks.actor.Length; index18++) {
-	if (!targetLocks.actor[index18].isExist)
+	if (!targetLocks.actor[index18].getExist())
 	  continue;
 	Lock lk = (Lock) targetLocks.actor[index18];
 	if (lk.state == Lock.SEARCH || lk.state == Lock.SEARCHED) {
@@ -514,7 +519,7 @@ public class Enemy: Actor {
     fireCnt--;
   }
 
-  public override void move() {
+  public void move() {
     EnemyType.isExist[type.id] = true;
     if (!isBoss) {
       pos.x = moveBullet.bullet.pos.x;
@@ -595,7 +600,7 @@ public class Enemy: Actor {
       checkDamage();
   }
 
-  public override void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
     var mesh = new Mesh("Enemy-draw" + "-" + meshKey);
     float ap=0;
     if (appCnt > 0) {

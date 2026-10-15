@@ -2,18 +2,19 @@
 using System;
 using System.Collections.Generic;
 
-public abstract class Actor
+public interface Actor
 {
-    public bool exists;
-    public int poolIndex;
-    public abstract void init(List<object> args);
-    public abstract void move();
-    public abstract void draw(float[] model, Mesh particles = null);
+    public bool getExists();
+    public void setExists(bool exists);
+    public void setPoolIndex(int poolIndex);
+    public void init(List<object> args);
+    public void move();
+    public void draw(float[] model, Mesh particles = null);
 }
 
-public abstract class LuminousActor : Actor
+public interface LuminousActor : Actor
 {
-    public abstract void drawLuminous(float[] model, Mesh particles = null);
+    public void drawLuminous(float[] model, Mesh particles = null);
 }
 
 public class ActorPool<T>
@@ -27,7 +28,7 @@ public class ActorPool<T>
         for (int i = 0; i < n; i++)
         {
             actor[i] = create();
-            actor[i].poolIndex = i;
+            actor[i].setPoolIndex(i);
             actor[i].init(args);
         }
     }
@@ -39,11 +40,11 @@ public class ActorPool<T>
             actorIdx--;
             if (actorIdx < 0)
                 actorIdx = actor.Length - 1;
-            if (!actor[actorIdx].exists)
+            if (!actor[actorIdx].getExists())
                 return actor[actorIdx];
         }
 
-        return null;
+        return default(T);
     }
 
     public T getInstanceForced()
@@ -63,51 +64,80 @@ public class ActorPool<T>
             if (item == null)
             {
                 for (int j = 0; j < i; j++)
-                    result[j].exists = false;
+                    result[j].setExists(false);
                 return null;
             }
 
-            item.exists = true;
+            item.setExists(true);
             result[i] = item;
         }
 
         for (int i = 0; i < n; i++)
-            result[i].exists = false;
+            result[i].setExists(false);
         return result;
     }
 
-    public virtual void move()
+    public void move()
     {
         foreach (T item in actor)
-            if (item.exists)
+            if (item.getExists())
                 item.move();
     }
 
     public void draw(float[] model, Mesh particles = null)
     {
         foreach (T item in actor)
-            if (item.exists)
+            if (item.getExists())
                 item.draw(model, particles);
     }
 
     public void clear()
     {
         foreach (T item in actor)
-            item.exists = false;
+            item.setExists(false);
         actorIdx = 0;
     }
 }
 
-public class LuminousActorPool<T> : ActorPool<T> where T : LuminousActor
+public class LuminousActorPool<T> where T : LuminousActor
 {
-    public LuminousActorPool(int n, List<object> args, Func<T> create) : base(n, args, create)
+    public ActorPool<T> pool;
+    public T[] actor;
+    public LuminousActorPool(int n, List<object> args, Func<T> create)
     {
+        pool = new ActorPool<T>(n, args, create);
+        actor = pool.actor;
+    }
+
+    public T getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public T getInstanceForced()
+    {
+        return pool.getInstanceForced();
+    }
+
+    public void move()
+    {
+        pool.move();
+    }
+
+    public void draw(float[] model, Mesh particles = null)
+    {
+        pool.draw(model, particles);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 
     public void drawLuminous(float[] model, Mesh particles = null)
     {
         foreach (T item in actor)
-            if (item.exists)
+            if (item.getExists())
                 item.drawLuminous(model, particles);
     }
 }

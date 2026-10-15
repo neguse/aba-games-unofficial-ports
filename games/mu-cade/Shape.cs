@@ -15,56 +15,51 @@ public interface Shape
 public class ShapeGroup : Shape
 {
     public Shape[] shapes;
-    public virtual void addShape(Shape s)
+    public void addShape(Shape s)
     {
         shapes = McdArrays.Append(shapes, s);
     }
 
-    public virtual void setMass_3(OdeActor oa, Vector3 sizeScale = null, float massScale = 1)
+    public void setMass_3(OdeActor oa, Vector3 sizeScale = null, float massScale = 1)
     {
         OdeMass m = McdPhysics.Mass();
         addMass(m, sizeScale, massScale);
-        oa.setMass_1(m);
+        oa.getOde().setMass_1(m);
     }
 
-    public virtual void setGeom(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null)
+    public void setGeom(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null)
     {
         addGeom_3(oa, sid, sizeScale);
     }
 
-    public virtual void addMass(OdeMass m, Vector3 sizeScale = null, float massScale = 1)
+    public void addMass(OdeMass m, Vector3 sizeScale = null, float massScale = 1)
     {
         foreach (Shape s in shapes)
             s.addMass(m, sizeScale, massScale);
     }
 
-    public virtual void addGeom_3(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null)
+    public void addGeom_3(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null)
     {
         foreach (Shape s in shapes)
             s.addGeom_3(oa, sid, sizeScale);
     }
 
-    public virtual void recordLinePoints_1(LinePoint lp)
+    public void recordLinePoints_1(LinePoint lp)
     {
         foreach (Shape s in shapes)
             s.recordLinePoints_1(lp);
     }
 
-    public virtual void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
+    public void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
     {
         foreach (Shape s in shapes)
             s.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", lp);
     }
 }
 
-public abstract class ShapeBase : Shape
+public static class ShapeBase
 {
-    public World world;
-    public Vector3 pos;
-    public Vector3 size;
-    public float mass = 1;
-    public float shapeBoxScale = 1;
-    public virtual void addMass(OdeMass m, Vector3 sizeScale = null, float massScale = 1)
+    public static void addMass(Vector3 pos, Vector3 size, float mass, OdeMass m, Vector3 sizeScale, float massScale)
     {
         OdeMass sm = McdPhysics.Mass();
         if ((sizeScale) != null)
@@ -82,7 +77,7 @@ public abstract class ShapeBase : Shape
         McdPhysics.MassAdd(m, sm);
     }
 
-    public virtual void addGeom_3(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null)
+    public static void addGeom_3(Vector3 pos, Vector3 size, float shapeBoxScale, OdeActor oa, OdeHandle sid, Vector3 sizeScale)
     {
         if (pos.x == 0 && pos.y == 0 && pos.z == 0)
         {
@@ -96,7 +91,7 @@ public abstract class ShapeBase : Shape
                 bg_0 = McdPhysics.Box(sid, size.x * shapeBoxScale, size.y * shapeBoxScale, size.z * shapeBoxScale);
             }
 
-            oa.addGeom_1(bg_0);
+            oa.getOde().addGeom_1(bg_0);
         }
         else
         {
@@ -114,18 +109,20 @@ public abstract class ShapeBase : Shape
             }
 
             McdPhysics.TransformGeom(tg, bg_1);
-            oa.addGeom_1(tg);
-            oa.addTransformedGeom(bg_1);
+            oa.getOde().addGeom_1(tg);
+            oa.getOde().addTransformedGeom(bg_1);
         }
     }
-
-    public abstract void recordLinePoints_1(LinePoint lp);
-    public abstract void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp);
 }
 
-public class Square : ShapeBase
+public class Square : Shape
 {
     static Mesh shadow;
+    public World world;
+    public Vector3 pos;
+    public Vector3 size;
+    public float mass = 1;
+    public float shapeBoxScale = 1;
     public Square(World world, float mass, float px, float py, float sx, float sy, float pz = 0, float sz = 1)
     {
         this.world = world;
@@ -134,7 +131,17 @@ public class Square : ShapeBase
         size = new Vector3(sx, sy, sz);
     }
 
-    public override void recordLinePoints_1(LinePoint lp)
+    public void addMass(OdeMass m, Vector3 sizeScale = null, float massScale = 1)
+    {
+        ShapeBase.addMass(pos, size, mass, m, sizeScale, massScale);
+    }
+
+    public void addGeom_3(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null)
+    {
+        ShapeBase.addGeom_3(pos, size, shapeBoxScale, oa, sid, sizeScale);
+    }
+
+    public void recordLinePoints_1(LinePoint lp)
     {
         lp.setPos(pos);
         lp.setSize(size);
@@ -148,7 +155,7 @@ public class Square : ShapeBase
         lp.record(-1, -1, 0);
     }
 
-    public override void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
+    public void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
     {
         lp.setPos(pos); lp.setSize(size);
         tint = lp.shadowColor();
@@ -171,9 +178,14 @@ public class Square : ShapeBase
     }
 }
 
-public class Sphere : ShapeBase
+public class Sphere : Shape
 {
     static Mesh shadow;
+    public World world;
+    public Vector3 pos;
+    public Vector3 size;
+    public float mass = 1;
+    public float shapeBoxScale = 1;
     public Sphere(World world, float mass, float px, float py, float rad)
     {
         this.world = world;
@@ -182,7 +194,7 @@ public class Sphere : ShapeBase
         size = new Vector3(rad, rad, rad);
     }
 
-    public override void addGeom_3(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null)
+    public void addGeom_3(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null)
     {
         if (pos.x == 0 && pos.y == 0 && pos.z == 0)
         {
@@ -196,7 +208,7 @@ public class Sphere : ShapeBase
                 bg_0 = McdPhysics.Sphere(sid, size.x * shapeBoxScale);
             }
 
-            oa.addGeom_1(bg_0);
+            oa.getOde().addGeom_1(bg_0);
         }
         else
         {
@@ -214,12 +226,17 @@ public class Sphere : ShapeBase
             }
 
             McdPhysics.TransformGeom(tg, bg_1);
-            oa.addGeom_1(tg);
-            oa.addTransformedGeom(bg_1);
+            oa.getOde().addGeom_1(tg);
+            oa.getOde().addTransformedGeom(bg_1);
         }
     }
 
-    public override void recordLinePoints_1(LinePoint lp)
+    public void addMass(OdeMass m, Vector3 sizeScale = null, float massScale = 1)
+    {
+        ShapeBase.addMass(pos, size, mass, m, sizeScale, massScale);
+    }
+
+    public void recordLinePoints_1(LinePoint lp)
     {
         lp.setPos(pos);
         lp.setSize(size);
@@ -233,7 +250,7 @@ public class Sphere : ShapeBase
         lp.record(-1, -1, 0);
     }
 
-    public override void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
+    public void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
     {
         lp.setPos(pos); lp.setSize(size);
         tint = lp.shadowColor();
@@ -256,9 +273,14 @@ public class Sphere : ShapeBase
     }
 }
 
-public class Triangle : ShapeBase
+public class Triangle : Shape
 {
     static Mesh shadow;
+    public World world;
+    public Vector3 pos;
+    public Vector3 size;
+    public float mass = 1;
+    public float shapeBoxScale = 1;
     public Triangle(World world, float mass, float px, float py, float sx, float sy)
     {
         this.world = world;
@@ -268,7 +290,17 @@ public class Triangle : ShapeBase
         shapeBoxScale = 1;
     }
 
-    public override void recordLinePoints_1(LinePoint lp)
+    public void addMass(OdeMass m, Vector3 sizeScale = null, float massScale = 1)
+    {
+        ShapeBase.addMass(pos, size, mass, m, sizeScale, massScale);
+    }
+
+    public void addGeom_3(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null)
+    {
+        ShapeBase.addGeom_3(pos, size, shapeBoxScale, oa, sid, sizeScale);
+    }
+
+    public void recordLinePoints_1(LinePoint lp)
     {
         lp.setPos(pos);
         lp.setSize(size);
@@ -280,7 +312,7 @@ public class Triangle : ShapeBase
         lp.record(0, 1, 0);
     }
 
-    public override void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
+    public void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
     {
         lp.setPos(pos); lp.setSize(size);
         tint = lp.shadowColor();
@@ -302,9 +334,14 @@ public class Triangle : ShapeBase
     }
 }
 
-public class Box : ShapeBase
+public class Box : Shape
 {
     static Mesh shadow;
+    public World world;
+    public Vector3 pos;
+    public Vector3 size;
+    public float mass = 1;
+    public float shapeBoxScale = 1;
     public Box(World world, float mass, float px, float py, float pz, float sx, float sy, float sz)
     {
         this.world = world;
@@ -313,7 +350,17 @@ public class Box : ShapeBase
         size = new Vector3(sx, sy, sz);
     }
 
-    public override void recordLinePoints_1(LinePoint lp)
+    public void addMass(OdeMass m, Vector3 sizeScale = null, float massScale = 1)
+    {
+        ShapeBase.addMass(pos, size, mass, m, sizeScale, massScale);
+    }
+
+    public void addGeom_3(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null)
+    {
+        ShapeBase.addGeom_3(pos, size, shapeBoxScale, oa, sid, sizeScale);
+    }
+
+    public void recordLinePoints_1(LinePoint lp)
     {
         lp.setPos(pos);
         lp.setSize(size);
@@ -343,7 +390,7 @@ public class Box : ShapeBase
         lp.record(-1, 1, -1);
     }
 
-    public override void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
+    public void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
     {
         lp.setPos(pos); lp.setSize(size);
         tint = lp.shadowColor();
@@ -436,7 +483,7 @@ public class LinePoint
         _alpha = _alphaTrg;
     }
 
-    public virtual void init_0()
+    public void init_0()
     {
         posIdx = 0;
         histIdx = 0;
@@ -447,7 +494,7 @@ public class LinePoint
         _enableSpectrumColor = true;
     }
 
-    public virtual void setSpectrumParams(float r, float g, float b, float length)
+    public void setSpectrumParams(float r, float g, float b, float length)
     {
         spectrumColorRTrg = r;
         spectrumColorGTrg = g;
@@ -455,24 +502,24 @@ public class LinePoint
         spectrumLength = length;
     }
 
-    public virtual void beginRecord(float[] model)
+    public void beginRecord(float[] model)
     {
         posIdx = 0;
         for (int i = 0; i < 16; i++)
             m[i] = model[i];
     }
 
-    public virtual void setPos(Vector3 p)
+    public void setPos(Vector3 p)
     {
         basePos = p;
     }
 
-    public virtual void setSize(Vector3 s)
+    public void setSize(Vector3 s)
     {
         baseSize = s;
     }
 
-    public virtual void record(float ox, float oy, float oz)
+    public void record(float ox, float oy, float oz)
     {
         Vector3 translated = calcTranslatedPos(ox, oy, oz);
         float tx = translated.x, ty = translated.y, tz = translated.z;
@@ -482,7 +529,7 @@ public class LinePoint
         posIdx++;
     }
 
-    public virtual void endRecord()
+    public void endRecord()
     {
         histIdx++;
         if (histIdx >= HISTORY_MAX)
@@ -527,7 +574,7 @@ public class LinePoint
         _alpha += (_alphaTrg - _alpha) * 0.05f;
     }
 
-    public virtual void diffuseSpectrum()
+    public void diffuseSpectrum()
     {
         const float dfr = 0.01f;
         for (int j = 0; j < HISTORY_MAX; j++)
@@ -549,7 +596,7 @@ public class LinePoint
 
 
 
-    public virtual Vector3 calcTranslatedPos(float ox, float oy, float oz)
+    public Vector3 calcTranslatedPos(float ox, float oy, float oz)
     {
         float x = basePos.x + baseSize.x / 2 * ox;
         float y = basePos.y + baseSize.y / 2 * oy;
@@ -560,13 +607,13 @@ public class LinePoint
         return new Vector3(tx, ty, tz);
     }
 
-    public virtual float[] shadowColor()
+    public float[] shadowColor()
     {
         if (spectrumColorR + spectrumColorG + spectrumColorB < 0.1f) return null;
         return new float[] { spectrumColorR * 0.3f, spectrumColorG * 0.3f, spectrumColorB * 0.3f, 1 };
     }
 
-    public virtual void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         string geometryKey = key + "-draw";
         if (!geometry.ContainsKey(geometryKey)) geometry[geometryKey] = new Mesh(geometryKey);
@@ -586,7 +633,7 @@ public class LinePoint
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public virtual void drawWithSpectrumColor(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawWithSpectrumColor(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         string geometryKey = key + "-drawWithSpectrumColor";
         if (!geometry.ContainsKey(geometryKey)) geometry[geometryKey] = new Mesh(geometryKey);
@@ -609,7 +656,7 @@ public class LinePoint
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public virtual void drawSpectrum(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawSpectrum(float[] model, float[] tint, Gfx.Blend blend, string key)
     {
         string geometryKey = key + "-drawSpectrum";
         if (!geometry.ContainsKey(geometryKey)) geometry[geometryKey] = new Mesh(geometryKey);
@@ -657,19 +704,19 @@ public class LinePoint
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public virtual float alpha(float v)
+    public float alpha(float v)
     {
         _alpha = v;
         return _alpha;
     }
 
-    public virtual float alphaTrg(float v)
+    public float alphaTrg(float v)
     {
         _alphaTrg = v;
         return _alphaTrg;
     }
 
-    public virtual bool enableSpectrumColor(bool v)
+    public bool enableSpectrumColor(bool v)
     {
         _enableSpectrumColor = v;
         return _enableSpectrumColor;
@@ -684,7 +731,7 @@ public interface Drawable
 public class EyeShape : Drawable
 {
     static Mesh geometry;
-    public virtual void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         if (geometry == null) {
             var mesh = new Mesh("EyeShape");
@@ -725,7 +772,7 @@ public class EyeShape : Drawable
 public class CenterShape : Drawable
 {
     static Mesh geometry;
-    public virtual void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
     {
         if (geometry == null) {
             var mesh = new Mesh("CenterShape");

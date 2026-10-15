@@ -4,20 +4,39 @@ using System.Collections.Generic;
 using static GameMath;
 using static Lub;
 
-public class BulletPool : ActorPool<Bullet>
+public class BulletPool
 {
-    public BulletPool(int n) : base(n, null, () => new Bullet())
+    public ActorPool<Bullet> pool;
+    public Bullet[] actors;
+    public BulletPool(int n)
     {
+        pool = new ActorPool<Bullet>(n, null, () => new Bullet());
+        actors = pool.actors;
+    }
+
+    public Bullet getInstance()
+    {
+        return pool.getInstance();
+    }
+
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    {
+        pool.draw_0(model, color, blend);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 
     public const float BULLET_REMOVED_RANGE = 2.0f;
-    public override void move_0()
+    public void move_0()
     {
-        base.move_0();
+        pool.move_0();
         BulletState.move_0();
     }
 
-    public virtual int removeAround(int cnt, Vector pos, ParticlePool particles, ParticlePool bonusParticles, Player player)
+    public int removeAround(int cnt, Vector pos, ParticlePool particles, ParticlePool bonusParticles, Player player)
     {
         foreach (Bullet b in actors)
         {
@@ -46,21 +65,82 @@ public class BulletPool : ActorPool<Bullet>
     }
 }
 
-public class Bullet : Token<BulletState, BulletSpec>
+public class Bullet : Actor
 {
-    public override void init_1(List<object> args)
+    public bool exists;
+    public BulletState state;
+    public BulletSpec spec;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool v)
+    {
+        exists = v;
+    }
+
+    public void init_1(List<object> args)
     {
         state = new BulletState();
     }
 
-    public virtual void setWaitCnt(int c)
+    public void setAt(BulletSpec spec, Vector pos, float deg, float speed)
+    {
+        set_5(spec, pos.x, pos.y, deg, speed);
+    }
+
+    public void set_5(BulletSpec spec, float x, float y, float deg, float speed)
+    {
+        this.spec = spec;
+        set_4(x, y, deg, speed);
+    }
+
+    public void set_4(float x, float y, float deg, float speed)
+    {
+        state.clear();
+        state.pos.x = x;
+        state.pos.y = y;
+        state.deg = deg;
+        state.speed = speed;
+        spec.set_1(state);
+        exists = true;
+    }
+
+    public void move_0()
+    {
+        if (!((spec.move_1(state))))
+            remove();
+    }
+
+    public void remove()
+    {
+        exists = false;
+    }
+
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    {
+        spec.draw_1(model, color, blend, state);
+    }
+
+    public Vector pos()
+    {
+        return state.pos;
+    }
+
+    public void setWaitCnt(int c)
     {
         state.waitCnt = c;
     }
 }
 
-public class BulletState : TokenState
+public class BulletState
 {
+    public string meshKey;
+    public bool isInitialized = false;
+    public Vector pos;
+    public float deg;
+    public float speed;
     public static int colorCnt = 0;
     public static float colorAlpha = 0;
     public Vector ppos;
@@ -68,8 +148,10 @@ public class BulletState : TokenState
     public int cnt;
     public int waitCnt;
     public float speedRatio;
-    public BulletState() : base()
+    public BulletState()
     {
+        meshKey = TokenState.nextMeshKey();
+        pos = new Vector();
         ppos = new Vector();
         tailPos = new Vector();
     }
@@ -84,7 +166,7 @@ public class BulletState : TokenState
             colorAlpha = 1 - (float)(c - 15) / 15;
     }
 
-    public override void clear()
+    public void clear()
     {
         {
             ppos.y = 0;
@@ -99,12 +181,21 @@ public class BulletState : TokenState
         cnt = 0;
         waitCnt = 0;
         speedRatio = 0;
-        base.clear();
+        {
+            pos.y = 0;
+            pos.x = pos.y;
+        }
+
+        deg = 0;
+        speed = 0;
+        isInitialized = true;
     }
 }
 
-public class BulletSpec : TokenSpec<BulletState>
+public class BulletSpec
 {
+    public Field field;
+    public Shape shape;
     public const float DISAPPEAR_CNT = 300;
     public Player player;
     public EnemyPool enemies;
@@ -122,7 +213,7 @@ public class BulletSpec : TokenSpec<BulletState>
         this.gameState = gameState;
     }
 
-    public override void set_1(BulletState bs)
+    public void set_1(BulletState bs)
     {
         {
             bs.ppos.x = bs.pos.x;
@@ -132,7 +223,7 @@ public class BulletSpec : TokenSpec<BulletState>
         }
     }
 
-    public override bool move_1(BulletState bs)
+    public bool move_1(BulletState bs)
     {
         {
             if (bs.waitCnt > 0)
@@ -173,7 +264,7 @@ public class BulletSpec : TokenSpec<BulletState>
         }
     }
 
-    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, BulletState bs)
+    public void draw_1(float[] model, float[] color, Gfx.Blend blend, BulletState bs)
     {
         {
             if (bs.waitCnt > 0)

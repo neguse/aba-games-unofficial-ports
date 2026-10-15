@@ -6,6 +6,11 @@ using static Lub;
 
 public class FloatLetter : Actor
 {
+    public string meshKey;
+    public bool exists;
+    public FloatLetter() { meshKey = ActorMesh.nextKey(); }
+    public bool getExist() { return exists; }
+    public void setExist(bool value) { exists = value; }
     public static Rand rand = new Rand();
     public Tunnel tunnel;
     public Vector3 pos;
@@ -20,7 +25,7 @@ public class FloatLetter : Actor
         rand.setSeed(seed);
     }
 
-    public override void init_1(List<object> args)
+    public void init_1(List<object> args)
     {
         tunnel = (Tunnel)args[0];
         pos = new Vector3();
@@ -41,7 +46,7 @@ public class FloatLetter : Actor
         exists = true;
     }
 
-    public override void move()
+    public void move()
     {
         pos.x = pos.x + (mx * pos.y * SimulationTime.Step);
         pos.y = pos.y + (my * SimulationTime.Step);
@@ -53,7 +58,7 @@ public class FloatLetter : Actor
             alpha = alpha - (0.03f * SimulationTime.Step);
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         float[] parent1 = model;
         Vector3 sp = tunnel.getPos_1_Vector3(pos);
@@ -66,9 +71,17 @@ public class FloatLetter : Actor
     }
 }
 
-public class FloatLetterPool : ActorPool<FloatLetter>
+public class FloatLetterPool
 {
-    public FloatLetterPool(int n, List<object> args) : base(n, args, () => new FloatLetter())
+    ActorPool<FloatLetter> pool;
+    public FloatLetter[] actor;
+    public FloatLetterPool(int n, List<object> args)
     {
+        pool = new ActorPool<FloatLetter>(n, args, () => new FloatLetter());
+        actor = pool.actor;
     }
+    public FloatLetter getInstanceForced() { return pool.getInstanceForced(); }
+    public void move() { pool.move(); }
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth) { pool.draw(model, tint, blend, cull, lineWidth); }
+    public void clear() { pool.clear(); }
 }

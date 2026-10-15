@@ -1,7 +1,7 @@
 // Copyright 2008 Kenta Cho. Some rights reserved.
 using System;
 
-public class BonusPool : ActorPool<Bonus>
+public class BonusPool
 {
     public static Random Random;
     private MmFrame frame;
@@ -14,8 +14,12 @@ public class BonusPool : ActorPool<Bonus>
         Random = new Random(s);
     }
 
-    public BonusPool(int n, MmFrame frame, Player player) : base(n, () => new Bonus())
+    public ActorPool<Bonus> pool;
+    public Bonus[] actors;
+    public BonusPool(int n, MmFrame frame, Player player)
     {
+        pool = new ActorPool<Bonus>(n, () => new Bonus(), null);
+        actors = pool.actors;
         if (frame != null)
         {
             this.frame = frame;
@@ -32,7 +36,48 @@ public class BonusPool : ActorPool<Bonus>
         dirVel = (Quaternion.CreateFromYawPitchRoll(-0.0125f, 0.025f, -0.05f)).Copy();
     }
 
-    public override void UpdateT(Bonus a)
+    public int Add(Bonus a)
+    {
+        return pool.Add(a);
+    }
+
+    public void AddTo(BonusPool p)
+    {
+        pool.AddTo(p.pool);
+    }
+
+    public int Length()
+    {
+        return pool.Length();
+    }
+
+    public void Gc()
+    {
+        pool.Gc();
+    }
+
+    public void Update()
+    {
+        pool.ForEach((Bonus a) =>
+        {
+            UpdateT(a);
+        });
+    }
+
+    public void Draw()
+    {
+        pool.ForEach((Bonus a) =>
+        {
+            DrawT(a);
+        });
+    }
+
+    public void RemoveT(Bonus a)
+    {
+        pool.Removeint(a.GetId());
+    }
+
+    public void UpdateT(Bonus a)
     {
         a.Cnt -= SimulationTime.Step;
         if (a.Cnt <= 0)
@@ -67,7 +112,7 @@ public class BonusPool : ActorPool<Bonus>
         a.BlurVel += (a.Vel - a.BlurVel) * SimulationTime.Blend(0.1f);
     }
 
-    public override void DrawT(Bonus a)
+    public void DrawT(Bonus a)
     {
         float sz = 0.5f;
         if (a.Cnt < 30)
@@ -81,7 +126,7 @@ public class BonusPool : ActorPool<Bonus>
 
     public void ClearAll()
     {
-        Clear();
+        pool.Clear();
         for (int i = 0; i < actors.Length; i++)
             actors[(i)].Clear();
     }

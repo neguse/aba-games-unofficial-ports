@@ -19,7 +19,7 @@ def expression(text, parameters, precise=False):
             return str(node.value) + "f"
         if isinstance(node, ast.Name):
             if node.id == "var_rank":
-                return "new PatternNumber(b.Rank, 0)" if precise else "b.Rank"
+                return "new PatternNumber(b.GetRank(), 0)" if precise else "b.GetRank()"
             if node.id == "var_rand":
                 return "new PatternNumber(w.RandomValue(), 0)" if precise else "w.RandomValue()"
             if node.id.startswith("var_") and node.id[4:].isdigit():
@@ -140,7 +140,7 @@ class Program:
     def compile(self):
         for i, action in enumerate(self.actions):
             if i:
-                self.state([f"s.Pc = {len(self.states) + 1};", "s.Resume = w.Turn + 1;", "return;"], gated=False)
+                self.state([f"s.Pc = {len(self.states) + 1};", "s.Resume = w.GetTurn() + 1;", "return;"], gated=False)
             self.compile_node(action, [f"s.Args[{i}]" for i in range(self.compiler.parameter_count)], [])
         self.state(["s.Pc = -1;", "return;"], gated=False)
 
@@ -149,7 +149,7 @@ class Program:
         for pc, (code, gated) in enumerate(self.states):
             lines.append(f"case {pc}:")
             if gated:
-                lines.append("if (s.Wake > w.Turn) return;")
+                lines.append("if (s.Wake > w.GetTurn()) return;")
             lines += code
             if not code or code[-1] not in ("return;", "continue;"):
                 lines += [f"s.Pc = {pc + 1};", "break;"]

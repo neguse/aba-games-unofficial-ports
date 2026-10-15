@@ -42,18 +42,18 @@ public class Vector
         this.y = y;
     }
 
-    public virtual void clear()
+    public void clear()
     {
         y = 0;
         x = y;
     }
 
-    public virtual float opMul_1_Vector(Vector v)
+    public float opMul_1_Vector(Vector v)
     {
         return x * v.x + y * v.y;
     }
 
-    public virtual Vector getElement_1_Vector(Vector v)
+    public Vector getElement_1_Vector(Vector v)
     {
         float ll = v * v;
         if (ll != 0)
@@ -71,31 +71,31 @@ public class Vector
         return rsl;
     }
 
-    public virtual void opAddAssign_1_Vector(Vector v)
+    public void opAddAssign_1_Vector(Vector v)
     {
         x += v.x;
         y += v.y;
     }
 
-    public virtual void opSubAssign_1_Vector(Vector v)
+    public void opSubAssign_1_Vector(Vector v)
     {
         x -= v.x;
         y -= v.y;
     }
 
-    public virtual void opMulAssign(float a)
+    public void opMulAssign(float a)
     {
         x *= a;
         y *= a;
     }
 
-    public virtual void opDivAssign(float a)
+    public void opDivAssign(float a)
     {
         x /= a;
         y /= a;
     }
 
-    public virtual float checkSide_2(Vector pos1, Vector pos2)
+    public float checkSide_2(Vector pos1, Vector pos2)
     {
         float xo = pos2.x - pos1.x;
         float yo = pos2.y - pos1.y;
@@ -124,7 +124,7 @@ public class Vector
         }
     }
 
-    public virtual float checkSide_3(Vector pos1, Vector pos2, Vector ofs)
+    public float checkSide_3(Vector pos1, Vector pos2, Vector ofs)
     {
         float xo = pos2.x - pos1.x;
         float yo = pos2.y - pos1.y;
@@ -155,7 +155,7 @@ public class Vector
         }
     }
 
-    public virtual bool checkCross(Vector p, Vector p1, Vector p2, float width)
+    public bool checkCross(Vector p, Vector p1, Vector p2, float width)
     {
         float a1x = default(float), a1y = default(float), a2x = default(float), a2y = default(float);
         if (x < p.x)
@@ -227,7 +227,7 @@ public class Vector
         return false;
     }
 
-    public virtual bool checkHitDist(Vector p, Vector pp, float dist)
+    public bool checkHitDist(Vector p, Vector pp, float dist)
     {
         float bmvx = default(float), bmvy = default(float), inaa = default(float);
         bmvx = pp.x;
@@ -254,17 +254,17 @@ public class Vector
         return false;
     }
 
-    public virtual float vctSize()
+    public float vctSize()
     {
         return sqrt(x * x + y * y);
     }
 
-    public virtual float dist_1_Vector(Vector v)
+    public float dist_1_Vector(Vector v)
     {
         return dist_2(v.x, v.y);
     }
 
-    public virtual float dist_2(float px = 0, float py = 0)
+    public float dist_2(float px = 0, float py = 0)
     {
         float ax = fabs(x - px);
         float ay = fabs(y - py);
@@ -274,12 +274,12 @@ public class Vector
             return ay + ax / 2;
     }
 
-    public virtual bool contains_2(Vector p, float r = 1)
+    public bool contains_2(Vector p, float r = 1)
     {
         return contains_3(p.x, p.y, r);
     }
 
-    public virtual bool contains_3(float px, float py, float r = 1)
+    public bool contains_3(float px, float py, float r = 1)
     {
         if (px >= -x * r && px <= x * r && py >= -y * r && py <= y * r)
             return true;
@@ -287,7 +287,7 @@ public class Vector
             return false;
     }
 
-    public virtual void roll(float d)
+    public void roll(float d)
     {
         float tx = x * cos(d) - y * sin(d);
         y = x * sin(d) + y * cos(d);
@@ -335,52 +335,52 @@ public class Vector3
         this.z = z;
     }
 
-    public virtual void clear()
+    public void clear()
     {
         z = 0;
         y = z;
         x = y;
     }
 
-    public virtual void rollX(float d)
+    public void rollX(float d)
     {
         float ty = y * cos(d) - z * sin(d);
         z = y * sin(d) + z * cos(d);
         y = ty;
     }
 
-    public virtual void rollY(float d)
+    public void rollY(float d)
     {
         float tx = x * cos(d) - z * sin(d);
         z = x * sin(d) + z * cos(d);
         x = tx;
     }
 
-    public virtual void rollZ(float d)
+    public void rollZ(float d)
     {
         float tx = x * cos(d) - y * sin(d);
         y = x * sin(d) + y * cos(d);
         x = tx;
     }
 
-    public virtual void blend(Vector3 v1, Vector3 v2, float ratio)
+    public void blend(Vector3 v1, Vector3 v2, float ratio)
     {
         x = v1.x * ratio + v2.x * (1 - ratio);
         y = v1.y * ratio + v2.y * (1 - ratio);
         z = v1.z * ratio + v2.z * (1 - ratio);
     }
 
-    public virtual float vctSize()
+    public float vctSize()
     {
         return sqrt(x * x + y * y + z * z);
     }
 
-    public virtual float dist_1_Vector3(Vector3 v)
+    public float dist_1_Vector3(Vector3 v)
     {
         return dist_3(v.x, v.y, v.z);
     }
 
-    public virtual float dist_3(float px = 0, float py = 0, float pz = 0)
+    public float dist_3(float px = 0, float py = 0, float pz = 0)
     {
         float ax = fabs(x - px);
         float ay = fabs(y - py);
@@ -396,7 +396,7 @@ public class Vector3
             return az + axy / 2;
     }
 
-    public virtual Vector3 getElement_1_Vector3(Vector3 v)
+    public Vector3 getElement_1_Vector3(Vector3 v)
     {
         float ll = v * v;
         if (ll != 0)
@@ -416,33 +416,33 @@ public class Vector3
         return rsl;
     }
 
-    public virtual float opMul_1_Vector3(Vector3 v)
+    public float opMul_1_Vector3(Vector3 v)
     {
         return x * v.x + y * v.y + z * v.z;
     }
 
-    public virtual void opAddAssign_1_Vector3(Vector3 v)
+    public void opAddAssign_1_Vector3(Vector3 v)
     {
         x += v.x;
         y += v.y;
         z += v.z;
     }
 
-    public virtual void opSubAssign_1_Vector3(Vector3 v)
+    public void opSubAssign_1_Vector3(Vector3 v)
     {
         x -= v.x;
         y -= v.y;
         z -= v.z;
     }
 
-    public virtual void opMulAssign(float a)
+    public void opMulAssign(float a)
     {
         x *= a;
         y *= a;
         z *= a;
     }
 
-    public virtual void opDivAssign(float a)
+    public void opDivAssign(float a)
     {
         x /= a;
         y /= a;

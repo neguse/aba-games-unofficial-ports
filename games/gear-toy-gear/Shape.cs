@@ -1,7 +1,7 @@
 // Copyright 2009 Kenta Cho. Some rights reserved.
 using System;
 
-public class GearShape : PrimitiveListShape
+public static class GearShape
 {
     private static int[] quadIndices = new int[]
     {
@@ -39,29 +39,30 @@ public class GearShape : PrimitiveListShape
         9,
         12
     };
-    public GearShape(GtgFrame frame, float radius, float innerRadius, float thickness, Color frontColor, Color backColor, bool hasCenter) : base(frame, 56)
+    public static Shape Create(GtgFrame frame, float radius, float innerRadius, float thickness, Color frontColor, Color backColor, bool hasCenter)
     {
+        var s = new Shape(frame, 56, 0);
         float a = 0;
         for (int i = 0; i < 8; i++)
         {
-            Add((float)Math.Sin(a - 0.1f) * radius, (float)Math.Cos(a - 0.1f) * radius, thickness, frontColor.R, frontColor.G, frontColor.B, frontColor.A);
-            Add((float)Math.Sin(a + 0.1f) * radius, (float)Math.Cos(a + 0.1f) * radius, thickness, frontColor.R, frontColor.G, frontColor.B, frontColor.A);
-            Add((float)Math.Sin(a) * innerRadius, (float)Math.Cos(a) * innerRadius, thickness, frontColor.R, frontColor.G, frontColor.B, frontColor.A);
-            Add((float)Math.Sin(a - 0.1f) * radius, (float)Math.Cos(a - 0.1f) * radius, -thickness, backColor.R, backColor.G, backColor.B, backColor.A);
-            Add((float)Math.Sin(a + 0.1f) * radius, (float)Math.Cos(a + 0.1f) * radius, -thickness, backColor.R, backColor.G, backColor.B, backColor.A);
-            Add((float)Math.Sin(a) * innerRadius, (float)Math.Cos(a) * innerRadius, -thickness, backColor.R, backColor.G, backColor.B, backColor.A);
-            Add((float)Math.Sin(a) * innerRadius, (float)Math.Cos(a) * innerRadius, 0, 0, 0, 0, 0);
+            s.Add((float)Math.Sin(a - 0.1f) * radius, (float)Math.Cos(a - 0.1f) * radius, thickness, frontColor.R, frontColor.G, frontColor.B, frontColor.A);
+            s.Add((float)Math.Sin(a + 0.1f) * radius, (float)Math.Cos(a + 0.1f) * radius, thickness, frontColor.R, frontColor.G, frontColor.B, frontColor.A);
+            s.Add((float)Math.Sin(a) * innerRadius, (float)Math.Cos(a) * innerRadius, thickness, frontColor.R, frontColor.G, frontColor.B, frontColor.A);
+            s.Add((float)Math.Sin(a - 0.1f) * radius, (float)Math.Cos(a - 0.1f) * radius, -thickness, backColor.R, backColor.G, backColor.B, backColor.A);
+            s.Add((float)Math.Sin(a + 0.1f) * radius, (float)Math.Cos(a + 0.1f) * radius, -thickness, backColor.R, backColor.G, backColor.B, backColor.A);
+            s.Add((float)Math.Sin(a) * innerRadius, (float)Math.Cos(a) * innerRadius, -thickness, backColor.R, backColor.G, backColor.B, backColor.A);
+            s.Add((float)Math.Sin(a) * innerRadius, (float)Math.Cos(a) * innerRadius, 0, 0, 0, 0, 0);
             a += (float)Math.PI / 4;
         }
 
-        EndAdd();
+        s.EndAdd();
         int indexCount;
         if (hasCenter)
             indexCount = 282;
         else
             indexCount = 264;
-        indices = GtgArrays.Make(indexCount * MaxInstanceCount, () => 0);
-        for (int i = 0; i < MaxInstanceCount; i++)
+        s.indices = GtgArrays.Make(indexCount * Shape.MaxInstanceCount, () => 0);
+        for (int i = 0; i < Shape.MaxInstanceCount; i++)
         {
             for (int j = 0; j < 8; j++)
             {
@@ -70,7 +71,7 @@ public class GearShape : PrimitiveListShape
                     int idx = quadIndices[(k)] + j * 7;
                     if (idx >= 56)
                         idx -= 56;
-                    indices[(i * indexCount + j * 33 + k)] = (int)(i * 56 + idx);
+                    s.indices[(i * indexCount + j * 33 + k)] = (int)(i * 56 + idx);
                 }
             }
 
@@ -78,19 +79,21 @@ public class GearShape : PrimitiveListShape
             {
                 for (int j = 0; j < 6; j++)
                 {
-                    indices[(i * indexCount + 264 + j * 3)] = (int)(i * 56 + 6);
-                    indices[(i * indexCount + 264 + j * 3 + 1)] = (int)(i * 56 + 7 + j * 7);
-                    indices[(i * indexCount + 264 + j * 3 + 2)] = (int)(i * 56 + 14 + j * 7);
+                    s.indices[(i * indexCount + 264 + j * 3)] = (int)(i * 56 + 6);
+                    s.indices[(i * indexCount + 264 + j * 3 + 1)] = (int)(i * 56 + 7 + j * 7);
+                    s.indices[(i * indexCount + 264 + j * 3 + 2)] = (int)(i * 56 + 14 + j * 7);
                 }
             }
         }
 
-        primitiveCount = indexCount / 3;
-        CreateIndexBuffer();
+        s.primitiveCount = indexCount / 3;
+        s.CreateIndexBuffer();
+
+        return s;
     }
 }
 
-public class GearEdgeShape : PrimitiveListShape
+public static class GearEdgeShape
 {
     private static int[] quadIndices = new int[]
     {
@@ -101,25 +104,26 @@ public class GearEdgeShape : PrimitiveListShape
         2,
         3
     };
-    public GearEdgeShape(GtgFrame frame, float radius, float innerRadius, float thickness, float edgeThickness) : base(frame, 48, 48)
+    public static Shape Create(GtgFrame frame, float radius, float innerRadius, float thickness, float edgeThickness)
     {
+        var s = new Shape(frame, 48, 48);
         float a = 0;
         float ir = (radius + innerRadius) * 0.5f;
         for (int i = 0; i < 8; i++)
         {
-            Add((float)Math.Sin(a - 0.1f) * radius, (float)Math.Cos(a - 0.1f) * radius, thickness, 250, 250, 250, 240);
-            Add((float)Math.Sin(a - 0.1f) * (radius - edgeThickness), (float)Math.Cos(a - 0.1f) * (radius - edgeThickness), thickness, 250, 250, 250, 180);
-            Add((float)Math.Sin(a + 0.1f) * radius, (float)Math.Cos(a + 0.1f) * radius, thickness, 250, 250, 250, 240);
-            Add((float)Math.Sin(a + 0.1f) * (radius - edgeThickness), (float)Math.Cos(a + 0.1f) * (radius - edgeThickness), thickness, 250, 250, 250, 180);
-            Add((float)Math.Sin(a + (float)Math.PI / 8) * ir, (float)Math.Cos(a + (float)Math.PI / 8) * ir, thickness, 250, 250, 250, 240);
-            Add((float)Math.Sin(a + (float)Math.PI / 8) * (ir - edgeThickness), (float)Math.Cos(a + (float)Math.PI / 8) * (ir - edgeThickness), thickness, 250, 250, 250, 240);
+            s.Add((float)Math.Sin(a - 0.1f) * radius, (float)Math.Cos(a - 0.1f) * radius, thickness, 250, 250, 250, 240);
+            s.Add((float)Math.Sin(a - 0.1f) * (radius - edgeThickness), (float)Math.Cos(a - 0.1f) * (radius - edgeThickness), thickness, 250, 250, 250, 180);
+            s.Add((float)Math.Sin(a + 0.1f) * radius, (float)Math.Cos(a + 0.1f) * radius, thickness, 250, 250, 250, 240);
+            s.Add((float)Math.Sin(a + 0.1f) * (radius - edgeThickness), (float)Math.Cos(a + 0.1f) * (radius - edgeThickness), thickness, 250, 250, 250, 180);
+            s.Add((float)Math.Sin(a + (float)Math.PI / 8) * ir, (float)Math.Cos(a + (float)Math.PI / 8) * ir, thickness, 250, 250, 250, 240);
+            s.Add((float)Math.Sin(a + (float)Math.PI / 8) * (ir - edgeThickness), (float)Math.Cos(a + (float)Math.PI / 8) * (ir - edgeThickness), thickness, 250, 250, 250, 240);
             a += (float)Math.PI / 4;
         }
 
-        EndAdd();
+        s.EndAdd();
         int indexCount = 144;
-        indices = GtgArrays.Make(indexCount * MaxInstanceCount, () => 0);
-        for (int i = 0; i < MaxInstanceCount; i++)
+        s.indices = GtgArrays.Make(indexCount * Shape.MaxInstanceCount, () => 0);
+        for (int i = 0; i < Shape.MaxInstanceCount; i++)
         {
             for (int j = 0; j < 24; j++)
             {
@@ -128,44 +132,49 @@ public class GearEdgeShape : PrimitiveListShape
                     int idx = j * 2 + quadIndices[(k)];
                     if (idx >= 48)
                         idx -= 48;
-                    indices[(i * indexCount + j * 6 + k)] = (int)(i * 48 + idx);
+                    s.indices[(i * indexCount + j * 6 + k)] = (int)(i * 48 + idx);
                 }
             }
         }
 
-        CreateIndexBuffer();
+        s.CreateIndexBuffer();
+
+        return s;
     }
 }
 
-public class EllipseShape : PrimitiveListShape
+public static class EllipseShape
 {
-    public EllipseShape(GtgFrame frame, float radius, float ratio) : base(frame, 16, 14)
+    public static Shape Create(GtgFrame frame, float radius, float ratio)
     {
+        var s = new Shape(frame, 16, 14);
         float a = 0;
         for (int i = 0; i < 16; i++)
         {
-            Add((float)Math.Sin(a) * radius * ratio, (float)Math.Cos(a) * radius, 0, 0, 0, 0, 0);
+            s.Add((float)Math.Sin(a) * radius * ratio, (float)Math.Cos(a) * radius, 0, 0, 0, 0, 0);
             a += (float)Math.PI / 8;
         }
 
-        EndAdd();
+        s.EndAdd();
         int indexCount = 42;
-        indices = GtgArrays.Make(indexCount * MaxInstanceCount, () => 0);
-        for (int i = 0; i < MaxInstanceCount; i++)
+        s.indices = GtgArrays.Make(indexCount * Shape.MaxInstanceCount, () => 0);
+        for (int i = 0; i < Shape.MaxInstanceCount; i++)
         {
             for (int j = 0; j < 14; j++)
             {
-                indices[(i * indexCount + j * 3)] = (int)(i * 16);
-                indices[(i * indexCount + j * 3 + 1)] = (int)(i * 16 + 1 + j);
-                indices[(i * indexCount + j * 3 + 2)] = (int)(i * 16 + 2 + j);
+                s.indices[(i * indexCount + j * 3)] = (int)(i * 16);
+                s.indices[(i * indexCount + j * 3 + 1)] = (int)(i * 16 + 1 + j);
+                s.indices[(i * indexCount + j * 3 + 2)] = (int)(i * 16 + 2 + j);
             }
         }
 
-        CreateIndexBuffer();
+        s.CreateIndexBuffer();
+
+        return s;
     }
 }
 
-public class EllipseEdgeShape : PrimitiveListShape
+public static class EllipseEdgeShape
 {
     private static int[] quadIndices = new int[]
     {
@@ -176,20 +185,21 @@ public class EllipseEdgeShape : PrimitiveListShape
         2,
         3
     };
-    public EllipseEdgeShape(GtgFrame frame, float radius, float ratio, float innerRadius, int vc) : base(frame, vc * 2, vc * 2)
+    public static Shape Create(GtgFrame frame, float radius, float ratio, float innerRadius, int vc)
     {
+        var s = new Shape(frame, vc * 2, vc * 2);
         float a = 0;
         for (int i = 0; i < vc; i++)
         {
-            Add((float)Math.Sin(a) * radius * ratio, (float)Math.Cos(a) * radius, 0, 250, 250, 250, 240);
-            Add((float)Math.Sin(a) * innerRadius * ratio, (float)Math.Cos(a) * innerRadius, 0, 250, 250, 250, 180);
+            s.Add((float)Math.Sin(a) * radius * ratio, (float)Math.Cos(a) * radius, 0, 250, 250, 250, 240);
+            s.Add((float)Math.Sin(a) * innerRadius * ratio, (float)Math.Cos(a) * innerRadius, 0, 250, 250, 250, 180);
             a += (float)Math.PI * 2 / vc;
         }
 
-        EndAdd();
+        s.EndAdd();
         int indexCount = vc * 6;
-        indices = GtgArrays.Make(indexCount * MaxInstanceCount, () => 0);
-        for (int i = 0; i < MaxInstanceCount; i++)
+        s.indices = GtgArrays.Make(indexCount * Shape.MaxInstanceCount, () => 0);
+        for (int i = 0; i < Shape.MaxInstanceCount; i++)
         {
             for (int j = 0; j < vc; j++)
             {
@@ -198,16 +208,18 @@ public class EllipseEdgeShape : PrimitiveListShape
                     int idx = j * 2 + quadIndices[(k)];
                     if (idx >= vc * 2)
                         idx -= vc * 2;
-                    indices[(i * indexCount + j * 6 + k)] = (int)(i * vc * 2 + idx);
+                    s.indices[(i * indexCount + j * 6 + k)] = (int)(i * vc * 2 + idx);
                 }
             }
         }
 
-        CreateIndexBuffer();
+        s.CreateIndexBuffer();
+
+        return s;
     }
 }
 
-public class CubeEdgeShape : PrimitiveListShape
+public static class CubeEdgeShape
 {
     private static int[] quadIndices = new int[]
     {
@@ -283,19 +295,20 @@ public class CubeEdgeShape : PrimitiveListShape
             1
         }
     };
-    public CubeEdgeShape(GtgFrame frame, float x, float y, float z) : base(frame, 24, 24)
+    public static Shape Create(GtgFrame frame, float x, float y, float z)
     {
+        var s = new Shape(frame, 24, 24);
         for (int i = 0; i < 8; i++)
         {
-            Add(cubeOffsets[(i)][(0)] * x * 1.1f, cubeOffsets[(i)][(1)] * y * 0.9f, cubeOffsets[(i)][(2)] * z * 0.9f, 250, 250, 250, 240);
-            Add(cubeOffsets[(i)][(0)] * x * 0.9f, cubeOffsets[(i)][(1)] * y * 1.1f, cubeOffsets[(i)][(2)] * z * 0.9f, 250, 250, 250, 240);
-            Add(cubeOffsets[(i)][(0)] * x * 0.9f, cubeOffsets[(i)][(1)] * y * 0.9f, cubeOffsets[(i)][(2)] * z * 1.1f, 250, 250, 250, 240);
+            s.Add(cubeOffsets[(i)][(0)] * x * 1.1f, cubeOffsets[(i)][(1)] * y * 0.9f, cubeOffsets[(i)][(2)] * z * 0.9f, 250, 250, 250, 240);
+            s.Add(cubeOffsets[(i)][(0)] * x * 0.9f, cubeOffsets[(i)][(1)] * y * 1.1f, cubeOffsets[(i)][(2)] * z * 0.9f, 250, 250, 250, 240);
+            s.Add(cubeOffsets[(i)][(0)] * x * 0.9f, cubeOffsets[(i)][(1)] * y * 0.9f, cubeOffsets[(i)][(2)] * z * 1.1f, 250, 250, 250, 240);
         }
 
-        EndAdd();
-        indices = GtgArrays.Make(24 * 3 * MaxInstanceCount, () => 0);
+        s.EndAdd();
+        s.indices = GtgArrays.Make(24 * 3 * Shape.MaxInstanceCount, () => 0);
         int[] edgeIndices = GtgArrays.Make(4, () => 0);
-        for (int i = 0; i < MaxInstanceCount; i++)
+        for (int i = 0; i < Shape.MaxInstanceCount; i++)
         {
             for (int j = 0; j < 12; j++)
             {
@@ -318,10 +331,12 @@ public class CubeEdgeShape : PrimitiveListShape
                 }
 
                 for (int k = 0; k < 6; k++)
-                    indices[(i * 24 * 3 + j * 6 + k)] = (int)(i * 24 + edgeIndices[(quadIndices[(k)])]);
+                    s.indices[(i * 24 * 3 + j * 6 + k)] = (int)(i * 24 + edgeIndices[(quadIndices[(k)])]);
             }
         }
 
-        CreateIndexBuffer();
+        s.CreateIndexBuffer();
+
+        return s;
     }
 }

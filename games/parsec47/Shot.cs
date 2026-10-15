@@ -3,6 +3,11 @@ using System;
 using static GameMath;
 using static Lub;
 public class Shot: Actor {
+  public string meshKey;
+  public bool isExist;
+  public Shot() { meshKey = ActorMesh.nextKey(); }
+  public bool getExist() { return isExist; }
+  public void setExist(bool value) { isExist = value; }
 
   public Vector pos;
   public const float SPEED = 1;
@@ -14,11 +19,11 @@ public class Shot: Actor {
   public int cnt;
   public const int RETRO_CNT = 4;
 
-  public override Actor newActor() {
+  public Actor newActor() {
     return new Shot();
   }
 
-  public override void init(ActorInitializer ini) {
+  public void init(ActorInitializer ini) {
     ShotInitializer si = (ShotInitializer) ini;
     field = si.field;
     pos = new Vector();
@@ -34,7 +39,7 @@ public class Shot: Actor {
     isExist = true;
   }
 
-  public override void move() {
+  public void move() {
     pos.x += vel.x;
     pos.y += vel.y;
     if (field.checkHit_2(pos, FIELD_SPACE))
@@ -42,7 +47,7 @@ public class Shot: Actor {
     cnt++;
   }
 
-  public override void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
     var mesh = new Mesh("Shot-draw" + "-" + meshKey);
     float r=0;
     if (cnt > RETRO_CNT)

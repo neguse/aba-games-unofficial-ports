@@ -34,7 +34,7 @@ g.pref_manager.pref_data:record_result(7654321,123456);assert(g.pref_manager.pre
 local old=g.pref_manager.pref_data.high_score[1];g.pref_manager:load_text('bad');assert(g.pref_manager.pref_data.high_score[1]==old)
 for _,kind in ipairs({CentHeadToAndFrom,CentHeadChase,CentHeadRoll})do
  for size=0,2 do
-  fresh();local spec=kind.new(g.field,g.ship,g.bullets,g.world,30,size)
+  fresh();local spec=kind.create(g.field,g.ship,g.bullets,g.world,30,size)
   local head=spec:set_jointed_enemies_5(g.enemies,0,10,0,0);assert(head and count(g.enemies)==spec.body_length)
   local most=0
   for i=1,240 do tick(0);most=math.max(most,count(g.bullets.simple_bullets))end
@@ -42,18 +42,18 @@ for _,kind in ipairs({CentHeadToAndFrom,CentHeadChase,CentHeadRoll})do
  end
 end
 fresh();local before=g.score;local block=g.enemies:get_instance();assert(block:set_10(g.stage_manager._block_spec,0,0,0,0,1,1,1,1))
-mcdphysics.body_position(block._body_id,30,0,-11);tick(0,2);assert(not block.exists and g.score>before)
+mcdphysics.body_position(block.ode._body_id,30,0,-11);tick(0,2);assert(not block.exists and g.score>before)
 draws=0;Letter.draw_string(Transform.ortho(),nil,lub.gfx.ADDITIVE,'test','ABC 123',10,20,3);assert(draws>100)
 local lp=LinePoint.new(g.field);assert(#lp.pos==8 and #lp.pos_hist==40 and #lp.pos_hist[1]==8)
-fresh();local spec=CentHeadChase.new(g.field,g.ship,g.bullets,g.world,30,1)
+fresh();local spec=CentHeadChase.create(g.field,g.ship,g.bullets,g.world,30,1)
 local head=spec:set_jointed_enemies_5(g.enemies,0,10,0,0);assert(head)
-mcdphysics.body_position(head._body_id,30,0,-11);tick(0,2);assert(not head.exists and count(g.tail_particles)>0)
+mcdphysics.body_position(head.ode._body_id,30,0,-11);tick(0,2);assert(not head.exists and count(g.tail_particles)>0)
 tick(0,180);assert(g.ship.tail_num>0 and g.ship:get_multiplier()==g.ship.tail_num+1)
 fresh();g.stage_manager.move_0=stageMove;g.ship.destroyed_0=function()end
 local maxEnemies,maxBullets=0,0
 for i=1,4000 do
  tick(256|((i%240<120)and 4 or 8));maxEnemies=math.max(maxEnemies,count(g.enemies));maxBullets=math.max(maxBullets,count(g.bullets.simple_bullets))
- if i%120==0 then mcdphysics.body_position(g.ship._body_id,0,0,0);g.ship:reset()end
+ if i%120==0 then mcdphysics.body_position(g.ship.ode._body_id,0,0,0);g.ship.ode:reset()end
 end
 assert(maxEnemies>10 and maxBullets>0 and g.stage_manager.rank>0)
 local o=mcdphysics

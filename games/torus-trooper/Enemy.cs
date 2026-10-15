@@ -6,6 +6,11 @@ using static Lub;
 
 public class Enemy : Actor
 {
+    public string meshKey;
+    public bool exists;
+    public Enemy() { meshKey = ActorMesh.nextKey(); }
+    public bool getExist() { return exists; }
+    public void setExist(bool value) { exists = value; }
     public const float OUT_OF_COURSE_BANK = 1.0f;
     public const float DISAP_DEPTH = -5.0f;
     public static Rand rand = new Rand();
@@ -38,7 +43,7 @@ public class Enemy : Actor
         rand.setSeed(seed);
     }
 
-    public override void init_1(List<object> args)
+    public void init_1(List<object> args)
     {
         tunnel = (Tunnel)args[0];
         bullets = (BulletActorPool)args[1];
@@ -90,7 +95,7 @@ public class Enemy : Actor
         exists = true;
     }
 
-    public override void move()
+    public void move()
     {
         if (!(passed))
         {
@@ -405,7 +410,7 @@ public class Enemy : Actor
         exists = false;
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         Vector3 sp = tunnel.getPos_1_Vector(pos);
         float[] parent1 = model;
@@ -440,11 +445,18 @@ public class Enemy : Actor
     }
 }
 
-public class EnemyPool : ActorPool<Enemy>
+public class EnemyPool
 {
-    public EnemyPool(int n, List<object> args) : base(n, args, () => new Enemy())
+    ActorPool<Enemy> pool;
+    public Enemy[] actor;
+    public EnemyPool(int n, List<object> args)
     {
+        pool = new ActorPool<Enemy>(n, args, () => new Enemy());
+        actor = pool.actor;
     }
+    public Enemy getInstance() { return pool.getInstance(); }
+    public void move() { pool.move(); }
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth) { pool.draw(model, tint, blend, cull, lineWidth); }
 
     public void checkShotHit(Vector pos, Collidable shape, Shot shot)
     {
@@ -468,11 +480,11 @@ public class EnemyPool : ActorPool<Enemy>
             e.setPassedEnemies(pe);
     }
 
-    public override void clear()
+    public void clear()
     {
         foreach (Enemy e in actor)
             if (e.exists)
                 e.remove();
-        base.clear();
+        pool.clear();
     }
 }

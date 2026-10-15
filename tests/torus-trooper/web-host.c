@@ -30,7 +30,7 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     int shots = 0;
     TcsArray *actors = g->f_shots->f_actor;
     for (size_t i = 0; i < actors->length; i++)
-        if (((Tcs_Actor **)actors->data)[i]->f_exists) shots++;
+        if (((Tcs_Shot **)actors->data)[i]->f_exists) shots++;
     float charge = g->f_ship->f_charging_shot ? g->f_ship->f_charging_shot->f_charge_cnt : 0;
     TcsArray *projection = tcs_s_TtRender_projection;
     float vr[] = {g->f_state == (Tcs_GameState *)g->f_in_game_state, g->f_in_game_state->f_time,

@@ -1,4 +1,5 @@
 // Copyright 2004 Kenta Cho. All rights reserved.
+using System.Collections.Generic;
 using static GameMath;
 
 public class Barrage
@@ -32,30 +33,27 @@ public class BulletInst : PatternBody
     public bool deactivated;
     public BulletTarget target;
     public StageManager stageManager;
+    public List<PatternState> Scripts = new List<PatternState>();
 
     public BulletInst(BulletActor owner) { this.owner = owner; }
-    public override float Direction { get { return rtod(deg); } set { deg = dtor(value); } }
-    public override float Speed { get { return velocity * 6.2f; } set { velocity = value * (10f / 62); } }
-    public override float AccelX { get { return acc.x; } set { acc.x = value * (10f / 62); } }
-    public override float AccelY { get { return acc.y; } set { acc.y = value * (10f / 62); } }
-    public override float Aim
+    public float GetDirection() { return rtod(deg); }
+    public void SetDirection(float value) { deg = dtor(value); }
+    public float GetSpeed() { return velocity * 6.2f; }
+    public void SetSpeed(float value) { velocity = value * (10f / 62); }
+    public float GetAccelX() { return acc.x; }
+    public void SetAccelX(float value) { acc.x = value * (10f / 62); }
+    public float GetAccelY() { return acc.y; }
+    public void SetAccelY(float value) { acc.y = value * (10f / 62); }
+    public float GetAim()
     {
-        get
-        {
-            Vector p = target.getTargetPos();
-            return rtod((atan2(p.x - pos.x, p.y - pos.y) * xReverse + PI / 2) * yReverse - PI / 2);
-        }
-        set { }
+        Vector p = target.getTargetPos();
+        return rtod((atan2(p.x - pos.x, p.y - pos.y) * xReverse + PI / 2) * yReverse - PI / 2);
     }
-    public override float Rank
+    public float GetRank()
     {
-        get
-        {
-            if (type != BulletType.ENEMY) return rankNum;
-            float rank = rankNum + (1 - rankNum) * stageManager.rank / (1 + morphNum * 0.33f);
-            return rank > 1 ? 1 : rank;
-        }
-        set { rankNum = value; }
+        if (type != BulletType.ENEMY) return rankNum;
+        float rank = rankNum + (1 - rankNum) * stageManager.rank / (1 + morphNum * 0.33f);
+        return rank > 1 ? 1 : rank;
     }
     public float speedRank
     {
@@ -104,22 +102,24 @@ public class BulletInst : PatternBody
     {
         now = this;
         world.Turn = world.pool.getTurn();
-        if (!PatternEnded()) RunPattern(world);
+        if (!PatternRunner.Ended(Scripts)) PatternRunner.Run(Scripts, this, world);
     }
-    public bool isEnd() { return PatternEnded(); }
+    public bool isEnd() { return PatternRunner.Ended(Scripts); }
     public void remove() { Scripts.Clear(); }
 }
 
 public class BulletWorld : PatternWorld
 {
+    public float Turn;
     public BulletActorPool pool;
     public BulletWorld(BulletActorPool pool) { this.pool = pool; }
-    public override float RandomValue() { return BulletInst.random.nextFloat(1); }
-    public override void Fire(PatternBody parent, float direction, float speed, int program, float[] args)
+    public float GetTurn() { return Turn; }
+    public float RandomValue() { return BulletInst.random.nextFloat(1); }
+    public void Fire(PatternBody parent, float direction, float speed, int program, float[] args)
     {
         if (program < 0) pool.addBullet(dtor(direction), speed * (10f / 62));
         else pool.addScriptBullet(BarrageCode.Create(program, args), dtor(direction), speed * (10f / 62));
     }
-    public override void Vanish(PatternBody body) { ((BulletInst)body).owner.remove(); }
+    public void Vanish(PatternBody body) { ((BulletInst)body).owner.remove(); }
 }
     public static class BulletType { public const int ENEMY = 0, SHIP = 1, MOVE = 2; }

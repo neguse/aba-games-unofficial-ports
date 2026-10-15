@@ -6,10 +6,10 @@ public static class P47Verification
     {
         if (!condition) { failures++; Console.WriteLine("FAIL " + name); }
     }
-    static int Count(ActorPool pool)
+    static int Count(Actor[] actors)
     {
         int count = 0;
-        foreach (var actor in pool.actor) if (actor.isExist) count++;
+        foreach (var actor in actors) if (actor.getExist()) count++;
         return count;
     }
     public static void Main()
@@ -35,15 +35,15 @@ public static class P47Verification
         Check(game.ship.pos.x > x, "movement"); game.pad.directions = 0;
         game.pad.buttons = Pad.PAD_BUTTON1 | Pad.PAD_BUTTON2;
         for (int i = 0; i < 30; i++) game.ship.move();
-        Check(Count(game.targetLocks) > 0 && Count(game.shots) > 0, "LOCK and shots");
+        Check(Count(game.targetLocks.actor) > 0 && Count(game.shots.actor) > 0, "LOCK and shots");
         game.startPause(); int turn = game.bullets.getTurn(); game.move();
         Check(game.state == P47GameManager.PAUSE && game.bullets.getTurn() == turn, "pause freezes simulation");
         game.resumePause(); game.mode = 0; game.startInGame(); game.ship.cnt = 1;
         for (int i = 0; i < 30; i++) game.ship.move();
-        Check(Count(game.rolls) > 0 && game.ship.rollCharged, "ROLL charges");
+        Check(Count(game.rolls.actor) > 0 && game.ship.rollCharged, "ROLL charges");
         game.pad.buttons = 0; game.ship.move();
         int released = 0;
-        foreach (var actor in game.rolls.actor) if (actor.isExist && ((Roll)actor).released) released++;
+        foreach (var actor in game.rolls.actor) if (actor.getExist() && ((Roll)actor).released) released++;
         Check(released > 0 && !game.ship.rollCharged, "ROLL releases");
         Bonus.resetBonusScore();
         var bonus = (Bonus)game.bonuses.getInstance(); bonus.set(game.ship.pos, null);
@@ -62,7 +62,7 @@ public static class P47Verification
                 game.pad.buttons = Pad.PAD_BUTTON1 | (frame % 180 < 100 ? Pad.PAD_BUTTON2 : 0);
                 game.move();
                 if (game.stageManager.bossSection) boss = true;
-                int bullets = Count(game.bullets); if (bullets > maxBullets) maxBullets = bullets;
+                int bullets = Count(game.bullets.actor); if (bullets > maxBullets) maxBullets = bullets;
                 if (frame % 600 == 0) game.draw();
                 frame++;
             }

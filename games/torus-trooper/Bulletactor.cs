@@ -6,6 +6,11 @@ using static Lub;
 
 public class BulletActor : Actor
 {
+    public string meshKey;
+    public bool exists;
+    public BulletActor() { meshKey = ActorMesh.nextKey(); }
+    public bool getExist() { return exists; }
+    public void setExist(bool value) { exists = value; }
     public BulletImpl bullet;
     public float rootRank;
     public const int DISAPPEAR_FRAMES = 45;
@@ -24,7 +29,7 @@ public class BulletActor : Actor
     public float waitCnt;
     public bool isMorphSeed;
     public float disapCnt;
-    public override void init_1(List<object> args)
+    public void init_1(List<object> args)
     {
         tunnel = (Tunnel)args[0];
         ship = (Ship)args[1];
@@ -132,7 +137,7 @@ public class BulletActor : Actor
             disapCnt = 1;
     }
 
-    public override void move()
+    public void move()
     {
         Vector tpos = bullet.target.getTargetPos();
         Bullet.target.x = tpos.x;
@@ -234,7 +239,7 @@ public class BulletActor : Actor
         }
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         if (!(isVisible))
             return;

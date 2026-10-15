@@ -3,6 +3,9 @@ using System;
 using static GameMath;
 using static Lub;
 public class Particle: Actor {
+  public bool isExist;
+  public bool getExist() { return isExist; }
+  public void setExist(bool value) { isExist = value; }
 
   public static Rand rand = new Rand();
   public Vector pos;
@@ -14,11 +17,11 @@ public class Particle: Actor {
 
 
 
-  public override Actor newActor() {
+  public Actor newActor() {
     return new Particle();
   }
 
-  public override void init(ActorInitializer ini) {
+  public void init(ActorInitializer ini) {
     pos = new Vector();
     vel = new Vector();
   }
@@ -38,7 +41,7 @@ public class Particle: Actor {
     isExist = true;
   }
 
-  public override void move() {
+  public void move() {
     cnt--;
     if (cnt < 0) {
       isExist = false;
@@ -57,7 +60,7 @@ public class Particle: Actor {
     }
   }
 
-  public override void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
     Mesh mesh = target;
     switch (type) {
     case ParticleType.SMOKE:
@@ -80,10 +83,18 @@ public class Particle: Actor {
 public class ParticleInitializer: ActorInitializer {
 }
 
-public class ParticlePool: ActorPool {
+public class ParticlePool {
+  ActorPool pool;
+  public Actor[] actor;
 
-  public ParticlePool(int n, ActorInitializer ini) : base(n, new Particle(), ini) {
+  public ParticlePool(int n, ActorInitializer ini) {
+    pool = new ActorPool(n, new Particle(), ini);
+    actor = pool.actor;
   }
+  public Actor getInstanceForced() { return pool.getInstanceForced(); }
+  public void move() { pool.move(); }
+  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
+  public void clear() { pool.clear(); }
 
   public void add(int n, Vector pos, float deg, float degWdt, float speed, float size, int type) {
     for (int i = 0; i < n; i++) {

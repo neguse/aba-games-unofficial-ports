@@ -3,6 +3,11 @@ using System;
 using static GameMath;
 using static Lub;
 public class BulletActor: Actor {
+  public string meshKey;
+  public bool isExist;
+  public BulletActor() { meshKey = ActorMesh.nextKey(); }
+  public bool getExist() { return isExist; }
+  public void setExist(bool value) { isExist = value; }
 
   public P47Bullet bullet;
   public static float totalBulletsSpeed;
@@ -33,11 +38,11 @@ public class BulletActor: Actor {
     totalBulletsSpeed = 0;
   }
 
-  public override Actor newActor() {
+  public Actor newActor() {
     return new BulletActor();
   }
 
-  public override void init(ActorInitializer ini) {
+  public void init(ActorInitializer ini) {
     BulletActorInitializer bi = (BulletActorInitializer) ini;
     field = bi.field;
     ship = bi.ship;
@@ -144,7 +149,7 @@ public class BulletActor: Actor {
     }
   }
 
-  public override void move() {
+  public void move() {
     ppos.x = bullet.pos.x;
     ppos.y = bullet.pos.y;
     if (!isSimple) {
@@ -221,7 +226,7 @@ public class BulletActor: Actor {
       new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
-  public override void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
     if (!isVisible)
       return;
     float d=0;

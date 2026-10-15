@@ -9,9 +9,9 @@ public class GameManager
     public float interval = 16, slowdownRatio;
     public static float shipTurnSpeed = 1;
     public static bool shipReverseFire = false;
-    public Pad pad;
-    public TwinStick twinStick;
-    public Mouse mouse;
+    public RecordablePad pad;
+    public RecordableTwinStick twinStick;
+    public RecordableMouse mouse;
     public RecordableMouseAndPad mouseAndPad;
     public PrefManager prefManager;
     public GrScreen screen;
@@ -218,13 +218,23 @@ public class GameManager
     }
 }
 
-public abstract class GameState
+public interface GameState
+{
+    public void start();
+    public void move();
+    public void draw(float[] model);
+    public void drawLuminous(float[] model);
+    public void drawFront(float[] model);
+    public void drawOrtho(float[] model);
+}
+
+public class InGameState : GameState
 {
     public GameManager gameManager;
     public GrScreen screen;
-    public Pad pad;
-    public TwinStick twinStick;
-    public Mouse mouse;
+    public RecordablePad pad;
+    public RecordableTwinStick twinStick;
+    public RecordableMouse mouse;
     public RecordableMouseAndPad mouseAndPad;
     public Field field;
     public Ship ship;
@@ -241,66 +251,6 @@ public abstract class GameState
     public StageManager stageManager;
     public ScoreReel scoreReel;
     public ReplayData _replayData;
-    public GameState(GameManager gameManager, GrScreen screen, Pad pad, TwinStick twinStick, Mouse mouse, RecordableMouseAndPad mouseAndPad, Field field, Ship ship, ShotPool shots, BulletPool bullets, EnemyPool enemies, SparkPool sparks, SmokePool smokes, FragmentPool fragments, SparkFragmentPool sparkFragments, WakePool wakes, CrystalPool crystals, NumIndicatorPool numIndicators, StageManager stageManager, ScoreReel scoreReel)
-    {
-        this.gameManager = gameManager;
-        this.screen = screen;
-        this.pad = pad;
-        this.twinStick = twinStick;
-        this.mouse = mouse;
-        this.mouseAndPad = mouseAndPad;
-        this.field = field;
-        this.ship = ship;
-        this.shots = shots;
-        this.bullets = bullets;
-        this.enemies = enemies;
-        this.sparks = sparks;
-        this.smokes = smokes;
-        this.fragments = fragments;
-        this.sparkFragments = sparkFragments;
-        this.wakes = wakes;
-        this.crystals = crystals;
-        this.numIndicators = numIndicators;
-        this.stageManager = stageManager;
-        this.scoreReel = scoreReel;
-    }
-
-    public abstract void start();
-    public abstract void move();
-    public abstract void draw(float[] model);
-    public abstract void drawLuminous(float[] model);
-    public abstract void drawFront(float[] model);
-    public abstract void drawOrtho(float[] model);
-    public void clearAll()
-    {
-        shots.clear();
-        bullets.clear();
-        enemies.clear();
-        sparks.clear();
-        smokes.clear();
-        fragments.clear();
-        sparkFragments.clear();
-        wakes.clear();
-        crystals.clear();
-        numIndicators.clear();
-    }
-
-    public ReplayData replayData
-    {
-        get
-        {
-            return _replayData;
-        }
-
-        set
-        {
-            _replayData = value;
-        }
-    }
-}
-
-public class InGameState : GameState
-{
     public static int GAME_MODE_NUM = 4;
     public static string[] gameModeText = new string[]
     {
@@ -322,8 +272,28 @@ public class InGameState : GameState
     public bool pausePressed;
     public float scoreReelSize;
     public int _gameMode;
-    public InGameState(GameManager gameManager, GrScreen screen, Pad pad, TwinStick twinStick, Mouse mouse, RecordableMouseAndPad mouseAndPad, Field field, Ship ship, ShotPool shots, BulletPool bullets, EnemyPool enemies, SparkPool sparks, SmokePool smokes, FragmentPool fragments, SparkFragmentPool sparkFragments, WakePool wakes, CrystalPool crystals, NumIndicatorPool numIndicators, StageManager stageManager, ScoreReel scoreReel, PrefManager prefManager) : base(gameManager, screen, pad, twinStick, mouse, mouseAndPad, field, ship, shots, bullets, enemies, sparks, smokes, fragments, sparkFragments, wakes, crystals, numIndicators, stageManager, scoreReel)
+    public InGameState(GameManager gameManager, GrScreen screen, RecordablePad pad, RecordableTwinStick twinStick, RecordableMouse mouse, RecordableMouseAndPad mouseAndPad, Field field, Ship ship, ShotPool shots, BulletPool bullets, EnemyPool enemies, SparkPool sparks, SmokePool smokes, FragmentPool fragments, SparkFragmentPool sparkFragments, WakePool wakes, CrystalPool crystals, NumIndicatorPool numIndicators, StageManager stageManager, ScoreReel scoreReel, PrefManager prefManager)
     {
+        this.gameManager = gameManager;
+        this.screen = screen;
+        this.pad = pad;
+        this.twinStick = twinStick;
+        this.mouse = mouse;
+        this.mouseAndPad = mouseAndPad;
+        this.field = field;
+        this.ship = ship;
+        this.shots = shots;
+        this.bullets = bullets;
+        this.enemies = enemies;
+        this.sparks = sparks;
+        this.smokes = smokes;
+        this.fragments = fragments;
+        this.sparkFragments = sparkFragments;
+        this.wakes = wakes;
+        this.crystals = crystals;
+        this.numIndicators = numIndicators;
+        this.stageManager = stageManager;
+        this.scoreReel = scoreReel;
         this.prefManager = prefManager;
         rand = new GunroarRand();
         _replayData = null;
@@ -336,7 +306,7 @@ public class InGameState : GameState
         scoreReelSize = SCORE_REEL_SIZE_DEFAULT;
     }
 
-    public override void start()
+    public void start()
     {
         ship.unsetReplayMode();
         _replayData = new ReplayData();
@@ -346,7 +316,7 @@ public class InGameState : GameState
         {
             case InGameStateGameMode.NORMAL:
             {
-                RecordablePad rp = (RecordablePad)pad;
+                RecordablePad rp = pad;
                 rp.startRecord();
                 _replayData.padInputRecord = rp.inputRecord;
                 break;
@@ -355,7 +325,7 @@ public class InGameState : GameState
             case InGameStateGameMode.TWIN_STICK:
             case InGameStateGameMode.DOUBLE_PLAY:
             {
-                RecordableTwinStick rts = (RecordableTwinStick)twinStick;
+                RecordableTwinStick rts = twinStick;
                 rts.startRecord();
                 _replayData.twinStickInputRecord = rts.inputRecord;
                 break;
@@ -418,7 +388,7 @@ public class InGameState : GameState
         NumIndicator.initTargetY();
     }
 
-    public override void move()
+    public void move()
     {
         if (pad.pause)
         {
@@ -447,8 +417,8 @@ public class InGameState : GameState
         if (isGameOver)
         {
             gameOverCnt++;
-            PadState input = ((RecordablePad)pad).getState(false);
-            MouseState mouseInput = ((RecordableMouse)mouse).getState(false);
+            PadState input = pad.getState(false);
+            MouseState mouseInput = mouse.getState(false);
             if (((input.button & PadStateButton.A) != 0) || ((gameMode == InGameStateGameMode.MOUSE) && ((mouseInput.button & MouseStateButton.LEFT) != 0)))
             {
                 if ((gameOverCnt > 60) && (!btnPressed))
@@ -494,7 +464,7 @@ public class InGameState : GameState
         SoundManager.playMarkedSe();
     }
 
-    public override void draw(float[] model)
+    public void draw(float[] model)
     {
         field.draw(model);
         var particles = new Mesh("sparks-wakes");
@@ -517,7 +487,7 @@ public class InGameState : GameState
         bullets.draw(model);
     }
 
-    public override void drawFront(float[] model)
+    public void drawFront(float[] model)
     {
         ship.drawFront(model);
         scoreReel.draw(model, 11.5f + (SCORE_REEL_SIZE_DEFAULT - scoreReelSize) * 3, -8.2f - (SCORE_REEL_SIZE_DEFAULT - scoreReelSize) * 3, scoreReelSize);
@@ -540,7 +510,7 @@ public class InGameState : GameState
         stageManager.draw(model);
     }
 
-    public override void drawOrtho(float[] model)
+    public void drawOrtho(float[] model)
     {
         drawGameParams(model);
         if (isGameOver)
@@ -549,7 +519,7 @@ public class InGameState : GameState
             Letter.drawString(model, "PAUSE", 265, 210, 12);
     }
 
-    public override void drawLuminous(float[] model)
+    public void drawLuminous(float[] model)
     {
         var particles = new Mesh("luminous-sparks");
         sparks.drawLuminous(model, particles);
@@ -618,15 +588,83 @@ public class InGameState : GameState
             _gameMode = value;
         }
     }
+
+    public void clearAll()
+    {
+        shots.clear();
+        bullets.clear();
+        enemies.clear();
+        sparks.clear();
+        smokes.clear();
+        fragments.clear();
+        sparkFragments.clear();
+        wakes.clear();
+        crystals.clear();
+        numIndicators.clear();
+    }
+
+    public ReplayData replayData
+    {
+        get
+        {
+            return _replayData;
+        }
+
+        set
+        {
+            _replayData = value;
+        }
+    }
 }
 
 public class TitleState : GameState
 {
+    public GameManager gameManager;
+    public GrScreen screen;
+    public RecordablePad pad;
+    public RecordableTwinStick twinStick;
+    public RecordableMouse mouse;
+    public RecordableMouseAndPad mouseAndPad;
+    public Field field;
+    public Ship ship;
+    public ShotPool shots;
+    public BulletPool bullets;
+    public EnemyPool enemies;
+    public SparkPool sparks;
+    public SmokePool smokes;
+    public FragmentPool fragments;
+    public SparkFragmentPool sparkFragments;
+    public WakePool wakes;
+    public CrystalPool crystals;
+    public NumIndicatorPool numIndicators;
+    public StageManager stageManager;
+    public ScoreReel scoreReel;
+    public ReplayData _replayData;
     public TitleManager titleManager;
     public InGameState inGameState;
     public int gameOverCnt;
-    public TitleState(GameManager gameManager, GrScreen screen, Pad pad, TwinStick twinStick, Mouse mouse, RecordableMouseAndPad mouseAndPad, Field field, Ship ship, ShotPool shots, BulletPool bullets, EnemyPool enemies, SparkPool sparks, SmokePool smokes, FragmentPool fragments, SparkFragmentPool sparkFragments, WakePool wakes, CrystalPool crystals, NumIndicatorPool numIndicators, StageManager stageManager, ScoreReel scoreReel, TitleManager titleManager, InGameState inGameState) : base(gameManager, screen, pad, twinStick, mouse, mouseAndPad, field, ship, shots, bullets, enemies, sparks, smokes, fragments, sparkFragments, wakes, crystals, numIndicators, stageManager, scoreReel)
+    public TitleState(GameManager gameManager, GrScreen screen, RecordablePad pad, RecordableTwinStick twinStick, RecordableMouse mouse, RecordableMouseAndPad mouseAndPad, Field field, Ship ship, ShotPool shots, BulletPool bullets, EnemyPool enemies, SparkPool sparks, SmokePool smokes, FragmentPool fragments, SparkFragmentPool sparkFragments, WakePool wakes, CrystalPool crystals, NumIndicatorPool numIndicators, StageManager stageManager, ScoreReel scoreReel, TitleManager titleManager, InGameState inGameState)
     {
+        this.gameManager = gameManager;
+        this.screen = screen;
+        this.pad = pad;
+        this.twinStick = twinStick;
+        this.mouse = mouse;
+        this.mouseAndPad = mouseAndPad;
+        this.field = field;
+        this.ship = ship;
+        this.shots = shots;
+        this.bullets = bullets;
+        this.enemies = enemies;
+        this.sparks = sparks;
+        this.smokes = smokes;
+        this.fragments = fragments;
+        this.sparkFragments = sparkFragments;
+        this.wakes = wakes;
+        this.crystals = crystals;
+        this.numIndicators = numIndicators;
+        this.stageManager = stageManager;
+        this.scoreReel = scoreReel;
         this.titleManager = titleManager;
         this.inGameState = inGameState;
         gameOverCnt = 0;
@@ -637,7 +675,7 @@ public class TitleState : GameState
         titleManager.close();
     }
 
-    public override void start()
+    public void start()
     {
         SoundManager.haltBgm();
         SoundManager.disableBgm();
@@ -656,7 +694,7 @@ public class TitleState : GameState
         {
             case InGameStateGameMode.NORMAL:
             {
-                RecordablePad rp = (RecordablePad)pad;
+                RecordablePad rp = pad;
                 rp.startReplay(_replayData.padInputRecord);
                 break;
             }
@@ -664,7 +702,7 @@ public class TitleState : GameState
             case InGameStateGameMode.TWIN_STICK:
             case InGameStateGameMode.DOUBLE_PLAY:
             {
-                RecordableTwinStick rts = (RecordableTwinStick)twinStick;
+                RecordableTwinStick rts = twinStick;
                 rts.startReplay(_replayData.twinStickInputRecord);
                 break;
             }
@@ -681,7 +719,7 @@ public class TitleState : GameState
         inGameState.startInGame();
     }
 
-    public override void move()
+    public void move()
     {
         if (_replayData != null)
         {
@@ -698,7 +736,7 @@ public class TitleState : GameState
         titleManager.move();
     }
 
-    public override void draw(float[] model)
+    public void draw(float[] model)
     {
         if (_replayData != null)
         {
@@ -710,22 +748,35 @@ public class TitleState : GameState
         }
     }
 
-    public override void drawFront(float[] model)
+    public void drawFront(float[] model)
     {
         if (_replayData != null)
             inGameState.drawFront(model);
     }
 
-    public override void drawOrtho(float[] model)
+    public void drawOrtho(float[] model)
     {
         if (_replayData != null)
             inGameState.drawGameParams(model);
         titleManager.draw(model);
     }
 
-    public override void drawLuminous(float[] model)
+    public void drawLuminous(float[] model)
     {
         inGameState.drawLuminous(model);
+    }
+
+    public ReplayData replayData
+    {
+        get
+        {
+            return _replayData;
+        }
+
+        set
+        {
+            _replayData = value;
+        }
     }
 }
 

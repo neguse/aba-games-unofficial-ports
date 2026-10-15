@@ -1,8 +1,10 @@
 // Copyright 2009 Kenta Cho. Some rights reserved.
 using System;
 
-public class MiddleEnemyPool : ActorPool<MiddleEnemy>
+public class MiddleEnemyPool
 {
+    private ActorPool<MiddleEnemy> pool;
+    public MiddleEnemy[] Actors;
     private Random random;
     private GtgFrame frame;
     private GameState gameState;
@@ -14,10 +16,12 @@ public class MiddleEnemyPool : ActorPool<MiddleEnemy>
     private ParticlePool particles;
     private Sound sound;
     private PlayerHomingLaserPool playerHomingLasers;
-    private GearEdgeShape edgeShape;
+    private Shape edgeShape;
     private Quaternion rollQuaternion = new Quaternion();
-    public MiddleEnemyPool(int n, GtgFrame frame, GameState gameState, Field field, TurretPool turrets, HomingLaserPool homingLasers, BulletPool bullets, Player player, ParticlePool particles, Sound sound) : base(n, () => new MiddleEnemy())
+    public MiddleEnemyPool(int n, GtgFrame frame, GameState gameState, Field field, TurretPool turrets, HomingLaserPool homingLasers, BulletPool bullets, Player player, ParticlePool particles, Sound sound)
     {
+        pool = new ActorPool<MiddleEnemy>(n, () => new MiddleEnemy(), a => UpdateT(a), a => DrawT(a), i => Remove(i));
+        Actors = pool.Actors;
         this.frame = frame;
         this.gameState = gameState;
         this.field = field;
@@ -27,8 +31,8 @@ public class MiddleEnemyPool : ActorPool<MiddleEnemy>
         this.player = player;
         this.particles = particles;
         this.sound = sound;
-        shape = new GearShape(frame, 1, 0.25f, 0.75f, new Color(250, 100, 50, 200), new Color(0, 0, 0, 200), true);
-        edgeShape = new GearEdgeShape(frame, 1, 0.5f, 0.5f, 0.3f);
+        pool.shape = GearShape.Create(frame, 1, 0.25f, 0.75f, new Color(250, 100, 50, 200), new Color(0, 0, 0, 200), true);
+        edgeShape = GearEdgeShape.Create(frame, 1, 0.5f, 0.5f, 0.3f);
         rollQuaternion = (Quaternion.CreateFromYawPitchRoll(0, 0, 0.2f)).Copy();
     }
 
@@ -84,7 +88,7 @@ public class MiddleEnemyPool : ActorPool<MiddleEnemy>
         }
 
         a.HasTargetZ = false;
-        AddT(a);
+        pool.AddT(a);
     }
 
     public void AddBoss(float radius, float angle, float angleRate, MiddleEnemyWeaponType weaponType, float fireInterval, float targetZ, float fireTicksRatio)
@@ -128,10 +132,10 @@ public class MiddleEnemyPool : ActorPool<MiddleEnemy>
         a.HasTargetZ = true;
         a.TargetZ = targetZ;
         a.IsFireInvervalAffectedWithCount = true;
-        AddT(a);
+        pool.AddT(a);
     }
 
-    public override bool UpdateT(MiddleEnemy a)
+    public bool UpdateT(MiddleEnemy a)
     {
         if (a.AngleRate != 0)
         {
@@ -183,7 +187,7 @@ public class MiddleEnemyPool : ActorPool<MiddleEnemy>
                 }
             }
 
-            a.FireTicks = SimulationTime.Repeat(a.FireTicks, a.FireInterval * (a.IsFireInvervalAffectedWithCount ? actorCount : 1));
+            a.FireTicks = SimulationTime.Repeat(a.FireTicks, a.FireInterval * (a.IsFireInvervalAffectedWithCount ? pool.Count : 1));
         }
 
         switch (a.Weapon)
@@ -206,7 +210,7 @@ public class MiddleEnemyPool : ActorPool<MiddleEnemy>
     public bool CheckHit(Vector3 pos)
     {
         bool isHit = false;
-        for (int i = 0; i < actorCount; i++)
+        for (int i = 0; i < pool.Count; i++)
         {
             if (Vector3.Distance((Actors[(i)].Pos).Copy(), (pos).Copy()) < Actors[(i)].Scale * 1.5f)
             {
@@ -244,7 +248,7 @@ public class MiddleEnemyPool : ActorPool<MiddleEnemy>
     {
         int ri = -1, i = 0;
         float md = distance;
-        ForEach((MiddleEnemy a) =>
+        pool.ForEach((MiddleEnemy a) =>
         {
             float d = Math.Abs(a.Pos.X - x) + Math.Abs(a.Pos.Y - y);
             if (d < md && a.Pos.Z < 0)
@@ -260,23 +264,23 @@ public class MiddleEnemyPool : ActorPool<MiddleEnemy>
 
     public void FinishBossStage()
     {
-        for (int i = 0; i < actorCount; i++)
+        for (int i = 0; i < pool.Count; i++)
         {
             Actors[(i)].TargetZ = Field.FrontDepth * 5;
         }
     }
 
-    public override void DrawT(MiddleEnemy a)
+    public void DrawT(MiddleEnemy a)
     {
         Shape.AddInstance((a.Pos).Copy(), a.Scale, (a.Orientation).Copy(), (a.Color).Copy());
     }
 
     public void DrawEdge()
     {
-        DrawShape(edgeShape);
+        pool.DrawShape(edgeShape);
     }
 
-    public override void Remove(int ri)
+    public void Remove(int ri)
     {
         while (Actors[(ri)].TurretCount > 0)
         {
@@ -287,12 +291,12 @@ public class MiddleEnemyPool : ActorPool<MiddleEnemy>
         }
 
         playerHomingLasers.OnEnemyRemoved(true, ri);
-        base.Remove(ri);
+        pool.Remove(ri);
     }
 
     public void OnTurretRemovedint(int rti)
     {
-        ForEach((MiddleEnemy a) =>
+        pool.ForEach((MiddleEnemy a) =>
         {
             OnTurretRemovedMiddleEnemyint(a, rti);
         });
@@ -317,6 +321,34 @@ public class MiddleEnemyPool : ActorPool<MiddleEnemy>
                 }
             }
         }
+    }
+
+    public void Clear()
+    {
+        pool.Clear();
+    }
+
+    public void Update()
+    {
+        pool.Update();
+    }
+
+    public void Draw()
+    {
+        pool.Draw();
+    }
+
+    public int Count
+    {
+        get
+        {
+            return pool.Count;
+        }
+    }
+
+    public MiddleEnemy Get(int i)
+    {
+        return pool.Get(i);
     }
 }
 

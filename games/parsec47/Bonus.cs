@@ -3,6 +3,11 @@ using System;
 using static GameMath;
 using static Lub;
 public class Bonus: Actor {
+  public string meshKey;
+  public bool isExist;
+  public Bonus() { meshKey = ActorMesh.nextKey(); }
+  public bool getExist() { return isExist; }
+  public void setExist(bool value) { isExist = value; }
 
   public static float rate;
   public static int bonusScore;
@@ -38,11 +43,11 @@ public class Bonus: Actor {
     speed = BASE_SPEED * rate;
   }
 
-  public override Actor newActor() {
+  public Actor newActor() {
     return new Bonus();
   }
 
-  public override void init(ActorInitializer ini) {
+  public void init(ActorInitializer ini) {
     BonusInitializer bi = (BonusInitializer) ini;
     field = bi.field;
     ship = bi.ship;
@@ -80,7 +85,7 @@ public class Bonus: Actor {
       bonusScore += 10;
   }
 
-  public override void move() {
+  public void move() {
     pos.x += vel.x;
     pos.y += vel.y;
     vel.x -= vel.x / 50;
@@ -134,7 +139,7 @@ public class Bonus: Actor {
     }
   }
 
-  public override void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
     var mesh = new Mesh("Bonus-draw" + "-" + meshKey);
     float retro=0;
     if (cnt < RETRO_CNT)

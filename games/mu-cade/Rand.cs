@@ -9,7 +9,7 @@ public class Rand
         setSeed(5489);
     }
 
-    public virtual void setSeed(int seed)
+    public void setSeed(int seed)
     {
         state[0] = seed;
         for (int i = 1; i < 624; i++)
@@ -17,7 +17,7 @@ public class Rand
         index = 624;
     }
 
-    public virtual int nextBits()
+    public int nextBits()
     {
         if (index >= 624)
         {
@@ -39,7 +39,7 @@ public class Rand
         return y;
     }
 
-    public virtual int nextInt(int n)
+    public int nextInt(int n)
     {
         if (n == 0)
             return 0;
@@ -47,19 +47,19 @@ public class Rand
         return ((((bits >> 1) & 2147483647) % n) * 2 + (bits & 1)) % n;
     }
 
-    public virtual int nextInt32()
+    public int nextInt32()
     {
         return nextBits();
     }
 
-    public virtual int nextSignedInt(int n)
+    public int nextSignedInt(int n)
     {
         if (n == 0)
             return 0;
         return nextInt(n * 2 + 1) - n;
     }
 
-    public virtual float nextFloat(float n)
+    public float nextFloat(float n)
     {
         int bits = nextBits();
         float value = ((bits >> 1) & 2147483647) / 1f;
@@ -67,7 +67,7 @@ public class Rand
         return value / 4294967295f * n;
     }
 
-    public virtual float nextSignedFloat(float n)
+    public float nextSignedFloat(float n)
     {
         return nextFloat(n * 2) - n;
     }

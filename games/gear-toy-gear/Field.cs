@@ -7,12 +7,12 @@ public class Field
     public const int TubeCount = 16;
     private GtgFrame frame;
     private Tube[] tubes;
-    private GearShape tubeShape;
+    private Shape tubeShape;
     public Field(GtgFrame frame)
     {
         this.frame = frame;
         tubes = GtgArrays.Make(TubeCount, () => new Tube());
-        tubeShape = new GearShape(frame, Tube.Radius * 1.2f, Tube.Radius, Tube.Height, new Color(100, 200, 255, 200), new Color(100, 150, 200, 200), false);
+        tubeShape = GearShape.Create(frame, Tube.Radius * 1.2f, Tube.Radius, Tube.Height, new Color(100, 200, 255, 200), new Color(100, 150, 200, 200), false);
     }
 
     public void Initialize()

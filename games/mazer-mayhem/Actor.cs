@@ -7,10 +7,12 @@ public class ActorPool<T>
     where T : class, Actor
 {
     public T[] actors;
-    protected int actorNum, actorIdx;
-    protected bool[] isRemoved;
-    public ActorPool(int n, Func<T> factory)
+    public int actorNum, actorIdx;
+    public bool[] isRemoved;
+    private IActorIdListener idListener;
+    public ActorPool(int n, Func<T> factory, IActorIdListener idListener)
     {
+        this.idListener = idListener;
         actors = MmArrays.Make(n, factory);
         isRemoved = MmArrays.Make(n, () => false);
         Clear();
@@ -60,17 +62,17 @@ public class ActorPool<T>
         Clear();
     }
 
-    public virtual void RemoveT(T a)
+    public void RemoveT(T a)
     {
         Removeint(a.GetId());
     }
 
-    public virtual void Removeint(int id)
+    public void Removeint(int id)
     {
         isRemoved[(id)] = true;
     }
 
-    public virtual void Gc()
+    public void Gc()
     {
         for (int i = 0; i < actorNum; i++)
         {
@@ -87,40 +89,13 @@ public class ActorPool<T>
                 actors[(i)] = (T)actors[(j)].CopyActor();
                 actors[(i)].SetId(i);
                 isRemoved[(i)] = false;
-                OnIdChanged(j, i);
+                if (idListener != null)
+                    idListener.OnIdChanged(j, i);
                 break;
             }
 
             actorNum--;
         }
-    }
-
-    protected virtual void OnIdChanged(int before, int after)
-    {
-    }
-
-    public virtual void Update()
-    {
-        ForEach((T a) =>
-        {
-            UpdateT(a);
-        });
-    }
-
-    public virtual void Draw()
-    {
-        ForEach((T a) =>
-        {
-            DrawT(a);
-        });
-    }
-
-    public virtual void UpdateT(T a)
-    {
-    }
-
-    public virtual void DrawT(T a)
-    {
     }
 
     public void Clear()
@@ -163,6 +138,11 @@ public class ActorPool<T>
             if (!isRemoved[(i)])
                 func(actors[(i)]);
     }
+}
+
+public interface IActorIdListener
+{
+    void OnIdChanged(int before, int after);
 }
 
 public interface Actor

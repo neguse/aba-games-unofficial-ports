@@ -1,8 +1,18 @@
 // Copyright 2009 Kenta Cho. Some rights reserved.
 using System;
 
-public class PlayerHomingLaserPool : ActorPool<PlayerHomingLaser>
+public class PlayerHomingLaserPool
 {
+    private ActorPool<PlayerHomingLaser> pool;
+    public PlayerHomingLaser[] Actors;
+
+    public int Count
+    {
+        get
+        {
+            return pool.Count;
+        }
+    }
     private GtgFrame frame;
     private Field field;
     private LaserPool lasers;
@@ -10,8 +20,10 @@ public class PlayerHomingLaserPool : ActorPool<PlayerHomingLaser>
     private EnemyPool enemies;
     private MiddleEnemyPool middleEnemies;
     private ParticlePool particles;
-    public PlayerHomingLaserPool(int n, GtgFrame frame, Field field, LaserPool lasers, Player player, EnemyPool enemies, MiddleEnemyPool middleEnemies, ParticlePool particles) : base(n, () => new PlayerHomingLaser())
+    public PlayerHomingLaserPool(int n, GtgFrame frame, Field field, LaserPool lasers, Player player, EnemyPool enemies, MiddleEnemyPool middleEnemies, ParticlePool particles)
     {
+        pool = new ActorPool<PlayerHomingLaser>(n, () => new PlayerHomingLaser(), a => true, a => { }, i => pool.Remove(i));
+        Actors = pool.Actors;
         this.frame = frame;
         this.field = field;
         this.lasers = lasers;
@@ -31,23 +43,23 @@ public class PlayerHomingLaserPool : ActorPool<PlayerHomingLaser>
         a.IsAimingMiddleEnemy = isMiddleEnemy;
         a.EnemyIndex = index;
         a.Speed = speed;
-        AddT(a);
+        pool.AddT(a);
     }
 
-    public override void Update()
+    public void Update()
     {
         int ri = 0;
-        int ac = actorCount;
-        for (int i = 0; i < actorCount; i++, ri++)
+        int ac = pool.Count;
+        for (int i = 0; i < pool.Count; i++, ri++)
         {
             if (Actors[(i)].IsRemoved)
             {
-                Remove(i);
+                pool.Remove(i);
                 i--;
             }
         }
 
-        for (int i = 0; i < actorCount; i++)
+        for (int i = 0; i < pool.Count; i++)
         {
             if (!Actors[(i)].IsRemoved)
                 UpdatePlayerHomingLaserint(Actors[(i)], i);
@@ -87,7 +99,7 @@ public class PlayerHomingLaserPool : ActorPool<PlayerHomingLaser>
 
     public void OnEnemyRemoved(bool isMiddleEnemy, int index)
     {
-        for (int i = 0; i < actorCount; i++)
+        for (int i = 0; i < pool.Count; i++)
         {
             if (Actors[(i)].IsAimingMiddleEnemy == isMiddleEnemy)
             {
@@ -97,6 +109,11 @@ public class PlayerHomingLaserPool : ActorPool<PlayerHomingLaser>
                     Actors[(i)].EnemyIndex--;
             }
         }
+    }
+
+    public void Clear()
+    {
+        pool.Clear();
     }
 }
 

@@ -13,7 +13,7 @@ public class World
     public static OdeActor staticActor;
     public OdeHandle space;
     public bool initialized;
-    public virtual void init_0()
+    public void init_0()
     {
         world = McdPhysics.WorldCreate();
         McdPhysics.WorldConfigure(world);
@@ -23,7 +23,7 @@ public class World
         initialized = true;
     }
 
-    public virtual void close()
+    public void close()
     {
         if (!(initialized))
             return;
@@ -33,40 +33,40 @@ public class World
         initialized = false;
     }
 
-    public virtual void move_1(float step)
+    public void move_1(float step)
     {
         McdPhysics.Collide(space, nearCallback);
         McdPhysics.WorldStep(world);
     }
 
-    public virtual void resetJointFeedback()
+    public void resetJointFeedback()
     {
         McdPhysics.ResetFeedback();
     }
 
-    public virtual void removeAllContactJoints()
+    public void removeAllContactJoints()
     {
         McdPhysics.GroupEmpty(contactGroup);
     }
 
-    public virtual void setGravity(float x, float y, float z)
+    public void setGravity(float x, float y, float z)
     {
         McdPhysics.WorldGravity(world, x, y, z);
     }
 
-    public virtual void createPlane(float a, float b, float c, float d)
+    public void createPlane(float a, float b, float c, float d)
     {
         McdPhysics.Plane(space, a, b, c, d);
     }
 
-    public virtual OdeHandle bodyCreate(OdeActor a)
+    public OdeHandle bodyCreate(OdeActor a)
     {
         var id = McdPhysics.BodyCreate(world);
         storeOdeActor(id, a);
         return id;
     }
 
-    public virtual void storeOdeActor(OdeHandle id, OdeActor a)
+    public void storeOdeActor(OdeHandle id, OdeActor a)
     {
         if (id == null)
             staticActor = a;
@@ -74,7 +74,7 @@ public class World
             actor[id] = a;
     }
 
-    public virtual void bodyDestroy(OdeHandle id)
+    public void bodyDestroy(OdeHandle id)
     {
         actor.Remove(id);
         McdPhysics.BodyDestroy(id);
@@ -97,9 +97,9 @@ public class World
         foreach (var c in McdPhysics.Contacts(world, contactGroup, o1, o2, f1.feedback || f2.feedback))
         {
             if (f1.feedback)
-                a1.addContactJoint(c.X, c.Y, c.Z, c.Joint, 1);
+                a1.getOde().addContactJoint(c.X, c.Y, c.Z, c.Joint, 1);
             if (f2.feedback)
-                a2.addContactJoint(c.X, c.Y, c.Z, c.Joint, 2);
+                a2.getOde().addContactJoint(c.X, c.Y, c.Z, c.Joint, 2);
         }
     }
 }

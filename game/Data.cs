@@ -51,11 +51,12 @@ public class EnemyAppearancePattern
     public EnemyMovePattern move;
 }
 
-public abstract class EnemyMovePattern { public float deg; }
-public class BulletMLMovePattern : EnemyMovePattern { public int parser; public float speed; }
+public interface EnemyMovePattern { }
+public class BulletMLMovePattern : EnemyMovePattern { public float deg; public int parser; public float speed; }
 public class MoveRoute { public int index; public float speed; public Vector[] point; }
 public class PointsMovePattern : EnemyMovePattern
 {
+    public float deg;
     public const int BASIC_PATTERN_IDX = -1;
     public int withdrawCnt;
     public MoveRoute[] routes;

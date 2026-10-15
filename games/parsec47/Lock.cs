@@ -3,6 +3,11 @@ using System;
 using static GameMath;
 using static Lub;
 public class Lock: Actor {
+  public string meshKey;
+  public bool isExist;
+  public Lock() { meshKey = ActorMesh.nextKey(); }
+  public bool getExist() { return isExist; }
+  public void setExist(bool value) { isExist = value; }
 
     public const int SEARCH = 0;
   public const int SEARCHED = 1;
@@ -32,11 +37,11 @@ public class Lock: Actor {
     rand = new P47Rand();
   }
 
-  public override Actor newActor() {
+  public Actor newActor() {
     return new Lock();
   }
 
-  public override void init(ActorInitializer ini) {
+  public void init(ActorInitializer ini) {
     LockInitializer li = (LockInitializer) ini;
     ship = li.ship;
     field = li.field;
@@ -74,7 +79,7 @@ public class Lock: Actor {
   public const float SPEED = 0.01f;
   public const int LOCK_CNT = 8;
 
-  public override void move() {
+  public void move() {
     if (state == LOCKED && cnt >= NO_COLLISION_CNT) state = FIRED;
     if (state == SEARCH) {
       isExist = false;
@@ -158,7 +163,7 @@ public class Lock: Actor {
     cnt++;
   }
 
-  public override void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
     var mesh = new Mesh("Lock-draw" + "-" + meshKey);
     switch (state) {
     case LOCKING: {

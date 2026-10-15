@@ -4,20 +4,57 @@ using System.Collections.Generic;
 using static GameMath;
 using static Lub;
 
-public class ParticlePool : ActorPool<Particle>
+public class ParticlePool
 {
-    public ParticlePool(int n, List<object> args) : base(n, args, () => new Particle())
+    public ActorPool<Particle> pool;
+    public Particle[] actors;
+    public ParticlePool(int n, List<object> args)
     {
+        pool = new ActorPool<Particle>(n, args, () => new Particle());
+        actors = pool.actors;
+    }
+
+    public Particle getInstanceForced()
+    {
+        return pool.getInstanceForced();
+    }
+
+    public void move_0()
+    {
+        pool.move_0();
+    }
+
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    {
+        pool.draw_0(model, color, blend);
+    }
+
+    public void clear()
+    {
+        pool.clear();
     }
 }
 
-public class Particle : Token<ParticleState, ParticleSpec>
+public class Particle : Actor
 {
+    public bool exists;
+    public ParticleState state;
+    public ParticleSpec spec;
+    public bool getExists()
+    {
+        return exists;
+    }
+
+    public void setExists(bool v)
+    {
+        exists = v;
+    }
+
     public TriangleParticleSpec triangleParticleSpec;
     public LineParticleSpec lineParticleSpec;
     public QuadParticleSpec quadParticleSpec;
     public BonusParticleSpec bonusParticleSpec;
-    public override void init_1(List<object> args)
+    public void init_1(List<object> args)
     {
         state = new ParticleState();
         triangleParticleSpec = (args[0] is TriangleParticleSpec ? (TriangleParticleSpec)args[0] : null);
@@ -26,7 +63,39 @@ public class Particle : Token<ParticleState, ParticleSpec>
         bonusParticleSpec = (args[3] is BonusParticleSpec ? (BonusParticleSpec)args[3] : null);
     }
 
-    public virtual void set_13(int type, float x, float y, float deg, float speed, float sz, float r, float g, float b, int c = 60, bool ebg = true, float num = 0, int waitCnt = 0)
+    public void set_4(float x, float y, float deg, float speed)
+    {
+        state.clear();
+        state.pos.x = x;
+        state.pos.y = y;
+        state.deg = deg;
+        state.speed = speed;
+        spec.set_1(state);
+        exists = true;
+    }
+
+    public void move_0()
+    {
+        if (!((spec.move_1(state))))
+            remove();
+    }
+
+    public void remove()
+    {
+        exists = false;
+    }
+
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    {
+        spec.draw_1(model, color, blend, state);
+    }
+
+    public Vector pos()
+    {
+        return state.pos;
+    }
+
+    public void set_13(int type, float x, float y, float deg, float speed, float sz, float r, float g, float b, int c = 60, bool ebg = true, float num = 0, int waitCnt = 0)
     {
         switch (type)
         {
@@ -45,7 +114,7 @@ public class Particle : Token<ParticleState, ParticleSpec>
         }
 
         this.spec = spec;
-        base.set_4(x, y, deg, speed);
+        set_4(x, y, deg, speed);
         state.size = sz;
         state.vel.x = -sin(deg) * speed;
         state.vel.y = cos(deg) * speed;
@@ -64,10 +133,10 @@ public class Particle : Token<ParticleState, ParticleSpec>
             ((spec is BonusParticleSpec ? (BonusParticleSpec)spec : null)).setSize(state, sz);
     }
 
-    public virtual void setByVelocity(float x, float y, float vx, float vy, float sz, float r, float g, float b, float a, int c = 60, bool ebg = true)
+    public void setByVelocity(float x, float y, float vx, float vy, float sz, float r, float g, float b, float a, int c = 60, bool ebg = true)
     {
         spec = triangleParticleSpec;
-        base.set_4(x, y, 0, 0);
+        set_4(x, y, 0, 0);
         state.vel.x = vx;
         state.vel.y = vy;
         state.size = sz;
@@ -84,8 +153,13 @@ public class Particle : Token<ParticleState, ParticleSpec>
     }
 }
 
-public class ParticleState : TokenState
+public class ParticleState
 {
+    public string meshKey;
+    public bool isInitialized = false;
+    public Vector pos;
+    public float deg;
+    public float speed;
     public Vector vel;
     public Vector tailPos;
     public float size;
@@ -97,13 +171,20 @@ public class ParticleState : TokenState
     public float num, trgNum;
     public float trgSize;
     public int waitCnt;
-    public ParticleState() : base()
+    public ParticleState()
     {
+        meshKey = TokenState.nextMeshKey();
+        pos = new Vector();
         vel = new Vector();
         tailPos = new Vector();
     }
 
-    public override void clear()
+    public void stepForward()
+    {
+        TokenState.stepForward(pos, deg, speed);
+    }
+
+    public void clear()
     {
         {
             vel.y = 0;
@@ -140,11 +221,25 @@ public class ParticleState : TokenState
 
         trgSize = 1;
         waitCnt = 0;
-        base.clear();
+        {
+            pos.y = 0;
+            pos.x = pos.y;
+        }
+
+        deg = 0;
+        speed = 0;
+        isInitialized = true;
     }
 }
 
-public class ParticleSpec : TokenSpec<ParticleState>
+public interface ParticleSpec
+{
+    public void set_1(ParticleState ps);
+    public bool move_1(ParticleState ps);
+    public void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps);
+}
+
+public static class ParticleSpecs
 {
     public static TitanionRand rand = new TitanionRand();
     public static void setRandSeed(int seed)
@@ -152,13 +247,7 @@ public class ParticleSpec : TokenSpec<ParticleState>
         rand.setSeed(seed);
     }
 
-    public Player player;
-    public virtual void setPlayer(Player player)
-    {
-        this.player = player;
-    }
-
-    public virtual float calcNearPlayerAlpha(Vector pos)
+    public static float calcNearPlayerAlpha(Player player, Vector pos)
     {
         if ((!((player.isActive()))))
             return 1;
@@ -172,6 +261,8 @@ public class ParticleSpec : TokenSpec<ParticleState>
 
 public class TriangleParticleSpec : ParticleSpec
 {
+    public Field field;
+    public Player player;
     public const float SLOW_DOWN_RATIO = 0.05f;
     public const float GRAVITY = 0.003f;
     public Shape particleShape;
@@ -179,25 +270,30 @@ public class TriangleParticleSpec : ParticleSpec
     public TriangleParticleSpec(Field field)
     {
         this.field = field;
-        particleShape = new TriangleParticleShape();
+        particleShape = new MeshShape(new TriangleParticleShape());
     }
 
-    public virtual void setParticles(ParticlePool particles)
+    public void setPlayer(Player player)
+    {
+        this.player = player;
+    }
+
+    public void setParticles(ParticlePool particles)
     {
         this.particles = particles;
     }
 
-    public override void set_1(ParticleState ps)
+    public void set_1(ParticleState ps)
     {
         {
-            ps.d1 = rand.nextFloat(PI * 2);
-            ps.d2 = rand.nextFloat(PI * 2);
-            ps.vd1 = rand.nextSignedFloat(0.1f);
-            ps.vd2 = rand.nextSignedFloat(0.1f);
+            ps.d1 = ParticleSpecs.rand.nextFloat(PI * 2);
+            ps.d2 = ParticleSpecs.rand.nextFloat(PI * 2);
+            ps.vd1 = ParticleSpecs.rand.nextSignedFloat(0.1f);
+            ps.vd2 = ParticleSpecs.rand.nextSignedFloat(0.1f);
         }
     }
 
-    public override bool move_1(ParticleState ps)
+    public bool move_1(ParticleState ps)
     {
         {
             ps.pos.opAddAssign(ps.vel);
@@ -217,14 +313,14 @@ public class TriangleParticleSpec : ParticleSpec
             ps.b = ps.b * (cfr);
             ps.a = ps.a * (cfr);
             float fs = 0;
-            if (((ps.size > 2.0f)) && ((rand.nextInt(45) == 0)))
-                fs = 0.5f - rand.nextFloat(0.2f);
-            else if (((ps.size > 0.5f)) && ((rand.nextInt(10) == 0)))
-                fs = 0.1f + rand.nextSignedFloat(0.05f);
+            if (((ps.size > 2.0f)) && ((ParticleSpecs.rand.nextInt(45) == 0)))
+                fs = 0.5f - ParticleSpecs.rand.nextFloat(0.2f);
+            else if (((ps.size > 0.5f)) && ((ParticleSpecs.rand.nextInt(10) == 0)))
+                fs = 0.1f + ParticleSpecs.rand.nextSignedFloat(0.05f);
             if (fs > 0)
             {
-                float vx = ps.vel.x * rand.nextSignedFloat(0.8f);
-                float vy = ps.vel.y * rand.nextSignedFloat(0.8f);
+                float vx = ps.vel.x * ParticleSpecs.rand.nextSignedFloat(0.8f);
+                float vy = ps.vel.y * ParticleSpecs.rand.nextSignedFloat(0.8f);
                 ps.vel.x = ps.vel.x - (vx * fs);
                 ps.vel.y = ps.vel.y - (vy * fs);
                 float cr = 1 - fs * 0.2f;
@@ -244,11 +340,11 @@ public class TriangleParticleSpec : ParticleSpec
         }
     }
 
-    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps)
+    public void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps)
     {
         {
             Vector3 p = field.calcCircularPos_1(ps.pos);
-            float aa = ps.a * calcNearPlayerAlpha(ps.pos);
+            float aa = ps.a * ParticleSpecs.calcNearPlayerAlpha(player, ps.pos);
             color = new float[] { ps.r, ps.g, ps.b, aa };
             particleShape.draw_3(model, color, blend, p, ps.d1, ps.d2);
         }
@@ -257,13 +353,20 @@ public class TriangleParticleSpec : ParticleSpec
 
 public class LineParticleSpec : ParticleSpec
 {
+    public Field field;
+    public Player player;
     public const float SLOW_DOWN_RATIO = 0.03f;
     public LineParticleSpec(Field field)
     {
         this.field = field;
     }
 
-    public override void set_1(ParticleState ps)
+    public void setPlayer(Player player)
+    {
+        this.player = player;
+    }
+
+    public void set_1(ParticleState ps)
     {
         {
             ps.tailPos.x = ps.pos.x;
@@ -271,7 +374,7 @@ public class LineParticleSpec : ParticleSpec
         }
     }
 
-    public override bool move_1(ParticleState ps)
+    public bool move_1(ParticleState ps)
     {
         {
             ps.stepForward();
@@ -293,7 +396,7 @@ public class LineParticleSpec : ParticleSpec
         }
     }
 
-    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps)
+    public void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps)
     {
         {
             Vector3 p = null;
@@ -312,6 +415,8 @@ public class LineParticleSpec : ParticleSpec
 
 public class QuadParticleSpec : ParticleSpec
 {
+    public Field field;
+    public Player player;
     public const float SLOW_DOWN_RATIO = 0.07f;
     public const float GRAVITY = 0.002f;
     public QuadParticleSpec(Field field)
@@ -319,7 +424,16 @@ public class QuadParticleSpec : ParticleSpec
         this.field = field;
     }
 
-    public override bool move_1(ParticleState ps)
+    public void setPlayer(Player player)
+    {
+        this.player = player;
+    }
+
+    public void set_1(ParticleState ps)
+    {
+    }
+
+    public bool move_1(ParticleState ps)
     {
         {
             ps.pos.opAddAssign(ps.vel);
@@ -342,12 +456,12 @@ public class QuadParticleSpec : ParticleSpec
         }
     }
 
-    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps)
+    public void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps)
     {
         {
             Vector3 p = null;
             float sz = ps.size * 0.5f;
-            float aa = ps.a * calcNearPlayerAlpha(ps.pos);
+            float aa = ps.a * ParticleSpecs.calcNearPlayerAlpha(player, ps.pos);
             color = new float[] { ps.r, ps.g, ps.b, aa };
             var part1 = new Mesh("Particle-draw_1-1" + "-" + ps.meshKey);
             p = field.calcCircularPos_2(ps.pos.x - sz, ps.pos.y - sz);
@@ -380,13 +494,24 @@ public class QuadParticleSpec : ParticleSpec
 
 public class BonusParticleSpec : ParticleSpec
 {
+    public Field field;
+    public Player player;
     public const float SLOW_DOWN_RATIO = 0.04f;
     public BonusParticleSpec(Field field)
     {
         this.field = field;
     }
 
-    public virtual void setSize(ParticleState ps, float sz)
+    public void setPlayer(Player player)
+    {
+        this.player = player;
+    }
+
+    public void set_1(ParticleState ps)
+    {
+    }
+
+    public void setSize(ParticleState ps, float sz)
     {
         {
             ps.trgSize = sz;
@@ -394,7 +519,7 @@ public class BonusParticleSpec : ParticleSpec
         }
     }
 
-    public override bool move_1(ParticleState ps)
+    public bool move_1(ParticleState ps)
     {
         {
             if (ps.waitCnt > 0)
@@ -422,14 +547,14 @@ public class BonusParticleSpec : ParticleSpec
         }
     }
 
-    public override void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps)
+    public void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps)
     {
         {
             if (ps.waitCnt > 0)
                 return;
             float[] parent1 = model;
             Vector3 p = field.calcCircularPos_1(ps.pos);
-            float aa = ps.a * calcNearPlayerAlpha(ps.pos);
+            float aa = ps.a * ParticleSpecs.calcNearPlayerAlpha(player, ps.pos);
             blend = Gfx.Blend.Alpha;
             color = new float[] { 1, 1, 1, aa * 0.5f };
             model = Transform.Translate(model, p.x, p.y, p.z);

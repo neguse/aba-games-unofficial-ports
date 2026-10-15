@@ -1,7 +1,7 @@
 // Copyright 2008 Kenta Cho. Some rights reserved.
 using System;
 
-public class ParticlePool : ActorPool<Particle>
+public class ParticlePool
 {
     public static Random Random;
     private MmFrame frame;
@@ -12,8 +12,12 @@ public class ParticlePool : ActorPool<Particle>
         Random = new Random(s);
     }
 
-    public ParticlePool(int n, MmFrame frame) : base(n, () => new Particle())
+    public ActorPool<Particle> pool;
+    public Particle[] actors;
+    public ParticlePool(int n, MmFrame frame)
     {
+        pool = new ActorPool<Particle>(n, () => new Particle(), null);
+        actors = pool.actors;
         this.frame = frame;
         if (frame != null)
         {
@@ -23,19 +27,57 @@ public class ParticlePool : ActorPool<Particle>
         }
     }
 
-    public override void Update()
+    public int Add(Particle a)
+    {
+        return pool.Add(a);
+    }
+
+    public int AddForced(Particle a)
+    {
+        return pool.AddForced(a);
+    }
+
+    public void AddToForced(ParticlePool p)
+    {
+        pool.AddToForced(p.pool);
+    }
+
+    public void Gc()
+    {
+        pool.Gc();
+    }
+
+    public Particle Get(int idx)
+    {
+        return pool.Get(idx);
+    }
+
+    public void Removeint(int id)
+    {
+        pool.Removeint(id);
+    }
+
+    public int Length()
+    {
+        return pool.Length();
+    }
+
+    public void Update()
     {
         shape.BeginAdd();
-        base.Update();
+        pool.ForEach((Particle a) =>
+        {
+            UpdateT(a);
+        });
         shape.EndAdd();
     }
 
-    public override void UpdateT(Particle a)
+    public void UpdateT(Particle a)
     {
         a.Cnt -= SimulationTime.Step;
         if (a.Cnt <= 0)
         {
-            RemoveT(a);
+            pool.RemoveT(a);
             return;
         }
 
@@ -80,14 +122,14 @@ public class ParticlePool : ActorPool<Particle>
         }
     }
 
-    public override void Draw()
+    public void Draw()
     {
         shape.Draw();
     }
 
     public void ClearAll()
     {
-        Clear();
+        pool.Clear();
         for (int i = 0; i < actors.Length; i++)
             actors[(i)].Clear();
     }

@@ -1,21 +1,25 @@
 // Copyright 2009 Kenta Cho. Some rights reserved.
 using System;
 
-public class PillarPool : ActorPool<Pillar>
+public class PillarPool
 {
+    private ActorPool<Pillar> pool;
+    public Pillar[] Actors;
     private const float BASE_THICKNESS = 1.0f;
     private GtgFrame frame;
     private Field field;
     private Player player;
     private Stage stage;
-    private GearEdgeShape edgeShape;
-    public PillarPool(int n, GtgFrame frame, Field field, Player player) : base(n, () => new Pillar())
+    private Shape edgeShape;
+    public PillarPool(int n, GtgFrame frame, Field field, Player player)
     {
+        pool = new ActorPool<Pillar>(n, () => new Pillar(), a => UpdateT(a), a => DrawT(a), i => pool.Remove(i));
+        Actors = pool.Actors;
         this.frame = frame;
         this.field = field;
         this.player = player;
-        shape = new GearShape(frame, 1, 0.7f, BASE_THICKNESS, new Color(240, 240, 240, 255), new Color(100, 100, 100, 255), true);
-        edgeShape = new GearEdgeShape(frame, 1, 0.7f, BASE_THICKNESS, 0.3f);
+        pool.shape = GearShape.Create(frame, 1, 0.7f, BASE_THICKNESS, new Color(240, 240, 240, 255), new Color(100, 100, 100, 255), true);
+        edgeShape = GearEdgeShape.Create(frame, 1, 0.7f, BASE_THICKNESS, 0.3f);
     }
 
     public void SetParams(Stage stage)
@@ -34,7 +38,7 @@ public class PillarPool : ActorPool<Pillar>
         a.Angle = angle;
         a.AngleRate = angleRate;
         a.AppearanceTicks = -1;
-        AddT(a);
+        pool.AddT(a);
     }
 
     public void Addfloatfloatfloatint(float x, float y, float size, int appearanceTicks)
@@ -50,7 +54,7 @@ public class PillarPool : ActorPool<Pillar>
             a.Scale = 0;
         }
 
-        AddT(a);
+        pool.AddT(a);
     }
 
     private Pillar CreateBasePillar()
@@ -65,7 +69,7 @@ public class PillarPool : ActorPool<Pillar>
         return (a).Copy();
     }
 
-    public override bool UpdateT(Pillar a)
+    public bool UpdateT(Pillar a)
     {
         if (a.AngleRate != 0)
         {
@@ -111,7 +115,7 @@ public class PillarPool : ActorPool<Pillar>
 
     public bool CheckHit(Vector3 pos)
     {
-        for (int i = 0; i < actorCount; i++)
+        for (int i = 0; i < pool.Count; i++)
         {
             float oz = Actors[(i)].Pos.Z - pos.Z;
             if (oz > -BASE_THICKNESS * Actors[(i)].Scale && oz < BASE_THICKNESS * Actors[(i)].Scale)
@@ -127,14 +131,29 @@ public class PillarPool : ActorPool<Pillar>
         return false;
     }
 
-    public override void DrawT(Pillar a)
+    public void DrawT(Pillar a)
     {
         Shape.AddInstance((a.Pos).Copy(), a.Scale, (a.Orientation).Copy(), (a.Color).Copy());
     }
 
     public void DrawEdge()
     {
-        DrawShape(edgeShape);
+        pool.DrawShape(edgeShape);
+    }
+
+    public void Clear()
+    {
+        pool.Clear();
+    }
+
+    public void Update()
+    {
+        pool.Update();
+    }
+
+    public void Draw()
+    {
+        pool.Draw();
     }
 }
 

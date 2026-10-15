@@ -7,7 +7,7 @@ using static Lub;
 public class Frame
 {
     public const string LAST_REPLAY_FILE_NAME = "last.rpl";
-    public Pad pad;
+    public RecordablePad pad;
     public Field field;
     public Player player;
     public PlayerSpec playerSpec;
@@ -21,7 +21,7 @@ public class Frame
     public GameState gameState;
     public ReplayData replayData;
     public TitanionRand rand;
-    public virtual void init_0()
+    public void init_0()
     {
         Sound.load_0();
         preference = new Preference();
@@ -55,7 +55,7 @@ public class Frame
         loadLastReplay();
     }
 
-    public virtual void quit()
+    public void quit()
     {
         title.close();
         playerSpec.close();
@@ -64,16 +64,16 @@ public class Frame
         Letter.close();
     }
 
-    public virtual void start_0()
+    public void start_0()
     {
         startTitle();
     }
 
-    public virtual void startInGame(int mode)
+    public void startInGame(int mode)
     {
         gameState.startInGame((int)mode);
         player.replayMode(false);
-        RecordablePad rp = (pad is RecordablePad ? (RecordablePad)pad : null);
+        RecordablePad rp = pad;
         rp.startRecord();
         replayData = new ReplayData();
         replayData.inputRecord = rp.inputRecord;
@@ -86,19 +86,19 @@ public class Frame
         Sound.playBgm();
     }
 
-    public virtual void startTitle()
+    public void startTitle()
     {
         startReplay_0();
         title.start_0();
     }
 
-    public virtual void startReplay_0()
+    public void startReplay_0()
     {
         gameState.startTitle();
         if ((replayData) != null)
         {
             player.replayMode(true);
-            RecordablePad rp = (pad is RecordablePad ? (RecordablePad)pad : null);
+            RecordablePad rp = pad;
             rp.startReplay_1(replayData.inputRecord);
         }
 
@@ -121,7 +121,7 @@ public class Frame
         Sound.haltBgm();
     }
 
-    public virtual void clearAll()
+    public void clearAll()
     {
         enemies.clear();
         bullets.clear();
@@ -130,11 +130,11 @@ public class Frame
         pillars.clear();
     }
 
-    public virtual void breakLoop()
+    public void breakLoop()
     {
     }
 
-    public virtual void move_0()
+    public void move_0()
     {
         gameState.move_0();
         field.move_0();
@@ -156,17 +156,17 @@ public class Frame
             title.move_0();
     }
 
-    public virtual void handleSound()
+    public void handleSound()
     {
         Sound.playMarkedSes();
     }
 
-    public virtual void addSlowdownRatio(float sr)
+    public void addSlowdownRatio(float sr)
     {
         slowdownRatio = slowdownRatio + (sr);
     }
 
-    public virtual void draw_0()
+    public void draw_0()
     {
         float[] model = field.setLookAt();
         float[] color = null; Gfx.Blend blend = Gfx.Blend.Additive;
@@ -204,7 +204,7 @@ public class Frame
 
     public string savedReplay = "";
     public float slowdownRatio;
-    public virtual void saveLastReplay()
+    public void saveLastReplay()
     {
         replayData.score = gameState.score;
         replayData.mode = gameState.mode_0();
@@ -214,7 +214,7 @@ public class Frame
             Lub.Host.Send("replay.save", savedReplay);
     }
 
-    public virtual void loadLastReplay()
+    public void loadLastReplay()
     {
         replayData = null;
         if (savedReplay == "")
@@ -255,8 +255,8 @@ public class GameState
     public int pauseCnt;
     public bool _isGameOver;
     public int gameOverCnt;
-    public PlayerShape playerShape;
-    public PlayerLineShape playerLineShape;
+    public MeshShape playerShape;
+    public MeshShape playerLineShape;
     public bool _inReplay;
     public int _mode;
     public int extendScore;
@@ -265,24 +265,24 @@ public class GameState
     {
         this.frame = frame;
         this.preference = preference;
-        playerShape = new PlayerShape();
-        playerLineShape = new PlayerLineShape();
+        playerShape = new MeshShape(new PlayerShape());
+        playerLineShape = new MeshShape(new PlayerLineShape());
         clear();
         _lastGameScore = -1;
     }
 
-    public virtual void setStage(Stage stage)
+    public void setStage(Stage stage)
     {
         this.stage = stage;
     }
 
-    public virtual void close()
+    public void close()
     {
         playerShape.close();
         playerLineShape.close();
     }
 
-    public virtual void startInGame(int m)
+    public void startInGame(int m)
     {
         scene = GameStateScene.IN_GAME;
         clear();
@@ -294,7 +294,7 @@ public class GameState
         stage.randomized = stageRandomized;
     }
 
-    public virtual void setExtendScore()
+    public void setExtendScore()
     {
         switch (_mode)
         {
@@ -310,14 +310,14 @@ public class GameState
         nextExtendScore = extendScore;
     }
 
-    public virtual void startTitle()
+    public void startTitle()
     {
         scene = GameStateScene.TITLE;
         clear();
         left = 2;
     }
 
-    public virtual void clear()
+    public void clear()
     {
         score = 0;
         _multiplier = 1.0f;
@@ -332,7 +332,7 @@ public class GameState
         pmDispCnt = 0;
     }
 
-    public virtual void startGameOver()
+    public void startGameOver()
     {
         if ((!((isInGameAndNotGameOver()))))
             return;
@@ -345,7 +345,7 @@ public class GameState
         preference.save();
     }
 
-    public virtual void startGameOverWithoutRecording()
+    public void startGameOverWithoutRecording()
     {
         if (_isGameOver)
             return;
@@ -354,7 +354,7 @@ public class GameState
         Sound.fadeBgm();
     }
 
-    public virtual void backToTitle()
+    public void backToTitle()
     {
         if (isTitle())
         {
@@ -369,7 +369,7 @@ public class GameState
         }
     }
 
-    public virtual void move_0()
+    public void move_0()
     {
         handleEscKey();
         if (isInGameAndNotGameOver())
@@ -415,7 +415,7 @@ public class GameState
             pmDispCnt--;
     }
 
-    public virtual void handleEscKey()
+    public void handleEscKey()
     {
         if (frame.pad.escape)
         {
@@ -439,7 +439,7 @@ public class GameState
         }
     }
 
-    public virtual void handlePauseKey()
+    public void handlePauseKey()
     {
         if (frame.pad.pause)
         {
@@ -456,7 +456,7 @@ public class GameState
         }
     }
 
-    public virtual void addScore_2(int sc, bool noMultiplier = false)
+    public void addScore_2(int sc, bool noMultiplier = false)
     {
         if (!((_isGameOver)))
         {
@@ -479,13 +479,13 @@ public class GameState
         }
     }
 
-    public virtual void addMultiplier(float mp)
+    public void addMultiplier(float mp)
     {
         if (!((_isGameOver)))
             _multiplier = _multiplier + (mp);
     }
 
-    public virtual void mulMultiplier(float mp)
+    public void mulMultiplier(float mp)
     {
         if (!((_isGameOver)))
         {
@@ -495,13 +495,13 @@ public class GameState
         }
     }
 
-    public virtual void setProximityMultiplier(int pm)
+    public void setProximityMultiplier(int pm)
     {
         proximityMultiplier = pm;
         pmDispCnt = 60;
     }
 
-    public virtual void destroyedPlayer()
+    public void destroyedPlayer()
     {
         left--;
         if (left < 0)
@@ -513,17 +513,17 @@ public class GameState
         }
     }
 
-    public virtual void countShotFired()
+    public void countShotFired()
     {
         stage.countShotFired();
     }
 
-    public virtual void countShotHit()
+    public void countShotHit()
     {
         stage.countShotHit();
     }
 
-    public virtual void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
     {
         Letter.drawNum(model, color, blend, score, 132, 5, 7);
         Letter.drawNum(model, color, blend, nextExtendScore, 134, 25, 5);
@@ -558,7 +558,7 @@ public class GameState
         }
     }
 
-    public virtual void drawLeft(float[] model, float[] color, Gfx.Blend blend)
+    public void drawLeft(float[] model, float[] color, Gfx.Blend blend)
     {
         for (int i = 0; i < left; i++)
         {
@@ -572,60 +572,60 @@ public class GameState
         }
     }
 
-    public virtual bool isInGame()
+    public bool isInGame()
     {
         return (scene == GameStateScene.IN_GAME);
     }
 
-    public virtual bool isInGameAndNotGameOver()
+    public bool isInGameAndNotGameOver()
     {
         return (((scene == GameStateScene.IN_GAME)) && ((!((_isGameOver)))));
     }
 
-    public virtual bool isTitle()
+    public bool isTitle()
     {
         return (scene == GameStateScene.TITLE);
     }
 
-    public virtual bool isGameOver()
+    public bool isGameOver()
     {
         return _isGameOver;
     }
 
-    public virtual bool paused()
+    public bool paused()
     {
         return _paused;
     }
 
-    public virtual float multiplier()
+    public float multiplier()
     {
         return _multiplier;
     }
 
-    public virtual bool inReplay(bool v)
+    public bool inReplay(bool v)
     {
         _inReplay = v;
         return _inReplay;
     }
 
-    public virtual int lastGameScore(int v)
+    public int lastGameScore(int v)
     {
         _lastGameScore = v;
         return _lastGameScore;
     }
 
-    public virtual int lastGameMode(int v)
+    public int lastGameMode(int v)
     {
         _lastGameMode = v;
         return _lastGameMode;
     }
 
-    public virtual int mode_0()
+    public int mode_0()
     {
         return _mode;
     }
 
-    public virtual int mode_1(int v)
+    public int mode_1(int v)
     {
         _mode = v;
         return _mode;

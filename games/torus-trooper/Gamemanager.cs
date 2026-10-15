@@ -15,7 +15,7 @@ public class GameManager
             clock.AdvanceReplay(seconds, .016f, replayStep, advanceUpdate);
         else clock.Advance(seconds, .016f, advanceUpdate);
     }
-    public Pad pad;
+    public RecordablePad pad;
     public PrefManager prefManager;
     public Tunnel tunnel;
     public Ship ship;
@@ -36,7 +36,7 @@ public class GameManager
     public void init_0()
     {
         advanceUpdate = () => move();
-        replayStep = () => ((RecordablePad)pad).padRecord.NextStep();
+        replayStep = () => pad.padRecord.NextStep();
         BarrageManager.load();
         Letter.init_0();
         Shot.init_0();
@@ -80,7 +80,7 @@ public class GameManager
         rand = new Rand();
         inGameState = new InGameState(tunnel, ship, shots, bullets, enemies, particles, floatLetters, stageManager, pad, prefManager, this);
         titleState = new TitleState(tunnel, ship, shots, bullets, enemies, particles, floatLetters, stageManager, pad, titleManager, passedEnemies, inGameState);
-        inGameState.seed = rand.nextInt32();
+        inGameState.setSeed(rand.nextInt32());
         ship.setGameState(inGameState);
     }
 
@@ -109,9 +109,9 @@ public class GameManager
 
     public void startState()
     {
-        state.grade = prefManager.prefData.selectedGrade;
-        state.level = prefManager.prefData.selectedLevel;
-        state.seed = rand.nextInt32();
+        state.setGrade(prefManager.prefData.selectedGrade);
+        state.setLevel(prefManager.prefData.selectedLevel);
+        state.setSeed(rand.nextInt32());
         state.start();
     }
 
@@ -175,7 +175,19 @@ public class GameManager
     }
 }
 
-public abstract class GameState
+public interface GameState
+{
+    void start();
+    void move();
+    void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth);
+    void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth);
+    void drawFront(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth);
+    void setLevel(float value);
+    void setGrade(int value);
+    void setSeed(int value);
+}
+
+public class InGameState : GameState
 {
     public Tunnel tunnel;
     public Ship ship;
@@ -188,50 +200,6 @@ public abstract class GameState
     public float _level;
     public int _grade;
     public int _seed;
-    public GameState(Tunnel tunnel, Ship ship, ShotPool shots, BulletActorPool bullets, EnemyPool enemies, ParticlePool particles, FloatLetterPool floatLetters, StageManager stageManager)
-    {
-        this.tunnel = tunnel;
-        this.ship = ship;
-        this.shots = shots;
-        this.bullets = bullets;
-        this.enemies = enemies;
-        this.particles = particles;
-        this.floatLetters = floatLetters;
-        this.stageManager = stageManager;
-    }
-
-    public abstract void start();
-    public abstract void move();
-    public abstract void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth);
-    public abstract void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth);
-    public abstract void drawFront(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth);
-    public float level
-    {
-        set
-        {
-            _level = value;
-        }
-    }
-
-    public int grade
-    {
-        set
-        {
-            _grade = value;
-        }
-    }
-
-    public int seed
-    {
-        set
-        {
-            _seed = value;
-        }
-    }
-}
-
-public class InGameState : GameState
-{
     public const int DEFAULT_EXTEND_SCORE = 100000;
     public const int MAX_EXTEND_SCORE = 500000;
     public const int DEFAULT_TIME = 120000;
@@ -245,7 +213,7 @@ public class InGameState : GameState
     public const int NEXT_LEVEL_ADDITION_TIME = 45000;
     public const string NEXT_LEVEL_ADDITION_TIME_MSG = "+45 SEC.";
     public const int BEEP_START_TIME = 15000;
-    public Pad pad;
+    public RecordablePad pad;
     public PrefManager prefManager;
     public GameManager gameManager;
     public int score;
@@ -260,15 +228,38 @@ public class InGameState : GameState
     public float pauseCnt;
     public bool pausePressed;
     public ReplayData _replayData;
-    public InGameState(Tunnel tunnel, Ship ship, ShotPool shots, BulletActorPool bullets, EnemyPool enemies, ParticlePool particles, FloatLetterPool floatLetters, StageManager stageManager, Pad pad, PrefManager prefManager, GameManager gameManager) : base(tunnel, ship, shots, bullets, enemies, particles, floatLetters, stageManager)
+    public InGameState(Tunnel tunnel, Ship ship, ShotPool shots, BulletActorPool bullets, EnemyPool enemies, ParticlePool particles, FloatLetterPool floatLetters, StageManager stageManager, RecordablePad pad, PrefManager prefManager, GameManager gameManager)
     {
+        this.tunnel = tunnel;
+        this.ship = ship;
+        this.shots = shots;
+        this.bullets = bullets;
+        this.enemies = enemies;
+        this.particles = particles;
+        this.floatLetters = floatLetters;
+        this.stageManager = stageManager;
         this.pad = pad;
         this.prefManager = prefManager;
         this.gameManager = gameManager;
         _replayData = null;
     }
 
-    public override void start()
+    public void setLevel(float value)
+    {
+        _level = value;
+    }
+
+    public void setGrade(int value)
+    {
+        _grade = value;
+    }
+
+    public void setSeed(int value)
+    {
+        _seed = value;
+    }
+
+    public void start()
     {
         Ship.replayMode = false;
         shots.clear();
@@ -276,7 +267,7 @@ public class InGameState : GameState
         enemies.clear();
         particles.clear();
         floatLetters.clear();
-        RecordablePad rp = (RecordablePad)pad;
+        RecordablePad rp = pad;
         rp.startRecord();
         _replayData = new ReplayData();
         _replayData.padRecord = rp.padRecord;
@@ -335,7 +326,7 @@ public class InGameState : GameState
         }
     }
 
-    public override void move()
+    public void move()
     {
         if (pad.pause)
         {
@@ -425,7 +416,7 @@ public class InGameState : GameState
                 ship.isGameOver = true;
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         cull = Gfx.Cull.Front;
         tunnel.draw(model, tint, blend, cull, lineWidth);
@@ -442,12 +433,12 @@ public class InGameState : GameState
         shots.draw(model, tint, blend, cull, lineWidth);
     }
 
-    public override void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         particles.drawLuminous(model, tint, blend, cull, lineWidth);
     }
 
-    public override void drawFront(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawFront(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         ship.drawFront(model, tint, blend, cull, lineWidth);
         Letter.drawNum(model, tint, blend, cull, lineWidth, score, 610, 0, 15);
@@ -543,14 +534,33 @@ public class InGameState : GameState
 
 public class TitleState : GameState
 {
-    public Pad pad;
+    public Tunnel tunnel;
+    public Ship ship;
+    public ShotPool shots;
+    public BulletActorPool bullets;
+    public EnemyPool enemies;
+    public ParticlePool particles;
+    public FloatLetterPool floatLetters;
+    public StageManager stageManager;
+    public float _level;
+    public int _grade;
+    public int _seed;
+    public RecordablePad pad;
     public TitleManager titleManager;
     public EnemyPool passedEnemies;
     public InGameState inGameState;
     public ReplayData replayData;
     public float gameOverCnt;
-    public TitleState(Tunnel tunnel, Ship ship, ShotPool shots, BulletActorPool bullets, EnemyPool enemies, ParticlePool particles, FloatLetterPool floatLetters, StageManager stageManager, Pad pad, TitleManager titleManager, EnemyPool passedEnemies, InGameState inGameState) : base(tunnel, ship, shots, bullets, enemies, particles, floatLetters, stageManager)
+    public TitleState(Tunnel tunnel, Ship ship, ShotPool shots, BulletActorPool bullets, EnemyPool enemies, ParticlePool particles, FloatLetterPool floatLetters, StageManager stageManager, RecordablePad pad, TitleManager titleManager, EnemyPool passedEnemies, InGameState inGameState)
     {
+        this.tunnel = tunnel;
+        this.ship = ship;
+        this.shots = shots;
+        this.bullets = bullets;
+        this.enemies = enemies;
+        this.particles = particles;
+        this.floatLetters = floatLetters;
+        this.stageManager = stageManager;
         this.pad = pad;
         this.titleManager = titleManager;
         this.passedEnemies = passedEnemies;
@@ -567,7 +577,22 @@ public class TitleState : GameState
         replayData = rd;
     }
 
-    public override void start()
+    public void setLevel(float value)
+    {
+        _level = value;
+    }
+
+    public void setGrade(int value)
+    {
+        _grade = value;
+    }
+
+    public void setSeed(int value)
+    {
+        _seed = value;
+    }
+
+    public void start()
     {
         SoundManager.haltBgm();
         SoundManager.disableSe();
@@ -590,7 +615,7 @@ public class TitleState : GameState
     public void startReplay()
     {
         Ship.replayMode = true;
-        RecordablePad rp = (RecordablePad)pad;
+        RecordablePad rp = pad;
         rp.startReplay(replayData.padRecord);
         _level = replayData.level;
         _grade = replayData.grade;
@@ -612,7 +637,7 @@ public class TitleState : GameState
         tunnel.setSlicesBackward();
     }
 
-    public override void move()
+    public void move()
     {
         if (ship.isGameOver)
         {
@@ -643,7 +668,7 @@ public class TitleState : GameState
         }
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         if ((replayData != null))
         {
@@ -673,11 +698,11 @@ public class TitleState : GameState
         titleManager.draw(model, tint, blend, cull, lineWidth);
     }
 
-    public override void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
     }
 
-    public override void drawFront(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawFront(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         titleManager.drawFront(model, tint, blend, cull, lineWidth);
         if ((!(Ship.drawFrontMode)) || (titleManager.replayChangeRatio < 1))

@@ -25,11 +25,11 @@ public class TitleManager
 
     public int btnPressedCnt;
     public int gameMode;
-    public TitleManager(PrefManager prefManager, Pad pad, Mouse mouse, Field field, GameManager gameManager)
+    public TitleManager(PrefManager prefManager, RecordablePad pad, RecordableMouse mouse, Field field, GameManager gameManager)
     {
         this.prefManager = prefManager;
-        this.pad = (RecordablePad)pad;
-        this.mouse = (RecordableMouse)mouse;
+        this.pad = pad;
+        this.mouse = mouse;
         this.field = field;
         this.gameManager = gameManager;
         init();

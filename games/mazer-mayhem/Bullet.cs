@@ -1,7 +1,7 @@
 // Copyright 2008 Kenta Cho. Some rights reserved.
 using System;
 
-public class BulletPool : ActorPool<Bullet>
+public class BulletPool : IActorIdListener
 {
     private MmFrame frame;
     private Field field;
@@ -15,8 +15,12 @@ public class BulletPool : ActorPool<Bullet>
     private QuadListShape shadowShape;
     private Quaternion dirVel = new Quaternion();
     private Vector4 color = new Vector4(), havingCollisionColor = new Vector4();
-    public BulletPool(int n, MmFrame frame, Field field, WallPool walls, ParticlePool particles, BonusPool bonuses, Player player) : base(n, () => new Bullet())
+    public ActorPool<Bullet> pool;
+    public Bullet[] actors;
+    public BulletPool(int n, MmFrame frame, Field field, WallPool walls, ParticlePool particles, BonusPool bonuses, Player player)
     {
+        pool = new ActorPool<Bullet>(n, () => new Bullet(), this);
+        actors = pool.actors;
         this.frame = frame;
         this.field = field;
         this.walls = walls;
@@ -34,13 +38,62 @@ public class BulletPool : ActorPool<Bullet>
         havingCollisionColor = new Vector4(0.5f, 0, 0.5f, 0.1f);
     }
 
+    public int Add(Bullet a)
+    {
+        return pool.Add(a);
+    }
+
+    public Bullet Get(int idx)
+    {
+        return pool.Get(idx);
+    }
+
+    public int Length()
+    {
+        return pool.Length();
+    }
+
+    public int RemainingActorNum
+    {
+        get
+        {
+            return pool.RemainingActorNum;
+        }
+    }
+
+    public void Gc()
+    {
+        pool.Gc();
+    }
+
+    public void Removeint(int id)
+    {
+        pool.Removeint(id);
+    }
+
+    public void Update()
+    {
+        pool.ForEach((Bullet a) =>
+        {
+            UpdateT(a);
+        });
+    }
+
+    public void Draw()
+    {
+        pool.ForEach((Bullet a) =>
+        {
+            DrawT(a);
+        });
+    }
+
     public void SetParams(TurretPool turrets, BallPool balls)
     {
         this.turrets = turrets;
         this.balls = balls;
     }
 
-    public override void UpdateT(Bullet a)
+    public void UpdateT(Bullet a)
     {
         if (!a.IsActivated)
             return;
@@ -56,7 +109,7 @@ public class BulletPool : ActorPool<Bullet>
         if (!a.IsTop && (a.Pos.Z <= 0 || a.Pos.Z > 2.0f || a.Cnt >= 300 || !field.Contains((a.Pos2).Copy()) || walls.CheckHit((a.Pos).Copy())))
         {
             AddRemovedParticles(a);
-            RemoveT(a);
+            pool.RemoveT(a);
             return;
         }
 
@@ -77,7 +130,7 @@ public class BulletPool : ActorPool<Bullet>
         {
             if (!a.Firing.Update((a.Pos).Copy(), a.Deg, a.Speed, a.Vel.Z, a.NextFiring, a.SubBallAppearance, this, turrets, balls, a.BallId, a.GetId()))
             {
-                RemoveT(a);
+                pool.RemoveT(a);
                 return;
             }
         }
@@ -86,7 +139,7 @@ public class BulletPool : ActorPool<Bullet>
     public bool CheckHit(Vector2 p, float r)
     {
         bool v = false;
-        this.ForEach((Bullet a) =>
+        pool.ForEach((Bullet a) =>
         {
             if (a.HasCollision && !a.IsTop && !v && Math.Abs(p.X - a.Pos2.X) < 2.0f && Math.Abs(p.Y - a.Pos2.Y) < 2.0f && MathUtil.CheckHitDist((p).Copy(), (a.Pos2).Copy(), (a.PPos2).Copy(), r))
                 v = true;
@@ -113,7 +166,7 @@ public class BulletPool : ActorPool<Bullet>
         actors[(id)].IsActivated = false;
     }
 
-    public override void DrawT(Bullet a)
+    public void DrawT(Bullet a)
     {
         if (a.IsTop)
             return;
@@ -131,7 +184,7 @@ public class BulletPool : ActorPool<Bullet>
         shadowShape.BeginAdd();
         Vector2 p = new Vector2();
         Vector4 lv = (frame.LightVector).Copy();
-        ForEach((Bullet a) =>
+        pool.ForEach((Bullet a) =>
         {
             if (!a.IsTop)
             {
@@ -153,7 +206,7 @@ public class BulletPool : ActorPool<Bullet>
     public void DrawReflection()
     {
         Vector3 p = new Vector3();
-        ForEach((Bullet a) =>
+        pool.ForEach((Bullet a) =>
         {
             p.X = a.Pos.X;
             p.Y = a.Pos.Y;
@@ -178,7 +231,7 @@ public class BulletPool : ActorPool<Bullet>
 
     public void ChangeBallId(int before, int after)
     {
-        ForEach((Bullet a) =>
+        pool.ForEach((Bullet a) =>
         {
             if (a.BallId == before)
                 a.BallId = after;
@@ -187,7 +240,7 @@ public class BulletPool : ActorPool<Bullet>
 
     public void ChangeToBonus(int id)
     {
-        ForEach((Bullet a) =>
+        pool.ForEach((Bullet a) =>
         {
             if (a.BallId == id && !a.IsTop)
             {
@@ -198,7 +251,7 @@ public class BulletPool : ActorPool<Bullet>
 
     public void ChangeToBonusInRange(Vector3 p, float range)
     {
-        ForEach((Bullet a) =>
+        pool.ForEach((Bullet a) =>
         {
             if (!a.IsTop && Vector3.Distance((p).Copy(), (a.Pos).Copy()) <= range)
             {
@@ -209,7 +262,7 @@ public class BulletPool : ActorPool<Bullet>
 
     public void ChangeToBonusAll()
     {
-        ForEach((Bullet a) =>
+        pool.ForEach((Bullet a) =>
         {
             if (!a.IsTop)
             {
@@ -226,29 +279,29 @@ public class BulletPool : ActorPool<Bullet>
         Bonus b = new Bonus();
         b.Set((a.Pos).Copy(), (qd).Copy(), a.Speed, 90);
         bonuses.Add(b);
-        RemoveT(a);
+        pool.RemoveT(a);
     }
 
     public void RemoveAll()
     {
-        ForEach((Bullet a) =>
+        pool.ForEach((Bullet a) =>
         {
             if (!a.IsTop)
             {
                 AddRemovedParticles(a);
-                RemoveT(a);
+                pool.RemoveT(a);
             }
         });
     }
 
-    protected override void OnIdChanged(int before, int after)
+    public void OnIdChanged(int before, int after)
     {
         turrets.ChangeBulletId(before, after);
     }
 
     public void ClearAll()
     {
-        Clear();
+        pool.Clear();
         for (int i = 0; i < actors.Length; i++)
             actors[(i)].Clear();
     }

@@ -1,4 +1,5 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
+using System.Collections.Generic;
 using static GameMath;
 
 public class P47Bullet : PatternBody
@@ -14,13 +15,18 @@ public class P47Bullet : PatternBody
     public int shape, color, morphNum, morphIdx, morphCnt, baseMorphIdx, baseMorphCnt;
     public int[] morphParser = new int[8];
     public bool isMorph;
+    public List<PatternState> Scripts = new List<PatternState>();
     public P47Bullet(BulletActor owner) { this.owner = owner; }
-    public override float Direction { get { return rtod(deg); } set { deg = dtor(value); } }
-    public override float Speed { get { return velocity * 6.2f; } set { velocity = value * (10f / 62); } }
-    public override float AccelX { get { return acc.x; } set { acc.x = value * (10f / 62); } }
-    public override float AccelY { get { return acc.y; } set { acc.y = value * (10f / 62); } }
-    public override float Aim { get { return rtod(atan2(target.x - pos.x, target.y - pos.y) * xReverse); } set { } }
-    public override float Rank { get { return rankNum; } set { rankNum = value; } }
+    public float GetDirection() { return rtod(deg); }
+    public void SetDirection(float value) { deg = dtor(value); }
+    public float GetSpeed() { return velocity * 6.2f; }
+    public void SetSpeed(float value) { velocity = value * (10f / 62); }
+    public float GetAccelX() { return acc.x; }
+    public void SetAccelX(float value) { acc.x = value * (10f / 62); }
+    public float GetAccelY() { return acc.y; }
+    public void SetAccelY(float value) { acc.y = value * (10f / 62); }
+    public float GetAim() { return rtod(atan2(target.x - pos.x, target.y - pos.y) * xReverse); }
+    public float GetRank() { return rankNum; }
     public static void setRandSeed(int seed) { random.setSeed(seed); }
     public static PatternState[] createRunner(int pattern)
     {
@@ -55,20 +61,22 @@ public class P47Bullet : PatternBody
     public void move()
     {
         now = this; world.Turn = world.pool.getTurn();
-        if (!PatternEnded()) RunPattern(world);
+        if (!PatternRunner.Ended(Scripts)) PatternRunner.Run(Scripts, this, world);
     }
-    public bool isEnd() { return PatternEnded(); }
+    public bool isEnd() { return PatternRunner.Ended(Scripts); }
     public void remove() { Scripts.Clear(); }
 }
 public class P47World : PatternWorld
 {
+    public float Turn;
     public BulletActorPool pool;
     public P47World(BulletActorPool pool) { this.pool = pool; }
-    public override float RandomValue() { return P47Bullet.random.nextFloat(1); }
-    public override void Fire(PatternBody parent, float direction, float velocity, int program, float[] args)
+    public float GetTurn() { return Turn; }
+    public float RandomValue() { return P47Bullet.random.nextFloat(1); }
+    public void Fire(PatternBody parent, float direction, float velocity, int program, float[] args)
     {
         if (program < 0) pool.addBullet_2(dtor(direction), velocity * (10f / 62));
         else pool.addScriptBullet(BarrageCode.Create(program, args), dtor(direction), velocity * (10f / 62));
     }
-    public override void Vanish(PatternBody body) { ((P47Bullet)body).owner.remove(); }
+    public void Vanish(PatternBody body) { ((P47Bullet)body).owner.remove(); }
 }

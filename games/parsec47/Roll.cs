@@ -3,6 +3,11 @@ using System;
 using static GameMath;
 using static Lub;
 public class Roll: Actor {
+  public string meshKey;
+  public bool isExist;
+  public Roll() { meshKey = ActorMesh.nextKey(); }
+  public bool getExist() { return isExist; }
+  public void setExist(bool value) { isExist = value; }
 
   public bool released;
   public const int LENGTH = 4;
@@ -19,11 +24,11 @@ public class Roll: Actor {
   public P47GameManager manager;
   public float dist;
 
-  public override Actor newActor() {
+  public Actor newActor() {
     return new Roll();
   }
 
-  public override void init(ActorInitializer ini) {
+  public void init(ActorInitializer ini) {
     RollInitializer ri = (RollInitializer) ini;
     ship = ri.ship;
     field = ri.field;
@@ -46,7 +51,7 @@ public class Roll: Actor {
     isExist = true;
   }
 
-  public override void move() {
+  public void move() {
     if (released) {
       pos[0].y += SPEED;
       if (pos[0].y > field.size.y) {
@@ -77,7 +82,7 @@ public class Roll: Actor {
     cnt++;
   }
 
-  public override void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
     var mesh = new Mesh("Roll-draw" + "-" + meshKey);
     if (released)
       P47Screen.setRetroParam(1, 0.2f);

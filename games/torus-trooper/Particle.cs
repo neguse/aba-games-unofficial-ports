@@ -4,8 +4,13 @@ using System.Collections.Generic;
 using static GameMath;
 using static Lub;
 
-public class Particle : LuminousActor
+public class Particle : Actor
 {
+    public string meshKey;
+    public bool exists;
+    public Particle() { meshKey = ActorMesh.nextKey(); }
+    public bool getExist() { return exists; }
+    public void setExist(bool value) { exists = value; }
     Mesh sparkMesh, starMesh, fragmentMesh, luminousMesh;
     public const float GRAVITY = 0.02f;
     public const float SIZE = 0.3f;
@@ -30,7 +35,7 @@ public class Particle : LuminousActor
         rand.setSeed(seed);
     }
 
-    public override void init_1(List<object> args)
+    public void init_1(List<object> args)
     {
         tunnel = (Tunnel)args[0];
         ship = (Ship)args[1];
@@ -80,7 +85,7 @@ public class Particle : LuminousActor
         exists = true;
     }
 
-    public override void move()
+    public void move()
     {
         cnt -= SimulationTime.Step;
         if ((cnt < 0) || (pos.y < -2))
@@ -187,7 +192,7 @@ public class Particle : LuminousActor
             inCourse = false;
     }
 
-    public override void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         switch (type)
         {
@@ -278,7 +283,7 @@ public class Particle : LuminousActor
         model = parent1;
     }
 
-    public override void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
     {
         if (luminousMesh == null) luminousMesh = new Mesh("Particle-drawLuminous-" + meshKey);
         var mesh = luminousMesh;
@@ -300,10 +305,26 @@ public class Particle : LuminousActor
     }
 }
 
-public class ParticlePool : LuminousActorPool<Particle>
+public class ParticlePool
 {
-    public ParticlePool(int n, List<object> args) : base(n, args, () => new Particle())
+    ActorPool<Particle> pool;
+    public Particle[] actor;
+    public ParticlePool(int n, List<object> args)
     {
+        pool = new ActorPool<Particle>(n, args, () => new Particle());
+        actor = pool.actor;
+    }
+    public Particle getInstance() { return pool.getInstance(); }
+    public Particle getInstanceForced() { return pool.getInstanceForced(); }
+    public void move() { pool.move(); }
+    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth) { pool.draw(model, tint, blend, cull, lineWidth); }
+    public void clear() { pool.clear(); }
+
+    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    {
+        foreach (var a in actor)
+            if (a.exists)
+                a.drawLuminous(model, tint, blend, cull, lineWidth);
     }
 }
 

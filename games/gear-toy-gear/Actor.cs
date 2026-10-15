@@ -4,14 +4,20 @@ public class ActorPool<T>
     where T : class, ActorCopy
 {
     public T[] Actors;
-    protected int actorCount;
-    protected Shape shape;
-    public ActorPool(int n, Func<T> factory)
+    private int actorCount;
+    public Shape shape;
+    private Func<T, bool> onUpdate;
+    private Action<T> onDraw;
+    private Action<int> onRemove;
+    public ActorPool(int n, Func<T> factory, Func<T, bool> updateT, Action<T> drawT, Action<int> remove)
     {
         Actors = GtgArrays.Make(n, factory);
+        this.onUpdate = updateT;
+        this.onDraw = drawT;
+        this.onRemove = remove;
     }
 
-    public virtual void Clear()
+    public void Clear()
     {
         actorCount = 0;
     }
@@ -25,29 +31,29 @@ public class ActorPool<T>
         return actorCount - 1;
     }
 
-    public virtual void Remove(int index)
+    public void Remove(int index)
     {
         actorCount--;
         Actors[(index)] = (T)Actors[(actorCount)].CopyActor();
     }
 
-    public virtual void Update()
+    public void Update()
     {
         for (int i = 0; i < actorCount;)
         {
-            if (UpdateT(Actors[(i)]))
+            if (onUpdate(Actors[(i)]))
                 i++;
             else
-                Remove(i);
+                onRemove(i);
         }
     }
 
-    public virtual void Draw()
+    public void Draw()
     {
         DrawShape(shape);
     }
 
-    public virtual void DrawShape(Shape s)
+    public void DrawShape(Shape s)
     {
         if (actorCount <= 0)
             return;
@@ -58,18 +64,9 @@ public class ActorPool<T>
             if (limit > actorCount)
                 limit = actorCount;
             for (; i < limit; i++)
-                DrawT(Actors[(i)]);
+                onDraw(Actors[(i)]);
             s.Draw();
         }
-    }
-
-    public virtual bool UpdateT(T a)
-    {
-        return true;
-    }
-
-    public virtual void DrawT(T a)
-    {
     }
 
     public T Get(int i)
