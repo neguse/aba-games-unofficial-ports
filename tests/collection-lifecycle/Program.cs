@@ -5,7 +5,7 @@ using System.Runtime.Loader;
 using System.Text.Json;
 using Aba;
 using Aba.Native;
-using static Lub;
+using Lub;
 
 // Cloud-only integration: the real native API/runtime dispatch with a mock
 // Renderer. This does NOT validate rendered pixels, GPU drivers or OpenXR.
@@ -18,7 +18,7 @@ static class Tests
     static readonly List<object> gameRuns = new();
     static bool canvasValidated;
     static readonly JsonSerializerOptions json = new() { WriteIndented = true, PropertyNameCaseInsensitive = true };
-    static readonly Type runtime = typeof(Lub).Assembly.GetType("LubRuntime", true)!;
+    static readonly Type runtime = typeof(Lub.App).Assembly.GetType("Lub.LubRuntime", true)!;
     static readonly FieldInfo contextField = runtime.GetField("Ctx", BindingFlags.Static | BindingFlags.NonPublic)!;
     static readonly FieldInfo gameContextField = typeof(GameSession).GetField("context", BindingFlags.Instance | BindingFlags.NonPublic)!;
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate IntPtr Create();
@@ -61,7 +61,7 @@ static class Tests
     {
         var context = (AssemblyLoadContext)gameContextField.GetValue(session)!;
         Check(context.IsCollectible, session.Info.Id + ": context is not collectible");
-        Check(ReferenceEquals(context.LoadFromAssemblyName(typeof(Lub).Assembly.GetName()), typeof(Lub).Assembly),
+        Check(ReferenceEquals(context.LoadFromAssemblyName(typeof(Lub.App).Assembly.GetName()), typeof(Lub.App).Assembly),
             session.Info.Id + ": Lub must be shared with the host");
         return context.Assemblies.Single(a => a.GetName().Name == "AbaGame");
     }

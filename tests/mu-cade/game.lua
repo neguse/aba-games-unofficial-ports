@@ -1,11 +1,11 @@
-lub={config=function()end,host={available=function()return false end}}
+lub={app={config=function()end},host={available=function()return false end}}
 local draws=0
 lub.png={load=function()return nil,0,0,0,0,0,"pending" end}
 lub.gfx={ADDITIVE=1,ALPHA=2,MULTIPLY=3,NONE=0,use_buffer=function(key,kind,data)assert(#data>0,key);return {version=1}end,
  use_texture=function()return {version=1}end,draw=function(n)draws=draws+n end}
-local game=dofile(arg[1]);game.on_init()
+local game=dofile(arg[1]);game.OnInit()
 local g=Game.manager
-local stageMove=g.stage_manager.move_0
+local stageMove=g.stageManager.move_0
 local function near(a,b,t,label)assert(math.abs(a-b)<=t,(label or '')..': '..tostring(a)..' != '..tostring(b))end
 local function tick(input,n)
  TwinStickPad.input=input
@@ -13,55 +13,55 @@ local function tick(input,n)
 end
 local function count(pool)local n=0;for _,a in ipairs(pool.actor)do if a.exists then n=n+1 end end;return n end
 local function fresh()
- g.rand:set_seed(1);g:start_in_game();g.enemies:clear();g.stage_manager.move_0=function()end;tick(0,73)
+ g.rand:setSeed(1);g:startInGame();g.enemies:clear();g.stageManager.move_0=function()end;tick(0,73)
 end
-assert(#g.ship.tails==63 and #g.stage_manager.appearances==32)
+assert(#g.ship.tails==63 and #g.stageManager.appearances==32)
 assert(g.state==0);tick(0,3);tick(256);assert(g.state==2)
-fresh();assert(g.ship.restart_cnt<=0 and g.ship.exists)
+fresh();assert(g.ship.restartCnt<=0 and g.ship.exists)
 local x=g.ship._pos.x;tick(8,20);assert(g.ship._pos.x>x+.1)
-local angle=g.ship.deg;tick(256|1,10);near(g.ship.trg_deg,angle,.1,'held aim');assert(count(g.ship.shots)>0)
-tick(128,10);near(g.ship.trg_deg,-math.pi/2,.0001,'second stick')
+local angle=g.ship.deg;tick(256|1,10);near(g.ship.trgDeg,angle,.1,'held aim');assert(count(g.ship.shots)>0)
+tick(128,10);near(g.ship.trgDeg,-math.pi/2,.0001,'second stick')
 local time=g.time;tick(1024);tick(0,5);assert(g.paused and g.time==time);tick(1024);tick(0);assert(not g.paused and g.time>time)
-fresh();for i=1,8 do g.ship:add_tail_1(1)end;assert(g.ship.tail_num==8 and g.ship:get_multiplier()>1)
-tick(0,120);assert(g.ship.tail_num==8)
-local mult=g.ship:get_multiplier();tick(512);assert(g.ship.tail_num==0 and g.ship.enhanced_shot_cnt==mult*5-1 and g.ship.bullet_disap_cnt>0)
-tick(256,3);assert(count(g.ship.enhanced_shots)>0)
-fresh();g.score=49999;g:add_score_1(1);assert(g.left==1 and g.next_extend_score==200000)
-g.score=199999;g:add_score_1(1);assert(g.left==2 and g.next_extend_score==400000)
-g.score=399999;g:add_score_1(1);assert(g.left==2 and g.next_extend_score==600000)
-g.left=0;g.ship:destroyed_0();assert(g._is_game_over and g.left==-1)
-g.pref_manager.pref_data:record_result(7654321,123456);assert(g.pref_manager.pref_data.high_score[1]==7654321 and g.pref_manager.pref_data.time[1]==123456)
-local old=g.pref_manager.pref_data.high_score[1];g.pref_manager:load_text('bad');assert(g.pref_manager.pref_data.high_score[1]==old)
+fresh();for i=1,8 do g.ship:addTail_1(1)end;assert(g.ship.tailNum==8 and g.ship:getMultiplier()>1)
+tick(0,120);assert(g.ship.tailNum==8)
+local mult=g.ship:getMultiplier();tick(512);assert(g.ship.tailNum==0 and g.ship.enhancedShotCnt==mult*5-1 and g.ship.bulletDisapCnt>0)
+tick(256,3);assert(count(g.ship.enhancedShots)>0)
+fresh();g.score=49999;g:addScore_1(1);assert(g.left==1 and g.nextExtendScore==200000)
+g.score=199999;g:addScore_1(1);assert(g.left==2 and g.nextExtendScore==400000)
+g.score=399999;g:addScore_1(1);assert(g.left==2 and g.nextExtendScore==600000)
+g.left=0;g.ship:destroyed_0();assert(g._isGameOver and g.left==-1)
+g.prefManager.prefData:recordResult(7654321,123456);assert(g.prefManager.prefData.highScore[1]==7654321 and g.prefManager.prefData.time[1]==123456)
+local old=g.prefManager.prefData.highScore[1];g.prefManager:loadText('bad');assert(g.prefManager.prefData.highScore[1]==old)
 for _,kind in ipairs({CentHeadToAndFrom,CentHeadChase,CentHeadRoll})do
  for size=0,2 do
   fresh();local spec=kind.create(g.field,g.ship,g.bullets,g.world,30,size)
-  local head=spec:set_jointed_enemies_5(g.enemies,0,10,0,0);assert(head and count(g.enemies)==spec.body_length)
+  local head=spec:setJointedEnemies_5(g.enemies,0,10,0,0);assert(head and count(g.enemies)==spec.bodyLength)
   local most=0
-  for i=1,240 do tick(0);most=math.max(most,count(g.bullets.simple_bullets))end
+  for i=1,240 do tick(0);most=math.max(most,count(g.bullets.simpleBullets))end
   assert(most>0,'enemy barrage');draws=0;g:draw();assert(draws>0)
  end
 end
-fresh();local before=g.score;local block=g.enemies:get_instance();assert(block:set_10(g.stage_manager._block_spec,0,0,0,0,1,1,1,1))
-mcdphysics.body_position(block.ode._body_id,30,0,-11);tick(0,2);assert(not block.exists and g.score>before)
-draws=0;Letter.draw_string(Transform.ortho(),nil,lub.gfx.ADDITIVE,'test','ABC 123',10,20,3);assert(draws>100)
-local lp=LinePoint.new(g.field);assert(#lp.pos==8 and #lp.pos_hist==40 and #lp.pos_hist[1]==8)
+fresh();local before=g.score;local block=g.enemies:getInstance();assert(block:set_10(g.stageManager._blockSpec,0,0,0,0,1,1,1,1))
+mcdphysics.body_position(block.ode._bodyId,30,0,-11);tick(0,2);assert(not block.exists and g.score>before)
+draws=0;Letter.drawString(Transform.Ortho(),nil,lub.gfx.ADDITIVE,'test','ABC 123',10,20,3);assert(draws>100)
+local lp=LinePoint.new(g.field);assert(#lp.pos==8 and #lp.posHist==40 and #lp.posHist[1]==8)
 fresh();local spec=CentHeadChase.create(g.field,g.ship,g.bullets,g.world,30,1)
-local head=spec:set_jointed_enemies_5(g.enemies,0,10,0,0);assert(head)
-mcdphysics.body_position(head.ode._body_id,30,0,-11);tick(0,2);assert(not head.exists and count(g.tail_particles)>0)
-tick(0,180);assert(g.ship.tail_num>0 and g.ship:get_multiplier()==g.ship.tail_num+1)
-fresh();g.stage_manager.move_0=stageMove;g.ship.destroyed_0=function()end
+local head=spec:setJointedEnemies_5(g.enemies,0,10,0,0);assert(head)
+mcdphysics.body_position(head.ode._bodyId,30,0,-11);tick(0,2);assert(not head.exists and count(g.tailParticles)>0)
+tick(0,180);assert(g.ship.tailNum>0 and g.ship:getMultiplier()==g.ship.tailNum+1)
+fresh();g.stageManager.move_0=stageMove;g.ship.destroyed_0=function()end
 local maxEnemies,maxBullets=0,0
 for i=1,4000 do
- tick(256|((i%240<120)and 4 or 8));maxEnemies=math.max(maxEnemies,count(g.enemies));maxBullets=math.max(maxBullets,count(g.bullets.simple_bullets))
- if i%120==0 then mcdphysics.body_position(g.ship.ode._body_id,0,0,0);g.ship.ode:reset()end
+ tick(256|((i%240<120)and 4 or 8));maxEnemies=math.max(maxEnemies,count(g.enemies));maxBullets=math.max(maxBullets,count(g.bullets.simpleBullets))
+ if i%120==0 then mcdphysics.body_position(g.ship.ode._bodyId,0,0,0);g.ship.ode:reset()end
 end
-assert(maxEnemies>10 and maxBullets>0 and g.stage_manager.rank>0)
+assert(maxEnemies>10 and maxBullets>0 and g.stageManager.rank>0)
 local o=mcdphysics
-g:clear_all()
+g:clearAll()
 o.seed(1);local w=o.world_create();o.world_configure(w);local group=o.group_create();local floor=o.box(nil,40,40,1);o.geom_position(floor,0,0,-1)
 local bodies,geoms={},{}
 for i=1,2 do local b=o.body_create(w);bodies[i]=b;o.body_gravity(b,0);local m=o.mass();o.mass_box(m,1,1,1);o.mass_adjust(m,1);o.body_mass(b,m);o.body_position(b,(i-1)*4,0,2);geoms[i]=i==1 and o.box(nil,1,1,1)or o.sphere(nil,.5);o.geom_body(geoms[i],b)end
--- Original bundled ODE DLL: box/sphere contacts, feedback and falling off the floor.
+-- Original bundled ODE DLL: Box/sphere contacts, feedback and falling off the floor.
 local reference={
  {59,5,.571875,0,-.0100158456,4.571875,0,-.0100158457,0,0,9.99801936},
  {119,5,2.26875,0,-.01,6.26875,0,-.0100000001,0,0,10.0000001},

@@ -1,4 +1,4 @@
-using static Lub;
+using Lub;
 public static class NrSound {
     public static void playMusic(int index) { if(Host.Available()) Host.Send("music.loop",index.ToString()); }
     public static void stopMusic() { if(Host.Available()) Host.Send("music.stop",""); }

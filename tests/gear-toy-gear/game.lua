@@ -6,11 +6,11 @@ local function near(a,b,tolerance,label)
 end
 local function tick(f,input,n)
  Pad.input=input
- for i=1,n or 1 do f:update() end
+ for i=1,n or 1 do f:Update() end
 end
 local function snapshot(f,i)
  local a=f.actors;local p=a.player
- return {i,p.pos.x,p.pos.y,Stage.game_speed,Stage.rank,a.game_state.score,a.game_state.left,a.stage.stage_count,a.enemies:get_count(),a.middle_enemies:get_count(),a.bullets:get_count()}
+ return {i,p.Pos.X,p.Pos.Y,Stage.GameSpeed,Stage.Rank,a.gameState.score,a.gameState.left,a.stage.stageCount,a.enemies:get_Count(),a.middleEnemies:get_Count(),a.bullets:get_Count()}
 end
 -- Original C# 0.1, seed 1, alternating movement, acceleration and braking.
 local reference={
@@ -45,7 +45,7 @@ local reference={
 {2900,17.12627,88.35548,1.0005853,0.704755,82166,-1,5,7,0,1},
 {3000,17.12627,88.35548,1.0000005,0.704755,82166,-1,5,9,0,0},
 }
-local f=GtgFrame.new();f:load_content();f:seed(1);f:start_game()
+local f=GtgFrame.new();f:LoadContent();f:Seed(1);f:StartGame()
 for i=1,3000 do
  tick(f,(i%240<120 and 1 or 8)|(i%600<400 and 512 or 256))
  if i%100==0 then
@@ -54,63 +54,63 @@ for i=1,3000 do
  end
 end
 print('PASS original C# game: 3000 updates')
-f:seed(1);f:start_game();local recording={}
+f:Seed(1);f:StartGame();local recording={}
 for i=1,600 do tick(f,(i%240<120 and 1 or 8)|(i%600<400 and 512 or 256));recording[i]=snapshot(f,i)end
 assert(#f.replay.data>0 and #f.replay.data<=600)
-f:start_title();assert(f.replay:get_is_available())
+f:StartTitle();assert(f.replay:get_IsAvailable())
 for i=1,600 do
  tick(f,0);local actual=snapshot(f,i)
  for j,expected in ipairs(recording[i])do near(actual[j],expected,.00001,'replay '..i..' field '..j)end
 end
 print('PASS 600-update replay including acceleration and braking')
-f:start_game();local a=f.actors;local p=a.player;local g=a.game_state;local stage=a.stage
-local destroy=p.destroy;p.destroy=function()end
+f:StartGame();local a=f.actors;local p=a.player;local g=a.gameState;local stage=a.stage
+local destroy=p.Destroy;p.Destroy=function()end
 local bosses=0;local oldBoss=false
 for i=1,6500 do
  tick(f,(i%240<120 and 1 or 8)|512)
- if stage.is_boss_stage and stage.stage_ticks==420 then assert(a.middle_enemies:get_count()>=3);bosses=bosses+1 end
- if oldBoss and not stage.is_boss_stage then assert(stage.stage_ticks==120)end
- oldBoss=stage.is_boss_stage
- if stage.stage_count>=15 then break end
+ if stage.isBossStage and stage.stageTicks==420 then assert(a.middleEnemies:get_Count()>=3);bosses=bosses+1 end
+ if oldBoss and not stage.isBossStage then assert(stage.stageTicks==120)end
+ oldBoss=stage.isBossStage
+ if stage.stageCount>=15 then break end
 end
-assert(stage.stage_count>=15 and bosses==2)
+assert(stage.stageCount>=15 and bosses==2)
 for kind=0,8 do
- a.pillars:clear();stage.pillar_type=kind;stage:add_pillars();assert(a.pillars.pool:get_count()>0,'pillar '..kind)
+ a.pillars:Clear();stage.pillarType=kind;stage:AddPillars();assert(a.pillars.pool:get_Count()>0,'pillar '..kind)
 end
-p.destroy=destroy
-f:start_game();tick(f,0,2);g=a.game_state
-assert(g.left==2 and g.extend_score==1000000)
-local score=g.score;g:set_multiplier(10);g:add_scoreint(100);assert(g.score==score+1000)
-g:set_multiplier(1);g.score=999999;g:add_scoreint(1);assert(g.left==3 and g.extend_score==3000000)
-g:add_scoreint(2000000);assert(g.left==4 and g.extend_score==6000000)
-g.left=9;g:add_scoreint(3000000);assert(g.left==9 and g.extend_score==10000000)
+p.Destroy=destroy
+f:StartGame();tick(f,0,2);g=a.gameState
+assert(g.left==2 and g.extendScore==1000000)
+local score=g.score;g:set_Multiplier(10);g:AddScoreint(100);assert(g.score==score+1000)
+g:set_Multiplier(1);g.score=999999;g:AddScoreint(1);assert(g.left==3 and g.extendScore==3000000)
+g:AddScoreint(2000000);assert(g.left==4 and g.extendScore==6000000)
+g.left=9;g:AddScoreint(3000000);assert(g.left==9 and g.extendScore==10000000)
 local ticks=stage.ticks
-tick(f,16384);assert(f.stored_pause_ticks>=0)
+tick(f,16384);assert(f.storedPauseTicks>=0)
 tick(f,8,10);assert(stage.ticks==ticks)
-tick(f,16384);assert(f.stored_pause_ticks<0)
-tick(f,0);g.score=7654321;g.left=0;p.invincible_ticks=-1;p:destroy()
-assert(g.stored_is_in_game_over and g.left==-1)
-tick(f,0,300);assert(f.state==0 and a.player.is_in_replay and f.record.stored_scores[1]==7654321)
+tick(f,16384);assert(f.storedPauseTicks<0)
+tick(f,0);g.score=7654321;g.left=0;p.invincibleTicks=-1;p:Destroy()
+assert(g.storedIsInGameOver and g.left==-1)
+tick(f,0,300);assert(f.state==0 and a.player.isInReplay and f.record.storedScores[1]==7654321)
 assert(saved:sub(1,8)=='7654321,')
-local record=Record.new();record:load()
-GtgPreference.load(record,'7654321,90000,80000,70000,60000,50000,40000,30000,20000,10000')
-assert(record.stored_scores[1]==7654321 and record.stored_scores[10]==10000)
-GtgPreference.load(record,'1,2,3,4,5,6,7,8,9,10');assert(record.stored_scores[1]==7654321)
+local record=Record.new();record:Load()
+GtgPreference.Load(record,'7654321,90000,80000,70000,60000,50000,40000,30000,20000,10000')
+assert(record.storedScores[1]==7654321 and record.storedScores[10]==10000)
+GtgPreference.Load(record,'1,2,3,4,5,6,7,8,9,10');assert(record.storedScores[1]==7654321)
 print('PASS two boss stages, nine pillar types, multipliers, extends, pause, game over and scores')
 local pool=ActorPool.new(3,function()return MiddleEnemy.new()end,function()return true end,function()end,function()end)
-local enemy=MiddleEnemy.new();enemy.pos.x=10;enemy.turret_indexes[1]=7
-pool:add_t(enemy);enemy.pos.x=20;enemy.turret_indexes[1]=8;pool:add_t(enemy)
-local copy=pool:get(0);copy.pos.x=99;copy.turret_indexes[1]=99
-assert(pool:get(0).pos.x==10 and pool:get(0).turret_indexes[1]==7)
-pool:remove(0);assert(pool:get_count()==1 and pool:get(0).pos.x==20 and pool:get(0).turret_indexes[1]==8)
-Letter.bars:clear();Letter.addstring_vector3float_quaternionfloat('GEAR TOY GEAR',Vector3.new(),1,Quaternion.get_identity(),1)
-assert(Letter.bars.pool:get_count()>20)
-local sound=Sound.new();local cue=sound:get_cue('HomingLaser')
-local listener=AudioListener.new();listener.position=Vector3.new(1,2,3)
-local emitter=AudioEmitter.new();emitter.position=Vector3.new(4,6,8)
-cue:apply3_d(listener,emitter);cue:play();local loop=FrameHost.loops[cue.id]
-assert(loop.sound==2);near(loop.pan,3/math.sqrt(34),.00001,'loop pan')
-emitter.position.x=9;cue:apply3_d(listener,emitter);near(loop.pan,8/math.sqrt(89),.00001,'moved loop pan')
-cue:stop(0);assert(FrameHost.loops[cue.id]==nil)
+local enemy=MiddleEnemy.new();enemy.Pos.X=10;enemy.TurretIndexes[1]=7
+pool:AddT(enemy);enemy.Pos.X=20;enemy.TurretIndexes[1]=8;pool:AddT(enemy)
+local copy=pool:Get(0);copy.Pos.X=99;copy.TurretIndexes[1]=99
+assert(pool:Get(0).Pos.X==10 and pool:Get(0).TurretIndexes[1]==7)
+pool:Remove(0);assert(pool:get_Count()==1 and pool:Get(0).Pos.X==20 and pool:Get(0).TurretIndexes[1]==8)
+Letter.bars:Clear();Letter.AddstringVector3floatQuaternionfloat('GEAR TOY GEAR',Vector3.new(),1,Quaternion.get_Identity(),1)
+assert(Letter.bars.pool:get_Count()>20)
+local sound=Sound.new();local cue=sound:GetCue('HomingLaser')
+local listener=AudioListener.new();listener.Position=Vector3.new(1,2,3)
+local emitter=AudioEmitter.new();emitter.Position=Vector3.new(4,6,8)
+cue:Apply3D(listener,emitter);cue:Play();local loop=FrameHost.loops[cue.id]
+assert(loop.Sound==2);near(loop.Pan,3/math.sqrt(34),.00001,'loop pan')
+emitter.Position.X=9;cue:Apply3D(listener,emitter);near(loop.Pan,8/math.sqrt(89),.00001,'moved loop pan')
+cue:Stop(0);assert(FrameHost.loops[cue.id]==nil)
 print('PASS actor value copies, fixed buffers, compaction, alphabet glyphs and spatial cue lifecycle')
 print('RESULT 0')

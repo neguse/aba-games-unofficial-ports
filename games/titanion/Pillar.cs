@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using static GameMath;
-using static Lub;
+using Lub;
 
 public class PillarPool
 {

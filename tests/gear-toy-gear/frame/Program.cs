@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Lub;
 
 static T Field<T>(object value, string name) => (T)value.GetType().GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).GetValue(value);
 static void Near(double actual, double expected, double tolerance = .00001)
@@ -84,7 +85,7 @@ var fragment = File.ReadAllText("game.fs.slang");
 var readback = Lub.Gfx.Readback("sampler-test");
 int rendered = 0;
 bool verified = false;
-int runtime = Lub.Run(null, null, dt =>
+int runtime = Lub.App.Run(null, null, dt =>
 {
     if (rendered == 0)
     {
@@ -132,9 +133,9 @@ int runtime = Lub.Run(null, null, dt =>
         var pixel = bytes.AsSpan();
         Near(pixel[0], 64, 1); Near(pixel[1], 128, 1); Near(pixel[2], 192, 1); Near(pixel[3], 255, 1);
         verified = true;
-        Lub.Quit();
+        Lub.App.Quit();
     }
-    if (rendered >= 120) Lub.Quit();
+    if (rendered >= 120) Lub.App.Quit();
 }, null, ["--backend", "vulkan"]);
 if (runtime != 0 || !verified) throw new Exception("Native texture sampler did not render");
 Console.WriteLine("PASS native texture sampler readback");

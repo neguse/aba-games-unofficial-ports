@@ -1,12 +1,12 @@
 using System;
-using static Lub;
+using Lub;
 using static WkConstants;
 public static class Game {
  static float elapsed;
  static int input;
  static bool escapePressed;
  public static void OnInit(){
-  Config(new ConfigOpts{Width=640,Height=480});WkRandom.Seed(1);WkRender.Init();WkAttract.initTitle();
+  App.Config(new ConfigOpts{Width=640,Height=480});WkRandom.Seed(1);WkRender.Init();WkAttract.initTitle();
   if(Host.Available()){Host.Send("scores.load","");Host.Send("ready","");}
  }
  public static void OnFrame(float dt){

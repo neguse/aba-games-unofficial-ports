@@ -1,4 +1,4 @@
-using static Lub;
+using Lub;
 public static class WkSound {
  public static int playingMusicIdx=-1,nextMusicIdx=-1;
  static float elapsed;

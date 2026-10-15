@@ -1,4 +1,5 @@
-using static Lub;
+using Lub;
+using Lubx;
 namespace Aba;
 
 /// <summary>Shared pixel canvas, displayed unchanged on a desktop or an anchored XR panel.</summary>

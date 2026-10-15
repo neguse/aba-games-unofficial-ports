@@ -1,11 +1,11 @@
 using System.Diagnostics;
-using static Lub;
+using Lub;
 
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 long report = Stopwatch.GetTimestamp();
 int frames = 0;
 bool profile = Environment.GetEnvironmentVariable("LUB_PROFILE") == "1";
-return Lub.Run(Game.OnInit, null, dt =>
+return App.Run(Game.OnInit, null, dt =>
 {
     Game.OnFrame(dt);
     if (!profile) return;

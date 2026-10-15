@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
+using Lub;
 namespace Aba;
 
 public sealed record GameInfo(string Id, string Title, bool Vr);
@@ -13,7 +14,7 @@ public sealed class GameSession : IDisposable
         readonly AssemblyDependencyResolver resolver = new(path);
         protected override Assembly? Load(AssemblyName name)
         {
-            if(name.Name==typeof(Lub).Assembly.GetName().Name) return typeof(Lub).Assembly;
+            if(name.Name==typeof(App).Assembly.GetName().Name) return typeof(App).Assembly;
             string? file=resolver.ResolveAssemblyToPath(name);
             return file==null?null:LoadFromAssemblyPath(file);
         }

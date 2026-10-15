@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using static Lub;
+using Lub;
 
 public static class FrameHost
 {
@@ -33,10 +33,10 @@ public static class FrameHost
                 continue;
             }
             Io.LoadBytes("audio/" + names[i] + ".wav", out var encoded, out _, out var status, out var error);
-            if (status == Io.Status.Error) { Console.WriteLine(error); Lub.Quit(); return; }
+            if (status == Io.Status.Error) { Console.WriteLine(error); App.Quit(); return; }
             if (encoded == null) continue;
             Audio.Decode(encoded, out var pcm, out int channels, out int rate);
-            if (pcm == null) { Console.WriteLine("Cannot decode " + names[i]); Lub.Quit(); return; }
+            if (pcm == null) { Console.WriteLine("Cannot decode " + names[i]); App.Quit(); return; }
             sounds[i] = Audio.SndBytes(names[i], pcm, channels, rate, 1);
         }
         if (!audioStarted && sounds[0] != 0)

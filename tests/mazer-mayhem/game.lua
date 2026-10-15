@@ -6,11 +6,11 @@ local function near(a,b,tolerance,label)
 end
 local function tick(f,input,n)
  Pad.input=input
- for i=1,n or 1 do f:update();f.field:set_eye_position() end
+ for i=1,n or 1 do f:Update();f.field:SetEyePosition() end
 end
 local function snapshot(f)
  local p=f.player
- return {f.cnt,p.stored_pos.x,p.stored_pos.y,p.stored_pos.z,p.deg,f.balls:length(),f.bullets:length(),p.score,f.shots:length(),p.shot_cnt,p.left,p.bonus_cnt}
+ return {f.cnt,p.storedPos.X,p.storedPos.Y,p.storedPos.Z,p.deg,f.balls:Length(),f.bullets:Length(),p.score,f.shots:Length(),p.shotCnt,p.left,p.bonusCnt}
 end
 -- Original C# 0.14, seed 1, with SetEyePosition after each update.
 local reference={
@@ -45,7 +45,7 @@ local reference={
 {2900,252.95137,122.47241,1.0172501,-18.49986,37,243,4249,4,286,0,1},
 {3000,228.8884,150.50484,24,-20.224834,36,90,4380,12,0,-1,0},
 }
-local f=MmFrame.new();f:load_content();f:seed(1);f:start_in_game()
+local f=MmFrame.new();f:LoadContent();f:Seed(1);f:StartInGame()
 for i=1,3000 do
  tick(f,16|(i%240<120 and 1 or 8)|(i%360<90 and 32 or 0))
  if i%100==0 then
@@ -54,7 +54,7 @@ for i=1,3000 do
  end
 end
 print('PASS original C# game: 3000 updates')
--- Original CircleParticle and SpringConstraint: collision, forces, rotation and spring correction.
+-- Original CircleParticle and SpringConstraint: Collision, forces, rotation and spring correction.
 local physics={
 {59,-9.70379,-0.24060991,3.3077238,-11.504731,0.64389104,2.6885693,-0.11075115,0.05916795,-0.03711915,-0.2252779,-0.03068763,0.02578044,-0.56138927,-0.09331862,0.068037175,0.81945693},
 {119,-1.7595336,1.1566838,2.6725006,-3.3111994,0.104988456,3.408686,0.5143833,-0.0008018017,0.007396698,0.505316,0.0053265765,0.0031068325,-0.85738677,-0.14135994,0.10280143,0.4840947},
@@ -77,77 +77,77 @@ local physics={
 {1139,28.402369,1.5264907,12.20888,26.923124,0.33274764,13.044493,-0.68639946,0.023112297,-0.0062761307,-0.66332436,-0.0154079795,0.020687103,-0.9791318,-0.16052942,0.116535895,-0.04456948},
 {1199,7.172419,1.354056,12.923655,5.456725,0.44771773,13.558081,0.045547485,0.037426353,-0.016296387,0.08024502,-0.024950534,0.027365685,-0.9791318,-0.16052942,0.116535895,-0.044578277},
 }
-local a,b=CircleParticle.new(),CircleParticle.new();a:clear();b:clear()
-a:set(Vector3.new(-1,0,3));b:set(Vector3.new(1,0,3));a:set_mass(2);b:set_mass(3)
+local a,b=CircleParticle.new(),CircleParticle.new();a:Clear();b:Clear()
+a:Set(Vector3.new(-1,0,3));b:Set(Vector3.new(1,0,3));a:set_Mass(2);b:set_Mass(3)
 for i=0,1199 do
- a:add_massless_force(Vector3.new(math.sin(i*.017)*2,.3,-.2));b:add_massless_force(Vector3.new(math.cos(i*.023)*-2,-.2,.15))
- a:check_collision(b);a:update();b:update()
- if i%3==0 then SpringConstraint.resolve(a.pos,b.pos,a:get_inv_mass(),b:get_inv_mass(),.5,2)end
+ a:AddMasslessForce(Vector3.new(math.sin(i*.017)*2,.3,-.2));b:AddMasslessForce(Vector3.new(math.cos(i*.023)*-2,-.2,.15))
+ a:CheckCollision(b);a:Update();b:Update()
+ if i%3==0 then SpringConstraint.Resolve(a.Pos,b.Pos,a:get_InvMass(),b:get_InvMass(),.5,2)end
  if i%60==59 then
-  local av,bv=a:get_velocity(),b:get_velocity()
-  local actual={i,a.pos.x,a.pos.y,a.pos.z,b.pos.x,b.pos.y,b.pos.z,av.x,av.y,av.z,bv.x,bv.y,bv.z,a.rotation.x,a.rotation.y,a.rotation.z,a.rotation.w}
+  local av,bv=a:get_Velocity(),b:get_Velocity()
+  local actual={i,a.Pos.X,a.Pos.Y,a.Pos.Z,b.Pos.X,b.Pos.Y,b.Pos.Z,av.X,av.Y,av.Z,bv.X,bv.Y,bv.Z,a.Rotation.X,a.Rotation.Y,a.Rotation.Z,a.Rotation.W}
   for j,expected in ipairs(physics[(i+1)//60])do near(actual[j],expected,.003,'physics '..i..' field '..j)end
  end
 end
 local random=Random.new(1)
-for _,expected in ipairs({534011718,237820880,1002897798,1657007234,1412011072,929393559,760389092,2026928803,217468053,1379662799})do assert(random:next()==expected)end
+for _,expected in ipairs({534011718,237820880,1002897798,1657007234,1412011072,929393559,760389092,2026928803,217468053,1379662799})do assert(random:Next()==expected)end
 for _,sample in ipairs({0,1073741823,2147483646})do
- random.next=function()return sample end
- for _,max in ipairs({2,3,6,10,180,360})do assert(random:nextint(max)==(sample==0 and 0 or sample==2147483646 and max-1 or (max-1)//2))end
+ random.Next=function()return sample end
+ for _,max in ipairs({2,3,6,10,180,360})do assert(random:Nextint(max)==(sample==0 and 0 or sample==2147483646 and max-1 or (max-1)//2))end
 end
-local pool=ParticlePool.new(3,nil);local particle=Particle.new();particle.pos.x=10
-pool:add(particle);particle.pos.x=20;pool:add(particle);particle.pos.x=30;pool:add(particle)
-assert(pool:get(0).pos.x==10 and pool:get(1).pos.x==20)
-local copy=pool:get(0);copy.pos.x=99;assert(pool:get(0).pos.x==10)
-pool:removeint(0);pool:gc();assert(pool:length()==2 and pool:get(0):get_id()==0 and pool:get(0).pos.x==30)
-particle.pos.x=40;pool:add(particle);assert(pool:get(0).pos.x==30 and pool:get(2).pos.x==40)
+local pool=ParticlePool.new(3,nil);local particle=Particle.new();particle.Pos.X=10
+pool:Add(particle);particle.Pos.X=20;pool:Add(particle);particle.Pos.X=30;pool:Add(particle)
+assert(pool:Get(0).Pos.X==10 and pool:Get(1).Pos.X==20)
+local copy=pool:Get(0);copy.Pos.X=99;assert(pool:Get(0).Pos.X==10)
+pool:Removeint(0);pool:Gc();assert(pool:Length()==2 and pool:Get(0):GetId()==0 and pool:Get(0).Pos.X==30)
+particle.Pos.X=40;pool:Add(particle);assert(pool:Get(0).Pos.X==30 and pool:Get(2).Pos.X==40)
 print('PASS physics, RNG boundaries, actor value copies and compaction')
-f:seed(1);f:start_in_game();local recording={}
+f:Seed(1);f:StartInGame();local recording={}
 for i=1,600 do tick(f,16|(i%240<120 and 1 or 8)|(i%360<90 and 32 or 0));recording[i]=snapshot(f)end
 assert(#f.replay.data==600)
-f:start_title()
+f:StartTitle()
 for i=1,600 do
  tick(f,0)
  local actual=snapshot(f)
  for j,expected in ipairs(recording[i])do near(actual[j],expected,.0001,'replay '..i..' field '..j)end
 end
-f:start_in_game();tick(f,0,2)
+f:StartInGame();tick(f,0,2)
 local p=f.player
-for i=1,110 do p:get_bonus(p.stored_pos)end
+for i=1,110 do p:GetBonus(p.storedPos)end
 assert(p.multiplier==100)
-tick(f,96,3);assert(p.stored_is_in_hyper)
-for i=1,1000 do p:get_bonus(p.stored_pos)end
+tick(f,96,3);assert(p.storedIsInHyper)
+for i=1,1000 do p:GetBonus(p.storedPos)end
 assert(p.multiplier==999)
-local score=p.score;p:add_scoreint(100);assert(p.score==score+99900)
-p:end_hyper_mode();assert(not p.stored_is_in_hyper and p.multiplier==0)
-p.score=999999;p:add_scoreint(1);assert(p.left==3 and p.next_extend_score==3000000)
-p:add_scoreint(2000000);assert(p.left==3 and p.next_extend_score==6000000)
-local x,y=p.stored_pos.x,p.stored_pos.y
-tick(f,128);assert(f.stored_pause_cnt>=0)
-tick(f,8,10);assert(p.stored_pos.x==x and p.stored_pos.y==y)
-tick(f,128);assert(f.stored_pause_cnt<0)
-tick(f,0);tick(f,17);assert(p.dash_cnt>0 and f.grenades:length()>0)
-f.stage.appearance_wait_cnt=0;f.stage.appearance_cnt_dec=31;tick(f,0)
+local score=p.score;p:AddScoreint(100);assert(p.score==score+99900)
+p:EndHyperMode();assert(not p.storedIsInHyper and p.multiplier==0)
+p.score=999999;p:AddScoreint(1);assert(p.left==3 and p.nextExtendScore==3000000)
+p:AddScoreint(2000000);assert(p.left==3 and p.nextExtendScore==6000000)
+local x,y=p.storedPos.X,p.storedPos.Y
+tick(f,128);assert(f.storedPauseCnt>=0)
+tick(f,8,10);assert(p.storedPos.X==x and p.storedPos.Y==y)
+tick(f,128);assert(f.storedPauseCnt<0)
+tick(f,0);tick(f,17);assert(p.dashCnt>0 and f.grenades:Length()>0)
+f.stage.appearanceWaitCnt=0;f.stage.appearanceCntDec=31;tick(f,0)
 local boss
-for i=1,f.balls:length()do if f.balls.actors[i].base_radius>5 then boss=i-1;break end end
+for i=1,f.balls:Length()do if f.balls.actors[i].BaseRadius>5 then boss=i-1;break end end
 assert(boss,'boss appearance')
-f.balls.actors[boss+1].hardness=1e9
-f.balls.actors[boss+1].burst_radius=f.balls.actors[boss+1].state.radius
-f.balls:add_damageintfloat(boss,1)
-assert(f.stage.appearance_wait_cnt==180 and f.stage.appearance_cnt_dec==10)
-p.score=7654321;p.left=0;p:destroy();assert(p.gameover_cnt==1 and p.left==-1)
+f.balls.actors[boss+1].Hardness=1e9
+f.balls.actors[boss+1].BurstRadius=f.balls.actors[boss+1].State.Radius
+f.balls:AddDamageintfloat(boss,1)
+assert(f.stage.appearanceWaitCnt==180 and f.stage.appearanceCntDec==10)
+p.score=7654321;p.left=0;p:Destroy();assert(p.gameoverCnt==1 and p.left==-1)
 tick(f,0,601)
-assert(f.state==0 and f.record.stored_scores[1]==7654321 and p.is_in_replay)
+assert(f.state==0 and f.record.storedScores[1]==7654321 and p.isInReplay)
 assert(saved:sub(1,8)=='7654321,')
 local scores='7654321,1000000,900000,800000,700000,600000,500000,400000,300000,200000'
-local record=Record.new();record:load();MmPreference.load(record,scores)
-assert(record.stored_scores[1]==7654321 and record.stored_scores[10]==200000)
-MmPreference.load(record,'1,2,3,4,5,6,7,8,9,10');assert(record.stored_scores[1]==7654321)
-local sound=Sound.new();sound:play_bgm('Mm1');assert(FrameHost.music==11 and FrameHost.music_volume==1)
-sound:fadeout_bgm()
-for i=1,60 do sound:update()end
-near(FrameHost.music_volume,.5,.0001,'fade midpoint');assert(FrameHost.music==11)
-for i=1,60 do sound:update()end
+local record=Record.new();record:Load();MmPreference.Load(record,scores)
+assert(record.storedScores[1]==7654321 and record.storedScores[10]==200000)
+MmPreference.Load(record,'1,2,3,4,5,6,7,8,9,10');assert(record.storedScores[1]==7654321)
+local sound=Sound.new();sound:PlayBgm('Mm1');assert(FrameHost.music==11 and FrameHost.musicVolume==1)
+sound:FadeoutBgm()
+for i=1,60 do sound:Update()end
+near(FrameHost.musicVolume,.5,.0001,'fade midpoint');assert(FrameHost.music==11)
+for i=1,60 do sound:Update()end
 assert(FrameHost.music==-1)
 print('PASS replay, hyper, extends, pause, dash, boss progression, game over, scores and 120-update music fade')
 print('RESULT 0')

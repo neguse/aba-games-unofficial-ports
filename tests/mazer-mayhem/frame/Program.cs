@@ -1,4 +1,5 @@
 using System.Reflection;
+using Lub;
 
 static T Field<T>(object obj, string name) => (T)obj.GetType().GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).GetValue(obj);
 static void Set(object obj, string name, object value) => obj.GetType().GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).SetValue(obj, value);
@@ -28,7 +29,7 @@ static float[] Snapshot(MmFrame frame)
 var saveDirectory = Path.Combine(Path.GetTempPath(), "mm-test-" + Guid.NewGuid());
 Environment.SetEnvironmentVariable("XDG_DATA_HOME", saveDirectory);
 bool passed = false;
-int runtime = Lub.Run(null, null, _ =>
+int runtime = Lub.App.Run(null, null, _ =>
 {
 try
 {
@@ -159,7 +160,7 @@ try
 }
 finally
 {
-    Lub.Quit();
+    Lub.App.Quit();
     if (Directory.Exists(saveDirectory)) Directory.Delete(saveDirectory, true);
 }
 

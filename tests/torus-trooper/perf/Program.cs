@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using static Lub;
+using Lub;
 
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 int seconds = args.Length > 0 ? int.Parse(args[0]) : 60;
@@ -11,7 +11,7 @@ var right = new XrInput { Active = true };
 int frame = 0, playingFrames = 0;
 long start = 0;
 int result = 1;
-int runtime = Lub.Run(() =>
+int runtime = App.Run(() =>
 {
     Game.OnInit();
     Game.manager.rand.setSeed(1234);
@@ -53,10 +53,10 @@ int runtime = Lub.Run(() =>
         {
             result = playingFrames > frame / 2 ? 0 : 1;
             Console.WriteLine($"BENCH {(result == 0 ? "PASS" : "FAIL")} frames={frame} playing={playingFrames}");
-            Quit();
+            App.Quit();
         }
     }
-    catch (Exception e) { Console.Error.WriteLine(e); result = 1; Quit(); }
+    catch (Exception e) { Console.Error.WriteLine(e); result = 1; App.Quit(); }
 }, Game.OnQuit, []);
 using (var output = new StreamWriter("frames.csv"))
 {

@@ -1,5 +1,5 @@
 // Copyright 2006 Kenta Cho. Some rights reserved.
-using static Lub;
+using Lub;
 
 public class Preference
 {

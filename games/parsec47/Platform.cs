@@ -1,6 +1,6 @@
 // Copyright 2003 Kenta Cho. All rights reserved.
 using System;
-using static Lub;
+using Lub;
 
 public class Pad
 {
