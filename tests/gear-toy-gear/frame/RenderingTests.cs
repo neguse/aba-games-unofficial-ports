@@ -30,40 +30,58 @@ static class RenderingTests
             bindings["parameters"] = Gfx.UseBuffer("gtg-test-parameters", Gfx.BufferType.Storage, data, ++version);
             Gfx.Draw(3, bindings, options);
         }
-        Gfx.BeginPass(new PassOpts { Targets = [target, alpha], DepthTarget = depth, ClearDepth = 1, ClearColor = [0,0,0,0] });
-        Draw(.1f, [1,1,1,0]);
-        Draw(.2f, [.6f,.2f,.1f,.25f]);
-        Draw(.8f, [0,1,0,1]);
-        Gfx.EndPass();
-        RenderingReadback.Pixel(RenderingReadback.Read(target, "gtg-depth-read"), [.15f,.05f,.025f,.25f], "GTG rear occlusion and transparent fragment discard");
-        RenderingReadback.Pixel(RenderingReadback.Read(alpha, "gtg-alpha-read"), [.0625f], "GTG legacy alpha in R8 target");
-        RenderingReadback.Output(target);
-        options.Depth = false; options.DepthWrite = false;
-        Gfx.BeginPass(new PassOpts { Targets = [target, alpha], ClearColor = [0,0,0,0] });
-        Draw(0, [.6f,.2f,.1f,.25f]);
-        Draw(0, [.2f,.8f,.4f,.5f]);
-        Gfx.EndPass();
-        RenderingReadback.Pixel(RenderingReadback.Read(target, "gtg-overlap-read"), [.175f,.425f,.2125f,.625f], "GTG overlapping RGB");
-        RenderingReadback.Pixel(RenderingReadback.Read(alpha, "gtg-overlap-alpha-read"), [.28125f], "GTG overlapping legacy alpha");
-        options.Shader = shader;
-        options.Depth = true; options.DepthWrite = true;
-        Gfx.BeginPass(new PassOpts { Target = target, DepthTarget = depth, ClearDepth = 1, ClearColor = [0,0,0,0] });
-        Draw(.8f, [0,1,0,1]);
-        options.Depth = false; options.DepthWrite = false;
-        Draw(.9f, [1,0,0,.5f]);
-        Gfx.EndPass();
-        RenderingReadback.Pixel(RenderingReadback.Read(target, "gtg-hud-read"), [.5f,.5f,0], "GTG depth reset and HUD draw order");
-        data[33] = 6;
-        Gfx.BeginPass(new PassOpts { Target = target, ClearColor = [.1f,.2f,.3f,1] });
-        Draw(0, [0,0,0,0]);
-        Gfx.EndPass();
-        RenderingReadback.Pixel(RenderingReadback.Read(target, "gtg-composite-read"), [32/255f*40/255f+.1f*(1-40/255f),48/255f*40/255f+.2f*(1-40/255f),64/255f*40/255f+.3f*(1-40/255f)], "GTG edge composition uses separate alpha");
-        options.Blend = Gfx.Blend.None;
-        data[33] = 7;
-        Gfx.BeginPass(new PassOpts { Target = target });
-        Draw(0, [0,0,0,0]);
-        Gfx.EndPass();
-        RenderingReadback.Pixel(RenderingReadback.Read(target, "gtg-bloom-read"), [32/255f*2.6f,48/255f*2.6f,64/255f*2.6f,40/255f*2.6f], "GTG original 13 bloom samples divided by 5");
-        Console.WriteLine("PASS GTG GPU MRT alpha, depth, HUD order, bloom gain and XR output transfer");
+        RenderingReadback.Step(() =>
+        {
+            Gfx.BeginPass(new PassOpts { Targets = [target, alpha], DepthTarget = depth, ClearDepth = 1, ClearColor = [0,0,0,0] });
+            Draw(.1f, [1,1,1,0]);
+            Draw(.2f, [.6f,.2f,.1f,.25f]);
+            Draw(.8f, [0,1,0,1]);
+            Gfx.EndPass();
+            RenderingReadback.Read(target, "gtg-depth-read", p => RenderingReadback.Pixel(p, [.15f,.05f,.025f,.25f], "GTG rear occlusion and transparent fragment discard"));
+            RenderingReadback.Read(alpha, "gtg-alpha-read", p => RenderingReadback.Pixel(p, [.0625f], "GTG legacy alpha in R8 target"));
+            RenderingReadback.Output(target);
+        });
+        RenderingReadback.Step(() =>
+        {
+            options.Depth = false; options.DepthWrite = false;
+            Gfx.BeginPass(new PassOpts { Targets = [target, alpha], ClearColor = [0,0,0,0] });
+            Draw(0, [.6f,.2f,.1f,.25f]);
+            Draw(0, [.2f,.8f,.4f,.5f]);
+            Gfx.EndPass();
+            RenderingReadback.Read(target, "gtg-overlap-read", p => RenderingReadback.Pixel(p, [.175f,.425f,.2125f,.625f], "GTG overlapping RGB"));
+            RenderingReadback.Read(alpha, "gtg-overlap-alpha-read", p => RenderingReadback.Pixel(p, [.28125f], "GTG overlapping legacy alpha"));
+        });
+        RenderingReadback.Step(() =>
+        {
+            options.Shader = shader;
+            options.Depth = true; options.DepthWrite = true;
+            Gfx.BeginPass(new PassOpts { Target = target, DepthTarget = depth, ClearDepth = 1, ClearColor = [0,0,0,0] });
+            Draw(.8f, [0,1,0,1]);
+            options.Depth = false; options.DepthWrite = false;
+            Draw(.9f, [1,0,0,.5f]);
+            Gfx.EndPass();
+            RenderingReadback.Read(target, "gtg-hud-read", p => RenderingReadback.Pixel(p, [.5f,.5f,0], "GTG depth reset and HUD draw order"));
+        });
+        RenderingReadback.Step(() =>
+        {
+            data[33] = 6;
+            Gfx.BeginPass(new PassOpts { Target = target, ClearColor = [.1f,.2f,.3f,1] });
+            Draw(0, [0,0,0,0]);
+            Gfx.EndPass();
+            RenderingReadback.Read(target, "gtg-composite-read", p => RenderingReadback.Pixel(p, [32/255f*40/255f+.1f*(1-40/255f),48/255f*40/255f+.2f*(1-40/255f),64/255f*40/255f+.3f*(1-40/255f)], "GTG edge composition uses separate alpha"));
+        });
+        RenderingReadback.Step(() =>
+        {
+            options.Blend = Gfx.Blend.None;
+            data[33] = 7;
+            Gfx.BeginPass(new PassOpts { Target = target });
+            Draw(0, [0,0,0,0]);
+            Gfx.EndPass();
+            RenderingReadback.Read(target, "gtg-bloom-read", p =>
+            {
+                RenderingReadback.Pixel(p, [32/255f*2.6f,48/255f*2.6f,64/255f*2.6f,40/255f*2.6f], "GTG original 13 bloom samples divided by 5");
+                Console.WriteLine("PASS GTG GPU MRT alpha, depth, HUD order, bloom gain and XR output transfer");
+            });
+        });
     }
 }

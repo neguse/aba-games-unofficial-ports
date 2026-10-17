@@ -47,9 +47,13 @@ namespace Lub
         static readonly Dictionary<string, int> handles = new();
         static readonly Dictionary<int, string> names = new();
         public static readonly List<Played> Voices = new();
-        public static int Snd(string key, List<float> samples, int channels, int rate, int? version = null)
-        { if (!handles.TryGetValue(key, out int id)) { id = handles.Count + 1; handles[key] = id; names[id] = key; } return id; }
-        public static int SndBytes(string key, Bytes bytes, int channels, int rate, int? version = null) => Snd(key, new(), channels, rate, version);
+        public static int? Snd(string key, List<float>? samples, int channels, int rate, int? version = null)
+        {
+            if (handles.TryGetValue(key, out int id)) return id;
+            if (samples == null) return null;
+            id = handles.Count + 1; handles[key] = id; names[id] = key; return id;
+        }
+        public static int? SndBytes(string key, Bytes? bytes, int channels, int rate, int? version = null) => Snd(key, bytes == null ? null : new(), channels, rate, version);
         public static void Decode(Bytes encoded, out Bytes? pcm, out int channels, out int rate) { pcm = encoded; channels = 2; rate = 48000; }
         public static bool Voice(string key, int sound, VoiceOpts? options = null)
         { Voices.Add(new Played(key, names[sound], options?.Loop ?? false, options?.Volume ?? 1)); return true; }

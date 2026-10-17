@@ -29,18 +29,27 @@ static class RenderingTests
             Gfx.Draw(3, bindings, options);
         }
         float background = 210/255f;
-        Gfx.BeginPass(new PassOpts { Target = scene, DepthTarget = depth, ClearDepth = 1, ClearColor = [background,background,background,1] });
-        Draw(.2f, [.6f,.2f,.1f,.25f]);
-        Draw(.8f, [0,1,0,1]);
-        Gfx.EndPass();
-        RenderingReadback.Pixel(RenderingReadback.Read(scene, "mm-depth-read"), [.6f*.25f+background*.75f,.2f*.25f+background*.75f,.1f*.25f+background*.75f], "MM original alpha over gray and rear occlusion");
-        RenderingReadback.Output(scene);
-        Gfx.BeginPass(new PassOpts { Target = scene, DepthTarget = depth, ClearDepth = 1 });
-        Draw(.8f, [0,1,0,1]);
-        options.Depth = false; options.DepthWrite = false;
-        Draw(.9f, [1,0,0,.5f]);
-        Gfx.EndPass();
-        RenderingReadback.Pixel(RenderingReadback.Read(scene, "mm-hud-read"), [.5f,.5f,0], "MM depth reset and HUD draw order");
-        Console.WriteLine("PASS MM GPU original alpha, depth, HUD order and XR output transfer");
+        RenderingReadback.Step(() =>
+        {
+            Gfx.BeginPass(new PassOpts { Target = scene, DepthTarget = depth, ClearDepth = 1, ClearColor = [background,background,background,1] });
+            Draw(.2f, [.6f,.2f,.1f,.25f]);
+            Draw(.8f, [0,1,0,1]);
+            Gfx.EndPass();
+            RenderingReadback.Read(scene, "mm-depth-read", p => RenderingReadback.Pixel(p, [.6f*.25f+background*.75f,.2f*.25f+background*.75f,.1f*.25f+background*.75f], "MM original alpha over gray and rear occlusion"));
+            RenderingReadback.Output(scene);
+        });
+        RenderingReadback.Step(() =>
+        {
+            Gfx.BeginPass(new PassOpts { Target = scene, DepthTarget = depth, ClearDepth = 1 });
+            Draw(.8f, [0,1,0,1]);
+            options.Depth = false; options.DepthWrite = false;
+            Draw(.9f, [1,0,0,.5f]);
+            Gfx.EndPass();
+            RenderingReadback.Read(scene, "mm-hud-read", p =>
+            {
+                RenderingReadback.Pixel(p, [.5f,.5f,0], "MM depth reset and HUD draw order");
+                Console.WriteLine("PASS MM GPU original alpha, depth, HUD order and XR output transfer");
+            });
+        });
     }
 }

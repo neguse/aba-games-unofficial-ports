@@ -84,7 +84,7 @@ var vertex = File.ReadAllText("game.vs.slang");
 var fragment = File.ReadAllText("game.fs.slang");
 var readback = Lub.Gfx.Readback("sampler-test");
 int rendered = 0;
-bool verified = false;
+bool verified = false, readbacksPassed = false;
 int runtime = Lub.App.Run(null, null, dt =>
 {
     if (rendered == 0)
@@ -110,6 +110,8 @@ int runtime = Lub.App.Run(null, null, dt =>
         Near((int)used.GetValue(null), 2, 0);
         Console.WriteLine("PASS adjacent instance batching preserves data and view changes");
     }
+    try { readbacksPassed = RenderingReadback.Frame(); }
+    catch { Lub.App.Quit(); throw; }
     var shader = Lub.Gfx.UseShader("gtg-sampler-test", vertex, fragment, 1);
     var source = Lub.Gfx.UseTexture("source", 1, 1, Lub.Gfx.PixelFormat.Rgba8, new List<int> { 64, 128, 192, 255 }, 1);
     var target = Lub.Gfx.UseTexture("target", 4, 4, Lub.Gfx.PixelFormat.Rgba8, null, 1, new TextureOpts { Target = true });
@@ -133,9 +135,9 @@ int runtime = Lub.App.Run(null, null, dt =>
         var pixel = bytes.AsSpan();
         Near(pixel[0], 64, 1); Near(pixel[1], 128, 1); Near(pixel[2], 192, 1); Near(pixel[3], 255, 1);
         verified = true;
-        Lub.App.Quit();
     }
-    if (rendered >= 120) Lub.App.Quit();
-}, null, ["--backend", "vulkan"]);
+    if (verified && readbacksPassed || rendered >= 120) Lub.App.Quit();
+}, null, ["--backend", "vulkan", "--readback-fixed-latency"]);
 if (runtime != 0 || !verified) throw new Exception("Native texture sampler did not render");
+if (!readbacksPassed) throw new Exception("GTG GPU readback checks did not pass");
 Console.WriteLine("PASS native texture sampler readback");

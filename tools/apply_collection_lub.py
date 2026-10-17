@@ -7,7 +7,7 @@ import argparse
 from pathlib import Path
 import subprocess
 
-PIN='8d3c59058bc11ed071fcbd376c557ea530e7f22e'
+PIN='8c45d5e99959d4166bf74a070bb5234c7ce2e2a9'
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)

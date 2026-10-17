@@ -23,12 +23,20 @@ public static class FrameTests
         string saves = Path.Combine(Path.GetTempPath(), "tt-test-" + Guid.NewGuid());
         Environment.SetEnvironmentVariable("XDG_DATA_HOME", saves);
         int result = 1;
+        bool started = false;
         try
         {
             int runtime = Lub.App.Run(null, null, _ =>
             {
                 try
                 {
+                    if (started)
+                    {
+                        if (!RenderingReadback.Frame()) return;
+                        Lub.App.Quit();
+                        return;
+                    }
+                    started = true;
                     TtRender.Begin();
                     TtVerification.Main();
                     DeltaTimeTests.Run();
@@ -130,10 +138,10 @@ public static class FrameTests
                     FrameControls.Read(game, null, new XrInput { Active = true, Secondary = true });
                     Check(game.pad.escape, "B leaves paused game");
                     Console.WriteLine("PASS Frame trigger semantics and menu mapping");
+                    RenderingReadback.Frame();
                 }
-                catch (Exception e) { Console.Error.WriteLine(e); result = 1; }
-                finally { Lub.App.Quit(); }
-            }, null, ["--backend", "vulkan"]);
+                catch (Exception e) { Console.Error.WriteLine(e); result = 1; Lub.App.Quit(); }
+            }, null, ["--backend", "vulkan", "--readback-fixed-latency"]);
             return runtime == 0 ? result : runtime;
         }
         finally { if (Directory.Exists(saves)) Directory.Delete(saves, true); }

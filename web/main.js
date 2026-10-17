@@ -276,7 +276,7 @@ async function boot() {
     if (!shadersResponse.ok) throw new Error('ゲームデータを読み込めませんでした。');
     const shaders = await shadersResponse.json();
     if (disposed) return;
-    window.slangCompile = async (source, entry) => (Array.isArray(shaders)
+    window.slangCompile = (source, entry) => (Array.isArray(shaders)
         ? shaders.find(shader => shader.entry === entry && source.replaceAll('\r', '').endsWith(shader.source.replaceAll('\r', '')))
         : shaders[entry]) || { error: `Unknown shader: ${entry}` };
     compiled = await import('./compiled.js');

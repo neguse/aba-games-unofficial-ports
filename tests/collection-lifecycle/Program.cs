@@ -24,11 +24,13 @@ static class Tests
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate IntPtr Create();
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate byte Begin(IntPtr ctx, out float dt);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate void ContextCall(IntPtr ctx);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate void FrameEnd(IntPtr ctx, byte frameOk);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate int Count();
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate int ContextCount(IntPtr ctx);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)] delegate ulong DrawCount();
     static Begin begin = null!;
-    static ContextCall end = null!, destroy = null!;
+    static FrameEnd end = null!;
+    static ContextCall destroy = null!;
     static Count live = null!;
     static ContextCount allocations = null!;
     static DrawCount draws = null!;
@@ -167,7 +169,7 @@ static class Tests
                     session.Frame(dt);
                     bridge?.AfterFrame(dt);
                 }
-                finally { end(host); }
+                finally { end(host, 1); }
                 Check(!quitRequested, info.Id + ": game requested quit (often a missing/undecodable asset)");
                 Check(bridge?.LastError == null, info.Id + ": " + bridge?.LastError);
             }
@@ -227,7 +229,7 @@ static class Tests
                     canvas.Present(target, Canvas.Width, Canvas.Height, false);
                     Check(draws() > beforePresent, "Canvas: desktop presentation did not draw");
                 }
-                finally { end(host); }
+                finally { end(host, 1); }
             }
             Check(textDraws > 0, "Canvas: production font produced no draw dispatch");
             Check(panelDraws > 0, "Canvas: Masashikun menu/ranking produced no draw dispatch");
@@ -273,7 +275,7 @@ static class Tests
             Environment.SetEnvironmentVariable("LUB_NATIVE_LIB", native);
             runtime.GetMethod("EnsureNative", BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null, null);
             library = NativeLibrary.Load(native);
-            begin = Export<Begin>("lub_host_frame_begin"); end = Export<ContextCall>("lub_host_frame_end"); destroy = Export<ContextCall>("lub_host_destroy");
+            begin = Export<Begin>("lub_host_frame_begin"); end = Export<FrameEnd>("lub_host_frame_end"); destroy = Export<ContextCall>("lub_host_destroy");
             live = Export<Count>("lub_test_live_resources"); allocations = Export<ContextCount>("lub_test_session_allocations"); draws = Export<DrawCount>("lub_test_draw_calls");
             host = Export<Create>("lub_test_host_create")();
             Check(host != IntPtr.Zero, "SDL dummy test host creation failed");
