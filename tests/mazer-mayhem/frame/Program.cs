@@ -64,7 +64,7 @@ try
     particlePool.Update();
     particleBytes = GC.GetAllocatedBytesForCurrentThread() - particleBytes;
     if (particleBytes > 400 * 1024) throw new Exception($"particle update allocated {particleBytes} bytes");
-    var vertices = Field<TriangleListShape>(particlePool, "shape").Verts;
+    var vertices = Field<PrimitiveListShape>(Field<TriangleListShape>(particlePool, "shape"), "list").Verts;
     Near(vertices[0].Position.X, 3.45f, .00001f, "particle first vertex x");
     Near(vertices[0].Position.Z, 3.95f, .00001f, "particle first vertex z");
     Near(vertices[1].Position.X, 2.95f, .00001f, "particle rotated vertex x");
@@ -95,10 +95,10 @@ try
         foreach (float dt in Schedule(hz, 1)) clock.Advance(dt, 1f / 60, player.Update);
         Near(Field<float>(player, "deg"), .025f * .8f * 60, .0001f, $"turn {hz}");
         Set(player, "fireCnt", 0); Set(player, "aPressed", true);
-        var shots = Field<ShotPool>(frame, "shots"); shots.Clear();
+        var shots = Field<ShotPool>(frame, "shots"); shots.pool.Clear();
         Pad.Read(null, new XrInput { Active = true, Primary = true });
         int fired = 0;
-        foreach (float dt in Schedule(hz, 1)) clock.Advance(dt, 1f / 60, () => { player.Update(); fired += shots.Length(); shots.Clear(); });
+        foreach (float dt in Schedule(hz, 1)) clock.Advance(dt, 1f / 60, () => { player.Update(); fired += shots.Length(); shots.pool.Clear(); });
         Near(fired, 62, 0, $"fire cadence {hz}");
         var bullet = new Bullet { IsActivated = true, IsTop = true, Cnt = 30, Pos = new Vector3(0, 0, 1), Vel = new Vector3(.5f, 0, 0), Speed = 1, Dir = Quaternion.Identity };
         var bullets = Field<BulletPool>(frame, "bullets");
