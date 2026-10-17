@@ -28,11 +28,19 @@ static float[] Snapshot(MmFrame frame)
 }
 var saveDirectory = Path.Combine(Path.GetTempPath(), "mm-test-" + Guid.NewGuid());
 Environment.SetEnvironmentVariable("XDG_DATA_HOME", saveDirectory);
-bool passed = false;
+bool passed = false, started = false;
 int runtime = Lub.App.Run(null, null, _ =>
 {
 try
 {
+    if (started)
+    {
+        if (!RenderingReadback.Frame()) return;
+        passed = true;
+        Lub.App.Quit();
+        return;
+    }
+    started = true;
     var pad = new Pad();
     Pad.Read(new XrInput { Active = true, StickX = .1f }, null);
     Near(pad.ThumbStickLeft.Length(), 0, 0, "deadzone");
@@ -156,13 +164,14 @@ try
     }
     Directory.SetCurrentDirectory(AppContext.BaseDirectory);
     RenderingTests.Run();
-    passed = true;
+    RenderingReadback.Frame();
 }
-finally
+catch
 {
     Lub.App.Quit();
-    if (Directory.Exists(saveDirectory)) Directory.Delete(saveDirectory, true);
+    throw;
 }
 
-}, null, ["--backend", "vulkan"]);
+}, null, ["--backend", "vulkan", "--readback-fixed-latency"]);
+if (Directory.Exists(saveDirectory)) Directory.Delete(saveDirectory, true);
 if (runtime != 0 || !passed) throw new Exception("MM Frame tests failed");

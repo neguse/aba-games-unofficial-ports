@@ -10,5 +10,6 @@
   <ItemGroup>
     <ProjectReference Include="../../../games/torus-trooper/frame/TorusTrooper.csproj" />
     <Compile Include="../GameVerification.cs" />
+    <Compile Include="../../frame/RenderingReadback.cs" />
   </ItemGroup>
 </Project>
