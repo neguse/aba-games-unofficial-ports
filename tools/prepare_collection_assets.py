@@ -63,7 +63,8 @@ def licenses(game, original, lub, tcs):
     if game == 'a7xpg':
         notices.append(('Phobos', ROOT / 'games/a7xpg/PHOBOS-LICENSE.txt'))
     notices += [('Shared port sources', ROOT / 'LICENSE'), ('lub', lub / 'LICENSE'),
-                ('lub third-party notices', lub / 'THIRD_PARTY_LICENSES.md'), ('TinySystem', tcs / 'LICENSE')]
+                ('lub third-party notices', lub / 'THIRD_PARTY_LICENSES.md'), ('TinySystem', tcs / 'LICENSE'),
+                ('tcs third-party notices', tcs / 'THIRD_PARTY_LICENSES.md')]
     return '\n\n'.join(f'{label}\n{"=" * len(label)}\n{text(path)}' for label, path in notices) + '\n'
 
 
