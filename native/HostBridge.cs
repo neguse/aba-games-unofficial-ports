@@ -181,7 +181,6 @@ public sealed class HostBridge : IDisposable
     readonly Dictionary<string, Clip> clips = new();
     readonly Dictionary<int, SoundVoice> voices = new();
     readonly HashSet<string> failedClips = new();
-    static readonly List<float> NoSamples = new();
     readonly Action<string, string> sending;
     readonly Func<(string? topic, string? payload)> polling;
     int music = -1, generation, inputMask = -1, state;
@@ -303,7 +302,9 @@ public sealed class HostBridge : IDisposable
 
     void RefreshClips()
     {
-        foreach (var clip in clips.Values) Audio.Snd(clip.Key, NoSamples, 1, 48000, 1);
+        // A clip whose declaration lapsed was released; drop it so LoadClip decodes it again.
+        foreach (var id in new List<string>(clips.Keys))
+            if (Audio.Snd(clips[id].Key, null, 1, 48000, 1) == null) clips.Remove(id);
         // Decode on demand; pending requests remain live until data is ready or are superseded/stopped.
         if (music >= 0) LoadClip(Profile.Music[music], Profile.MusicExtension);
         foreach (var voice in voices.Values) LoadClip(Profile.Sounds[voice.Index], "wav");
@@ -322,7 +323,9 @@ public sealed class HostBridge : IDisposable
         Audio.Decode(encoded, out var pcm, out int channels, out int rate);
         if (pcm == null) { failedClips.Add(id); Report($"{Profile.Id}: cannot decode audio {id}"); return null; }
         string key = "aba.clip." + id;
-        clip = new Clip(key, Audio.SndBytes(key, pcm, channels, rate, 1));
+        var handle = Audio.SndBytes(key, pcm, channels, rate, 1);
+        if (handle == null) return null;
+        clip = new Clip(key, handle.Value);
         clips.Add(id, clip); return clip;
     }
     /// <summary>Call after Game.OnFrame so this frame's Host commands take effect without a frame of stale audio.</summary>

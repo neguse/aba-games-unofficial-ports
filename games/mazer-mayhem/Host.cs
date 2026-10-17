@@ -10,7 +10,6 @@ public static class FrameHost
         Environment.GetEnvironmentVariable("HOME") + "/.local/share") + "/mazer-mayhem/scores.txt";
     static int music = -1;
     static float musicVolume = 1;
-    static readonly List<float> noSamples = new();
     static readonly VoiceOpts voice = new() { Loop = true };
     static bool audioStarted;
 
@@ -25,17 +24,15 @@ public static class FrameHost
     {
         for (int i = 0; i < names.Length; i++)
         {
-            if (sounds[i] != 0)
-            {
-                Audio.Snd(names[i], noSamples, 1, 48000, 1);
-                continue;
-            }
+            // A sound whose declaration lapsed was released and returns null; decode it again.
+            sounds[i] = Audio.Snd(names[i], null, 1, 48000, 1) ?? 0;
+            if (sounds[i] != 0) continue;
             Io.LoadBytes("audio/" + names[i] + ".wav", out var encoded, out _, out var status, out var error);
             if (status == Io.Status.Error) { Console.WriteLine(error); App.Quit(); return; }
             if (encoded == null) continue;
             Audio.Decode(encoded, out var pcm, out int channels, out int rate);
             if (pcm == null) { Console.WriteLine("Cannot decode " + names[i]); App.Quit(); return; }
-            sounds[i] = Audio.SndBytes(names[i], pcm, channels, rate, 1);
+            sounds[i] = Audio.SndBytes(names[i], pcm, channels, rate, 1) ?? 0;
         }
         if (!audioStarted && sounds[0] != 0)
         {
