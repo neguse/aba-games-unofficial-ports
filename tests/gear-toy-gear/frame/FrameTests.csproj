@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <BaseOutputPath>../../../build/frame-tests/</BaseOutputPath>
+    <BaseOutputPath>../../../build/frame-tests/gear-toy-gear/</BaseOutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../frame/RenderingReadback.cs" />

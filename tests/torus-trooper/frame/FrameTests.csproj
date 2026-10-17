@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
     <StartupObject>FrameTests</StartupObject>
-    <BaseOutputPath>../../../build/frame-tests/</BaseOutputPath>
+    <BaseOutputPath>../../../build/frame-tests/torus-trooper/</BaseOutputPath>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../../games/torus-trooper/frame/TorusTrooper.csproj" />
