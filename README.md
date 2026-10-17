@@ -66,7 +66,7 @@ Mazer Mayhem は倍率をためて両トリガーを同時に引くとハイパ�
 
 | 依存 | 使用コミット／バージョン |
 | --- | --- |
-| Lub | [`4f205726701a52d28552080a31a155512df1ef14`](https://github.com/neguse/lub/tree/4f205726701a52d28552080a31a155512df1ef14) |
+| Lub | [`8c45d5e99959d4166bf74a070bb5234c7ce2e2a9`](https://github.com/neguse/lub/tree/8c45d5e99959d4166bf74a070bb5234c7ce2e2a9) |
 | tcs | [`d0165bf14969266ae6ab8d5262f7d14b09069d69`](https://github.com/neguse/tcs/tree/d0165bf14969266ae6ab8d5262f7d14b09069d69)（Lub のサブモジュール） |
 | .NET SDK | 10 |
 | Slang | 2026.8.1 Linux ARM64 公式バイナリ |
@@ -82,7 +82,7 @@ CMake、Ninja、Vulkan 開発ライブラリ、zip を使用する。
 
 ```sh
 git clone https://github.com/neguse/lub.git ../lub-frame
-git -C ../lub-frame checkout --detach 4f205726701a52d28552080a31a155512df1ef14
+git -C ../lub-frame checkout --detach 8c45d5e99959d4166bf74a070bb5234c7ce2e2a9
 git -C ../lub-frame submodule update --init --recursive
 dotnet build ../lub-frame/third_party/tcs/Transpiler/Transpiler.csproj -c Release
 (

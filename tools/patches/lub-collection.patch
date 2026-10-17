@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 9695d31..8a96b65 100644
+index d1c338a..20cbbab 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -138,8 +138,8 @@ set(LUB_HAS_SLANG OFF)
@@ -50,7 +50,7 @@ index 9695d31..8a96b65 100644
        "$<TARGET_FILE_DIR:lub>"
      VERBATIM)
    # Agility SDK runtime under D3D12/ (where the D3D12SDKPath export points).
-@@ -601,6 +601,15 @@ if(NOT LUB_WASM)
+@@ -602,6 +602,15 @@ if(NOT LUB_WASM)
    target_link_libraries(lub_tcs_resolve_smoke PRIVATE SDL3::SDL3)
    target_include_directories(lub_tcs_resolve_smoke PRIVATE src)
  
@@ -66,7 +66,7 @@ index 9695d31..8a96b65 100644
    add_executable(lub_physics_box2d_smoke
      tests/c/physics_box2d_smoke.c
      src/physics_box2d.c
-@@ -671,13 +680,13 @@ if(LUB_HAS_SLANG)
+@@ -672,13 +681,13 @@ if(LUB_HAS_SLANG)
    )
    target_include_directories(lub_shader_layout_smoke PRIVATE
      src
@@ -83,7 +83,7 @@ index 9695d31..8a96b65 100644
    endif()
    if(WIN32)
      add_dependencies(lub_shader_layout_smoke lub) # slang DLLs land via lub's post-build copy
-@@ -694,9 +703,9 @@ if(LUB_HAS_SLANG)
+@@ -695,9 +704,9 @@ if(LUB_HAS_SLANG)
      )
      target_include_directories(lub_shader_d3d12_smoke PRIVATE
        src
@@ -1034,7 +1034,7 @@ index c165267..926477e 100644
    if (name.len <= 0 || !name.ptr)
      return SDL_SCANCODE_UNKNOWN;
 diff --git a/src/app.c b/src/app.c
-index 66f56bd..75895af 100644
+index 767ef41..b78b310 100644
 --- a/src/app.c
 +++ b/src/app.c
 @@ -2,9 +2,11 @@
@@ -1057,7 +1057,7 @@ index 66f56bd..75895af 100644
    return true;
  }
  
-@@ -333,7 +336,7 @@ void app_frame_end(App *app, bool frame_ok) {
+@@ -340,7 +343,7 @@ void app_frame_end(App *app, bool frame_ok) {
    gpu_stats_frame(app->frame_index, g_backend ? g_backend->name : NULL);
  }
  
@@ -1066,7 +1066,7 @@ index 66f56bd..75895af 100644
    // Pipelines reference shaders, so destroy pipelines before resources.
    pipeline_cache_shutdown(&app->pip_cache);
    api_gfx_shutdown(app); // readback queue (backend の readback request を含む)
-@@ -348,10 +351,48 @@ void app_shutdown(App *app) {
+@@ -355,10 +358,48 @@ void app_shutdown(App *app) {
    phys3d_state_shutdown(&app->phys3);
    phys2d_state_shutdown(&app->phys);
    res_table_shutdown(&app->res);
@@ -1116,7 +1116,7 @@ index 66f56bd..75895af 100644
    if (app->window)
      SDL_DestroyWindow(app->window);
 diff --git a/src/app.h b/src/app.h
-index e68f938..f380109 100644
+index 9600b3a..06e7c87 100644
 --- a/src/app.h
 +++ b/src/app.h
 @@ -27,6 +27,7 @@ typedef enum { APP_PHASE_PRE_BACKEND, APP_PHASE_POST_BACKEND } AppPhase;
@@ -1141,8 +1141,8 @@ index e68f938..f380109 100644
  
    // Input latch: SDL_AppEvent accumulates edge events here so a press that
    // begins and ends inside one frame is still observable from the script.
-@@ -175,6 +183,8 @@ void app_frame_end(App *app, bool frame_ok);
- // 結果がまだ届いていなければ true。host はその間 frame を始めない。
+@@ -176,6 +184,8 @@ void app_frame_end(App *app, bool frame_ok);
+ // を始めない。
  bool app_frame_waits_for_gpu(App *app);
  void app_shutdown(App *app);
 +// Release all game resources without replacing the window, GPU or XR session.
