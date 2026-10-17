@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tarfile
 import urllib.request
+import xml.etree.ElementTree as ET
 import zipfile
 from link_web import link
 
@@ -17,6 +18,20 @@ parser.add_argument('--emsdk', type=Path, required=True)
 parser.add_argument('--original', type=Path)
 parser.add_argument('--source-only', action='store_true', help='refresh corresponding source beside an existing web build')
 args = parser.parse_args()
+
+
+def embedded_runtime(tcs):
+    """The runtime C files tcs2c embeds into the generated C: its EmbeddedResource items."""
+    for item in ET.parse(tcs / 'tcs2c/tcs2c.csproj').iter('EmbeddedResource'):
+        for pattern in item.get('Include').split(';'):
+            if not pattern.startswith('$(TcsRoot)/') or '$(' in pattern[len('$(TcsRoot)/'):]:
+                raise ValueError(f'Unexpected tcs2c EmbeddedResource: {pattern}')
+            paths = sorted(tcs.glob(pattern[len('$(TcsRoot)/'):]))
+            if not paths:
+                raise ValueError(f'tcs2c EmbeddedResource matches nothing: {pattern}')
+            yield from paths
+
+
 original = args.original
 if original is None:
     archive = Path('.cache/mas1_11e.zip')
@@ -43,7 +58,7 @@ if not args.source_only:
     for name in ['main.js', 'compiled.js', 'style.css']:
         shutil.copy2(Path('web') / name, Path('dist') / name)
 licenses = Path('games/masashikun-hi/LICENSE.txt').read_text()
-for path in [args.lub / 'LICENSE', args.lub / 'THIRD_PARTY_LICENSES.md', args.tcs / 'LICENSE']:
+for path in [args.lub / 'LICENSE', args.lub / 'THIRD_PARTY_LICENSES.md', args.tcs / 'LICENSE', args.tcs / 'THIRD_PARTY_LICENSES.md']:
     licenses += '\n\n' + path.read_text()
 (target / 'LICENSE.txt').write_text(licenses)
 # Package only this game's corresponding source, never the private repository or its history.
@@ -67,5 +82,8 @@ with tarfile.open(target / 'source.tar.gz', 'w:gz') as bundle:
     # tcs2c writes its C runtime into the game; these files are that runtime's source.
     for path in sorted((args.tcs / 'tcs2c').glob('CRuntime*.cs')):
         bundle.add(path, arcname='masashikun-hi-source/tcs-runtime/' + path.name)
-    bundle.add(args.tcs / 'LICENSE', arcname='masashikun-hi-source/tcs-runtime/LICENSE')
+    for path in embedded_runtime(args.tcs.resolve()):
+        bundle.add(path, arcname='masashikun-hi-source/tcs-runtime/' + path.relative_to(args.tcs.resolve()).as_posix())
+    for name in ['LICENSE', 'THIRD_PARTY_LICENSES.md']:
+        bundle.add(args.tcs / name, arcname='masashikun-hi-source/tcs-runtime/' + name)
 print('Built dist/masashikun-hi/')
