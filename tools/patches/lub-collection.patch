@@ -1034,7 +1034,7 @@ index c165267..926477e 100644
    if (name.len <= 0 || !name.ptr)
      return SDL_SCANCODE_UNKNOWN;
 diff --git a/src/app.c b/src/app.c
-index 767ef41..b78b310 100644
+index 767ef41..b0b2335 100644
 --- a/src/app.c
 +++ b/src/app.c
 @@ -2,9 +2,11 @@
@@ -1066,7 +1066,7 @@ index 767ef41..b78b310 100644
    // Pipelines reference shaders, so destroy pipelines before resources.
    pipeline_cache_shutdown(&app->pip_cache);
    api_gfx_shutdown(app); // readback queue (backend の readback request を含む)
-@@ -355,10 +358,48 @@ void app_shutdown(App *app) {
+@@ -355,10 +358,49 @@ void app_shutdown(App *app) {
    phys3d_state_shutdown(&app->phys3);
    phys2d_state_shutdown(&app->phys);
    res_table_shutdown(&app->res);
@@ -1098,6 +1098,7 @@ index 767ef41..b78b310 100644
 +  app->fps_frame_count = 0;
 +  app->resource_sweep_after_frames = 120;
 +  app->readback_depth = 8;
++  app->readback_fixed_latency = app->host_readback_fixed_latency;
 +  app->last_error[0] = '\0';
 +  app->entry_path[0] = '\0';
 +  app->entry_module_name[0] = '\0';
@@ -1116,7 +1117,7 @@ index 767ef41..b78b310 100644
    if (app->window)
      SDL_DestroyWindow(app->window);
 diff --git a/src/app.h b/src/app.h
-index 9600b3a..06e7c87 100644
+index 9600b3a..0ac5741 100644
 --- a/src/app.h
 +++ b/src/app.h
 @@ -27,6 +27,7 @@ typedef enum { APP_PHASE_PRE_BACKEND, APP_PHASE_POST_BACKEND } AppPhase;
@@ -1141,7 +1142,16 @@ index 9600b3a..06e7c87 100644
  
    // Input latch: SDL_AppEvent accumulates edge events here so a press that
    // begins and ends inside one frame is still observable from the script.
-@@ -176,6 +184,8 @@ void app_frame_end(App *app, bool frame_ok);
+@@ -129,6 +137,8 @@ typedef struct App {
+   // readback の届く frame を保証するモード (ConfigOpts.ReadbackFixedLatency、
+   // 起動オプション --readback-fixed-latency)。api_gfx.c が使う。
+   bool readback_fixed_latency;
++  // Startup option value; app_reset_session restores it over a game's Config.
++  bool host_readback_fixed_latency;
+ 
+   // C API (include/lub/lub_api.h) の状態。last_error は直近の LUB_ERROR の
+   // message、readbacks は key で宣言する readback queue (api_gfx.c 所有)。
+@@ -176,6 +186,8 @@ void app_frame_end(App *app, bool frame_ok);
  // を始めない。
  bool app_frame_waits_for_gpu(App *app);
  void app_shutdown(App *app);
@@ -1312,7 +1322,7 @@ index c9d2776..2d46ec2 100644
    lua_newtable(L); // lub.io
    lua_pushcfunction(L, l_io_load_text);
 diff --git a/src/host_api.c b/src/host_api.c
-index 5c733df..887c9f1 100644
+index 5c733df..08325e7 100644
 --- a/src/host_api.c
 +++ b/src/host_api.c
 @@ -15,6 +15,55 @@
@@ -1371,7 +1381,15 @@ index 5c733df..887c9f1 100644
  LubContext *lub_host_create(const LubHostOpts *opts) {
    // .NET の host (dotnet/Lub) はここが SDL の入口。player (src/main.c) と同じく
    // assertion を dialog にせず abort させる。環境変数 SDL_ASSERT が優先。
-@@ -116,6 +165,38 @@ bool lub_host_translate_event(App *app, const SDL_Event *e, LubEventData *out) {
+@@ -42,6 +91,7 @@ LubContext *lub_host_create(const LubHostOpts *opts) {
+   if (opts) {
+     app->digest.enabled = opts->digest;
+     app->readback_fixed_latency = opts->readback_fixed_latency;
++    app->host_readback_fixed_latency = opts->readback_fixed_latency;
+     if (opts->backend.len > 0)
+       lub_str_copy(opts->backend, app->backend_name, sizeof(app->backend_name));
+     app->fixed_frame_dt = opts->fixed_dt > 0.0f ? (double)opts->fixed_dt : 0.0;
+@@ -116,6 +166,38 @@ bool lub_host_translate_event(App *app, const SDL_Event *e, LubEventData *out) {
    int main_x = 0, main_y = 0, main_w = 0, main_h = 0;
    lub_host_main_rect(app, &main_x, &main_y, &main_w, &main_h);
    switch (e->type) {
@@ -1410,7 +1428,7 @@ index 5c733df..887c9f1 100644
    case SDL_EVENT_QUIT:
      app->quit_requested = true;
      out->kind = LUB_EVENT_KIND_QUIT;
-@@ -222,6 +303,7 @@ bool lub_host_frame_begin(LubContext *ctx, float *dt) {
+@@ -222,6 +304,7 @@ bool lub_host_frame_begin(LubContext *ctx, float *dt) {
      return false;
    }
    ui_new_frame(app, (float)app->frame_dt, w, h);
@@ -1418,7 +1436,7 @@ index 5c733df..887c9f1 100644
    profile_begin_scope(&app->profile, "script.onFrame");
    if (dt)
      *dt = (float)app->frame_dt;
-@@ -229,6 +311,8 @@ bool lub_host_frame_begin(LubContext *ctx, float *dt) {
+@@ -229,6 +312,8 @@ bool lub_host_frame_begin(LubContext *ctx, float *dt) {
  }
  
  static void input_latch_clear(App *app) {
@@ -1427,7 +1445,7 @@ index 5c733df..887c9f1 100644
    memset(app->key_pressed, 0, sizeof(app->key_pressed));
    memset(app->key_released, 0, sizeof(app->key_released));
    app->mouse_pressed_mask = 0;
-@@ -250,6 +334,7 @@ void lub_host_frame_end(LubContext *ctx, bool frame_ok) {
+@@ -250,6 +335,7 @@ void lub_host_frame_end(LubContext *ctx, bool frame_ok) {
    profile_end_scope(&app->profile, "runtime.pass_guard");
    profile_begin_scope(&app->profile, "runtime.end_frame");
    app_frame_end(app, frame_ok);
@@ -1435,7 +1453,7 @@ index 5c733df..887c9f1 100644
    profile_end_scope(&app->profile, "runtime.end_frame");
    profile_frame_end(&app->profile, profile_frame);
  }
-@@ -273,6 +358,19 @@ static void write_exit_file(int32_t code) {
+@@ -273,6 +359,19 @@ static void write_exit_file(int32_t code) {
      SDL_Log("LUB_EXIT_FILE %s: %s", path, SDL_GetError());
  }
  
@@ -1547,10 +1565,10 @@ index b41c892..171e4a1 100644
  int main(int argc, char **argv) {
 diff --git a/tests/c/session_gamepad_smoke.c b/tests/c/session_gamepad_smoke.c
 new file mode 100644
-index 0000000..c036720
+index 0000000..9541b6b
 --- /dev/null
 +++ b/tests/c/session_gamepad_smoke.c
-@@ -0,0 +1,169 @@
+@@ -0,0 +1,185 @@
 +// Headless coverage for session resource cleanup and SDL virtual gamepads.
 +#include "api_internal.h"
 +#include "backend.h"
@@ -1681,6 +1699,12 @@ index 0000000..c036720
 +  int old_body = 0;
 +  for (int i = 0; i < 300; ++i)
 +    old_body = phys_handle_alloc(&app->phys.handles, app, PHYS_HANDLE_BODY);
++  LubConfigOpts latency = {.has_readback_fixed_latency = true,
++                           .readback_fixed_latency = true};
++  app->entry_restarting = true;
++  check(lub_app_config(ctx, &latency) == LUB_OK,
++        "game config enables fixed readback latency");
++  app->entry_restarting = false;
 +  app->frame_prev_counter = 999;
 +  app->key_pressed[SDL_SCANCODE_SPACE] = true;
 +  app->frame_active = true;
@@ -1696,6 +1720,8 @@ index 0000000..c036720
 +            !app->key_pressed[SDL_SCANCODE_SPACE] &&
 +            !lub_input_gamepad_pressed(ctx, 0, 0),
 +        "clock and input edges reset");
++  check(!app->readback_fixed_latency,
++        "reset restores the host's readback latency");
 +  entry = res_table_get_or_create(&app->res, "same-key", RES_TEXTURE);
 +  check(entry && entry->handle > old_handle &&
 +            !res_table_get_by_handle(&app->res, old_handle),
@@ -1703,9 +1729,17 @@ index 0000000..c036720
 +  int new_body = phys_handle_alloc(&app->phys.handles, app, PHYS_HANDLE_BODY);
 +  check(new_body > old_body && app->phys.handles.slots[old_body].ptr == NULL,
 +        "physics handles remain stale across reset and table growth");
++  app->host_readback_fixed_latency = true;
++  latency.readback_fixed_latency = false;
++  app->entry_restarting = true;
++  check(lub_app_config(ctx, &latency) == LUB_OK,
++        "game config disables fixed readback latency");
++  app->entry_restarting = false;
 +  app->quit_requested = true;
 +  check(lub_host_reset_session(ctx) == LUB_OK && lub_host_quit_requested(ctx),
 +        "physical host quit survives reset");
++  check(app->readback_fixed_latency,
++        "reset restores the host's enabled readback latency");
 +  check(lub_input_gamepad_connected(ctx, 0) &&
 +            lub_input_gamepad_connected(ctx, 1),
 +        "open gamepads survive repeated resets");
