@@ -104,7 +104,7 @@ public static class MasForm
         var shader = Gfx.UseShader("masashikun", GameShaders.vertex, GameShaders.fragment, 1);
         if (shader == null)
             return;
-        Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = new float[] { 0, 0, 96 / 255f, 1 } });
+        Gfx.BeginPass(new PassOpts { Target = Scene.Target, ClearColor = new float[] { 0, 0, 96 / 255f, 1 } });
         if (spans.Count > 0)
         {
             var rects = Gfx.UseBuffer("spans", Gfx.BufferType.Storage, spans, version);

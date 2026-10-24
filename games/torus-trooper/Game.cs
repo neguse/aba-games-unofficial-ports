@@ -13,7 +13,6 @@ public static class Game
     static readonly bool profile = Environment.GetEnvironmentVariable("LUB_PROFILE") == "1";
     public static void OnInit()
     {
-        App.Config(new ConfigOpts { Width = 640, Height = 480 });
         manager = new GameManager();
         manager.init_0(); manager.start();
         manager.rand.setSeed(TinySystem.Random.Shared.Next());

@@ -11,7 +11,6 @@ public static class Game
 
     public static void OnInit()
     {
-        App.Config(new ConfigOpts { Width = 640, Height = 480 });
         manager = new GameManager();
         manager.init(); manager.start();
         if (Host.Available()) Host.Send("ready", "");
@@ -40,7 +39,7 @@ public static class Game
             shader != null && shaderSource == source ? (int?)shader.Version : null);
         shaderSource = source;
         if (shader == null) return;
-        Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = manager.field.clearColor });
+        Gfx.BeginPass(new PassOpts { Target = Scene.Target, ClearColor = manager.field.clearColor });
         manager.draw();
         Gfx.EndPass();
     }

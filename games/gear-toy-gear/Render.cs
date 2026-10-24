@@ -177,7 +177,7 @@ public static class GtgRender
             var bloomAlpha = Gfx.UseTexture(eye == 0 ? "bloomAlphaL" : "bloomAlphaR", view.Width, view.Height, Gfx.PixelFormat.R8, null, size, target);
             var depth = Gfx.UseTexture(eye == 0 ? "depthL" : "depthR", view.Width, view.Height, Gfx.PixelFormat.Depth24Stencil8, null, size, target);
             // The window is already display-encoded; only an XR eye needs the finished image decoded.
-            var scene = immersive ? Gfx.UseTexture(eye == 0 ? "sceneL" : "sceneR", view.Width, view.Height, Gfx.PixelFormat.Rgba8, null, size, target) : Gfx.MainTex;
+            var scene = immersive ? Gfx.UseTexture(eye == 0 ? "sceneL" : "sceneR", view.Width, view.Height, Gfx.PixelFormat.Rgba8, null, size, target) : Scene.Target;
             for (int layer = 0; layer < 3; layer++)
             {
                 layerTargets[0] = layer == 0 ? edge : bloom;

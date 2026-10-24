@@ -527,11 +527,7 @@ public class MmFrame
     public void Exit()
     {
         MmPreference.Save(record);
-        // A page takes the player back to its game list; elsewhere leaving the title ends the game.
-        if (Lub.Host.Available())
-            Lub.Host.Send("quit", "");
-        else
-            App.Quit();
+        Scene.End();
     }
 
     public float Interval()

@@ -11,7 +11,6 @@ public static class Game
     static float elapsed;
     public static void OnInit()
     {
-        App.Config(new ConfigOpts { Width = 640, Height = 480 });
         manager = new A7xGameManager();
         manager.init();
         manager.start();

@@ -142,7 +142,7 @@ public static class TtRender
                 Add(data, command.ImageInfo);
             }
             var drawBuffer = Gfx.UseBuffer(eye == 0 ? "tt-left-draws" : "tt-right-draws", Gfx.BufferType.Storage, data, version);
-            var scene = immersive ? Gfx.UseTexture(eye == 0 ? "tt-left-scene" : "tt-right-scene", view.Width, view.Height, Gfx.PixelFormat.Rgba8, null, 1, sceneOptions) : Gfx.MainTex;
+            var scene = immersive ? Gfx.UseTexture(eye == 0 ? "tt-left-scene" : "tt-right-scene", view.Width, view.Height, Gfx.PixelFormat.Rgba8, null, 1, sceneOptions) : Scene.Target;
             pass.Target = scene;
             Gfx.BeginPass(pass);
             for (int i = 0; i < batchCount; i++)

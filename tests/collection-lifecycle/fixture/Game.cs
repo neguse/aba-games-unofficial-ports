@@ -13,19 +13,16 @@ public static class Game
     static string Mode => Environment.GetEnvironmentVariable("ABA_LIFECYCLE_FIXTURE") ?? "normal";
     public static void OnInit()
     {
-        App.Config(new ConfigOpts { Width = 640, Height = 480 });
         Host.Send("probe.init", (++starts).ToString());
-        // Deliberately leave a delegate from this collectible assembly in Lub.
-        // Reset must clear it before the assembly can actually be collected.
-        Session.Quitting = OnRequestedQuit;
         if (Mode.Contains("init")) throw new InvalidOperationException("fixture init failure");
     }
-    static void OnRequestedQuit() => Host.Send("probe.requested-quit", "");
 #if !MISSING_FRAME
     public static void OnFrame(float dt)
     {
         if (dt <= 0) throw new InvalidOperationException("positive frame delta required");
+        if (Scene.Target == null) throw new InvalidOperationException("the host must set Scene.Target");
         Host.Send("probe.frame", (++frames).ToString());
+        if (frames == 3) Scene.End();
     }
 #endif
     public static void OnEvent(EventData e) => Host.Send("probe.event", ((int)e.Kind).ToString());

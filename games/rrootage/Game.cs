@@ -9,7 +9,6 @@ public static class Game {
     static string shaderSource;
     static bool pausePressed,escapePressed;
     public static void OnInit() {
-        App.Config(new ConfigOpts{Width=640,Height=480});
         RrAngles.tantbl=RrData.tangent;RrAngles.sctbl=RrData.sine;
         RrAttract.initHiScore();RrBarrage.initBarragemanager();RrAttract.initAttractManager();RrAttract.initGameStateFirst();RrCore.initTitle();
         if(Host.Available()){Host.Send("scores.load","");Host.Send("ready","");}
@@ -39,7 +38,7 @@ public static class Game {
         if (pixels != null)
             atlas = Gfx.UseTextureBytes("atlas", RrData.atlasWidth, RrData.atlasHeight, Gfx.PixelFormat.Rgba8, pixels, pixelsVersion);
         if (shader == null || atlas == null) return;
-        Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = RrScreen.clearColor });
+        Gfx.BeginPass(new PassOpts { Target = Scene.Target, ClearColor = RrScreen.clearColor });
         RrCore.draw(RrScreen.setEyepos(), Gfx.Blend.Additive, "scene");
         Gfx.EndPass();
     }

@@ -12,7 +12,6 @@ public static class Game
     public static Action beforeMove;
     public static void OnInit()
     {
-        App.Config(new ConfigOpts { Width = 640, Height = 480 });
         MasMain.initall();
         if (Host.Available())
         {

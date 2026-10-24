@@ -148,7 +148,7 @@ public sealed class NativePadState
             state.Start |= Input.GamepadDown(player, Input.PadButton.Start); state.Back |= Input.GamepadDown(player, Input.PadButton.Back);
             state.LeftShoulder |= Input.GamepadDown(player, Input.PadButton.LeftShoulder); state.RightShoulder |= Input.GamepadDown(player, Input.PadButton.RightShoulder);
         }
-        // Xr.Input still reports real controllers while the launcher redirects Xr.Active for a flat game.
+        // A flat game shown in XR still reads the XR controllers here.
         var l = Xr.Input(0); var r = Xr.Input(1);
         if (l?.Active == true)
         {

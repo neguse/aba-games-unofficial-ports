@@ -11,7 +11,6 @@ public static class Game
     static string shaderSource;
     public static void OnInit()
     {
-        App.Config(new ConfigOpts { Width = 640, Height = 480 });
         manager = new Frame();
         manager.init_0();
         manager.start_0();
@@ -85,7 +84,7 @@ public static class Game
             shader != null && shaderSource == source ? (int?)shader.Version : null);
         shaderSource = source;
         if (shader == null) return;
-        Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = new float[] { 0, 0, 0, 1 } });
+        Gfx.BeginPass(new PassOpts { Target = Scene.Target, ClearColor = new float[] { 0, 0, 0, 1 } });
         manager.draw_0();
         Gfx.EndPass();
     }

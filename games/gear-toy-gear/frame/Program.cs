@@ -5,11 +5,11 @@ long report = Stopwatch.GetTimestamp();
 int frames = 0;
 float leftTrigger = 0, rightTrigger = 0;
 bool profile = Environment.GetEnvironmentVariable("LUB_PROFILE") == "1";
-return Lub.App.Run(Game.OnInit, null, dt =>
+return Lub.App.Run(Standalone.OnInit, null, dt =>
 {
     var left = Lub.Xr.Input(0);
     var right = Lub.Xr.Input(1);
-    Game.DrawInput(dt, left, right, Lub.Xr.Focused());
+    Standalone.OnFrame(dt);
     if (!profile) return;
     leftTrigger = MathF.Max(leftTrigger, left?.Trigger ?? 0);
     rightTrigger = MathF.Max(rightTrigger, right?.Trigger ?? 0);
@@ -22,4 +22,4 @@ return Lub.App.Run(Game.OnInit, null, dt =>
         leftTrigger = rightTrigger = 0;
         report = Stopwatch.GetTimestamp();
     }
-}, Game.OnQuit, args);
+}, Standalone.OnQuit, args);

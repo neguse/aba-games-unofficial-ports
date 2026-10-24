@@ -57,10 +57,10 @@ public static class FrameHost
             sounds[i] = Audio.Snd(names[i], null, 1, 48000, 1) ?? 0;
             if (sounds[i] != 0) continue;
             Io.LoadBytes("audio/" + names[i] + ".wav", out var encoded, out _, out var status, out var error);
-            if (status == Io.Status.Error) { Console.WriteLine(error); App.Quit(); return; }
+            if (status == Io.Status.Error) { Console.WriteLine(error); Scene.End(); return; }
             if (encoded == null) continue;
             Audio.Decode(encoded, out var pcm, out int count, out int rate);
-            if (pcm == null) { Console.WriteLine("Cannot decode " + names[i]); App.Quit(); return; }
+            if (pcm == null) { Console.WriteLine("Cannot decode " + names[i]); Scene.End(); return; }
             sounds[i] = Audio.SndBytes(names[i], pcm, count, rate, 1) ?? 0;
         }
         if (!audioStarted && sounds[0] != 0)

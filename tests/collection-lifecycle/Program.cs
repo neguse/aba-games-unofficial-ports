@@ -44,9 +44,7 @@ static class Tests
     static void Reset()
     {
         Session.Reset();
-        Check(Session.Configuring == null && Session.Quitting == null && Session.HostSending == null && Session.HostPolling == null,
-            "Reset retained a game delegate");
-        Check(Session.MainTarget == null && Session.MainSize == null && Session.XrActiveOverride == null, "Reset retained a game rendering override");
+        Check(Session.HostSending == null && Session.HostPolling == null, "Reset retained a game delegate");
         Check(live() == 0, $"Reset retained {live()} mock backend resources");
         Check(allocations(host) == 0, $"Reset retained {allocations(host)} native session allocations");
     }
@@ -73,8 +71,6 @@ static class Tests
         Environment.SetEnvironmentVariable("ABA_LIFECYCLE_FIXTURE", mode);
         var messages = new List<(string topic, string value)>();
         var storage = new NativeGameStorage("lifecycle-fixture", dataRoot);
-        int configured = 0;
-        Session.Configuring = _ => configured++;
         Session.HostSending = (topic, value) => { messages.Add((topic, value)); if (topic == "scores.save") storage.Save("scores", value); };
         Session.HostPolling = () => (null, null);
         var session = new GameSession(new GameInfo("valid", "Test fixture", false), fixtures);
@@ -86,13 +82,17 @@ static class Tests
             try { session.Initialize(); }
             catch (InvalidOperationException ex) when (ex.Message == "fixture init failure") { initFailed = true; }
             Check(initFailed == mode.Contains("init"), mode + ": init exception behavior");
-            Check(configured == 1, mode + ": Config was not routed to the host");
             Check(messages.Count(x => x == ("probe.init", "1")) == 1, mode + ": static initialization was not fresh");
             if (!initFailed)
             {
-                for (int i = 0; i < 3; i++) session.Frame(1f / 60);
+                for (int i = 0; i < 3; i++)
+                {
+                    Check(!session.Ended, mode + ": Scene.End was seen before the game called it");
+                    session.Frame(1f / 60, Gfx.MainTex);
+                }
                 session.Event(new EventData { Kind = EventKind.WindowResize });
                 Check(messages.Contains(("probe.frame", "3")), mode + ": frame callback missing");
+                Check(session.Ended, mode + ": Scene.End did not reach the host");
                 Check(messages.Contains(("probe.event", "8")), mode + ": event callback missing");
             }
             try { session.Dispose(); }
@@ -143,8 +143,6 @@ static class Tests
         var session = new GameSession(info, package);
         var reference = session.Unloaded;
         HostBridge? bridge = null;
-        bool quitRequested = false;
-        int configured = 0;
         var assembly = AssemblyOf(session);
         PropertyInfo? physicsCount = assembly.GetType("McdPhysics")?.GetProperty("LiveHandleCount");
         ulong before = draws();
@@ -154,11 +152,8 @@ static class Tests
         try
         {
             Directory.SetCurrentDirectory(session.DirectoryPath);
-            Session.Configuring = options => { configured++; Session.MainSize = (options.Width ?? 640, options.Height ?? 480); };
-            Session.Quitting = () => quitRequested = true;
             if (!info.Vr) { bridge = new HostBridge(info.Id, session.DirectoryPath, dataRoot); bridge.Install(); }
             session.Initialize();
-            Check(configured == 1, info.Id + ": initialization did not call Config exactly once");
             if (bridge != null) Check(bridge.Ready, info.Id + ": no Host ready handshake");
             for (int i = 0; i < frameCount; i++)
             {
@@ -166,11 +161,11 @@ static class Tests
                 try
                 {
                     bridge?.BeforeFrame(dt);
-                    session.Frame(dt);
+                    session.Frame(dt, Gfx.MainTex);
                     bridge?.AfterFrame(dt);
                 }
                 finally { end(host, 1); }
-                Check(!quitRequested, info.Id + ": game requested quit (often a missing/undecodable asset)");
+                Check(!session.Ended, info.Id + ": game called Scene.End (often a missing/undecodable asset)");
                 Check(bridge?.LastError == null, info.Id + ": " + bridge?.LastError);
             }
             Check(draws() > before, info.Id + ": no draw dispatch reached the mock renderer");

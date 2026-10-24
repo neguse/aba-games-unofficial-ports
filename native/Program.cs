@@ -17,7 +17,8 @@ public static class Collection
     static GameSession? game;
     static HostBridge? bridge;
     static Canvas? canvas;
-    static int selected, gameWidth=640,gameHeight=480;
+    const int gameWidth=640,gameHeight=480;
+    static int selected;
     static int pending=-2; // -2 none, -1 list, >=0 game
     static readonly SelectionGate releaseGate=new();
     static bool armed=>releaseGate.Armed;
@@ -78,7 +79,7 @@ public static class Collection
             try
             {
                 bool flat=!game.Info.Vr;
-                TextureRef? target=flat?canvas.Target("collection-game",gameWidth,gameHeight):null;
+                TextureRef target=flat?canvas.Target("collection-game",gameWidth,gameHeight):Gfx.MainTex;
                 Gfx.Size(out int windowWidth,out int windowHeight);
                 float scale=Math.Min(windowWidth/(float)gameWidth,windowHeight/(float)gameHeight);
                 if(bridge?.Masashikun!=null)
@@ -89,11 +90,9 @@ public static class Collection
                         (my-(windowHeight-Canvas.Height*uiScale)/2)/uiScale,Input.MousePressed(1));
                 }
                 bridge?.BeforeFrame(dt,xr?Xr.Focused():Input.Focused(),(windowWidth-gameWidth*scale)/2,(windowHeight-gameHeight*scale)/2,gameWidth*scale,gameHeight*scale);
-                if(flat) { Session.MainTarget=target; Session.MainSize=(gameWidth,gameHeight); Session.XrActiveOverride=false; }
-                try { game.Frame(dt); }
-                finally { Session.MainTarget=null; Session.MainSize=null; Session.XrActiveOverride=null; }
+                game.Frame(dt,target);
                 bridge?.AfterFrame(dt,xr?Xr.Focused():Input.Focused());
-                if(flat&&target!=null)
+                if(flat)
                 {
                     if(bridge?.Masashikun!=null)
                     {
@@ -103,7 +102,7 @@ public static class Collection
                     }
                     else canvas.Present(target,gameWidth,gameHeight,xr);
                 }
-                if(bridge?.QuitRequested==true) pending=-1;
+                if(game.Ended||bridge?.QuitRequested==true) pending=-1;
                 if(smokeFrames>=0&&++smokeTicks>=smokeFrames) pending=-1;
             }
             catch(Exception ex) { error=ex.GetBaseException().Message; Console.Error.WriteLine(ex); pending=-1; }
@@ -175,8 +174,6 @@ public static class Collection
             error=null; selected=next;
             game=new GameSession(games[next],root);
             Directory.SetCurrentDirectory(game.DirectoryPath);
-            Session.Configuring=opts=>{gameWidth=opts.Width??640;gameHeight=opts.Height??480;};
-            Session.Quitting=()=>pending=-1;
             if(!game.Info.Vr)
             {
                 bridge=new HostBridge(game.Info.Id,game.DirectoryPath);
@@ -201,7 +198,7 @@ public static class Collection
             game=null;
             try {bridge?.Dispose();}
             finally {bridge=null;Session.ClearHooks();Directory.SetCurrentDirectory(root);}
-            releaseGate.Reset();gameWidth=640;gameHeight=480;
+            releaseGate.Reset();
         }
     }
     static void Quit() {CloseGame();Session.AfterFrame=null;}

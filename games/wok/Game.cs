@@ -6,7 +6,7 @@ public static class Game {
  static int input;
  static bool escapePressed;
  public static void OnInit(){
-  App.Config(new ConfigOpts{Width=640,Height=480});WkRandom.Seed(1);WkRender.Init();WkAttract.initTitle();
+  WkRandom.Seed(1);WkRender.Init();WkAttract.initTitle();
   if(Host.Available()){Host.Send("scores.load","");Host.Send("ready","");}
  }
  public static void OnFrame(float dt){
