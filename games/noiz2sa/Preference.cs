@@ -11,6 +11,6 @@ public static class NrPreference {
     public static void savePreference(){
         string text="";for(int i=0;i<14;i++)text+=NrAttract.hiScore.stageScore[i].ToString()+",";
         for(int i=0;i<10;i++)for(int j=0;j<10;j++)text+=NrAttract.hiScore.sceneScore[i][j].ToString()+",";
-        text+=NrAttract.hiScore.stage.ToString();if(Host.Available())Host.Send("scores.save",text);
+        text+=NrAttract.hiScore.stage.ToString();GameSave.Save("scores", text);
     }
 }

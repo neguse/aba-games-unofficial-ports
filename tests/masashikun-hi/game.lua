@@ -57,12 +57,11 @@ Game.Pause();assert(MasMain.mlspe==1 and MasForm.hidden)
 MasScores.Clear();MasKak.setkakhiscore(12345);assert(MasScores.hscsf);MasScores.Accept('A');MasKak.setkakhiscore(12000);MasScores.Accept('B')
 assert(MasKak.kakhsc[2].name=='B' and MasKak.kakhsc[3].name=='A' and MasKak.kakhsc[3].rec==12345)
 MasTob.settobhiscore(123);MasScores.Accept('Jump');MasHng.sethnghiscore(5000);MasScores.Accept('Throw')
-local saved;lub.host.available=function()return true end;lub.host.send=function(topic,text)if topic=='scores.save'then saved=text end end
-MasScores.Save();MasScores.Clear();MasScores.Load(saved)
+local saved;lub.io={load_text=function()return nil,0,'error','missing' end,save_text=function(path,text)if path=='save/masashikun-hi/scores.txt'then saved=text end end}
+assert(GameSave.Ready('scores'));MasScores.Save();MasScores.Clear();MasScores.Load(saved)
 assert(MasKak.kakhsc[2].rec==12000 and MasTob.tobhsc[2].name=='Jump' and MasHng.hnghsc[2].rec==5000)
 MasScores.Load(saved:gsub('12000','oops'));assert(MasKak.kakhsc[2].rec==12000)
 print('PASS: all 16 competition states, three attempts, total score, pause and six-category score storage')
-lub.host.available=function()return false end
 MasMath.Seed=12345;Game.Start(6);seen={}
 for i=1,10000 do
  seen[MasMain.mlspe]=true;MasForm.mousemv=0;MasForm.mousebt=0
@@ -71,14 +70,14 @@ for i=1,10000 do
 end
 for n=-6,-2 do assert(seen[n],'automatic demo '..n)end
 local draw=MasForm.Frame;MasForm.Frame=function()end
-local queue={};lub.host.available=function()return true end;lub.host.poll=function()local m=table.remove(queue,1);if m then return m[1],m[2]end end
+local update=MasPanel.Update;MasPanel.Update=function()end
 local observed={};local move=MasMain.moveall;MasMain.moveall=function()observed[#observed+1]={MasForm.mousemv,MasForm.mousebt};move()end
 Game.Start(1);Game.elapsed=0
-queue={{'move','3,0'},{'move','0,4'},{'button','1'},{'button','0'}}
+Game.Move(3,0);Game.Move(0,4);Game.Button(true);Game.Button(false)
 Game.OnFrame(.02);assert(#observed==0);Game.OnFrame(.02);assert(observed[1][1]==5 and observed[1][2]==1)
 Game.OnFrame(.03);assert(observed[2][1]==0 and observed[2][2]==0)
-queue={{'shift',''},{'button','1'}};Game.OnFrame(.033);assert(observed[3][1]==768 and observed[3][2]==1)
+Game.Shift();Game.Button(true);Game.OnFrame(.033);assert(observed[3][1]==768 and observed[3][2]==1)
 Game.OnFrame(.033);assert(observed[4][2]==2)
-MasMain.moveall=move;MasForm.Frame=draw
+MasMain.moveall=move;MasForm.Frame=draw;MasPanel.Update=update
 print('PASS: all five automatic demos, 33ms input accumulation, short click, held click and Shift')
 print('RESULT 0')

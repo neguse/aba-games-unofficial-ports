@@ -1,5 +1,5 @@
 // Copyright (C) 2000 Kenta Cho. SPDX-License-Identifier: GPL-2.0-or-later
-// TinyC# browser adaptation (2026-09-24).
+// TinyC# browser adaptation (2026-09-24, 2026-10-25).
 using System;
 using System.Collections.Generic;
 using Lub;
@@ -110,6 +110,7 @@ public static class MasForm
             var rects = Gfx.UseBuffer("spans", Gfx.BufferType.Storage, spans, version);
             if (rects != null) Gfx.Draw(spans.Count / 5 * 6, new Dictionary<string, object> { ["spans"] = rects }, new DrawOpts { Shader = shader, Blend = Gfx.Blend.None, Depth = false, DepthWrite = false, Cull = Gfx.Cull.None });
         }
+        MasPanel.Draw();
         Gfx.EndPass();
     }
 }

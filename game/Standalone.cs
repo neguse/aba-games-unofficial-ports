@@ -16,8 +16,16 @@ public static class Standalone
     public static void OnFrame(float dt)
     {
         Scene.Target = Gfx.MainTex;
+        Gfx.Size(out int width, out int height);
+        Scene.ViewWidth = width;
+        Scene.ViewHeight = height;
         Game.OnFrame(dt);
         EndIfRequested();
+    }
+
+    public static void OnEvent(EventData e)
+    {
+        Game.OnEvent(e);
     }
 
     public static void EndIfRequested()

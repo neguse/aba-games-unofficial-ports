@@ -16,7 +16,6 @@ public static class Game
         manager = new GameManager();
         manager.init_0(); manager.start();
         manager.rand.setSeed(TinySystem.Random.Shared.Next());
-        FrameHost.Load();
     }
     public static void OnFrame(float dt)
         => DrawInput(dt, Xr.Input(0), Xr.Input(1), Xr.Focused());
@@ -80,6 +79,7 @@ public static class Game
         FrameHost.End(focused, dt);
         if (profile) Profiler.EndScope("tt.audio.end");
     }
+    public static void OnEvent(EventData e) { }
     public static void OnQuit()
     {
         manager.prefManager.save(); manager.close();

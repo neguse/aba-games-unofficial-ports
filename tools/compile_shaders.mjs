@@ -4,8 +4,9 @@ import { pathToFileURL } from 'node:url';
 
 // compile_shaders.mjs <lub> <output> [prefix] [shader...]
 // Without extra shaders the output maps each entry point of <prefix>.{vs,fs}.slang to its WGSL.
-// With them it is a list matched by source text: a path adds both stages of that file, and
-// NAME:path adds the fragment stage of the file compiled with NAME defined.
+// With them it is a list matched by source text: a path adds both stages of that file (only the
+// vertex or fragment stage for a .vs.slang or .fs.slang file), and NAME:path adds the fragment
+// stage of the file compiled with NAME defined.
 const [lub, output, sourcePrefix = 'shaders/mesh', ...extra] = process.argv.slice(2);
 const directory = resolve(lub, 'web/public/slang');
 const factory = (await import(pathToFileURL(`${directory}/slang-wasm.js`))).default;
@@ -25,6 +26,8 @@ const stages = [[`${sourcePrefix}.vs.slang`, 'vs', 1, ''], [`${sourcePrefix}.fs.
 for (const shader of extra) {
     const [file, define] = shader.split(':').reverse();
     if (define) stages.push([file, 'fs', 5, define]);
+    else if (file.endsWith('.vs.slang')) stages.push([file, 'vs', 1, '']);
+    else if (file.endsWith('.fs.slang')) stages.push([file, 'fs', 5, '']);
     else stages.push([file, 'vs', 1, ''], [file, 'fs', 5, '']);
 }
 for (const [file, name, stage, define] of stages) {

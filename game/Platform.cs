@@ -23,7 +23,6 @@ public class PrefManager
     public PrefManager()
     {
         for (int i = 0; i < 10; i++) ranking[i] = new RankingItem((10 - i) * 10000, 0);
-        if (Host.Available()) Host.Send("scores.load", "");
     }
     public void load(string data)
     {
@@ -43,7 +42,7 @@ public class PrefManager
     {
         string data = "";
         for (int i = 0; i < 10; i++) data += (i == 0 ? "" : ",") + ranking[i].score.ToString() + "," + ranking[i].stage.ToString();
-        if (Host.Available()) Host.Send("scores.save", data);
+        GameSave.Save("scores", data);
     }
     public void setHiScore(int score, int stage)
     {
@@ -62,24 +61,24 @@ public static class SoundManager
     static GameManager manager;
     public static void init(GameManager game) { manager = game; }
     public static void close() { Music.haltMusic(); }
-    public static void playBgm(int index) { PlayMusic(index, "music.loop"); }
-    public static void playBgmOnce(int index) { PlayMusic(index, "music.once"); }
-    static void PlayMusic(int index, string topic)
+    public static void playBgm(int index) { PlayMusic(index, true); }
+    public static void playBgmOnce(int index) { PlayMusic(index, false); }
+    static void PlayMusic(int index, bool loop)
     {
         if (manager.state == GameState.IN_GAME || manager.state == GameState.START_GAME || manager.state == GameState.END_GAME)
-            if (Host.Available()) Host.Send(topic, index.ToString());
+            GameAudio.PlayMusic(index, loop);
     }
     public static void playSe(int index)
     {
         if (manager.state == GameState.IN_GAME || manager.state == GameState.START_GAME)
-            if (Host.Available()) Host.Send("sound.play", index.ToString());
+            GameAudio.Play(index);
     }
-    public static void haltSe(int index) { if (Host.Available()) Host.Send("sound.stop", index.ToString()); }
+    public static void haltSe(int index) { GameAudio.Stop(index); }
 }
 public static class Music
 {
-    public static void haltMusic() { if (Host.Available()) Host.Send("music.stop", ""); }
-    public static void fadeMusic() { if (Host.Available()) Host.Send("music.fade", ""); }
+    public static void haltMusic() { GameAudio.StopMusic(); }
+    public static void fadeMusic() { GameAudio.FadeMusic(); }
 }
     public static class Bgm { public const int STG1 = 0, STG2 = 1, STG3 = 2, BOSS = 3, LAST_BOSS = 4, ENDING = 5; }
     public static class Se

@@ -13,18 +13,16 @@ buttons keep their original in-game meanings. From the list, Escape or B exits.
 GearToyGear, Torus Trooper and Mazer Mayhem retain their existing VR views.
 The other ten games appear on an anchored 2D screen. R recenters the selector.
 The runtime, desktop window and OpenXR session remain alive while switching.
-Each game receives a fresh managed assembly and its resources/audio are released
-before the next game starts.
+Each game receives a fresh managed assembly. Its sounds stop in the frame it is
+closed, and Lub releases its GPU resources once they are no longer declared.
 
-The three existing native games keep their existing XDG save directories.
-Other games use independent game-specific directories managed by the collection.
+Each game saves to its own directory, `$XDG_DATA_HOME/<game id>/` (by default
+`~/.local/share/<game id>/`), the same place as the existing native games.
 Do not delete these directories when updating the game files.
 
 ## Build
 
-Use .NET SDK 10 and the pinned Lub checkout, with the collection's Lub changes.
-Apply the bundled runtime patch with `python3 tools/apply_collection_lub.py ../lub`.
-The patch stays on the pinned commit and is applied automatically by `tools/setup_lub.sh`.
+Use .NET SDK 10 and the pinned Lub checkout (`tools/setup_lub.sh`).
 Prepare assets using `tools/build.py`, then build the Lub shared runtime using
 its `scripts/build-release.sh`. Stage its native libraries in one directory.
 

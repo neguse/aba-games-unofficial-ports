@@ -29,8 +29,7 @@ public class PrefManager
         string s = "";
         for (int i = 0; i < 4; i++)
             s = s + (prefData.scores[i].ToString() + ",");
-        if (Host.Available())
-            Host.Send("scores.save", s + prefData.gameMode.ToString());
+        GameSave.Save("scores", s + prefData.gameMode.ToString());
     }
 }
 

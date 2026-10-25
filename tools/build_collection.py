@@ -58,7 +58,7 @@ def project(game, lub, directory):
 
 def copy_assets(game, dist, output):
     source = dist if game['id'] == 'tumiki' else dist / game['id']
-    for name in ['audio', 'images']:
+    for name in ['audio', 'images', 'fonts']:
         directory = source / name
         if directory.is_dir():
             shutil.copytree(directory, output / name, dirs_exist_ok=True)
@@ -72,12 +72,6 @@ def copy_assets(game, dist, output):
             shutil.copy2(artifact, output / name)
         elif game['id'] == 'masashikun-hi':
             raise FileNotFoundError(f'{artifact}: native corresponding-source package required')
-    # Native audio decoder receives PCM WAV, preserving the original gains.
-    for source_audio in (output / 'audio').glob('*'):
-        if source_audio.suffix.lower() in ('.ogg', '.mp3'):
-            wav = source_audio.with_suffix('.wav')
-            if not wav.exists():
-                run('ffmpeg', '-v', 'error', '-y', '-i', source_audio, '-c:a', 'pcm_s16le', wav)
     if game['id'] in ('gear-toy-gear', 'mazer-mayhem'):
         for name in ['game.vs.slang', 'game.fs.slang']:
             shutil.copy2(ROOT / 'games' / game['id'] / name, output / name)

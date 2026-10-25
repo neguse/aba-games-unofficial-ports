@@ -1,6 +1,8 @@
 local saved
-lub={host={available=function()return false end},gfx={},audio={},io={save_text=function(path,text)saved=text end}}
+lub={host={available=function()return false end},gfx={},audio={},io={save_text=function(path,text)assert(path=='save/gear-toy-gear/scores.txt');saved=text end}}
 dofile(arg[1])
+-- 保存は記録を読み終えてから (FrameHost.Begin が読む)
+FrameHost.loaded=true
 local function near(a,b,tolerance,label)
  assert(math.abs(a-b)<=tolerance,(label or '')..': '..tostring(a)..' != '..tostring(b))
 end

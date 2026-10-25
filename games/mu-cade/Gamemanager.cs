@@ -244,8 +244,7 @@ public class GameManager
                 escPressed = true;
                 if (state == GameManagerGameState.IN_GAME)
                     startTitle();
-                else if (Lub.Host.Available())
-                    Lub.Host.Send("quit", "");
+                else Scene.End();
             }
         }
         else

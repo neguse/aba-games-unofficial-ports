@@ -1,5 +1,5 @@
 // Copyright (C) 2000 Kenta Cho. SPDX-License-Identifier: GPL-2.0-or-later
-// TinyC# browser adaptation (2026-09-24).
+// TinyC# browser adaptation (2026-09-24, 2026-10-25).
 using Lub;
 
 public static class MasScores
@@ -61,15 +61,13 @@ public static class MasScores
     {
         pendingRank = rank;
         hscsf = true;
-        if (Host.Available())
-            Host.Send("ranking", title + "\n" + rank.ToString() + "\n" + rows);
+        MasPanel.OnRanking(title, rank, rows);
         return "";
     }
 
     public static void show()
     {
-        if (Host.Available())
-            Host.Send("ranking", title + "\n0\n" + rows);
+        MasPanel.OnRanking(title, 0, rows);
     }
 
     public static void Accept(string name)
@@ -92,8 +90,7 @@ public static class MasScores
                 text += entry.rec.ToString() + "\t" + entry.name + "\n";
             }
 
-        if (Host.Available())
-            Host.Send("scores.save", text);
+        GameSave.Save("scores", text);
     }
 
     public static void Load(string text)

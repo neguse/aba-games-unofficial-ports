@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {mkdir} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {audioRunning,decodeAudio,waitSaved} from '../lub-page.mjs';
 const {chromium}=await import(pathToFileURL(resolve(process.env.PLAYWRIGHT_MODULE||'.cache/browser/node_modules/playwright/index.mjs')));
 const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH,headless:true,args:['--no-sandbox','--enable-unsafe-webgpu','--use-angle=swiftshader','--enable-features=Vulkan,WebGPU','--use-vulkan=swiftshader','--disable-vulkan-fallback-to-gl-for-testing']});
 const url=process.argv[2]||'http://127.0.0.1:8765/mu-cade/';
@@ -24,10 +25,10 @@ try{
  await page.keyboard.down('x');await page.waitForFunction(()=>gameState[3]===0&&gameState[4]>0);await release('x');
  await page.keyboard.down('p');await page.waitForFunction(()=>gameState[5]===1);await release('p');const time=await page.evaluate(()=>gameState[6]);await page.waitForTimeout(350);assert.equal(await page.evaluate(()=>gameState[6]),time);await shot('paused');
  await page.keyboard.down('p');await page.waitForFunction(()=>gameState[5]===0);await release('p');await send(2);await page.waitForTimeout(300);await shot('playing');
- await send(3);await page.waitForFunction(()=>gameState[7]===7654321&&gameState[11]===1);await page.waitForFunction(()=>localStorage.getItem('mu-cade-scores-v1')?.startsWith('7654321,'));assert.ok(await page.evaluate(()=>audioStarts>0));
+ await send(3);await page.waitForFunction(()=>gameState[7]===7654321&&gameState[11]===1);await waitSaved(page,'mu-cade/scores.txt','7654321,','startsWith');assert.ok(await audioRunning(page));
  await page.locator('#sound').click();assert.equal(await page.locator('#sound').getAttribute('aria-pressed'),'true');
  await page.reload();await observe();await page.waitForFunction(()=>gameState[7]===7654321);
- const count=await page.evaluate(async()=>{const c=JSON.parse(document.querySelector('#game-config').textContent),a=new AudioContext();for(const name of c.music){const r=await fetch(`audio/${name}.ogg`);assertResponse(r);const b=await a.decodeAudioData(await r.arrayBuffer());if(b.duration<=0)throw Error(name);}for(const name of c.sounds){const r=await fetch(`audio/${name}.wav`);assertResponse(r);const b=await a.decodeAudioData(await r.arrayBuffer());if(b.duration<=0)throw Error(name);}await a.close();return c.music.length+c.sounds.length;function assertResponse(r){if(!r.ok)throw Error(r.url);}});assert.equal(count,13);
+ const count=await decodeAudio(page);assert.equal(count,13);
  await send(4);await page.waitForFunction(()=>window.physicsDone);assert.equal(await page.evaluate(()=>window.physicsFailure),undefined);assert.deepEqual(errors,[]);
  console.log('PASS: WebGPU, movement, IJKL aiming, tails/cutting, pause, enemy rendering, sound/mute, 13 audio decodes, ranking reload and original ODE contact/feedback trace');
 }finally{await browser.close();}

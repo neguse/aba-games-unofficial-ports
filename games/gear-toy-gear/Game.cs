@@ -47,6 +47,7 @@ public static class Game
         FrameHost.End(focused);
     }
 
+    public static void OnEvent(EventData e) { }
     public static void OnQuit()
     {
         frame.SaveScores();

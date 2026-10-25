@@ -42,20 +42,18 @@ public static class SoundManager
 
     public static void playCurrentBgm()
     {
-        if (!(bgmDisabled) && Host.Available())
-            Host.Send("music.loop", current.ToString());
+        if (!(bgmDisabled))
+            GameAudio.PlayMusic(current, true);
     }
 
     public static void fadeBgm()
     {
-        if (Host.Available())
-            Host.Send("music.fade", "");
+        GameAudio.FadeMusic();
     }
 
     public static void haltBgm()
     {
-        if (Host.Available())
-            Host.Send("music.stop", "");
+        GameAudio.StopMusic();
     }
 
     public static void playSe(string name)
@@ -72,8 +70,7 @@ public static class SoundManager
         for (int i = 0; i < marked.Length; i++)
             if (marked[i])
             {
-                if (Host.Available())
-                    Host.Send("sound.play", i.ToString());
+                GameAudio.Play(i);
                 marked[i] = false;
             }
     }

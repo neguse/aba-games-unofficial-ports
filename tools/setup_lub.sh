@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-revision=8c45d5e99959d4166bf74a070bb5234c7ce2e2a9
+revision=2d0084a619a746c22942658a883977fcb7475fb9
 directory=.cache/lub
 mkdir -p .cache
 if [[ ! -d "$directory/.git" ]]; then
@@ -10,7 +10,6 @@ fi
 git -C "$directory" fetch origin "$revision"
 git -C "$directory" checkout --detach "$revision"
 git -C "$directory" submodule update --init --recursive
-python3 tools/apply_collection_lub.py "$directory"
 (
     cd "$directory"
     dotnet build third_party/tcs/Transpiler/Transpiler.csproj -c Release

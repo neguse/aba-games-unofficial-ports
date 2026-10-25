@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: neguse/lub
-          ref: 8c45d5e99959d4166bf74a070bb5234c7ce2e2a9
+          ref: 2d0084a619a746c22942658a883977fcb7475fb9
           submodules: recursive
           path: .cache/lub
           persist-credentials: false
@@ -62,8 +62,7 @@ jobs:
       - name: Build pinned Lub and tcs
         working-directory: .cache/lub
         run: |
-          python3 ../../tools/apply_collection_lub.py .
-          test "$(git -C third_party/tcs rev-parse HEAD)" = d0165bf14969266ae6ab8d5262f7d14b09069d69
+          test "$(git -C third_party/tcs rev-parse HEAD)" = f838bed2e2708c8553fc660b03079f3318f3af4b
           dotnet build third_party/tcs/Transpiler/Transpiler.csproj -c Release
           timeout 7200 bash scripts/build-release.sh --target lub
           timeout 7200 bash scripts/build-release.sh --target lub_shared --no-configure
@@ -194,7 +193,7 @@ jobs:
           for game in tumiki parsec47 gunroar titanion a7xpg torus-trooper rrootage noiz2sa wok mazer-mayhem gear-toy-gear mu-cade; do
             python3 tests/check_game.py --lub .cache/lub --game "$game"
           done
-          node tests/audio.test.mjs
+          node tests/page.test.mjs
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         id: upload
         with:

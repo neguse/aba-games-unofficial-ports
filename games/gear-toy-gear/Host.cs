@@ -7,8 +7,9 @@ public static class FrameHost
     static readonly string[] names = new string[] { Sound.names[0], Sound.names[1], Sound.names[2], Sound.names[3], Sound.names[4], Sound.names[5], Sound.names[6], Sound.names[7], "Gtg1", "Gtg2", "Gtg3" };
     static readonly int[] sounds = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     internal static readonly Dictionary<int, FrameSoundLoop> loops = new();
-    static readonly string savePath = (Environment.GetEnvironmentVariable("XDG_DATA_HOME") ??
-        Environment.GetEnvironmentVariable("HOME") + "/.local/share") + "/gear-toy-gear/scores.txt";
+    // save/ は lub のユーザーのデータの置き場所。web は読み終わるまで Pending なので、読めるまで Begin で試し、それまでは保存しない。
+    const string savePath = "save/gear-toy-gear/scores.txt";
+    static bool loaded;
     static int music = -1;
     static float musicVolume = 1;
     static readonly VoiceOpts voice = new() { Loop = true };
@@ -19,11 +20,18 @@ public static class FrameHost
     public static void Load()
     {
         Game.frame.Seed(TinySystem.Random.Shared.Next());
-        Io.LoadText(savePath, out var scores, out _, out _, out _);
-        if (scores != null) Game.frame.LoadScores(scores);
     }
     public static void Begin()
     {
+        if (!loaded)
+        {
+            Io.LoadText(savePath, out var scores, out _, out var status, out _);
+            if (status != Io.Status.Pending)
+            {
+                loaded = true;
+                if (scores != null) Game.frame.LoadScores(scores);
+            }
+        }
         for (int i = 0; i < names.Length; i++)
         {
             // A sound whose declaration lapsed was released and returns null; decode it again.
@@ -72,7 +80,7 @@ public static class FrameHost
         switch (topic)
         {
             case "scores.save":
-                Io.SaveText(savePath, payload);
+                if (loaded) Io.SaveText(savePath, payload);
                 break;
             case "music.loop": music = 8 + int.Parse(payload); musicVolume = 1; break;
             case "music.stop": music = -1; break;

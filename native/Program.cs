@@ -2,7 +2,6 @@ using System.Reflection;
 using System.Text.Json;
 using Lub;
 using Aba;
-using Aba.Native;
 
 return Collection.Run(args);
 
@@ -15,7 +14,6 @@ public static class Collection
         Assembly.GetExecutingAssembly().GetManifestResourceStream("Aba.Catalog.json")!,
         new JsonSerializerOptions{PropertyNameCaseInsensitive=true})!;
     static GameSession? game;
-    static HostBridge? bridge;
     static Canvas? canvas;
     const int gameWidth=640,gameHeight=480;
     static int selected;
@@ -49,13 +47,13 @@ public static class Collection
     static void Init()
     {
         App.Config(new ConfigOpts{Width=960,Height=720});
-        Session.AfterFrame=Transition;
         if(smokeFrames>=0) pending=0;
     }
     static void OnEvent(EventData e) => game?.Event(e);
     static void Frame(float dt)
     {
         canvas??=new Canvas();
+        Transition();
         bool xr=Xr.Active();
         var left=Xr.Input(0); var right=Xr.Input(1);
         bool goBack=Input.KeyDown("F12") || (Input.GamepadDown(0,Input.PadButton.Back)&&Input.GamepadDown(0,Input.PadButton.Start))
@@ -81,28 +79,12 @@ public static class Collection
                 bool flat=!game.Info.Vr;
                 TextureRef target=flat?canvas.Target("collection-game",gameWidth,gameHeight):Gfx.MainTex;
                 Gfx.Size(out int windowWidth,out int windowHeight);
-                float scale=Math.Min(windowWidth/(float)gameWidth,windowHeight/(float)gameHeight);
-                if(bridge?.Masashikun!=null)
-                {
-                    Input.MousePos(out float mx,out float my);
-                    float uiScale=Math.Min(windowWidth/(float)Canvas.Width,windowHeight/(float)Canvas.Height);
-                    bridge.Masashikun.HandlePointer((mx-(windowWidth-Canvas.Width*uiScale)/2)/uiScale,
-                        (my-(windowHeight-Canvas.Height*uiScale)/2)/uiScale,Input.MousePressed(1));
-                }
-                bridge?.BeforeFrame(dt,xr?Xr.Focused():Input.Focused(),(windowWidth-gameWidth*scale)/2,(windowHeight-gameHeight*scale)/2,gameWidth*scale,gameHeight*scale);
-                game.Frame(dt,target);
-                bridge?.AfterFrame(dt,xr?Xr.Focused():Input.Focused());
-                if(flat)
-                {
-                    if(bridge?.Masashikun!=null)
-                    {
-                        var ui=canvas.Target("collection-mas-ui",Canvas.Width,Canvas.Height);
-                        canvas.Begin(ui);canvas.Image(target,0,0,960,720);bridge.Masashikun.Draw(canvas);canvas.End();
-                        canvas.Present(ui,Canvas.Width,Canvas.Height,xr);
-                    }
-                    else canvas.Present(target,gameWidth,gameHeight,xr);
-                }
-                if(game.Ended||bridge?.QuitRequested==true) pending=-1;
+                // Canvas.Present letterboxes a flat game; the game maps the mouse through the same rectangle.
+                float scale=flat?Math.Min(windowWidth/(float)gameWidth,windowHeight/(float)gameHeight):1;
+                float viewWidth=flat?gameWidth*scale:windowWidth,viewHeight=flat?gameHeight*scale:windowHeight;
+                game.Frame(dt,target,(windowWidth-viewWidth)/2,(windowHeight-viewHeight)/2,viewWidth,viewHeight);
+                if(flat) canvas.Present(target,gameWidth,gameHeight,xr);
+                if(game.Ended) pending=-1;
                 if(smokeFrames>=0&&++smokeTicks>=smokeFrames) pending=-1;
             }
             catch(Exception ex) { error=ex.GetBaseException().Message; Console.Error.WriteLine(ex); pending=-1; }
@@ -158,7 +140,7 @@ public static class Collection
     {
         if(pending==-2) return;
         int next=pending; pending=-2;
-        CloseGame(); Session.Reset(); canvas=new Canvas();
+        CloseGame();
         if(next<0)
         {
             if(smokeFrames>=0)
@@ -174,12 +156,6 @@ public static class Collection
             error=null; selected=next;
             game=new GameSession(games[next],root);
             Directory.SetCurrentDirectory(game.DirectoryPath);
-            if(!game.Info.Vr)
-            {
-                bridge=new HostBridge(game.Info.Id,game.DirectoryPath);
-                bridge.Error+=message=>{error=message;pending=-1;};
-                bridge.Install();
-            }
             game.Initialize(); smokeTicks=0;releaseGate.Reset();
             Console.WriteLine("ABA_GAME_STARTED "+game.Info.Id);
         }
@@ -196,11 +172,11 @@ public static class Collection
         {
             if(game!=null) {unloaded.Add(game.Unloaded);Console.WriteLine("ABA_GAME_STOPPED "+game.Info.Id);}
             game=null;
-            try {bridge?.Dispose();}
-            finally {bridge=null;Session.ClearHooks();Directory.SetCurrentDirectory(root);}
+            // The closed game's GPU resources and sounds are released once they are no longer declared.
+            Directory.SetCurrentDirectory(root);
             releaseGate.Reset();
         }
     }
-    static void Quit() {CloseGame();Session.AfterFrame=null;}
+    static void Quit() => CloseGame();
 }
 }

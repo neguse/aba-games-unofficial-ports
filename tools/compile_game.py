@@ -88,6 +88,15 @@ if args.game in ['gear-toy-gear', 'torus-trooper']:
 for name in ['Scene.cs', 'Standalone.cs']:
     if Path('game') / name not in sources:
         sources.append(Path('game') / name)
+# The flat games read input, play sound and save through lub directly (the VR games have their own Host.cs).
+if args.game not in ['gear-toy-gear', 'mazer-mayhem', 'torus-trooper']:
+    for name in ['GameInput.cs', 'GameAudio.cs', 'GameSave.cs']:
+        if Path('game') / name not in sources:
+            sources.append(Path('game') / name)
+    sources.append(args.lub / 'cs-lib/lubx/Assets.cs')
+# Masashikun draws its menu and ranking (MasPanel.cs) with lubx text.
+if args.game == 'masashikun-hi':
+    sources += [args.lub / 'cs-lib/lubx' / name for name in ['Atlas.cs', 'Color.cs', 'Rect.cs', 'SpriteBatch.cs', 'Text.cs']]
 
 if args.frame:
     if args.game != 'torus-trooper':

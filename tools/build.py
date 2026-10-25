@@ -24,11 +24,15 @@ def compiled(game, target, **native):
     subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
                     '--game', game, '--c', str(source)], check=True)
     link(args.lub, args.emsdk, source, target / 'wasm', **native)
-    files = []
     for path in sorted((Path('build') / game / 'images').glob('*.png')):
         (target / 'images').mkdir(exist_ok=True)
         shutil.copy2(path, target / 'images' / path.name)
-        files.append('images/' + path.name)
+
+
+def write_assets(target):
+    """List the images and sounds the game reads through lub, which loads them before the game starts."""
+    files = [f'{directory}/{path.name}' for directory in ['images', 'audio']
+             for path in sorted((target / directory).glob('*')) if path.is_file()]
     (target / 'assets.json').write_text(json.dumps(files), encoding='utf-8')
 
 
@@ -242,6 +246,8 @@ for path in (mcd / 'sounds').rglob('*'):
     if path.is_file():
         shutil.copy2(path, target / 'audio' / path.name)
 (target / 'LICENSE.txt').write_text(Path('games/mu-cade/LICENSE.txt').read_text() + '\n\n' + licenses)
+for target in [dist] + [dist / game for game in ['parsec47', 'gunroar', 'titanion', 'a7xpg', 'rrootage', 'noiz2sa', 'wok', 'mu-cade']]:
+    write_assets(target)
 subprocess.run([sys.executable, 'tools/build_masashikun.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
                 '--emsdk', str(args.emsdk)], check=True)
 print('Built dist/')

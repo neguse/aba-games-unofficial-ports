@@ -9,16 +9,34 @@ public static class Game
     static string shaderSource;
     static float elapsed;
     static int inputMask, mouseX = 320, mouseY = 240, mouseButtons;
+    static bool scoresLoaded;
+    // GameManager.loadLastReplay が立て、記録を読み終えたら下ろす。
+    public static bool replayRequested;
     public static void OnInit()
     {
         manager = new GameManager();
         manager.init();
         manager.start();
-        if (Host.Available())
+        manager.inGameState.rand.setSeed(TinySystem.Random.Shared.Next());
+    }
+
+    // マウスを動かすかクリックしたときだけ、pointer をマウスの位置に合わせる。
+    // ボタンはマウスと pad の両方から取り、フレームの間に押して離したクリックも押したことにする。
+    static void readPointer()
+    {
+        if (!GameInput.Focused())
         {
-            Host.Send("scores.load", "");
-            Host.Send("ready", "");
+            mouseButtons = 0;
+            return;
         }
+        Lub.Input.MouseDelta(out float dx, out float dy);
+        if (dx != 0 || dy != 0 || Lub.Input.MousePressed(1) || Lub.Input.MousePressed(3))
+        {
+            mouseX = (int)Math.Clamp(GameInput.PointerX(), 0, 640);
+            mouseY = (int)Math.Clamp(GameInput.PointerY(), 0, 480);
+        }
+        var pad = GameInput.Pad();
+        mouseButtons = (Lub.Input.MouseDown(1) || Lub.Input.MousePressed(1) || pad.A ? 1 : 0) | (Lub.Input.MouseDown(3) || pad.Secondary ? 2 : 0);
     }
 
     public static void applyInput()
@@ -38,55 +56,29 @@ public static class Game
 
     public static void OnFrame(float dt)
     {
-        while (Host.Available())
+        inputMask = GameInput.Mask();
+        readPointer();
+        if (!scoresLoaded && GameSave.Ready("scores"))
         {
-            Host.Poll(out string topic, out string payload);
-            if (topic == null)
-                break;
-            if (topic == "input")
+            scoresLoaded = true;
+            string? scores = GameSave.Load("scores");
+            if (scores != null)
             {
-                int value = GameMath.parseNonnegative(payload);
-                if (value >= 0 && value <= 65535)
-                    inputMask = value;
-            }
-
-            if (topic == "pointer")
-            {
-                string[] values = payload.Split(",");
-                if (values.Length == 3)
-                {
-                    int x = GameMath.parseNonnegative(values[0]), y = GameMath.parseNonnegative(values[1]), buttons = GameMath.parseNonnegative(values[2]);
-                    if (x >= 0 && x <= 640 && y >= 0 && y <= 480 && buttons >= 0 && buttons <= 3)
-                    {
-                        mouseX = x;
-                        mouseY = y;
-                        mouseButtons = buttons;
-                    }
-                }
-            }
-
-            if (topic == "seed")
-            {
-                int seed = GameMath.parseNonnegative(payload);
-                if (seed >= 0)
-                    manager.inGameState.rand.setSeed(seed);
-            }
-
-            if (topic == "scores")
-            {
-                manager.prefManager.load(payload);
+                manager.prefManager.load(scores);
                 if (manager.state == manager.titleState)
                     manager.titleManager.gameMode = manager.prefManager.prefData.gameMode;
             }
+        }
 
-            if (topic == "replay" && payload.Length > 0 && manager.state == manager.titleState)
+        if (replayRequested && GameSave.Ready("replay"))
+        {
+            replayRequested = false;
+            string? text = GameSave.Load("replay");
+            ReplayData replay = new ReplayData();
+            if (text != null && text.Length > 0 && manager.state == manager.titleState && replay.loadData(text))
             {
-                ReplayData replay = new ReplayData();
-                if (replay.loadData(payload))
-                {
-                    manager.inGameState.replayData = replay;
-                    manager.startTitle();
-                }
+                manager.inGameState.replayData = replay;
+                manager.startTitle();
             }
         }
 
@@ -107,6 +99,7 @@ public static class Game
         shader = Gfx.UseShader("gunroar", GameShaders.vertex, GameShaders.fragment,
             shader != null && shaderSource == source ? (int?)shader.Version : null);
         shaderSource = source;
+        GameAudio.Update(dt);
         if (shader == null)
             return;
         Gfx.BeginPass(new PassOpts { Target = Scene.Target, ClearColor = new float[] { 0, 0, 0, 1 } });
@@ -114,6 +107,7 @@ public static class Game
         Gfx.EndPass();
     }
 
+    public static void OnEvent(EventData e) { }
     public static void OnQuit()
     {
         manager.prefManager.save();

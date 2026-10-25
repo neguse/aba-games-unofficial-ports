@@ -11,16 +11,19 @@ public static class FrameHost
     static readonly string[] soundKeys = new string[8];
     static int generation;
     static readonly VoiceOpts voice = new();
-    static readonly string saveRoot = (Environment.GetEnvironmentVariable("XDG_DATA_HOME") ??
-        Environment.GetEnvironmentVariable("HOME") + "/.local/share") + "/torus-trooper";
+    // save/ は lub のユーザーのデータの置き場所。web は読み終わるまで Pending なので、読めるまで Begin で試し、それまでは保存しない。
+    const string saveRoot = "save/torus-trooper";
+    static bool loaded;
     static int music = -1;
     static float fade = -1;
     static bool audioStarted;
     static string savedReplay = "";
     public static bool Available() => true;
-    public static void Load()
+    static void LoadSaves()
     {
-        Io.LoadText(saveRoot + "/scores.txt", out var scores, out _, out _, out _);
+        Io.LoadText(saveRoot + "/scores.txt", out var scores, out _, out var status, out _);
+        if (status == Io.Status.Pending) return;
+        loaded = true;
         if (scores != null)
         {
             Game.manager.prefManager.load(scores);
@@ -41,7 +44,7 @@ public static class FrameHost
     }
     static void Save(string name, string text)
     {
-        Io.SaveText(saveRoot + "/" + name + ".txt", text);
+        if (loaded) Io.SaveText(saveRoot + "/" + name + ".txt", text);
     }
     public static void SaveReplay()
     {
@@ -51,6 +54,7 @@ public static class FrameHost
     }
     public static void Begin()
     {
+        if (!loaded) LoadSaves();
         for (int i = 0; i < names.Length; i++)
         {
             // A sound whose declaration lapsed was released and returns null; decode it again.

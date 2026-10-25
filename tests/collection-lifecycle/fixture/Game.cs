@@ -6,6 +6,8 @@ public static class NotGame
 public static class Game
 #endif
 {
+    // The harness reads what happened through reflection.
+    public static readonly List<string> Probes = new();
     static int starts, quits;
 #if !MISSING_FRAME
     static int frames;
@@ -13,7 +15,7 @@ public static class Game
     static string Mode => Environment.GetEnvironmentVariable("ABA_LIFECYCLE_FIXTURE") ?? "normal";
     public static void OnInit()
     {
-        Host.Send("probe.init", (++starts).ToString());
+        Probes.Add("init " + ++starts);
         if (Mode.Contains("init")) throw new InvalidOperationException("fixture init failure");
     }
 #if !MISSING_FRAME
@@ -21,15 +23,15 @@ public static class Game
     {
         if (dt <= 0) throw new InvalidOperationException("positive frame delta required");
         if (Scene.Target == null) throw new InvalidOperationException("the host must set Scene.Target");
-        Host.Send("probe.frame", (++frames).ToString());
+        Probes.Add("frame " + ++frames);
         if (frames == 3) Scene.End();
     }
 #endif
-    public static void OnEvent(EventData e) => Host.Send("probe.event", ((int)e.Kind).ToString());
+    public static void OnEvent(EventData e) => Probes.Add("event " + (int)e.Kind);
     public static void OnQuit()
     {
-        Host.Send("probe.quit", (++quits).ToString());
-        Host.Send("scores.save", "fixture-final-save");
+        Probes.Add("quit " + ++quits);
+        Io.SaveText("save/lifecycle-fixture/scores.txt", "fixture-final-save");
         if (Mode.Contains("quit")) throw new InvalidOperationException("fixture quit failure");
     }
 }
@@ -38,7 +40,9 @@ public static class McdPhysics
 {
     public static void Shutdown()
     {
-        Lub.Host.Send("probe.shutdown", "");
+#if !MISSING_GAME
+        Game.Probes.Add("shutdown");
+#endif
         if ((Environment.GetEnvironmentVariable("ABA_LIFECYCLE_FIXTURE") ?? "").Contains("shutdown"))
             throw new InvalidOperationException("fixture shutdown failure");
     }

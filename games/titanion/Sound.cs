@@ -48,8 +48,8 @@ public static class Sound
     public static void playNamedBgm(string name)
     {
         currentBgm = "123".IndexOf(name.Substring(3, 1));
-        if ((((!((bgmDisabled))))) && ((Host.Available())))
-            Host.Send("music.loop", currentBgm.ToString());
+        if (!bgmDisabled)
+            GameAudio.PlayMusic(currentBgm, true);
     }
 
     public static void playBgm()
@@ -78,14 +78,12 @@ public static class Sound
 
     public static void fadeBgm()
     {
-        if (Host.Available())
-            Host.Send("music.fade", "");
+        GameAudio.FadeMusic();
     }
 
     public static void haltBgm()
     {
-        if (Host.Available())
-            Host.Send("music.stop", "");
+        GameAudio.StopMusic();
     }
 
     public static void playSe(string name)
@@ -102,8 +100,7 @@ public static class Sound
         for (int i = 0; i < names.Length; i++)
             if (marked[i])
             {
-                if (Host.Available())
-                    Host.Send("sound.play", i.ToString());
+                GameAudio.Play(i);
                 marked[i] = false;
             }
     }

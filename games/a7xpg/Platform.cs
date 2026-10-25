@@ -29,8 +29,7 @@ public class A7xPrefManager
 
     public void save()
     {
-        if (Host.Available())
-            Host.Send("scores.save", hiScore.ToString());
+        GameSave.Save("scores", hiScore.ToString());
     }
 }
 
@@ -66,32 +65,27 @@ public class Sound
 
     public void playMusic()
     {
-        if (Host.Available())
-            Host.Send("music.loop", index.ToString());
+        GameAudio.PlayMusic(index, true);
     }
 
     public void playChunk()
     {
-        if (Host.Available())
-            Host.Send("sound.play", index.ToString());
+        GameAudio.Play(index);
     }
 
     public void haltChunk()
     {
-        if (Host.Available())
-            Host.Send("sound.stop", index.ToString());
+        GameAudio.Stop(index);
     }
 
     public static void stopMusic()
     {
-        if (Host.Available())
-            Host.Send("music.stop", "");
+        GameAudio.StopMusic();
     }
 
     public static void fadeMusic()
     {
-        if (Host.Available())
-            Host.Send("music.fade", "");
+        GameAudio.FadeMusic();
     }
 
     public void free()

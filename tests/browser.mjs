@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { audioRunning, decodeAudio, waitSaved, writeSave } from './lub-page.mjs';
 
 const { chromium } = await import(pathToFileURL(resolve(process.env.PLAYWRIGHT_MODULE || '.cache/browser/node_modules/playwright/index.mjs')));
 const url = process.argv[2] || 'http://127.0.0.1:8765/tumiki.html';
@@ -84,7 +85,7 @@ try {
     await page.keyboard.down('p');
     await page.waitForFunction(() => gameState[0] === 1);
     await page.keyboard.up('p');
-    assert.ok(await page.evaluate(() => audioStarts > 0), 'game audio must start');
+    assert.ok(await audioRunning(page), 'game audio must start');
     await page.locator('#sound').click();
     await page.locator('#sound').click();
     await page.keyboard.down('ArrowRight');
@@ -97,7 +98,7 @@ try {
         await page.screenshot({ path: `build/screenshots/stage-${stage + 1}.png` });
     }
     await command(1);
-    await page.waitForFunction(() => localStorage.getItem('tumiki-scores-v1')?.startsWith('1234567,'));
+    await waitSaved(page, 'tumiki/scores.txt', '1234567,', 'startsWith');
     await page.reload();
     await observe();
     await page.waitForFunction(() => gameState[7] === 1234567);
