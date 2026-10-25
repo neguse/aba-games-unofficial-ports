@@ -24,7 +24,7 @@ def compile_game(lub, tcs, game, output, extra=()):
     subprocess.run(['dotnet', str(tcs / 'tcs2c/bin/Release/net10.0/tcs2c.dll'), '--lib',
                     '--ref', str(lub / 'cs-lib/lub_stub.cs'), *map(str, sources), '-o', str(output / 'game.c')], check=True)
     subprocess.run(['dotnet', str(lub / 'tools/lub-gen/bin/Release/net10.0/lub-gen.dll'), 'tcs',
-                    '--stub', str(lub / 'cs-lib/lub_stub.cs'),
+                    '--stub', str(lub / 'cs-lib/lub_stub.cs'), '--entry', 'Standalone',
                     *[arg for path in sources for arg in ['--source', str(path)]],
                     '-o', str(output / 'binding.c')], check=True)
 
