@@ -6,7 +6,7 @@ using Lub;
 // ゲームは終わりたいときに End を呼ぶ。終わり方 (アプリの終了か一覧に戻るか) はアプリが決める。
 public static class Scene
 {
-    public static TextureRef Target;
+    public static TextureRef Target = null!;
     public static float ViewX, ViewY, ViewWidth = 640, ViewHeight = 480;
     public static bool Ended;
 
