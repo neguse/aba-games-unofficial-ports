@@ -28,7 +28,6 @@ public class P47PrefManager
                 for (int index2 = 0; index2 < 10; index2++) hiScore[index0][index1][index2] = 0;
             }
         }
-        if (Host.Available()) Host.Send("scores.load", "");
     }
     public void load(string data)
     {
@@ -58,7 +57,7 @@ public class P47PrefManager
             for (int index9 = 0; index9 < 10; index9++) data += hiScore[index7][index8][index9].ToString() + ",";
         }
         data += selectedDifficulty.ToString() + "," + selectedParsecSlot.ToString() + "," + selectedMode.ToString();
-        if (Host.Available()) Host.Send("scores.save", data);
+        GameSave.Save("scores", data);
     }
 }
 
@@ -69,12 +68,12 @@ public static class SoundManager
     static P47GameManager manager;
     public static void init(P47GameManager game) { manager = game; }
     public static void close() { Sound.stopMusic(); }
-    public static void playBgm(int n) { if (Host.Available() && manager.state == P47GameManager.IN_GAME) Host.Send("music.loop", n.ToString()); }
-    public static void playSe(int n) { if (Host.Available() && manager.state == P47GameManager.IN_GAME) Host.Send("sound.play", n.ToString()); }
-    public static void stopSe(int n) { if (Host.Available()) Host.Send("sound.stop", n.ToString()); }
+    public static void playBgm(int n) { if (manager.state == P47GameManager.IN_GAME) GameAudio.PlayMusic(n, true); }
+    public static void playSe(int n) { if (manager.state == P47GameManager.IN_GAME) GameAudio.Play(n); }
+    public static void stopSe(int n) { GameAudio.Stop(n); }
 }
 public static class Sound
 {
-    public static void stopMusic() { if (Host.Available()) Host.Send("music.stop", ""); }
-    public static void fadeMusic() { if (Host.Available()) Host.Send("music.fade", ""); }
+    public static void stopMusic() { GameAudio.StopMusic(); }
+    public static void fadeMusic() { GameAudio.FadeMusic(); }
 }

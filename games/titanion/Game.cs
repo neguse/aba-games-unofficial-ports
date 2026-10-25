@@ -6,21 +6,16 @@ public static class Game
 {
     public static Frame manager;
     static float elapsed, interval = 16;
+    static bool scoresLoaded, replayLoaded;
     static int inputMask;
     public static ShaderRef shader;
     static string shaderSource;
     public static void OnInit()
     {
-        App.Config(new ConfigOpts { Width = 640, Height = 480 });
         manager = new Frame();
         manager.init_0();
         manager.start_0();
-        if (Host.Available())
-        {
-            Host.Send("scores.load", "");
-            Host.Send("replay.load", "");
-            Host.Send("ready", "");
-        }
+        manager.rand.setSeed(TinySystem.Random.Shared.Next());
     }
 
     public static void applyInput()
@@ -33,35 +28,26 @@ public static class Game
 
     public static void OnFrame(float dt)
     {
-        while (Host.Available())
+        inputMask = GameInput.Mask();
+        if (!scoresLoaded && GameSave.Ready("scores"))
         {
-            Host.Poll(out string topic, out string payload);
-            if (topic == null)
-                break;
-            if (topic == "input")
+            scoresLoaded = true;
+            string? scores = GameSave.Load("scores");
+            if (scores != null)
             {
-                int value = GameMath.parseNonnegative(payload);
-                if (value >= 0 && value <= 65535)
-                    inputMask = value;
-            }
-
-            if (topic == "seed")
-            {
-                int seed = GameMath.parseNonnegative(payload);
-                if (seed >= 0)
-                    manager.rand.setSeed(seed);
-            }
-
-            if (topic == "scores")
-            {
-                manager.preference.load_1(payload);
+                manager.preference.load_1(scores);
                 if (manager.gameState.isTitle())
                     manager.title.setMode(manager.preference.lastMode);
             }
+        }
 
-            if (topic == "replay" && payload.Length > 0 && manager.gameState.isTitle())
+        if (!replayLoaded && GameSave.Ready("replay"))
+        {
+            replayLoaded = true;
+            string? replay = GameSave.Load("replay");
+            if (replay != null && replay.Length > 0 && manager.gameState.isTitle())
             {
-                manager.savedReplay = payload;
+                manager.savedReplay = replay;
                 manager.loadLastReplay();
                 manager.startTitle();
             }
@@ -84,12 +70,14 @@ public static class Game
         shader = Gfx.UseShader("titanion", GameShaders.vertex, GameShaders.fragment,
             shader != null && shaderSource == source ? (int?)shader.Version : null);
         shaderSource = source;
+        GameAudio.Update(dt);
         if (shader == null) return;
-        Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = new float[] { 0, 0, 0, 1 } });
+        Gfx.BeginPass(new PassOpts { Target = Scene.Target, ClearColor = new float[] { 0, 0, 0, 1 } });
         manager.draw_0();
         Gfx.EndPass();
     }
 
+    public static void OnEvent(EventData e) { }
     public static void OnQuit()
     {
         manager.preference.save();

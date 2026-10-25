@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Run cloud-only all-13 GameSession lifecycle integration tests.
+"""Run all-13 GameSession lifecycle integration tests.
 
-Uses actual game assemblies, production GameSession/HostBridge, and Lub's
-SDL-dummy test fixture with mocked rendering. This is not a GPU/OpenXR or
-rendered-output test. All saves are isolated in a temporary XDG data directory.
+Uses actual game assemblies, the production GameSession, and the shared Lub
+runtime on SDL's offscreen video driver (a real GPU backend without a window).
+This is not an OpenXR or rendered-output test. All saves are isolated in a
+temporary XDG data directory.
 """
 import argparse
 import json
@@ -12,6 +13,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tempfile
 
 ROOT = Path(__file__).resolve().parent.parent
 BUILD = ROOT / 'build/collection-lifecycle'
@@ -27,7 +29,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--lub', type=Path, required=True)
     parser.add_argument('--package', type=Path, default=ROOT / 'build/collection/publish')
-    parser.add_argument('--native', type=Path, help='liblub_session_test_host.so, defaults to Lub build-release-linux')
+    parser.add_argument('--native', type=Path, help='liblub.so, defaults to Lub build-release-linux')
     parser.add_argument('--physics', type=Path, default=ROOT / 'build/native-physics/libmucade_physics.so')
     parser.add_argument('--dist', type=Path, help='stage full web assets beside managed-only game outputs without changing the package')
     parser.add_argument('--frames', type=int, default=12)
@@ -41,15 +43,15 @@ def main():
     # process fails before the managed harness can write its own report.
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps({'passed': False, 'stage': 'preparing',
-        'renderer': 'mock-no-pixels', 'hardwareValidated': False,
+        'renderer': 'offscreen', 'hardwareValidated': False,
         'failure': 'Preparation/build/run has not completed; inspect command output.'}, indent=2))
     lub = args.lub.resolve()
-    native = (args.native or lub / 'build-release-linux/liblub_session_test_host.so').resolve()
+    native = (args.native or lub / 'build-release-linux/liblub.so').resolve()
     package = args.package.resolve()
     if args.frames < 2 or args.cycles < 1:
         parser.error('--frames must be at least 2 and --cycles at least 1')
     if not native.is_file():
-        parser.error(f'{native} is missing; build Lub target lub_session_test_host first')
+        parser.error(f'{native} is missing; build Lub target lub_shared first')
     if not args.fixtures_only and not args.physics.is_file():
         parser.error(f'{args.physics} is missing; run tools/build_mucade_native.py first')
     if args.game and args.fixtures_only:
@@ -92,6 +94,7 @@ def main():
     env['LD_LIBRARY_PATH'] = ':'.join(directories)
     env['LUB_NATIVE_LIB'] = str(native)
     env['SDL_AUDIODRIVER'] = 'dummy'
+    env['SDL_VIDEO_DRIVER'] = 'offscreen'
     command = ['dotnet', harness / 'CollectionLifecycle.dll', '--package', package,
                '--fixtures', fixtures, '--native', native, '--frames', args.frames,
                '--cycles', args.cycles, '--report', args.report.resolve()]
@@ -99,7 +102,9 @@ def main():
         command += ['--game', args.game]
     if args.fixtures_only:
         command += ['--fixtures-only']
-    run(*command, env=env)
+    with tempfile.TemporaryDirectory(prefix='aba-collection-lifecycle-') as saves:
+        env['XDG_DATA_HOME'] = saves
+        run(*command, env=env)
     report = json.loads(args.report.read_text())
     if not report['passed']:
         raise RuntimeError('Lifecycle report did not pass')
@@ -107,7 +112,7 @@ def main():
     if len(report['games']) != expected:
         raise RuntimeError(f'Expected {expected} actual games in report, got {report["games"]}')
     print(f'Lifecycle report: {args.report.resolve()}')
-    print('Scope: mocked rendering only; no GPU pixels, OpenXR runtime or physical device validation.')
+    print('Scope: offscreen rendering; no pixel comparison, OpenXR runtime or physical device validation.')
 
 
 if __name__ == '__main__':

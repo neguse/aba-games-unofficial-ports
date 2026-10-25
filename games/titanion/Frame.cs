@@ -210,8 +210,7 @@ public class Frame
         replayData.mode = gameState.mode_0();
         replayData.stageRandomized = stage.randomized;
         savedReplay = replayData.encode();
-        if (Lub.Host.Available())
-            Lub.Host.Send("replay.save", savedReplay);
+        GameSave.Save("replay", savedReplay);
     }
 
     public void loadLastReplay()

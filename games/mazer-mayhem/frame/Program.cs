@@ -1,2 +1,2 @@
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
-return Lub.App.Run(Game.OnInit, null, Game.OnFrame, Game.OnQuit, args);
+return Lub.App.Run(Standalone.OnInit, null, Standalone.OnFrame, Standalone.OnQuit, args);

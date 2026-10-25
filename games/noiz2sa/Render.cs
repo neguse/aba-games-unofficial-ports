@@ -44,6 +44,6 @@ public static class NrRender {
         Gfx.BeginPass(new PassOpts{Target=targets[4]});Draw(blend,targets[ping],targets[2+ping],tables);Paint(NrScreen.buf);Gfx.EndPass();
         Gfx.BeginPass(new PassOpts{Target=targets[5]});Paint(NrScreen.lpbuf);Gfx.EndPass();
         Gfx.BeginPass(new PassOpts{Target=targets[6]});Paint(NrScreen.rpbuf);Gfx.EndPass();
-        Gfx.BeginPass(new PassOpts{Target=Gfx.MainTex});Draw(present,targets[4],targets[5],targets[6]);Paint(NrScreen.video);Gfx.EndPass();
+        Gfx.BeginPass(new PassOpts{Target=Scene.Target});Draw(present,targets[4],targets[5],targets[6]);Paint(NrScreen.video);Gfx.EndPass();
     }
 }

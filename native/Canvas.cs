@@ -3,7 +3,7 @@ using Lubx;
 namespace Aba;
 
 /// <summary>Shared pixel canvas, displayed unchanged on a desktop or an anchored XR panel.</summary>
-public sealed class Canvas : Aba.Native.INativeCanvas
+public sealed class Canvas
 {
     public const int Width = 960, Height = 720;
     readonly string shaderText = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "collection.slang"));

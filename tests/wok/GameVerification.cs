@@ -39,7 +39,7 @@ public static class WkVerification {
   Check(WkCore.status==GAMEOVER&&WkCore.score==12345&&WkCore.hiScore==12345,"game over score");
   for(int i=0;i<361;i++)WkCore.move();Check(WkCore.status==TITLE,"return title");
   WkPreference.Load("87654321");Check(WkCore.hiScore==87654321,"load score");WkPreference.Load("2147483648");WkPreference.Load("oops");Check(WkCore.hiScore==87654321,"reject bad score");
-  WkScreen.Pointer("101,202,1");Check(WkScreen.mx==101&&WkScreen.my==202&&WkScreen.buttons==1,"pointer");WkScreen.Pointer("-1,900,8");Check(WkScreen.mx==101,"reject bad pointer");
+  WkScreen.Pointer(101,202,1);Check(WkScreen.mx==101&&WkScreen.my==202&&WkScreen.buttons==1,"pointer");
   WkScreen.buttons=0;WkAttract.initTitle();WkScreen.mx=520;WkScreen.my=315;WkScreen.buttons=1;WkAttract.moveTitle();WkAttract.drawTitle();Check(WkCore.status==IN_GAME,"mouse start");WkScreen.buttons=0;
   for(int i=0;i<3000;i++){
    WkScreen.mx=320+i%40;WkScreen.my=350;WkCore.move();WkRender.vertices.Clear();WkCore.draw();WkCore.rank++;

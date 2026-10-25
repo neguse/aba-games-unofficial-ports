@@ -14,6 +14,7 @@
     <Compile Include="../../frame/FrameMath.cs" />
     <Compile Include="$(LubRoot)/cs-lib/lubx/XrAnchor.cs" Link="lubx/XrAnchor.cs" />
     <Compile Include="../../../game/SimulationTime.cs" />
+    <Compile Include="../../../game/Scene.cs;../../../game/Standalone.cs" />
     <Compile Include="../../../game/Mesh.cs;../../../game/Transform.cs;../../../game/Pattern.cs;../../../game/PatternNumber.cs;../../../build/torus-trooper/*.cs" />
     <Content Include="mesh.*.slang" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
     <Content Include="../../../build/torus-trooper/images/*.png" CopyToOutputDirectory="PreserveNewest" Link="images/%(Filename)%(Extension)" />

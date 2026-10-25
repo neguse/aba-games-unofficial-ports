@@ -18,6 +18,6 @@ public static class RrPreference {
         string text="";
         for(int mode=0;mode<4;mode++)for(int stage=0;stage<40;stage++)text+=hiScore.score[mode][stage].ToString()+","+hiScore.cleard[mode][stage].ToString()+",";
         text+=hiScore.stage.ToString()+","+hiScore.mode.ToString();
-        if(Host.Available())Host.Send("scores.save",text);
+        GameSave.Save("scores", text);
     }
 }

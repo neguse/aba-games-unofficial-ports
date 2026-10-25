@@ -6,8 +6,9 @@ public static class FrameHost
 {
     static readonly string[] names = new string[] { "Bonus", "BurstBig", "BurstSmall", "Dash", "Extend", "Grenade", "Hit", "HyperStart", "PlayerDestroyed", "Shot", "ShotHyper", "Mm1", "Mm2", "Mm3" };
     static readonly int[] sounds = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    static readonly string savePath = (Environment.GetEnvironmentVariable("XDG_DATA_HOME") ??
-        Environment.GetEnvironmentVariable("HOME") + "/.local/share") + "/mazer-mayhem/scores.txt";
+    // save/ は lub のユーザーのデータの置き場所。web は読み終わるまで Pending なので、読めるまで Begin で試し、それまでは保存しない。
+    const string savePath = "save/mazer-mayhem/scores.txt";
+    static bool loaded;
     static int music = -1;
     static float musicVolume = 1;
     static readonly VoiceOpts voice = new() { Loop = true };
@@ -17,21 +18,28 @@ public static class FrameHost
     public static void Load()
     {
         Game.frame.Seed(TinySystem.Random.Shared.Next());
-        Io.LoadText(savePath, out var scores, out _, out _, out _);
-        if (scores != null) Game.frame.LoadScores(scores);
     }
     public static void Begin()
     {
+        if (!loaded)
+        {
+            Io.LoadText(savePath, out var scores, out _, out var status, out _);
+            if (status != Io.Status.Pending)
+            {
+                loaded = true;
+                if (scores != null) Game.frame.LoadScores(scores);
+            }
+        }
         for (int i = 0; i < names.Length; i++)
         {
             // A sound whose declaration lapsed was released and returns null; decode it again.
             sounds[i] = Audio.Snd(names[i], null, 1, 48000, 1) ?? 0;
             if (sounds[i] != 0) continue;
             Io.LoadBytes("audio/" + names[i] + ".wav", out var encoded, out _, out var status, out var error);
-            if (status == Io.Status.Error) { Console.WriteLine(error); App.Quit(); return; }
+            if (status == Io.Status.Error) { Console.WriteLine(error); Scene.End(); return; }
             if (encoded == null) continue;
             Audio.Decode(encoded, out var pcm, out int channels, out int rate);
-            if (pcm == null) { Console.WriteLine("Cannot decode " + names[i]); App.Quit(); return; }
+            if (pcm == null) { Console.WriteLine("Cannot decode " + names[i]); Scene.End(); return; }
             sounds[i] = Audio.SndBytes(names[i], pcm, channels, rate, 1) ?? 0;
         }
         if (!audioStarted && sounds[0] != 0)
@@ -55,7 +63,7 @@ public static class FrameHost
         switch (topic)
         {
             case "scores.save":
-                Io.SaveText(savePath, payload);
+                if (loaded) Io.SaveText(savePath, payload);
                 break;
             case "music.loop": music = 11 + int.Parse(payload); musicVolume = 1; break;
             case "music.stop": music = -1; break;

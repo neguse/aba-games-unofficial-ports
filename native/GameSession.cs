@@ -28,6 +28,7 @@ public sealed class GameSession : IDisposable
     Action? initialize, quit, shutdown;
     Action<float>? frame;
     Action<EventData>? events;
+    FieldInfo? target, ended, viewX, viewY, viewWidth, viewHeight;
     bool disposed;
     public GameInfo Info { get; }
     public string DirectoryPath { get; }
@@ -44,18 +45,30 @@ public sealed class GameSession : IDisposable
             initialize=Bind<Action>(type,"OnInit"); quit=Bind<Action>(type,"OnQuit");
             frame=Bind<Action<float>>(type,"OnFrame")??throw new InvalidDataException("Missing Game.OnFrame");
             events=Bind<Action<EventData>>(type,"OnEvent");
+            var scene=assembly.GetType("Scene",true)!;
+            target=scene.GetField("Target")??throw new InvalidDataException("Missing Scene.Target");
+            ended=scene.GetField("Ended")??throw new InvalidDataException("Missing Scene.Ended");
+            viewX=scene.GetField("ViewX"); viewY=scene.GetField("ViewY"); viewWidth=scene.GetField("ViewWidth"); viewHeight=scene.GetField("ViewHeight");
             var physics=assembly.GetType("McdPhysics");
             if(physics!=null) shutdown=Bind<Action>(physics,"Shutdown");
         }
         catch
         {
-            initialize=null;quit=null;frame=null;events=null;shutdown=null;
+            initialize=null;quit=null;frame=null;events=null;shutdown=null;target=null;ended=null;viewX=viewY=viewWidth=viewHeight=null;
             context.Unload();context=null;throw;
         }
     }
     static T? Bind<T>(Type type,string method) where T:Delegate => type.GetMethod(method,BindingFlags.Public|BindingFlags.Static)?.CreateDelegate<T>();
     public void Initialize() => initialize?.Invoke();
-    public void Frame(float dt) => frame?.Invoke(dt);
+    /// <summary>Draw this frame into <paramref name="screen"/>, the game's Scene.Target, shown in the given window rectangle.</summary>
+    public void Frame(float dt,TextureRef screen,float x=0,float y=0,float width=640,float height=480)
+    {
+        target?.SetValue(null,screen);
+        viewX?.SetValue(null,x); viewY?.SetValue(null,y); viewWidth?.SetValue(null,width); viewHeight?.SetValue(null,height);
+        frame?.Invoke(dt);
+    }
+    /// <summary>The game called Scene.End.</summary>
+    public bool Ended => ended?.GetValue(null) is true;
     public void Event(EventData e) => events?.Invoke(e);
     [MethodImpl(MethodImplOptions.NoInlining)]
     public void Dispose()
@@ -67,7 +80,7 @@ public sealed class GameSession : IDisposable
             try { shutdown?.Invoke(); }
             finally
             {
-                initialize=null; quit=null; shutdown=null; frame=null; events=null;
+                initialize=null; quit=null; shutdown=null; frame=null; events=null; target=null; ended=null; viewX=viewY=viewWidth=viewHeight=null;
                 var old=context; context=null; old?.Unload();
             }
         }

@@ -1,5 +1,5 @@
 // Copyright (C) 2000 Kenta Cho. SPDX-License-Identifier: GPL-2.0-or-later
-// TinyC# browser adaptation (2026-09-24).
+// TinyC# browser adaptation (2026-09-24, 2026-10-25).
 using System;
 using Lub;
 
@@ -7,18 +7,40 @@ public static class Game
 {
     static float elapsed;
     static int dx, dy, keyMove;
-    static bool buttonHeld, pressPending;
+    static bool buttonHeld, pressPending, scoresLoaded;
     // Runs before each move step, while that step's mouse input is still set; the browser test observes it here.
     public static Action beforeMove;
     public static void OnInit()
     {
-        App.Config(new ConfigOpts { Width = 640, Height = 480 });
         MasMain.initall();
-        if (Host.Available())
-        {
-            Host.Send("scores.load", "");
-            Host.Send("ready", "");
-        }
+        MasMath.Seed = TinySystem.Random.Shared.Next();
+    }
+
+    // MasPanel が呼ぶ操作 (原作のメニューとマウスの代わり)。
+    public static void Button(bool down)
+    {
+        if (down && !buttonHeld) pressPending = true;
+        buttonHeld = down;
+    }
+
+    public static void Move(int x, int y)
+    {
+        if (!MasForm.hidden)
+            return;
+        dx += x;
+        dy += y;
+    }
+
+    public static void Shift()
+    {
+        if (MasForm.hidden)
+            keyMove += 768;
+    }
+
+    public static void Blur()
+    {
+        if (MasMain.mlspe > 0 && !MasScores.hscsf)
+            Pause();
     }
 
     public static void Start(int n)
@@ -65,51 +87,15 @@ public static class Game
 
     public static void OnFrame(float dt)
     {
-        while (Host.Available())
+        if (!scoresLoaded && GameSave.Ready("scores"))
         {
-            Host.Poll(out string topic, out string payload);
-            if (topic == null)
-                break;
-            if (topic == "seed")
-                MasMath.Seed = MasMath.Parse(payload);
-            if (topic == "move" && MasForm.hidden)
-            {
-                string[] p = MasText.Split(payload, ",");
-                if (p.Length == 2)
-                {
-                    dx += MasMath.Parse(p[0]);
-                    dy += MasMath.Parse(p[1]);
-                }
-            }
-
-            if (topic == "button")
-            {
-                bool down = payload == "1";
-                if (down && !buttonHeld) pressPending = true;
-                buttonHeld = down;
-            }
-
-            if (topic == "shift" && MasForm.hidden)
-                keyMove += 768;
-            if (topic == "start")
-                Start(MasMath.Parse(payload));
-            if (topic == "pause")
-                Pause();
-            if (topic == "blur" && MasMain.mlspe > 0 && !MasScores.hscsf)
-                Pause();
-            if (topic == "scores")
-                MasScores.Load(payload);
-            if (topic == "name")
-                MasScores.Accept(payload);
-            if (topic == "rank")
-                MasScores.ShowCategory(MasMath.Parse(payload));
-            if (topic == "clear")
-            {
-                MasScores.Clear();
-                MasScores.Save();
-            }
+            scoresLoaded = true;
+            string? scores = GameSave.Load("scores");
+            if (scores != null)
+                MasScores.Load(scores);
         }
 
+        MasPanel.Update(dt);
         if (!MasScores.hscsf)
         {
             elapsed += Math.Min(dt, 0.25f);
@@ -138,8 +124,12 @@ public static class Game
         else
             elapsed = 0;
         MasForm.Frame();
-        if (Host.Available())
-            Host.Send("state", MasMain.mlspe.ToString() + "," + (MasForm.hidden ? "1" : "0"));
+    }
+
+    public static void OnEvent(EventData e)
+    {
+        if (e.Kind == EventKind.KeyDown)
+            MasPanel.OnKey(e.Key);
     }
 
     public static void OnQuit()

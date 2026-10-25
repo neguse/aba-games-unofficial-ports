@@ -7,20 +7,15 @@ public static class Game {
     public static ShaderRef shader;
     public static TextureRef atlas;
     static string shaderSource;
-    static bool pausePressed,escapePressed;
+    static bool pausePressed,escapePressed,scoresLoaded;
     public static void OnInit() {
-        App.Config(new ConfigOpts{Width=640,Height=480});
         RrAngles.tantbl=RrData.tangent;RrAngles.sctbl=RrData.sine;
         RrAttract.initHiScore();RrBarrage.initBarragemanager();RrAttract.initAttractManager();RrAttract.initGameStateFirst();RrCore.initTitle();
-        if(Host.Available()){Host.Send("scores.load","");Host.Send("ready","");}
+        RrRandom.visualSeed=TinySystem.Random.Shared.Next();
     }
     public static void OnFrame(float dt) {
-        while(Host.Available()) {
-            Host.Poll(out string topic,out string payload);if(topic==null)break;
-            if(topic=="input"){int value=GameMath.parseNonnegative(payload);if(value>=0&&value<=255)RrInput.input=value;}
-            if(topic=="seed"){int seed=GameMath.parseNonnegative(payload);if(seed>=0)RrRandom.visualSeed=seed;}
-            if(topic=="scores"){RrPreference.loadPreference(payload);if(RrCore.status==TITLE)RrCore.initTitle();}
-        }
+        RrInput.input=GameInput.Mask();
+        if(!scoresLoaded&&GameSave.Ready("scores")){scoresLoaded=true;string? scores=GameSave.Load("scores");if(scores!=null){RrPreference.loadPreference(scores);if(RrCore.status==TITLE)RrCore.initTitle();}}
         elapsed+=Math.Min(dt,0.1f);
         while(elapsed>=RrCore.interval/1000f) {
             elapsed-=RrCore.interval/1000f;
@@ -30,18 +25,20 @@ public static class Game {
             pausePressed=pause;escapePressed=escape;
             RrCore.move();RrCore.tick++;
         }
-        if(RrInput.quitRequested){RrInput.quitRequested=false;if(Host.Available())Host.Send("quit","");}
+        if(RrInput.quitRequested){RrInput.quitRequested=false;Scene.End();}
         string source = GameShaders.vertex + GameShaders.fragment;
         shader = Gfx.UseShader("rrootage", GameShaders.vertex, GameShaders.fragment,
             shader != null && shaderSource == source ? (int?)shader.Version : null);
         shaderSource = source;
+        GameAudio.Update(dt);
         Png.Load("images/atlas.png", out var pixels, out _, out _, out _, out _, out int pixelsVersion, out _, out _);
         if (pixels != null)
             atlas = Gfx.UseTextureBytes("atlas", RrData.atlasWidth, RrData.atlasHeight, Gfx.PixelFormat.Rgba8, pixels, pixelsVersion);
         if (shader == null || atlas == null) return;
-        Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = RrScreen.clearColor });
+        Gfx.BeginPass(new PassOpts { Target = Scene.Target, ClearColor = RrScreen.clearColor });
         RrCore.draw(RrScreen.setEyepos(), Gfx.Blend.Additive, "scene");
         Gfx.EndPass();
     }
+    public static void OnEvent(EventData e){}
     public static void OnQuit(){RrPreference.savePreference();}
 }

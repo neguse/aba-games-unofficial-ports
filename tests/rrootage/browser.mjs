@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { audioRunning, decodeAudio, waitSaved, writeSave } from '../lub-page.mjs';
 const { chromium } = await import(pathToFileURL(resolve(process.env.PLAYWRIGHT_MODULE || '.cache/browser/node_modules/playwright/index.mjs')));
 const url = process.argv[2] || 'http://127.0.0.1:8765/rrootage/';
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH, headless: true,
@@ -70,20 +71,12 @@ try {
         await press('p'); await page.waitForFunction(() => gameState[0] === 1);
         if (mode < 3) { await press('Escape'); await page.waitForFunction(() => gameState[0] === 0); }
     }
-    assert.ok(await page.evaluate(() => audioStarts > 0));
+    assert.ok(await audioRunning(page));
     await command(0);
-    await page.waitForFunction(() => localStorage.getItem('rrootage-scores-v1')?.includes('7654321'));
+    await waitSaved(page, 'rrootage/scores.txt', '7654321');
     await page.reload(); await observe();
     await page.waitForFunction(() => gameState[0] === 0 && gameState[1] === 3 && gameState[2] === 1 && gameState[11] === 7654321 && gameState[12] === 1);
-    const count = await page.evaluate(async () => {
-        const config = JSON.parse(document.querySelector('#game-config').textContent); const audio = new AudioContext();
-        const names = [...config.music.map(n => `${n}.ogg`), ...config.sounds.map(n => `${n}.wav`)];
-        for (const name of names) {
-            const response = await fetch(`audio/${name}`); if (!response.ok) throw new Error(name);
-            const decoded = await audio.decodeAudioData(await response.arrayBuffer()); if (!(decoded.duration > 0)) throw new Error(name);
-        }
-        await audio.close(); return names.length;
-    });
+    const count = await decodeAudio(page);
     assert.equal(count, 19); assert.deepEqual(errors, []);
     console.log('PASS: four modes, selection, movement, laser/bomb/rolling/polarity/reflector, rendering, pause, audio/19 decodes, score/clear reload');
 } finally { await browser.close(); }

@@ -163,7 +163,6 @@ public static class WkCore
     public static void quitWok()
     {
         WkPreference.Save();
-        if (Lub.Host.Available())
-            Lub.Host.Send("quit", "");
+        Scene.End();
     }
 }

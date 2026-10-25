@@ -84,6 +84,19 @@ if args.game == 'masashikun-hi':
     sources += sorted(Path('build/masashikun-hi').glob('*.cs'))
 if args.game in ['gear-toy-gear', 'torus-trooper']:
     sources.append(Path('game/SimulationTime.cs'))
+# Scene.cs is the boundary to the app that hosts the game; Standalone.cs is the app for a single game.
+for name in ['Scene.cs', 'Standalone.cs']:
+    if Path('game') / name not in sources:
+        sources.append(Path('game') / name)
+# The flat games read input, play sound and save through lub directly (the VR games have their own Host.cs).
+if args.game not in ['gear-toy-gear', 'mazer-mayhem', 'torus-trooper']:
+    for name in ['GameInput.cs', 'GameAudio.cs', 'GameSave.cs']:
+        if Path('game') / name not in sources:
+            sources.append(Path('game') / name)
+    sources.append(args.lub / 'cs-lib/lubx/Assets.cs')
+# Masashikun draws its menu and ranking (MasPanel.cs) with lubx text.
+if args.game == 'masashikun-hi':
+    sources += [args.lub / 'cs-lib/lubx' / name for name in ['Atlas.cs', 'Color.cs', 'Rect.cs', 'SpriteBatch.cs', 'Text.cs']]
 
 if args.frame:
     if args.game != 'torus-trooper':
@@ -114,7 +127,7 @@ if args.c:
                     '--ref', str(args.lub / 'cs-lib/lub_stub.cs'), *[arg for path in stubs for arg in ['--ref', str(path)]],
                     *map(str, sources), '-o', str(args.c / 'game.c')], check=True)
     subprocess.run(['dotnet', str(args.lub / 'tools/lub-gen/bin/Release/net10.0/lub-gen.dll'), 'tcs',
-                    '--stub', str(args.lub / 'cs-lib/lub_stub.cs'),
+                    '--stub', str(args.lub / 'cs-lib/lub_stub.cs'), '--entry', 'Standalone',
                     # lub-gen takes a single stub, so it reads the game's own as source.
                     *[arg for path in sources + stubs for arg in ['--source', str(path)]],
                     '-o', str(args.c / 'binding.c')], check=True)

@@ -4,7 +4,6 @@ import { test } from 'node:test';
 import vm from 'node:vm';
 
 async function harness() {
-    const sources = [], gains = [], requests = new Map();
     const elements = new Map();
     const context = vm.createContext({
         TextDecoder, console, AbortController, DOMException, queueMicrotask,
@@ -13,110 +12,25 @@ async function harness() {
             if (!elements.has(selector)) elements.set(selector, { addEventListener() {}, focus() {}, setAttribute() {} });
             return elements.get(selector);
         } },
-        AudioContext: class {
-            currentTime = 0;
-            state = 'running';
-            close() { this.state = 'closed'; return Promise.resolve(); }
-            destination = {};
-            decodeAudioData = async data => data;
-            createGain() {
-                const gain = { gain: { value: 1, cancelScheduledValues() {}, setValueAtTime() {}, linearRampToValueAtTime() {} },
-                    connect(target) { this.target = target; return target; } };
-                gains.push(gain); return gain;
-            }
-            createBufferSource() {
-                const source = { starts: 0, stops: 0, connect(target) { this.target = target; return target; },
-                    start() { this.starts++; }, stop() { this.stops++; } };
-                sources.push(source); return source;
-            }
-        },
-        fetch: url => new Promise(resolve => requests.set(url, () => resolve({ ok: true, arrayBuffer: async () => url }))),
     });
     const code = (await readFile('web/main.js', 'utf8')).replace('boot().catch(fail);', '').replace('setupLifecycle();', '');
     vm.runInContext(code, context);
-    return { context, sources, gains, requests, elements, run: code => vm.runInContext(code, context) };
+    return { context, elements, run: code => vm.runInContext(code, context) };
 }
 
-test('stopping a sound cancels a pending decode', async () => {
-    const h = await harness();
-    const pending = h.run('playSound(0)');
-    h.run('stopSound(0)');
-    h.requests.get('audio/ship_shot.wav')();
-    await pending;
-    assert.equal(h.sources.length, 0);
-});
-
-test('the newest sound on a shared channel wins regardless of fetch order', async () => {
-    const h = await harness();
-    const old = h.run('playSound(2)');
-    const latest = h.run('playSound(4)');
-    h.requests.get('audio/ship_destroyed.wav')();
-    await latest;
-    h.requests.get('audio/stuck_bonus.wav')();
-    await old;
-    assert.equal(h.sources.length, 1);
-    assert.equal(h.sources[0].buffer, 'audio/ship_destroyed.wav');
-    assert.equal(h.sources[0].starts, 1);
-    assert.equal(h.sources[0].stops, 0);
-});
-
-test('mute affects fading music and effects through the same output', async () => {
-    const h = await harness();
-    const music = h.run('playMusic(0, true)');
-    h.requests.get('audio/we_are_tumiki_fighters.ogg')();
-    await music;
-    h.run('stopMusic(true)');
-    const sound = h.run('playSound(0)');
-    h.requests.get('audio/ship_shot.wav')();
-    await sound;
-    const button = h.elements.get('#sound');
-    button.onclick({ currentTarget: button });
-    const output = h.gains[0];
-    assert.equal(output.gain.value, 0);
-    assert.equal(h.sources[0].target.target, output);
-    assert.equal(h.sources[1].target, output);
-    button.onclick({ currentTarget: button });
-    assert.equal(output.gain.value, 1);
-});
-
-test('dispose synchronously shuts down and saves, then closes audio and GPU exactly once', async () => {
+test('dispose synchronously shuts down the game, then closes audio and GPU exactly once', async () => {
     const h = await harness();
     const order = [];
-    h.context.window.Module = { _lub_tcs_shutdown: () => order.push('shutdown'), persistSaves: () => order.push('save') };
+    h.context.window.Module = { _lub_tcs_shutdown: () => order.push('shutdown') };
     h.context.window.Browser = { mainLoop: { pause: () => order.push('pause') } };
     h.context.window.miniaudio = { devices: [{ webaudio: { state: 'running', close: async () => order.push('native-audio') } }] };
     h.context.deviceStub = { destroy: () => order.push('gpu') };
-    h.run('device = deviceStub; initAudio(); pressed.add("KeyZ"); send("input", "16")');
+    h.run('device = deviceStub; queue.push({ topic: "test", payload: "" })');
     await h.run('dispose()');
     await h.run('dispose()');
-    assert.deepEqual(order, ['pause', 'shutdown', 'save', 'native-audio', 'gpu']);
-    assert.equal(h.run('audio.state'), 'closed');
+    assert.deepEqual(order, ['pause', 'shutdown', 'native-audio', 'gpu']);
     assert.equal(h.run('queue.length'), 0);
-    assert.equal(h.run('pressed.size'), 0);
     assert.equal(h.run('requests.signal.aborted'), true);
-    h.run('send("input", "16"); unlockAudio()');
-    assert.equal(h.run('queue.length'), 0);
-});
-
-test('audio completing after disposal never starts again', async () => {
-    const h = await harness();
-    const pending = h.run('playSound(0)').catch(error => error.name);
-    await h.run('dispose()');
-    h.requests.get('audio/ship_shot.wav')();
-    assert.equal(await pending, 'AbortError');
-    assert.equal(h.sources.length, 0);
-});
-
-test('on_quit legacy save messages survive shutdown; new playback messages do not', async () => {
-    const h = await harness();
-    const saves = new Map();
-    h.context.localStorage = { setItem: (key, value) => saves.set(key, value) };
-    h.context.bytes = new TextEncoder().encode('original-score-format');
-    h.context.window.Module = { _lub_tcs_shutdown: () => h.run('window.lubHost.onMessage("scores.save", bytes)') };
-    await h.run('dispose()');
-    h.run('window.lubHost.onMessage("sound.play", new Uint8Array([48]))');
-    assert.equal(saves.get('tumiki-scores-v1'), 'original-score-format');
-    assert.equal(h.requests.size, 0);
 });
 
 test('XR sessions that resolve after disposal are ended before setup can continue', async () => {

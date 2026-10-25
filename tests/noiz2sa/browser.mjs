@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { audioRunning, decodeAudio, waitSaved, writeSave } from '../lub-page.mjs';
 const { chromium } = await import(pathToFileURL(resolve(process.env.PLAYWRIGHT_MODULE || '.cache/browser/node_modules/playwright/index.mjs')));
 const url = process.argv[2] || 'http://127.0.0.1:8765/noiz2sa/';
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH, headless: true,
@@ -69,16 +70,16 @@ try {
         await page.keyboard.down('p'); await page.waitForFunction(() => gameState[0] === 1); await page.keyboard.up('p');
         if (stage === 1) {
             await command(1);
-            await page.waitForFunction(() => localStorage.getItem('noiz2sa-scores-v1')?.includes('123456'));
+            await waitSaved(page, 'noiz2sa/scores.txt', '123456');
         }
         if (stage < 13) {
             await page.keyboard.down('Escape'); await page.waitForFunction(() => gameState[0] === 0);
             await page.keyboard.up('Escape'); await page.waitForTimeout(200);
         }
     }
-    assert.ok(await page.evaluate(() => audioStarts > 0));
+    assert.ok(await audioRunning(page));
     await command(2);
-    await page.waitForFunction(() => localStorage.getItem('noiz2sa-scores-v1')?.includes('7654321'));
+    await waitSaved(page, 'noiz2sa/scores.txt', '7654321');
     await page.reload(); await observe();
     await page.waitForFunction(() => gameState[0] === 0 && gameState[1] === 13 && gameState[9] === 7654321 && gameState[10] === 123456);
     await command(3);
@@ -91,15 +92,7 @@ try {
         return Array.from({length:8},(_,i) => Array.from(context.getImageData(Math.floor((192+i*36)*image.width/640),Math.floor(236*image.height/480),1,1).data).slice(0,3));
     }, paletteImage.toString('base64'));
     assert.deepEqual(palette,[[255,255,255],[196,196,196],[223,212,212],[223,53,53],[212,223,212],[53,223,53],[213,213,223],[66,66,223]]);
-    const count = await page.evaluate(async () => {
-        const config = JSON.parse(document.querySelector('#game-config').textContent); const audio = new AudioContext();
-        const names = [...config.music.map(n => `${n}.ogg`), ...config.sounds.map(n => `${n}.wav`)];
-        for (const name of names) {
-            const response = await fetch(`audio/${name}`); if (!response.ok) throw new Error(name);
-            const decoded = await audio.decodeAudioData(await response.arrayBuffer()); if (!(decoded.duration > 0)) throw new Error(name);
-        }
-        await audio.close(); return names.length;
-    });
+    const count = await decodeAudio(page);
     assert.equal(count, 14); assert.deepEqual(errors, []);
     console.log('PASS: normal/high stages, four endless modes, selection, movement/shots/slowdown, palette/trails, pause, audio/14 decodes, stage/scene score reload');
 } finally { await browser.close(); }

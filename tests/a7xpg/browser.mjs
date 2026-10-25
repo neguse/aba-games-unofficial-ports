@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { audioRunning, decodeAudio, waitSaved, writeSave } from '../lub-page.mjs';
 const { chromium } = await import(pathToFileURL(resolve(process.env.PLAYWRIGHT_MODULE || '.cache/browser/node_modules/playwright/index.mjs')));
 const url = process.argv[2] || 'http://127.0.0.1:8765/a7xpg/';
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH, headless: true,
@@ -64,20 +65,12 @@ try {
     }, screenshot.toString('base64'));
     assert.ok(colored > 5000, `colored field and glow pixels: ${colored}`);
     await press('p'); await page.waitForFunction(() => gameState[0] === 1);
-    assert.ok(await page.evaluate(() => audioStarts > 0));
+    assert.ok(await audioRunning(page));
     await page.evaluate(() => lubHost.queue.push({ topic: 'test', payload: '0,0' }));
-    await page.waitForFunction(() => localStorage.getItem('a7xpg-scores-v1') === '7654321');
+    await waitSaved(page, 'a7xpg/scores.txt', '7654321', 'equals');
     await page.reload(); await observe();
     await page.waitForFunction(() => gameState[8] === 7654321);
-    const count = await page.evaluate(async () => {
-        const config = JSON.parse(document.querySelector('#game-config').textContent); const audio = new AudioContext();
-        const names = [...config.music.map(n => `${n}.ogg`), ...config.sounds.map(n => `${n}.wav`)];
-        for (const name of names) {
-            const response = await fetch(`audio/${name}`); if (!response.ok) throw new Error(name);
-            const decoded = await audio.decodeAudioData(await response.arrayBuffer()); if (!(decoded.duration > 0)) throw new Error(name);
-        }
-        await audio.close(); return names.length;
-    });
+    const count = await decodeAudio(page);
     assert.equal(count, 15); assert.deepEqual(errors, []);
     console.log('PASS: movement, boost, gold, invulnerability, pause, audio/15 decodes, high score reload');
 } finally { await browser.close(); }

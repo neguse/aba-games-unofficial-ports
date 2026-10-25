@@ -38,8 +38,7 @@ public class PrefManager
             text += prefData.highScore[i].ToString() + "," + prefData.time[i].ToString();
         }
 
-        if (Host.Available())
-            Host.Send("scores.save", text);
+        GameSave.Save("scores", text);
     }
 }
 

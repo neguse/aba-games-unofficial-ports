@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { audioRunning, decodeAudio, waitSaved, writeSave } from '../lub-page.mjs';
 const { chromium } = await import(pathToFileURL(resolve(process.env.PLAYWRIGHT_MODULE || '.cache/browser/node_modules/playwright/index.mjs')));
 const url = process.argv[2] || 'http://127.0.0.1:8765/gear-toy-gear/';
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH, headless: true,
@@ -47,21 +48,16 @@ try {
     await command(3);await page.waitForFunction(n=>gameState[12]<=n,loops);
     await command(1);
     await page.waitForFunction(()=>gameState[0]===0&&gameState[7]===7654321&&gameState[9]===1);
-    await page.waitForFunction(()=>localStorage.getItem('gear-toy-gear-scores-v1')?.startsWith('7654321,'));
+    await waitSaved(page,'gear-toy-gear/scores.txt','7654321,','startsWith');
     await screenshot('replay');
     await page.locator('#sound').click();assert.equal(await page.locator('#sound').getAttribute('aria-pressed'),'true');
     await page.reload();await observe();await page.waitForFunction(()=>gameState[7]===7654321);
     // A ranking stored by the earlier page, which kept the same text under the same key.
-    await page.evaluate(()=>localStorage.setItem('gear-toy-gear-scores-v1','8000000,90000,80000,70000,60000,50000,40000,30000,20000,10000'));
+    await writeSave(page,'gear-toy-gear/scores.txt','8000000,90000,80000,70000,60000,50000,40000,30000,20000,10000');
     await page.reload();await observe();await page.waitForFunction(()=>gameState[7]===8000000);
     await page.keyboard.down('F1');await page.waitForFunction(()=>gameState[0]===1);await release('F1');
     await page.keyboard.down('Escape');await page.waitForFunction(()=>gameState[0]===0);await release('Escape');
-    const count=await page.evaluate(async()=>{
-        const config=JSON.parse(document.querySelector('#game-config').textContent),audio=new AudioContext();
-        const names=[...config.music,...config.sounds];
-        for(const name of names){const response=await fetch(`audio/${name}.wav`);if(!response.ok)throw new Error(name);const buffer=await audio.decodeAudioData(await response.arrayBuffer());if(!(buffer.duration>0))throw new Error(name);}
-        await audio.close();return names.length;
-    });
+    const count = await decodeAudio(page);
     assert.equal(count,11);assert.deepEqual(errors,[]);
     console.log('PASS: movement, automatic shots, acceleration/braking, pause, boss rendering, replay, audio, looped cues, mute, 11 audio decodes and ranking reload');
 }finally{await browser.close();}

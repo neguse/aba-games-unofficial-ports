@@ -14,8 +14,7 @@ public class ReplayData
     {
         string input = gameMode == 0 ? padInputRecord.encode() : gameMode == 3 ? mouseAndPadInputRecord.encode() : twinStickInputRecord.encode();
         string data = "1|" + seed.ToString() + "|" + score.ToString() + "|" + shipTurnSpeed.ToString() + "|" + (shipReverseFire ? "1" : "0") + "|" + gameMode.ToString() + "|" + input;
-        if (Host.Available())
-            Host.Send("replay.save", data);
+        GameSave.Save("replay", data);
     }
 
     public bool loadData(string data)

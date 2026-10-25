@@ -193,14 +193,14 @@ Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで全作
 原作アーカイブのSHA-256はビルド時に照合する。
 展開済みの原作を使う場合は`--original /path/to/tf`を指定する。
 
-lubは`8c45d5e99959d4166bf74a070bb5234c7ce2e2a9`に固定する。
+lubは`2d0084a619a746c22942658a883977fcb7475fb9`に固定する。
 全作品をtcs2cでCへ変換し、lubとリンクしたWasmを作品ごとの`wasm/`へ配置する。
 画像は`build/<作品>/images/`にPNGで書き出し、`assets.json`に列挙して実行時に`Png.Load`で読む。
 Torus Trooper・GearToyGear・Mazer Mayhemはネイティブ版と同じC#・描画・操作・シェーダーを使う。
 `tools/compile_frame_web.py`が各ゲームの`frame/*.csproj`のソース一覧をtcs2cでCへ変換し、
-Wasmを`<ゲーム>/wasm/`へ配置する。入力・音・保存はLubのAPIを直接使い、保存ファイルを`localStorage`へ写す。
-OpenXRとWebXRの接続の差はLubが扱う。
-ほかのゲームはページとホストメッセージで入力・音・保存をやり取りする。
+Wasmを`<ゲーム>/wasm/`へ配置する。OpenXRとWebXRの接続の差はLubが扱う。
+どのゲームも入力・音・保存はLubのAPIを直接使う。
+記録はLubの`save/<ゲーム>/`に保存し、ブラウザではIndexedDBに置く。
 tcsはlubのサブモジュール、Slangは`v2026.8.1`を使用する。
 シェーダーもビルド時に変換するため、ブラウザにはSlangやBulletMLの解析器を配布しない。
 
@@ -209,7 +209,7 @@ tcsはlubのサブモジュール、Slangは`v2026.8.1`を使用する。
 ```sh
 python3 tests/check_patterns.py
 python3 tests/check_game.py --lub .cache/lub
-node tests/audio.test.mjs
+node tests/page.test.mjs
 python3 tests/check_patterns.py --patterns .cache/original/p47 --expected-cases 425
 python3 tests/check_game.py --lub .cache/lub --game parsec47
 python3 tests/check_game.py --lub .cache/lub --game gunroar
@@ -241,18 +241,19 @@ npm install --prefix .cache/browser --no-save playwright@1.60.0
 .cache/browser/node_modules/.bin/playwright install chromium
 python3 tools/build_web_test.py --lub .cache/lub --tcs .cache/lub/third_party/tcs --emsdk /path/to/emsdk --game tumiki
 python3 -m http.server 8766 --directory build/web-test --bind 127.0.0.1
-node tests/browser.mjs http://127.0.0.1:8766
-node tests/parsec47/browser.mjs
-node tests/gunroar/browser.mjs
-node tests/titanion/browser.mjs
-node tests/a7xpg/browser.mjs
-node tests/torus-trooper/browser.mjs
-node tests/rrootage/browser.mjs
-node tests/noiz2sa/browser.mjs
-node tests/wok/browser.mjs
-node tests/mazer-mayhem/browser.mjs
-node tests/gear-toy-gear/browser.mjs
-node tests/mu-cade/browser.mjs
+node tests/browser.mjs http://127.0.0.1:8766/tumiki.html
+node tests/parsec47/browser.mjs http://127.0.0.1:8766/parsec47/
+node tests/gunroar/browser.mjs http://127.0.0.1:8766/gunroar/
+node tests/titanion/browser.mjs http://127.0.0.1:8766/titanion/
+node tests/a7xpg/browser.mjs http://127.0.0.1:8766/a7xpg/
+node tests/torus-trooper/browser.mjs http://127.0.0.1:8766/torus-trooper/
+node tests/rrootage/browser.mjs http://127.0.0.1:8766/rrootage/
+node tests/noiz2sa/browser.mjs http://127.0.0.1:8766/noiz2sa/
+node tests/wok/browser.mjs http://127.0.0.1:8766/wok/
+node tests/mazer-mayhem/browser.mjs http://127.0.0.1:8766/mazer-mayhem/
+node tests/gear-toy-gear/browser.mjs http://127.0.0.1:8766/gear-toy-gear/
+node tests/mu-cade/browser.mjs http://127.0.0.1:8766/mu-cade/
+node tests/masashikun-hi/browser.mjs http://127.0.0.1:8766/masashikun-hi/
 ```
 
 開始・移動・収納・ポーズ、各面の描画、音源のデコードと再生、ランキングの再読込を確認する。

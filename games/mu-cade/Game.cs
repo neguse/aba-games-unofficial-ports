@@ -6,50 +6,32 @@ public static class Game
 {
     public static GameManager manager;
     public static float elapsed;
+    static bool scoresLoaded;
     public static ShaderRef shader;
     static string shaderSource;
     public static void OnInit()
     {
-        App.Config(new ConfigOpts { Width = 640, Height = 480 });
         manager = new GameManager();
         manager.init_0();
         manager.start_0();
-        if (Host.Available())
-        {
-            Host.Send("scores.load", "");
-            Host.Send("ready", "");
-        }
+        manager.rand.setSeed(TinySystem.Random.Shared.Next());
     }
 
     public static void OnFrame(float dt)
     {
-        while (Host.Available())
+        if (!scoresLoaded && GameSave.Ready("scores"))
         {
-            Host.Poll(out string topic, out string payload);
-            if (topic == null)
-                break;
-            if (topic == "scores")
+            scoresLoaded = true;
+            string? scores = GameSave.Load("scores");
+            if (scores != null)
             {
-                manager.prefManager.loadText(payload);
+                manager.prefManager.loadText(scores);
                 if (manager.state == GameManagerGameState.TITLE)
                     manager.titleManager.start_0();
             }
-
-            if (topic == "seed")
-            {
-                int seed = GameMath.parseNonnegative(payload);
-                if (seed >= 0)
-                    manager.rand.setSeed(seed);
-            }
-
-            if (topic == "input")
-            {
-                int input = GameMath.parseNonnegative(payload);
-                if ((input < 0) || (input > 4095))
-                    continue;
-                TwinStickPad.input = input;
-            }
         }
+
+        TwinStickPad.input = GameInput.Mask();
 
         elapsed = elapsed + (Math.Min(dt, 0.1f));
         while (elapsed >= 0.016f)
@@ -62,12 +44,14 @@ public static class Game
         shader = Gfx.UseShader("mu-cade", GameShaders.vertex, GameShaders.fragment,
             shader != null && shaderSource == source ? (int?)shader.Version : null);
         shaderSource = source;
+        GameAudio.Update(dt);
         if (shader == null) return;
-        Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = new float[] { 0, 0, 0, 1 } });
+        Gfx.BeginPass(new PassOpts { Target = Scene.Target, ClearColor = new float[] { 0, 0, 0, 1 } });
         manager.draw();
         Gfx.EndPass();
     }
 
+    public static void OnEvent(EventData e) { }
     public static void OnQuit()
     {
         manager.prefManager.save();

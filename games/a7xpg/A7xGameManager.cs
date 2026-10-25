@@ -817,7 +817,7 @@ public class A7xGameManager
         }
 
         Gfx.EndPass();
-        Gfx.BeginPass(new PassOpts { Target = Gfx.MainTex, ClearColor = new float[] { 0, 0, 0, 0 } });
+        Gfx.BeginPass(new PassOpts { Target = Scene.Target, ClearColor = new float[] { 0, 0, 0, 0 } });
         switch (state)
         {
             case IN_GAME:

@@ -3,20 +3,15 @@ using Lub;
 using static NrConstants;
 public static class Game {
     static float elapsed;
-    static bool pausePressed,escapePressed;
+    static bool pausePressed,escapePressed,scoresLoaded;
     public static void OnInit(){
-        App.Config(new ConfigOpts{Width=640,Height=480});
         NrAngles.tantbl=NrData.tangent;NrAngles.sctbl=NrData.sine;
         NrAttract.initHiScore();NrBarrage.initBarragemanager();NrAttract.initAttractManager();NrCore.initTitle();NrRender.Init();
-        if(Host.Available()){Host.Send("scores.load","");Host.Send("ready","");}
+        NrRandom.visualSeed=TinySystem.Random.Shared.Next();
     }
     public static void OnFrame(float dt){
-        while(Host.Available()){
-            Host.Poll(out string topic,out string payload);if(topic==null)break;
-            if(topic=="input"){int input=GameMath.parseNonnegative(payload);if(input>=0&&input<=255)NrScreen.input=input;}
-            if(topic=="seed"){int seed=GameMath.parseNonnegative(payload);if(seed>=0)NrRandom.visualSeed=seed;}
-            if(topic=="scores"){NrPreference.loadPreference(payload);if(NrCore.status==TITLE)NrCore.initTitle();}
-        }
+        NrScreen.input=GameInput.Mask();
+        if(!scoresLoaded&&GameSave.Ready("scores")){scoresLoaded=true;string? scores=GameSave.Load("scores");if(scores!=null){NrPreference.loadPreference(scores);if(NrCore.status==TITLE)NrCore.initTitle();}}
         NrScreen.l1buf.Clear();NrScreen.l2buf.Clear();NrScreen.buf.Clear();NrScreen.video.Clear();
         elapsed+=Math.Min(dt,0.1f);
         while(elapsed>=NrCore.interval/1000f){
@@ -26,8 +21,10 @@ public static class Game {
             if(escape&&!escapePressed){NrPreference.savePreference();NrCore.initTitle();}
             pausePressed=pause;escapePressed=escape;NrCore.move();NrCore.tick++;
         }
-        if(NrScreen.quitRequested){NrScreen.quitRequested=false;if(Host.Available())Host.Send("quit","");}
+        if(NrScreen.quitRequested){NrScreen.quitRequested=false;Scene.End();}
+        GameAudio.Update(dt);
         NrCore.draw();if(NrCore.status==TITLE)NrAttract.drawTitle();NrRender.Frame();
     }
+    public static void OnEvent(EventData e){}
     public static void OnQuit(){NrPreference.savePreference();}
 }

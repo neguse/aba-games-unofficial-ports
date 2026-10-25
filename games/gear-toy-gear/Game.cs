@@ -9,7 +9,6 @@ public static class Game
     static readonly bool profile = Environment.GetEnvironmentVariable("LUB_PROFILE") == "1";
     public static void OnInit()
     {
-        App.Config(new ConfigOpts { Width = 640, Height = 480 });
         frame = new GtgFrame();
         frame.LoadContent();
         FrameHost.Load();
@@ -48,6 +47,7 @@ public static class Game
         FrameHost.End(focused);
     }
 
+    public static void OnEvent(EventData e) { }
     public static void OnQuit()
     {
         frame.SaveScores();

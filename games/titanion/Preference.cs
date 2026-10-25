@@ -43,8 +43,7 @@ public class Preference
         for (int j = 0; j < 3; j++)
             for (int i = 0; i < 10; i++)
                 data = data + highScore[j][i].ToString() + ",";
-        if (Host.Available())
-            Host.Send("scores.save", data + lastMode.ToString());
+        GameSave.Save("scores", data + lastMode.ToString());
     }
 
     public void setMode(int mode)

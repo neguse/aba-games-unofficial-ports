@@ -187,7 +187,7 @@ public static class MmRender
             // A texture keeps its size until its version changes, and an XR eye can change size between sessions.
             int size = view.Width * 16384 + view.Height;
             // The window is already display-encoded; only an XR eye needs the finished image decoded.
-            var scene = immersive ? Gfx.UseTexture(eye == 0 ? "sceneL" : "sceneR", view.Width, view.Height, Gfx.PixelFormat.Rgba8, null, size, target) : Gfx.MainTex;
+            var scene = immersive ? Gfx.UseTexture(eye == 0 ? "sceneL" : "sceneR", view.Width, view.Height, Gfx.PixelFormat.Rgba8, null, size, target) : Scene.Target;
             pass.Target = scene;
             pass.DepthTarget = immersive ? Gfx.UseTexture(eye == 0 ? "depthL" : "depthR", view.Width, view.Height, Gfx.PixelFormat.Depth24Stencil8, null, size, target) : null;
             pass.ClearDepth = 1;

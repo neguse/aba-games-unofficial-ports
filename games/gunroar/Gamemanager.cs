@@ -167,8 +167,7 @@ public class GameManager
     public void loadLastReplay()
     {
         inGameState.resetReplay();
-        if (Host.Available())
-            Host.Send("replay.load", "");
+        Game.replayRequested = true;
     }
 
     public void initInterval()

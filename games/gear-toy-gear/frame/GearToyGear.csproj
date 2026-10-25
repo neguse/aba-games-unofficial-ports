@@ -13,6 +13,7 @@
     <Compile Include="../*.cs" />
     <Compile Include="$(LubRoot)/cs-lib/lubx/XrAnchor.cs" Link="lubx/XrAnchor.cs" />
     <Compile Include="../../../game/SimulationTime.cs" />
+    <Compile Include="../../../game/Scene.cs;../../../game/Standalone.cs" />
     <Compile Include="../../../game/PatternNumber.cs;../../../build/gear-toy-gear/Data.cs" />
     <Content Include="../game.vs.slang;../game.fs.slang" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
     <Content Include="../../frame/scene.output.slang" CopyToOutputDirectory="PreserveNewest" Link="scene.output.slang" />

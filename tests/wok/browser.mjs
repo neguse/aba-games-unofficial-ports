@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { audioRunning, decodeAudio, waitSaved, writeSave } from '../lub-page.mjs';
 const { chromium } = await import(pathToFileURL(resolve(process.env.PLAYWRIGHT_MODULE || '.cache/browser/node_modules/playwright/index.mjs')));
 const url = process.argv[2] || 'http://127.0.0.1:8765/wok/';
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH, headless: true,
@@ -11,10 +12,6 @@ try {
     await mkdir('build/screenshots',{recursive:true});
     const page=await browser.newPage({viewport:{width:960,height:960}});
     page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
-    await page.addInitScript(()=>{
-        window.audioStarts=0;const Native=window.AudioContext;
-        window.AudioContext=class extends Native {createBufferSource(){const source=super.createBufferSource(),start=source.start.bind(source);source.start=(...a)=>{window.audioStarts++;return start(...a);};return source;}};
-    });
     // test commands: 0 generators(kind), 1 finish, 2 music
     async function command(id,value=0){await page.evaluate(payload=>lubHost.queue.push({topic:'test',payload}),`${id},${value}`);}
     async function observe(){
@@ -31,7 +28,7 @@ try {
     }
     await start();
     // Headless pointer lock reports each real move as a jump and its inverse, so relative moves are dispatched directly.
-    const nudge=(x,y)=>page.evaluate(([x,y])=>document.querySelector('#canvas').dispatchEvent(new PointerEvent('pointermove',{movementX:x,movementY:y})),[x,y]);
+    const nudge=(x,y)=>page.evaluate(([x,y])=>document.querySelector('#canvas').dispatchEvent(new PointerEvent('pointermove',{pointerType:'mouse',movementX:x,movementY:y,bubbles:true})),[x,y]);
     // A late jump from the lock can undo a nudge, so each nudge repeats until it shows.
     async function nudged(x,y,reached,argument){
         for(let attempt=0;;attempt++){
@@ -62,18 +59,13 @@ try {
         assert.ok(colored>500,`sprite pixels ${kind}: ${colored}`);
     }
     await command(2);
-    await page.waitForFunction(()=>gameState[7]===1);assert.ok(await page.evaluate(()=>audioStarts>0));
+    await page.waitForFunction(()=>gameState[7]===1);assert.ok(await audioRunning(page));
     await command(1);
     await page.waitForFunction(()=>gameState[0]===3&&gameState[5]===7654321);
-    await page.waitForFunction(()=>localStorage.getItem('wok-scores-v1')==='7654321');
+    await waitSaved(page,'wok/scores.txt','7654321','equals');
     await page.screenshot({path:'build/screenshots/wok-gameover.png'});
     await page.reload();await observe();await page.waitForFunction(()=>gameState[0]===0&&gameState[5]===7654321);
-    const count=await page.evaluate(async()=>{
-        const config=JSON.parse(document.querySelector('#game-config').textContent),audio=new AudioContext();
-        const names=[...config.music.map(n=>`${n}.${config.musicExtension}`),...config.sounds.map(n=>`${n}.wav`)];
-        for(const name of names){const response=await fetch(`audio/${name}`);if(!response.ok)throw new Error(name);const buffer=await audio.decodeAudioData(await response.arrayBuffer());if(!(buffer.duration>0))throw new Error(name);}
-        await audio.close();return names.length;
-    });
+    const count = await decodeAudio(page);
     assert.equal(count,5);assert.deepEqual(errors,[]);
     console.log('PASS: click start, relative mouse/pan tilt, Escape/unlock/restart, six generator sprites, music change, five audio decodes, game over/high score reload');
 }finally{await browser.close();}

@@ -78,10 +78,15 @@ def audio_jobs(game, original, output):
         volumes = dict(re.findall(r'Sound\s*\{\s*Name = (\w+);\s*Volume = ([-\d]+)', text(directory / 'Gtg.xap')))
     jobs, used = [], set()
     for path in paths:
-        name = path.stem + '.wav'
+        # The flat games decode Ogg Vorbis music themselves (lubx); wok and the frame game torus-trooper play WAV.
+        keep = path.suffix.lower() == '.ogg' and game not in {'wok', 'torus-trooper'}
+        name = path.name if keep else path.stem + '.wav'
         if name in used:
             raise ValueError(f'{game}: flattened audio filename collision: {name}')
         used.add(name)
+        if keep:
+            jobs.append(['cp', str(path), str(output / name)])
+            continue
         filters = []
         # These are intentionally identical to build_gtg_frame/build_mm_frame.
         if game == 'gear-toy-gear':
@@ -194,12 +199,14 @@ project=E.Element('Project',Sdk='Microsoft.NET.Sdk'); props=E.SubElement(project
 for k,v in {'TargetFramework':'net10.0','AssemblyName':'AbaGame','EnableDefaultCompileItems':'false','ImplicitUsings':'enable','InvariantGlobalization':'true','GenerateDependencyFile':'true'}.items(): E.SubElement(props,k).text=v
 refs=E.SubElement(project,'ItemGroup')
 for source in [root/'lub/dotnet/Lub/Lub.csproj',root/'lub/third_party/tcs/TinySystem/TinySystem.csproj']: E.SubElement(refs,'ProjectReference',Include=str(source))
-for source in [*sorted((root/'games/masashikun-hi').glob('*.cs')),*sorted((root/'build/masashikun-hi').glob('*.cs')),shader]: E.SubElement(refs,'Compile',Include=str(source))
+shared=[root/'game'/n for n in ['Scene.cs','Standalone.cs','GameInput.cs','GameAudio.cs','GameSave.cs']]+[root/'lub/cs-lib/lubx'/n for n in ['Assets.cs','Atlas.cs','Color.cs','Rect.cs','SpriteBatch.cs','Text.cs']]
+for source in [*sorted((root/'games/masashikun-hi').glob('*.cs')),*sorted((root/'build/masashikun-hi').glob('*.cs')),*shared,shader]: E.SubElement(refs,'Compile',Include=str(source))
 proj=root/'build/Masashikun.csproj'; E.ElementTree(project).write(proj,encoding='unicode')
 out=root/'publish'; target=out/'games/masashikun-hi'
 run('dotnet','publish','native/Collection.csproj','-c','Release','-r',a.rid,'--self-contained','true','-p:LubRoot='+str(root/'lub'),'-o',out,'--disable-build-servers','-m:1','-p:UseSharedCompilation=false')
 run('dotnet','build',proj,'-c','Release','-o',target,'--disable-build-servers','-m:1','-p:UseSharedCompilation=false')
 shutil.copy2(root/'DISTRIBUTION-LICENSE.txt',target/'LICENSE.txt'); shutil.copy2(root/'README.txt',target/'SOURCE-README.txt')
+shutil.copytree(root/'fonts',target/'fonts',dirs_exist_ok=True)
 (out/'run.sh').chmod(0o755)
 if a.native:
     shutil.copytree(a.native.resolve(),out/'native',dirs_exist_ok=True)
@@ -220,10 +227,15 @@ print(out)
                 add(bundle, path, 'native/' + path.name)
         put(bundle, 'native/catalog.json', b'[{"id":"masashikun-hi","title":"Masashikun Hi!","vr":false}]\n')
         for name in ['compile_masashikun.py', 'compile_game.py', 'build_collection.py',
-                     'prepare_collection_assets.py', 'apply_collection_lub.py', 'setup_lub.sh']:
+                     'prepare_collection_assets.py', 'setup_lub.sh']:
             add(bundle, ROOT / 'tools' / name, 'tools/' + name)
         for path in sorted((ROOT / 'build/masashikun-hi').glob('*.cs')):
             add(bundle, path, 'build/masashikun-hi/' + path.name)
+        for name in ['Scene.cs', 'Standalone.cs', 'GameInput.cs', 'GameAudio.cs', 'GameSave.cs']:
+            add(bundle, ROOT / 'game' / name, 'game/' + name)
+        # MasPanel.cs draws its menu with this font (SIL OFL).
+        add(bundle, lub / 'samples/data/fonts/MPLUS1p-subset.ttf', 'fonts/panel.ttf')
+        add(bundle, lub / 'samples/data/fonts/MPLUS1p-OFL.txt', 'fonts/OFL.txt')
         add(bundle, ROOT / 'games/masashikun-hi/LICENSE.txt', 'LICENSE.txt')
         add(bundle, target / 'LICENSE.txt', 'DISTRIBUTION-LICENSE.txt')
         add(bundle, ROOT / 'LICENSE', 'SHARED-PORT-LICENSE.txt')
@@ -301,7 +313,7 @@ def main():
         original = cache / 'original' / ORIGINALS[game][0]
         target = output if game == 'tumiki' else output / game
         target.mkdir(parents=True,exist_ok=True)
-        audio = target / 'audio'; audio.mkdir(exist_ok=True)
+        audio = target / 'audio'; shutil.rmtree(audio, ignore_errors=True); audio.mkdir()
         jobs = audio_jobs(game, original, audio)
         with ThreadPoolExecutor(max_workers=args.jobs) as workers:
             list(workers.map(lambda command: subprocess.run(command,check=True), jobs))
@@ -313,6 +325,11 @@ def main():
         for path in image_files:
             (target / 'images').mkdir(exist_ok=True)
             shutil.copy2(path,target / 'images' / path.name)
+        if game == 'masashikun-hi':
+            # MasPanel.cs draws its menu with this font (SIL OFL).
+            (target / 'fonts').mkdir(exist_ok=True)
+            shutil.copy2(lub / 'samples/data/fonts/MPLUS1p-subset.ttf', target / 'fonts/panel.ttf')
+            shutil.copy2(lub / 'samples/data/fonts/MPLUS1p-OFL.txt', target / 'fonts/OFL.txt')
         shaders = []
         if game in {'gear-toy-gear','mazer-mayhem'}:
             shaders = [ROOT / 'games' / game / name for name in ['game.vs.slang','game.fs.slang']]

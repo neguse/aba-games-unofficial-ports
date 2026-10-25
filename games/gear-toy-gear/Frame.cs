@@ -222,11 +222,7 @@ public class GtgFrame
 
     public void Exit()
     {
-        // A page takes the player back to its game list; elsewhere leaving the title ends the game.
-        if (Lub.Host.Available())
-            Lub.Host.Send("quit", "");
-        else
-            Lub.App.Quit();
+        Scene.End();
     }
 
     public void Seed(int seed)

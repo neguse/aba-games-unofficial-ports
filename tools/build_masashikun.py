@@ -1,6 +1,8 @@
 import argparse
 import hashlib
+import json
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -32,6 +34,23 @@ def embedded_runtime(tcs):
             yield from paths
 
 
+def lubx_sprite_shaders(lub, directory):
+    """Write the shaders lubx SpriteBatch passes to Gfx.UseShader as files.
+
+    The page looks up precompiled shaders by their source text, so these must match the C# strings exactly.
+    """
+    text = (lub / 'cs-lib/lubx/SpriteBatch.cs').read_text(encoding='utf-8')
+    directory.mkdir(parents=True, exist_ok=True)
+    paths = []
+    for name, stage in [('instancedVs', 'vs'), ('fs', 'fs')]:
+        expression = re.search(r'private static string ' + name + r' = (.*?);\n', text, re.S).group(1)
+        source = ''.join(json.loads('"' + piece + '"') for piece in re.findall(r'"((?:[^"\\]|\\.)*)"', expression))
+        path = directory / f'sprite.{stage}.slang'
+        path.write_text(source, encoding='utf-8')
+        paths.append(path)
+    return paths
+
+
 original = args.original
 if original is None:
     archive = Path('.cache/mas1_11e.zip')
@@ -52,8 +71,14 @@ if not args.source_only:
     subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
                     '--game', 'masashikun-hi', '--c', str(source)], check=True)
     link(args.lub, args.emsdk, source, target / 'wasm')
-    (target / 'assets.json').write_text('[]', encoding='utf-8')
-    subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/masashikun-hi/game'], check=True)
+    # MasPanel draws its text with this font (the SIL OFL license travels with it).
+    (target / 'fonts').mkdir(exist_ok=True)
+    fonts = args.lub / 'samples/data/fonts'
+    shutil.copy2(fonts / 'MPLUS1p-subset.ttf', target / 'fonts/panel.ttf')
+    shutil.copy2(fonts / 'MPLUS1p-OFL.txt', target / 'fonts/OFL.txt')
+    (target / 'assets.json').write_text(json.dumps(['fonts/panel.ttf']), encoding='utf-8')
+    sprite = lubx_sprite_shaders(args.lub, Path('build/masashikun-hi'))
+    subprocess.run(['node', 'tools/compile_shaders.mjs', str(args.lub), str(target / 'shaders.json'), 'games/masashikun-hi/game', *map(str, sprite)], check=True)
     shutil.copy2('games/masashikun-hi/index.html', target / 'index.html')
     for name in ['main.js', 'compiled.js', 'style.css']:
         shutil.copy2(Path('web') / name, Path('dist') / name)
@@ -67,9 +92,10 @@ with tarfile.open(target / 'source.tar.gz', 'w:gz') as bundle:
         for path in sorted(Path(directory).iterdir()):
             if path.is_file():
                 bundle.add(path, arcname='masashikun-hi-source/' + str(path))
-    for name in ['build_masashikun.py', 'compile_masashikun.py', 'compile_game.py', 'compile_shaders.mjs', 'link_web.py', 'setup_lub.sh', 'apply_collection_lub.py']:
+    for name in ['Scene.cs', 'Standalone.cs', 'GameInput.cs', 'GameAudio.cs', 'GameSave.cs']:
+        bundle.add(Path('game') / name, arcname='masashikun-hi-source/game/' + name)
+    for name in ['build_masashikun.py', 'compile_masashikun.py', 'compile_game.py', 'compile_shaders.mjs', 'link_web.py', 'setup_lub.sh']:
         bundle.add(Path('tools') / name, arcname='masashikun-hi-source/tools/' + name)
-    bundle.add('tools/patches/lub-collection.patch', arcname='masashikun-hi-source/tools/patches/lub-collection.patch')
     for name in ['main.js', 'compiled.js', 'style.css']:
         bundle.add(Path('web') / name, arcname='masashikun-hi-source/web/' + name)
     bundle.add('tests/check_game.py', arcname='masashikun-hi-source/tests/check_game.py')

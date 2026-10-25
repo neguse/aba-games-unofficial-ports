@@ -18,7 +18,7 @@ public static class WkRender {
   var atlas=pixels==null?null:Gfx.UseTextureBytes("atlas",WkData.atlasWidth,WkData.atlasHeight,Gfx.PixelFormat.Rgba8,pixels,pixelsVersion);
   var rects=Gfx.UseBuffer("rects",Gfx.BufferType.Storage,vertices,version);
   if(shader==null||atlas==null||rects==null)return;
-  Gfx.BeginPass(new PassOpts{Target=Gfx.MainTex,ClearColor=new float[]{1,1,1,1}});
+  Gfx.BeginPass(new PassOpts{Target=Scene.Target,ClearColor=new float[]{1,1,1,1}});
   if(vertices.Count>0)Gfx.Draw(vertices.Count/12*6,new Dictionary<string,object>{["rectangles"]=rects,["atlas"]=atlas},new DrawOpts{Shader=shader,Blend=Gfx.Blend.None,Depth=false,DepthWrite=false,Cull=Gfx.Cull.None});
   Gfx.EndPass();
  }
