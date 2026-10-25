@@ -50,7 +50,9 @@ if __name__ == '__main__':
                         f'#define LUB_TCS_BINDING "{output.as_posix()}/binding.c"\n'
                         f'#include "{lub.as_posix()}/src/tcs_host.c"\n', encoding='utf-8')
         args.executable.parent.mkdir(parents=True, exist_ok=True)
-        flags = [] if os.name == 'nt' else ['-lm', '-Wl,-rpath,$ORIGIN/native']
+        # The host calls SDL itself (SDL_Delay), and the package keeps libSDL3 next to liblub.
+        flags = [] if os.name == 'nt' else [str(args.native.resolve().parent / 'libSDL3.so.0'), '-lm', '-Wl,-rpath,$ORIGIN/native']
         subprocess.run([args.cc, '-std=gnu11', '-O2', '-fwrapv', '-ffp-contract=off',
-                        '-fexcess-precision=standard', '-I', str(lub / 'include'), str(host),
+                        '-fexcess-precision=standard', '-I', str(lub / 'include'),
+                        '-I', str(lub / 'third_party/SDL/include'), str(host),
                         str(args.native.resolve()), *flags, '-o', str(args.executable)], check=True)
