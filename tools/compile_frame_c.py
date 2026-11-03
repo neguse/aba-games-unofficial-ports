@@ -17,7 +17,10 @@ def compile_game(lub, tcs, game, output, extra=()):
     result = subprocess.run(['dotnet', 'msbuild', str(project), '-nologo', '-getItem:Compile',
                              f'-p:LubRoot={lub}'], check=True, capture_output=True, text=True)
     sources = [Path(item['FullPath']) for item in json.loads(result.stdout)['Items']['Compile']]
-    sources = [path for path in sources if path != project.parent / 'Program.cs'] + [Path(path) for path in extra]
+    # tcs2c brings TinySystem itself; the project lists its sources only for the .NET build.
+    tiny_system = tcs / 'TinySystem'
+    sources = [path for path in sources if path != project.parent / 'Program.cs'
+               and not path.is_relative_to(tiny_system)] + [Path(path) for path in extra]
     output.mkdir(parents=True, exist_ok=True)
     subprocess.run(['dotnet', 'build', str(tcs / 'tcs2c/tcs2c.csproj'), '-c', 'Release'], check=True)
     subprocess.run(['dotnet', 'build', str(lub / 'tools/lub-gen/lub-gen.csproj'), '-c', 'Release'], check=True)
