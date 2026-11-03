@@ -60,7 +60,7 @@ public class Field
         eyeZ = eyeZ + ((eyeZa - eyeZ) * 0.06f);
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend)
+    public void draw(float[] model, float[] tint, Blend blend)
     {
         var mesh = new Mesh("Field-draw");
         int part1 = mesh.vertexCount;
@@ -86,11 +86,11 @@ public class Field
         mesh.Vertex(-size.x, -size.y, HEIGHT, tint);
         for (int vi = part1; vi + 2 < mesh.vertexCount; vi++) mesh.Triangle(vi + ((vi - part1) % 2), vi + 1 - ((vi - part1) % 2), vi + 2);
 
-        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend)
+    public void drawLuminous(float[] model, float[] tint, Blend blend)
     {
         var mesh = new Mesh("Field-drawLuminous");
         tint = new float[] { lr, lg, lb, 0.9f * alpha };
@@ -115,7 +115,7 @@ public class Field
             hz = hz - (HEIGHT_OFFSET);
         }
 
-        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, 0, null, 128, 128),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 }

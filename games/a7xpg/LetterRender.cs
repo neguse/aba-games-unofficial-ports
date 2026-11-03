@@ -27,27 +27,27 @@ public class LetterRender
         mesh.LineStrip(part1, mesh.vertexCount - part1, true);
     }
 
-    public static void drawLetter(float[] model, float[] tint, Gfx.Blend blend, int n, float x, float y, float s)
+    public static void drawLetter(float[] model, float[] tint, Blend blend, int n, float x, float y, float s)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, x, y, 0);
         model = Transform.Scale(model, s, s, s);
-        { Mesh shape2 = meshes[n]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { Mesh shape2 = meshes[n]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         model = parent1;
     }
 
-    public static void drawLetterReverse(float[] model, float[] tint, Gfx.Blend blend, int n, float x, float y, float s)
+    public static void drawLetterReverse(float[] model, float[] tint, Blend blend, int n, float x, float y, float s)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, x, y, 0);
         model = Transform.Scale(model, s, -s, s);
-        { Mesh shape2 = meshes[n]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { Mesh shape2 = meshes[n]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         model = parent1;
     }
 
-    public static void drawString(float[] model, float[] tint, Gfx.Blend blend, string str, float lx, float y, float s)
+    public static void drawString(float[] model, float[] tint, Blend blend, string str, float lx, float y, float s)
     {
         float x = lx;
         var strBytes = new Utf8Bytes(str);
@@ -70,7 +70,7 @@ public class LetterRender
         }
     }
 
-    public static void drawNum(float[] model, float[] tint, Gfx.Blend blend, int num, float lx, float y, float s)
+    public static void drawNum(float[] model, float[] tint, Blend blend, int num, float lx, float y, float s)
     {
         int n = num;
         float x = lx;
@@ -84,7 +84,7 @@ public class LetterRender
         }
     }
 
-    public static void drawNumReverse(float[] model, float[] tint, Gfx.Blend blend, int num, float lx, float y, float s)
+    public static void drawNumReverse(float[] model, float[] tint, Blend blend, int num, float lx, float y, float s)
     {
         int n = num;
         float x = lx;
@@ -98,7 +98,7 @@ public class LetterRender
         }
     }
 
-    public static void drawTime(float[] model, float[] tint, Gfx.Blend blend, int time, float lx, float y, float s)
+    public static void drawTime(float[] model, float[] tint, Blend blend, int time, float lx, float y, float s)
     {
         int n = time;
         float x = lx;

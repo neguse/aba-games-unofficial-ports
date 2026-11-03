@@ -52,7 +52,7 @@ public class Bonus : Actor
         my = my * (0.95f);
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, Mesh target = null)
     {
         LetterRender.drawNumReverse(model, tint, blend, num, pos.x, pos.y, size);
     }

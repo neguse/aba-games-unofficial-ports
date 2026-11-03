@@ -646,7 +646,7 @@ public class Enemy : LuminousActor
         hitWall = false;
     }
 
-    public void drawType0(float[] model, float[] tint, Gfx.Blend blend)
+    public void drawType0(float[] model, float[] tint, Blend blend)
     {
         float sz = 0;
         if (cnt < 0)
@@ -659,35 +659,35 @@ public class Enemy : LuminousActor
         model = Transform.Translate(model, pos.x, pos.y, 0.5f);
         model = Transform.Rotate(model, -deg * 180 / PI, 0, 0, 1);
         model = Transform.Scale(model, sz, sz, sz);
-        { Mesh shape2 = meshes[type * 3]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { Mesh shape2 = meshes[type * 3]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
-        { Mesh shape3 = meshes[type * 3 + 1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { Mesh shape3 = meshes[type * 3 + 1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         model = Transform.Translate(model, 0, 0, -0.5f);
         model = Transform.Scale(model, 1, 1, -1);
-        { Mesh shape4 = meshes[type * 3 + 2]; if (shape4.count > 0) Gfx.Draw(shape4.count, shape4.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { Mesh shape4 = meshes[type * 3 + 2]; if (shape4.count > 0) Gfx.Draw(shape4.count, shape4.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         model = parent1;
     }
 
-    public void drawType4(float[] model, float[] tint, Gfx.Blend blend)
+    public void drawType4(float[] model, float[] tint, Blend blend)
     {
         if (cnt < 0)
             return;
         float[] parent1 = model;
         model = Transform.Translate(model, pos.x, pos.y, 0.5f);
-        { Mesh shape2 = meshes[type * 3]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { Mesh shape2 = meshes[type * 3]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
-        { Mesh shape3 = meshes[type * 3 + 1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { Mesh shape3 = meshes[type * 3 + 1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         model = Transform.Translate(model, 0, 0, -0.5f);
         model = Transform.Scale(model, 1, 1, -1);
-        { Mesh shape4 = meshes[type * 3 + 2]; if (shape4.count > 0) Gfx.Draw(shape4.count, shape4.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { Mesh shape4 = meshes[type * 3 + 2]; if (shape4.count > 0) Gfx.Draw(shape4.count, shape4.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         model = parent1;
     }
 
-    public void drawArm(float[] model, float[] tint, Gfx.Blend blend)
+    public void drawArm(float[] model, float[] tint, Blend blend)
     {
         float sz = 0;
         if (cnt < 0)
@@ -708,7 +708,7 @@ public class Enemy : LuminousActor
         part2.Vertex(0.5f, 0, 0.5f, tint);
         part2.Vertex(0, -sz, 0.5f, tint);
         part2.Fan(0, part2.vertexCount - 0);
-        if (part2.count > 0) Gfx.Draw(part2.count, part2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        if (part2.count > 0) Gfx.Draw(part2.count, part2.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
         model = Transform.Translate(model, 0, 0, -0.5f);
         model = Transform.Scale(model, 1, 1, -1);
@@ -721,12 +721,12 @@ public class Enemy : LuminousActor
         part3.Vertex(0.5f, 0, 0.5f, tint);
         part3.Vertex(0, -sz, 0.5f, tint);
         part3.Fan(0, part3.vertexCount - 0);
-        if (part3.count > 0) Gfx.Draw(part3.count, part3.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        if (part3.count > 0) Gfx.Draw(part3.count, part3.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
         model = parent1;
     }
 
-    public void drawType5(float[] model, float[] tint, Gfx.Blend blend)
+    public void drawType5(float[] model, float[] tint, Blend blend)
     {
         float sz = 0;
         if (cnt < 0)
@@ -742,13 +742,13 @@ public class Enemy : LuminousActor
             model = Transform.Translate(model, posHst[hi].x, posHst[hi].y, 0.5f);
             model = Transform.Rotate(model, -degHst[hi] * 180 / PI, 0, 0, 1);
             model = Transform.Scale(model, sz, sz, sz);
-            { Mesh shape2 = meshes[5 * 3]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            { Mesh shape2 = meshes[5 * 3]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
-            { Mesh shape3 = meshes[5 * 3 + 1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            { Mesh shape3 = meshes[5 * 3 + 1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
             model = Transform.Translate(model, 0, 0, -0.5f);
             model = Transform.Scale(model, 1, 1, -1);
-            { Mesh shape4 = meshes[5 * 3 + 2]; if (shape4.count > 0) Gfx.Draw(shape4.count, shape4.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            { Mesh shape4 = meshes[5 * 3 + 2]; if (shape4.count > 0) Gfx.Draw(shape4.count, shape4.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
             model = parent1;
             hi = GameMath.integer(hi + (size * 2 / speed));
@@ -757,7 +757,7 @@ public class Enemy : LuminousActor
         }
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, Mesh target = null)
     {
         switch (type)
         {
@@ -774,27 +774,27 @@ public class Enemy : LuminousActor
         }
     }
 
-    public void drawType0Luminous(float[] model, float[] tint, Gfx.Blend blend)
+    public void drawType0Luminous(float[] model, float[] tint, Blend blend)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, pos.x, pos.y, 0.5f);
         model = Transform.Rotate(model, -deg * 180 / PI, 0, 0, 1);
         model = Transform.Scale(model, size, size, size);
-        { Mesh shape2 = meshes[type * 3 + 1]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+        { Mesh shape2 = meshes[type * 3 + 1]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, 0, null, 128, 128),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         model = parent1;
     }
 
-    public void drawType4Luminous(float[] model, float[] tint, Gfx.Blend blend)
+    public void drawType4Luminous(float[] model, float[] tint, Blend blend)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, pos.x, pos.y, 0.5f);
-        { Mesh shape2 = meshes[type * 3 + 1]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+        { Mesh shape2 = meshes[type * 3 + 1]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, 0, null, 128, 128),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         model = parent1;
     }
 
-    public void drawArmLuminous(float[] model, float[] tint, Gfx.Blend blend)
+    public void drawArmLuminous(float[] model, float[] tint, Blend blend)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, pos.x, pos.y, 0.5f);
@@ -807,16 +807,16 @@ public class Enemy : LuminousActor
         part2.Vertex(0, -size, 0.5f, tint);
         part2.Vertex(-0.5f, 0, 0.5f, tint);
         part2.LineStrip(0, part2.vertexCount - 0);
-        if (part2.count > 0) Gfx.Draw(part2.count, part2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+        if (part2.count > 0) Gfx.Draw(part2.count, part2.Bindings(model, tint, 1, 0, null, 128, 128),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
         model = parent1;
     }
 
-    public void drawType5Luminous(float[] model, float[] tint, Gfx.Blend blend)
+    public void drawType5Luminous(float[] model, float[] tint, Blend blend)
     {
     }
 
-    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
+    public void drawLuminous(float[] model, float[] tint, Blend blend, Mesh target = null)
     {
         if (cnt < APPEAR_CNT)
             return;

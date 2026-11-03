@@ -68,28 +68,28 @@ public class Gold : LuminousActor
         }
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, Mesh target = null)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, pos.x, pos.y, 0.5f);
         model = Transform.Rotate(model, ROLL_DEG * cnt, 0, 0, 1);
-        { Mesh shape2 = meshes[0]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { Mesh shape2 = meshes[0]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
-        { Mesh shape3 = meshes[1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { Mesh shape3 = meshes[1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         model = Transform.Translate(model, 0, 0, -0.5f);
         model = Transform.Scale(model, 1, 1, -1);
-        { Mesh shape4 = meshes[0]; if (shape4.count > 0) Gfx.Draw(shape4.count, shape4.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { Mesh shape4 = meshes[0]; if (shape4.count > 0) Gfx.Draw(shape4.count, shape4.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         model = parent1;
     }
 
-    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
+    public void drawLuminous(float[] model, float[] tint, Blend blend, Mesh target = null)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, pos.x, pos.y, 0.5f);
         model = Transform.Rotate(model, ROLL_DEG * cnt, 0, 0, 1);
-        { Mesh shape2 = meshes[1]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+        { Mesh shape2 = meshes[1]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, 0, null, 128, 128),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         model = parent1;
     }

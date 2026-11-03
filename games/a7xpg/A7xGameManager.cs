@@ -597,100 +597,100 @@ public class A7xGameManager
         cnt++;
     }
 
-    public void inGameDraw(float[] model, float[] tint, Gfx.Blend blend)
+    public void inGameDraw(float[] model, float[] tint, Blend blend)
     {
         float lineWidth = 1;
         bonuses.draw(model, tint, blend);
         field.draw(model, tint, blend);
         golds.draw(model, tint, blend);
-        { var mesh = new Mesh("particles-draw"); particles.draw(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { var mesh = new Mesh("particles-draw"); particles.draw(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         ship.draw(model, tint, blend);
         enemies.draw(model, tint, blend);
     }
 
-    public void stageClearDraw(float[] model, float[] tint, Gfx.Blend blend)
+    public void stageClearDraw(float[] model, float[] tint, Blend blend)
     {
         float lineWidth = 1;
         if (cnt < 32)
             field.draw(model, tint, blend);
-        { var mesh = new Mesh("particles-draw"); particles.draw(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { var mesh = new Mesh("particles-draw"); particles.draw(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
     }
 
-    public void titleDraw(float[] model, float[] tint, Gfx.Blend blend)
+    public void titleDraw(float[] model, float[] tint, Blend blend)
     {
         float lineWidth = 1;
-        { var mesh = new Mesh("particles-draw"); particles.draw(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { var mesh = new Mesh("particles-draw"); particles.draw(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         enemies.draw(model, tint, blend);
     }
 
-    public void gameoverDraw(float[] model, float[] tint, Gfx.Blend blend)
+    public void gameoverDraw(float[] model, float[] tint, Blend blend)
     {
         float lineWidth = 1;
         field.draw(model, tint, blend);
-        { var mesh = new Mesh("particles-draw"); particles.draw(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { var mesh = new Mesh("particles-draw"); particles.draw(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         enemies.draw(model, tint, blend);
     }
 
-    public void inGameDrawLuminous(float[] model, float[] tint, Gfx.Blend blend)
+    public void inGameDrawLuminous(float[] model, float[] tint, Blend blend)
     {
         float lineWidth = 1;
         field.drawLuminous(model, tint, blend);
         golds.drawLuminous(model, tint, blend);
         lineWidth = 2;
-        { var mesh = new Mesh("particles-drawLuminous"); particles.drawLuminous(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+        { var mesh = new Mesh("particles-drawLuminous"); particles.drawLuminous(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, 0, null, 128, 128),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         lineWidth = 1;
         ship.drawLuminous(model, tint, blend);
         enemies.drawLuminous(model, tint, blend);
     }
 
-    public void stageClearDrawLuminous(float[] model, float[] tint, Gfx.Blend blend)
+    public void stageClearDrawLuminous(float[] model, float[] tint, Blend blend)
     {
         float lineWidth = 1;
         if (cnt < 32)
             field.drawLuminous(model, tint, blend);
-        { var mesh = new Mesh("particles-drawLuminous"); particles.drawLuminous(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+        { var mesh = new Mesh("particles-drawLuminous"); particles.drawLuminous(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, 0, null, 128, 128),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
     }
 
-    public void titleDrawLuminous(float[] model, float[] tint, Gfx.Blend blend)
+    public void titleDrawLuminous(float[] model, float[] tint, Blend blend)
     {
         float lineWidth = 1;
         field.drawLuminous(model, tint, blend);
-        { var mesh = new Mesh("particles-drawLuminous"); particles.drawLuminous(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+        { var mesh = new Mesh("particles-drawLuminous"); particles.drawLuminous(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, 0, null, 128, 128),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         enemies.drawLuminous(model, tint, blend);
     }
 
-    public void gameoverDrawLuminous(float[] model, float[] tint, Gfx.Blend blend)
+    public void gameoverDrawLuminous(float[] model, float[] tint, Blend blend)
     {
         float lineWidth = 1;
         field.drawLuminous(model, tint, blend);
-        { var mesh = new Mesh("particles-drawLuminous"); particles.drawLuminous(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+        { var mesh = new Mesh("particles-drawLuminous"); particles.drawLuminous(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, 0, null, 128, 128),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         enemies.drawLuminous(model, tint, blend);
     }
 
-    public void drawScore(float[] model, float[] tint, Gfx.Blend blend)
+    public void drawScore(float[] model, float[] tint, Blend blend)
     {
         LetterRender.drawNum(model, tint, blend, score, 300, 20, 10);
     }
 
-    public void drawHiScore(float[] model, float[] tint, Gfx.Blend blend)
+    public void drawHiScore(float[] model, float[] tint, Blend blend)
     {
         LetterRender.drawNum(model, tint, blend, prefManager.hiScore, 620, 20, 10);
     }
 
-    public void drawStageTimer(float[] model, float[] tint, Gfx.Blend blend)
+    public void drawStageTimer(float[] model, float[] tint, Blend blend)
     {
         LetterRender.drawTime(model, tint, blend, stageTimer * 17, 620, 20, 10);
     }
 
-    public void inGameDrawStatus(float[] model, float[] tint, Gfx.Blend blend)
+    public void inGameDrawStatus(float[] model, float[] tint, Blend blend)
     {
         if (state == IN_GAME && cnt < 120)
         {
@@ -705,9 +705,9 @@ public class A7xGameManager
         float[] parent1 = model;
         model = Transform.Translate(model, 30, 460, 0);
         model = Transform.Scale(model, 11, -11, 1);
-        { Mesh shape2 = Ship.meshes[0]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { Mesh shape2 = Ship.meshes[0]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
-        { Mesh shape3 = Ship.meshes[1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { Mesh shape3 = Ship.meshes[1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         model = parent1;
         if (state == IN_GAME)
@@ -717,15 +717,15 @@ public class A7xGameManager
             float[] parent4 = model;
             model = Transform.Translate(model, 30, 430, 0);
             model = Transform.Scale(model, 11, -11, 1);
-            { Mesh shape5 = Gold.meshes[0]; if (shape5.count > 0) Gfx.Draw(shape5.count, shape5.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            { Mesh shape5 = Gold.meshes[0]; if (shape5.count > 0) Gfx.Draw(shape5.count, shape5.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
-            { Mesh shape6 = Gold.meshes[1]; if (shape6.count > 0) Gfx.Draw(shape6.count, shape6.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+            { Mesh shape6 = Gold.meshes[1]; if (shape6.count > 0) Gfx.Draw(shape6.count, shape6.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
             model = parent4;
         }
     }
 
-    public void stageClearDrawStatus(float[] model, float[] tint, Gfx.Blend blend)
+    public void stageClearDrawStatus(float[] model, float[] tint, Blend blend)
     {
         if (stageTimer > 0)
         {
@@ -741,7 +741,7 @@ public class A7xGameManager
         }
     }
 
-    public void titleDrawStatus(float[] model, float[] tint, Gfx.Blend blend)
+    public void titleDrawStatus(float[] model, float[] tint, Blend blend)
     {
         if ((cnt % 120) < 60)
             LetterRender.drawString(model, tint, blend, "PUSH BUTTON TO START", 320, 400, 8);
@@ -755,11 +755,11 @@ public class A7xGameManager
             logo.Vertex(80, 150, 0, new float[] { 0, 1, 0, 1 });
             logo.Quads(0, 4);
         }
-        Gfx.Draw(logo.count, logo.Bindings(model, new float[] { 1, 1, 1, 1 }, 1, true, 0, A7xData.title),
+        Gfx.Draw(logo.count, logo.Bindings(model, new float[] { 1, 1, 1, 1 }, 1, 0, A7xData.title),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public void gameoverDrawStatus(float[] model, float[] tint, Gfx.Blend blend)
+    public void gameoverDrawStatus(float[] model, float[] tint, Blend blend)
     {
         if (cnt > 64)
         {
@@ -784,7 +784,7 @@ public class A7xGameManager
         drawHiScore(model, tint, blend);
     }
 
-    public void pauseDrawStatus(float[] model, float[] tint, Gfx.Blend blend)
+    public void pauseDrawStatus(float[] model, float[] tint, Blend blend)
     {
         if ((pauseCnt % 60) < 30)
             LetterRender.drawString(model, tint, blend, "PAUSE", 280, 220, 12);
@@ -795,7 +795,7 @@ public class A7xGameManager
     public void draw()
     {
         float[] model = Transform.Translate(Transform.Perspective(), 0, 0, -field.eyeZ);
-        float[] tint = null; Gfx.Blend blend = Gfx.Blend.Additive;
+        float[] tint = null; Blend blend = GlBlend.SrcAlphaOne;
         Gfx.BeginPass(new PassOpts { Target = Game.glow, ClearColor = new float[] { 0, 0, 0, 0 } });
         switch (state)
         {
@@ -852,7 +852,7 @@ public class A7xGameManager
         var bindings = glowMesh.Bindings(Transform.Identity(), new float[] { 0.5f, 0.4f, 0.45f, 0 });
         bindings.Set("image", Game.glow);
         bindings.Set("options", new float[] { 1, 0, 0, 2 });
-        Gfx.Draw(glowMesh.count, bindings, new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        Gfx.Draw(glowMesh.count, bindings, new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.OneOne });
         model = Transform.Ortho();
         switch (state)
         {

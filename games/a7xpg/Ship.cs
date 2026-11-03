@@ -332,25 +332,25 @@ public class Ship
         }
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend)
+    public void draw(float[] model, float[] tint, Blend blend)
     {
         if (cnt < -INVINCIBLE_CNT || (cnt < 0 && (-cnt % 32) < 16))
             return;
         float[] parent1 = model;
         model = Transform.Translate(model, pos.x, pos.y, 0.5f);
         model = Transform.Rotate(model, -deg * 180 / PI, 0, 0, 1);
-        { Mesh shape2 = meshes[0]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { Mesh shape2 = meshes[0]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
-        { Mesh shape3 = meshes[1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { Mesh shape3 = meshes[1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         model = Transform.Translate(model, 0, 0, -0.5f);
         model = Transform.Scale(model, 1, 1, -1);
-        { Mesh shape4 = meshes[0]; if (shape4.count > 0) Gfx.Draw(shape4.count, shape4.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        { Mesh shape4 = meshes[0]; if (shape4.count > 0) Gfx.Draw(shape4.count, shape4.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         model = parent1;
     }
 
-    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend)
+    public void drawLuminous(float[] model, float[] tint, Blend blend)
     {
         if (cnt < -INVINCIBLE_CNT || (cnt < 0 && (-cnt % 32) < 16))
             return;
@@ -358,15 +358,15 @@ public class Ship
         model = Transform.Translate(model, pos.x, pos.y, 0.5f);
         model = Transform.Rotate(model, -deg * 180 / PI, 0, 0, 1);
         if (invincible)
-            { Mesh shape2 = meshes[2]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+            { Mesh shape2 = meshes[2]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, 0, null, 128, 128),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         else
-            { Mesh shape3 = meshes[1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 128, 128),
+            { Mesh shape3 = meshes[1]; if (shape3.count > 0) Gfx.Draw(shape3.count, shape3.Bindings(model, tint, 1, 0, null, 128, 128),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         model = parent1;
     }
 
-    public void drawGauge(float[] model, float[] tint, Gfx.Blend blend)
+    public void drawGauge(float[] model, float[] tint, Blend blend)
     {
         var mesh = new Mesh("Ship-drawGauge");
         if (invincible)
@@ -397,7 +397,7 @@ public class Ship
 
         LetterRender.appendBoxSolid(mesh, Transform.Identity(), tint, 420, 455, gauge, 20);
 
-        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, blend == Gfx.Blend.Additive, 0, null, 640, 480),
+        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, 0, null, 640, 480),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
