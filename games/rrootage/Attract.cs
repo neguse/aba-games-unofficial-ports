@@ -215,14 +215,14 @@ public static class RrAttract
         savePreference();
     }
 
-    public static void drawScore(float[] model, Gfx.Blend blend, string key)
+    public static void drawScore(float[] model, Blend blend, string key)
     {
         drawNum(model, blend, key + "-9", score, 118, 24, 28, 200, 200, 222);
         drawNum(model, blend, key + "-61", GameMath.integer(bonusScore / 10) * 10, 24, 14, 16, 200, 200, 222);
     }
 
     public static string lStr = "LEFT", bStr = "BOMB", okStr = "OK";
-    public static void drawRPanel(float[] model, Gfx.Blend blend, string key)
+    public static void drawRPanel(float[] model, Blend blend, string key)
     {
         int y = 0;
         int ml = 0;
@@ -408,7 +408,7 @@ public static class RrAttract
         titleCnt++;
     }
 
-    public static void drawTitle(float[] model, Gfx.Blend blend, string key)
+    public static void drawTitle(float[] model, Blend blend, string key)
     {
         int i = 0;
         int r = 0, g = 0, b = 0;
@@ -534,7 +534,7 @@ public static class RrAttract
         goCnt++;
     }
 
-    public static void drawGameover(float[] model, Gfx.Blend blend, string key)
+    public static void drawGameover(float[] model, Blend blend, string key)
     {
         string goChr = "GAME OVER";
         int y = 0;
@@ -556,7 +556,7 @@ public static class RrAttract
         psCnt++;
     }
 
-    public static void drawPause(float[] model, Gfx.Blend blend, string key)
+    public static void drawPause(float[] model, Blend blend, string key)
     {
         string psChr = "PAUSE";
         if ((psCnt & 63) < 32)
@@ -607,7 +607,7 @@ public static class RrAttract
         bsCnt++;
     }
 
-    public static void drawBossScoreAtr(float[] model, Gfx.Blend blend, string key)
+    public static void drawBossScoreAtr(float[] model, Blend blend, string key)
     {
         if (bsCnt < 32)
             return;

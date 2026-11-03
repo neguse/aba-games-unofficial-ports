@@ -519,7 +519,7 @@ public static class RrFoe
         }
     }
 
-    public static void drawBulletsWake(float[] model, Gfx.Blend blend, string key)
+    public static void drawBulletsWake(float[] model, Blend blend, string key)
     {
         int i = 0;
         Foe fe = null;
@@ -567,7 +567,7 @@ public static class RrFoe
             150
         },
     };
-    public static void drawBullets(float[] model, Gfx.Blend blend, string key)
+    public static void drawBullets(float[] model, Blend blend, string key)
     {
         int i = 0;
         Foe fe = null;

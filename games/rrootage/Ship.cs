@@ -474,7 +474,7 @@ public static class RrShip
             ship.invCnt--;
     }
 
-    public static void drawShip(float[] model, Gfx.Blend blend, string key)
+    public static void drawShip(float[] model, Blend blend, string key)
     {
         float x = 0, y = 0, bx = 0, by = 0;
         int inv = 0, ic = 0;

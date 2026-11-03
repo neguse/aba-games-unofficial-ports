@@ -112,7 +112,7 @@ public static class RrCore
         moveScreenShake();
     }
 
-    public static void draw(float[] model, Gfx.Blend blend, string key)
+    public static void draw(float[] model, Blend blend, string key)
     {
         switch (status)
         {
