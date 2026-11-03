@@ -25,7 +25,6 @@ games = {
                'game.fs.slang': 'games/gear-toy-gear/game.fs.slang',
                'scene.output.slang': 'games/frame/scene.output.slang'},
         shaders=[('game.vs.slang', 'game.fs.slang', ''),
-                 ('game.vs.slang', 'game.fs.slang', '#define GTG_ALPHA_TARGET\n'),
                  ('scene.output.slang', 'scene.output.slang', '')],
         audio=gear_audio),
     'torus-trooper': dict(

@@ -117,12 +117,11 @@ int runtime = Lub.App.Run(null, null, dt =>
     var target = Lub.Gfx.UseTexture("target", 4, 4, Lub.Gfx.PixelFormat.Rgba8, null, 1, new TextureOpts { Target = true });
     var bindings = new Bindings();
     bindings.Set("surface", source);
-    bindings.Set("surfaceAlpha", Lub.Gfx.UseTexture("source-alpha", 1, 1, Lub.Gfx.PixelFormat.R8, [255], 1));
     bindings.Set("vertices", Lub.Gfx.UseBuffer("vertices", Lub.Gfx.BufferType.Storage, new List<float>(new float[24]), 1));
     bindings.Set("parameters", Lub.Gfx.UseBuffer("parameters", Lub.Gfx.BufferType.Storage, parameters, 1));
     bindings.Set("eye", Lub.Gfx.UseBuffer("eye", Lub.Gfx.BufferType.Storage, new List<float>(new float[16]), 1));
     Lub.Gfx.BeginPass(new PassOpts { Target = target, ClearColor = [0, 0, 0, 0] });
-    Lub.Gfx.Draw(3, bindings, new DrawOpts { Shader = shader, Depth = false, Cull = Lub.Gfx.Cull.None, Blend = Lub.Gfx.Blend.None });
+    Lub.Gfx.Draw(3, bindings, new DrawOpts { Shader = shader, Depth = false, Cull = Lub.Gfx.Cull.None });
     Lub.Gfx.EndPass();
     Lub.Gfx.ReadTexture(readback, target, rendered++ == 0 ? 1 : null, out var status, out var bytes,
         out int width, out int height, out _, out _, out _, out _, out var error);

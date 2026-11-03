@@ -1,6 +1,5 @@
 LUB_TEXTURE2D(surface);
-LUB_TEXTURE2D(surfaceAlpha);
-float4 SampleSurface(float2 uv){return float4(LUB_SAMPLE_LOD(surface,uv).rgb,LUB_SAMPLE_LOD(surfaceAlpha,uv).r);}
+float4 SampleSurface(float2 uv){return LUB_SAMPLE_LOD(surface,uv);}
 struct Input {float4 position:SV_Position;float4 color:COLOR0;float depth:TEXCOORD0;float2 uv:TEXCOORD1;float3 normal:TEXCOORD2;nointerpolation uint mode:TEXCOORD3;};
 // Takes the fields rather than Input: Slang's WGSL keeps the interpolation attribute on a struct passed to a function, which WebGPU rejects.
 float4 Shade(uint mode,float4 tint,float depth,float2 uv,float3 normal) {
@@ -13,18 +12,7 @@ float4 Shade(uint mode,float4 tint,float depth,float2 uv,float3 normal) {
  if(mode==0){float4 color=float4(tint.rgb*((normal.x+2)/3),tint.a*(.75+sin(uv.x+uv.y)*.25)*(1-smoothstep(32,640,depth)));if(color.a<=0)discard;return color;}
  return tint;
 }
-struct Output {
- float4 color:SV_Target0;
-#ifdef GTG_ALPHA_TARGET
- float4 alpha:SV_Target1;
-#endif
-};
 [shader("fragment")]
-Output fs_main(Input input) {
- Output output;
- output.color=Shade(input.mode,input.color,input.depth,input.uv,input.normal);
-#ifdef GTG_ALPHA_TARGET
- output.alpha=output.color.aaaa;
-#endif
- return output;
+float4 fs_main(Input input):SV_Target {
+ return Shade(input.mode,input.color,input.depth,input.uv,input.normal);
 }

@@ -17,8 +17,7 @@ games = {
         audio=torus_audio,
         test=('tests/torus-trooper/web-host.c', [])),
     'gear-toy-gear': dict(
-        shaders=['games/gear-toy-gear/game', 'games/frame/scene.output.slang',
-                 'GTG_ALPHA_TARGET:games/gear-toy-gear/game.fs.slang'],
+        shaders=['games/gear-toy-gear/game', 'games/frame/scene.output.slang'],
         audio=gear_audio,
         test=('tests/web-host.c', ['tests/gear-toy-gear/BrowserHooks.cs'])),
     'mazer-mayhem': dict(
@@ -50,7 +49,7 @@ prefix, *others = game['shaders']
 subprocess.run(['node', 'tools/compile_shaders.mjs', str(lub), str(output / 'shaders.json'), *game['shaders']],
                cwd=root, check=True)
 files = []
-for path in [f'{prefix}.vs.slang', f'{prefix}.fs.slang', *[path for path in others if ':' not in path]]:
+for path in [f'{prefix}.vs.slang', f'{prefix}.fs.slang', *others]:
     shutil.copy2(root / path, output / Path(path).name)
     files.append(Path(path).name)
 files += ['audio/' + name for name in game['audio'](args.original.resolve(), output / 'audio')]
