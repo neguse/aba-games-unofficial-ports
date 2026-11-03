@@ -58,7 +58,7 @@ public class FloatLetter : Actor
             alpha = alpha - (0.03f * SimulationTime.Step);
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         float[] parent1 = model;
         Vector3 sp = tunnel.getPos_1_Vector3(pos);
@@ -82,6 +82,6 @@ public class FloatLetterPool
     }
     public FloatLetter getInstanceForced() { return pool.getInstanceForced(); }
     public void move() { pool.move(); }
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth) { pool.draw(model, tint, blend, cull, lineWidth); }
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth) { pool.draw(model, tint, blend, cull, lineWidth); }
     public void clear() { pool.clear(); }
 }

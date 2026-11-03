@@ -239,7 +239,7 @@ public class BulletActor : Actor
         }
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         if (!(isVisible))
             return;

@@ -4,7 +4,7 @@ StructuredBuffer<float4> faces;
 struct DrawData { column_major float4x4 model; float4 tint; float4 options; float4 imageInfo; };
 StructuredBuffer<DrawData> draws;
 cbuffer Params : register(b0) { float4 viewport; float4 batch; };
-struct Output { float4 color : COLOR0; nointerpolation uint premultiply : TEXCOORD1; nointerpolation uint drawIndex : TEXCOORD2; noperspective float2 line : TEXCOORD3; float4 position : SV_Position; };
+struct Output { float4 color : COLOR0; nointerpolation uint image : TEXCOORD1; nointerpolation uint drawIndex : TEXCOORD2; noperspective float2 line : TEXCOORD3; float4 position : SV_Position; };
 [shader("vertex")]
 Output vs_main(uint index : LUB_VERTEX_ID) {
     uint4 face = uint4(faces[index / 3 + uint(batch.x)]);
@@ -15,7 +15,7 @@ Output vs_main(uint index : LUB_VERTEX_ID) {
     float4 tint = draw.tint, options = draw.options;
     uint corner = index % 3;
     Output output;
-    output.premultiply = uint(options.y) | (uint(options.w) << 1);
+    output.image = uint(options.w);
     output.drawIndex = drawIndex;
     output.line = 0;
     if (face.w == 1) {

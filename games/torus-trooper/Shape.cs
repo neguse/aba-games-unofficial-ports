@@ -6,7 +6,7 @@ using Lub;
 
 public interface Drawable
 {
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth);
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth);
 }
 
 public interface Collidable
@@ -343,7 +343,7 @@ public class ShipShape : Collidable, Drawable
         }
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         { Mesh shape1 = meshes[0]; if (shape1.count > 0) TtRender.Draw(shape1, model, tint, lineWidth, blend, cull); }
     }
@@ -560,7 +560,7 @@ public class BitShape : Drawable
         meshes = null;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         { Mesh shape1 = meshes[0]; if (shape1.count > 0) TtRender.Draw(shape1, model, tint, lineWidth, blend, cull); }
     }
@@ -843,7 +843,7 @@ public class BulletShape : Drawable
         }
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         { Mesh shape1 = meshes[0]; if (shape1.count > 0) TtRender.Draw(shape1, model, tint, lineWidth, blend, cull); }
     }
@@ -931,7 +931,7 @@ public class ShotShape : Collidable, Drawable
         meshes = null;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         { Mesh shape1 = meshes[0]; if (shape1.count > 0) TtRender.Draw(shape1, model, tint, lineWidth, blend, cull); }
     }
@@ -967,7 +967,7 @@ public class ResizableDrawable : Collidable, Drawable
     public Drawable _shape;
     public float _size;
     public Vector _collision;
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         model = Transform.Scale(model, _size, _size, _size);
         _shape.draw(model, tint, blend, cull, lineWidth);

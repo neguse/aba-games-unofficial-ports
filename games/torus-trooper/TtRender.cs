@@ -13,7 +13,7 @@ public static class TtRender
     static readonly TextureOpts textureOptions = new() { Filter = Gfx.Filter.Linear, Wrap = Gfx.Wrap.Repeat };
     static readonly PassOpts pass = new() { ClearColor = new float[] { 0, 0, 0, 1 } };
     static readonly TextureOpts sceneOptions = new() { Target = true, Filter = Gfx.Filter.Nearest };
-    static readonly DrawOpts outputOptions = new() { Depth = false, Blend = Gfx.Blend.None, Cull = Gfx.Cull.None };
+    static readonly DrawOpts outputOptions = new() { Depth = false, Cull = Gfx.Cull.None };
     static readonly Bindings outputBindings = new();
     static string outputSource;
     static int used, batchCount, version;
@@ -34,7 +34,7 @@ public static class TtRender
     {
         foreach (float value in values) data.Add(value);
     }
-    public static void Draw(Mesh mesh, float[] model, float[] tint, float width, Gfx.Blend blend, Gfx.Cull cull, DrawImage image = null)
+    public static void Draw(Mesh mesh, float[] model, float[] tint, float width, Blend blend, Gfx.Cull cull, DrawImage image = null)
     {
         if (mesh.count == 0) return;
         if (used == commands.Count) commands.Add(new TtDrawCommand());
@@ -43,7 +43,6 @@ public static class TtRender
         command.Hud = Hud;
         for (int i = 0; i < 4; i++) command.Tint[i] = tint == null ? 1 : tint[i];
         command.Options[0] = width;
-        command.Options[1] = blend == Gfx.Blend.Additive ? 1 : 0;
         command.Options[3] = image == null ? 0 : 1;
         command.ImageInfo[0] = image == null ? 1 : image.width;
         command.ImageInfo[1] = image == null ? 1 : image.height;

@@ -444,9 +444,9 @@ public class Tunnel
         return torus.sliceNum;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        blend = Gfx.Blend.Alpha;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         float lineBn = 0.4f, polyBn = 0, lightBn = 0.5f - Slice.darkLineRatio * 0.2f;
         slice[slice.Length - 1].setPointPos();
         for (int i = slice.Length - 1; i >= 1; i--)
@@ -475,12 +475,12 @@ public class Tunnel
             }
         }
 
-        blend = Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
     }
 
-    public void drawBackward(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawBackward(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
-        blend = Gfx.Blend.Alpha;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         float lineBn = 0.4f, polyBn = 0, lightBn = 0.5f - Slice.darkLineRatio * 0.2f;
         sliceBackward[sliceBackward.Length - 1].setPointPos();
         for (int i = sliceBackward.Length - 1; i >= 1; i--)
@@ -509,7 +509,7 @@ public class Tunnel
             }
         }
 
-        blend = Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
     }
 }
 
@@ -588,7 +588,7 @@ public class Slice
         _depth = dpt;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, Slice prevSlice, float lineBn, float polyBn, float lightBn, Tunnel tunnel)
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth, Slice prevSlice, float lineBn, float polyBn, float lightBn, Tunnel tunnel)
     {
         var mesh = drawMesh;
         mesh.Clear();
@@ -1270,9 +1270,9 @@ public class Ring
         cnt += SimulationTime.Step;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, float a, Tunnel tunnel)
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth, float a, Tunnel tunnel)
     {
-        blend = Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
         float d1 = 0, d2 = 0;
         Vector angles = new Vector();
         Vector3 p = tunnel.getCenterPos(_idx, angles);
@@ -1297,7 +1297,7 @@ public class Ring
             model = parent3;
         }
 
-        blend = Gfx.Blend.Alpha;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
     }
 
     public int idx

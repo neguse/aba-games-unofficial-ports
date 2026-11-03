@@ -212,12 +212,12 @@ public class TitleManager
         _replayChangeRatio = (float)replayCnt / REPLAY_CHANGE_DURATION;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         if (_replayChangeRatio >= 1.0f)
             return;
         model = Transform.Ortho();
-        blend = Gfx.Blend.None;
+        blend = null;
         tint = new float[] { 0, 0, 0, 1 };
         float rcr = _replayChangeRatio * 2;
         if (rcr > 1)
@@ -229,23 +229,23 @@ public class TitleManager
         part1.Vertex(450 + (640 - 450) * rcr, 480, 0, tint);
         part1.Quads(0, part1.vertexCount - 0);
         if (part1.count > 0) TtRender.Draw(part1, model, tint, lineWidth, blend, cull);
-        blend = Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
         model = Transform.LookAt(Transform.Perspective(10000), 0, 0, -1, 0, 0, 0, 0, 1, 0);
         float[] parent2 = model;
         model = Transform.Translate(model, 3 - _replayChangeRatio * 2.4f, 1.8f, 3.5f - _replayChangeRatio * 1.5f);
         model = Transform.Rotate(model, 30, 1, 0, 0);
         model = Transform.Rotate(model, sin(cnt * 0.005f) * 12, 0, 1, 0);
         model = Transform.Rotate(model, cnt * 0.2f, 0, 0, 1);
-        blend = Gfx.Blend.None;
+        blend = null;
         tint = new float[] { 0, 0, 0, 1 };
         { Mesh shape3 = meshes[1]; if (shape3.count > 0) TtRender.Draw(shape3, model, tint, lineWidth, blend, cull); }
-        blend = Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
         tint = new float[] { 1, 1, 1, 0.5f };
         { Mesh shape4 = meshes[0]; if (shape4.count > 0) TtRender.Draw(shape4, model, tint, lineWidth, blend, cull); }
         model = parent2;
     }
 
-    public void drawFront(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawFront(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         if (_replayChangeRatio > 0)
             return;
@@ -343,7 +343,7 @@ public class TitleManager
         return new Vector(x, y);
     }
 
-    public void drawCursorRing(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, float x, float y, float s)
+    public void drawCursorRing(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth, float x, float y, float s)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, x, y, 0);

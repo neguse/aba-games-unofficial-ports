@@ -655,7 +655,7 @@ public class Ship : BulletTarget
         gameState.clearVisibleBullets();
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         if ((cnt < -INVINCIBLE_CNT) || (((cnt < 0) && ((-cnt % 32) < 16))))
             return;
@@ -668,7 +668,7 @@ public class Ship : BulletTarget
         model = parent1;
     }
 
-    public void drawFront(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawFront(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         Letter.drawNum(model, tint, blend, cull, lineWidth, GameMath.integer((speed * 2500)), 490, 420, 20);
         Letter.drawString(model, tint, blend, cull, lineWidth, "KM/H", 540, 445, 12);

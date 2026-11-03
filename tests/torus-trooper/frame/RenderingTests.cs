@@ -28,12 +28,13 @@ static class RenderingTests
         bindings.Set("viewport", new float[] {16,16,0,0});
         bindings.Set("batch", new float[4]);
         float[][] expected = [[.6f,.2f,.1f], [.225f,.2f,.25f], [.25f,.25f,.325f], [.06f,.04f,.03f]];
+        Blend[] blends = [null, GlBlend.SrcAlphaOneMinusSrcAlpha, GlBlend.SrcAlphaOne, GlBlend.DstColorZero];
         for (int mode = 0; mode < 4; mode++)
         {
             int index = mode;
-            var blend = (Gfx.Blend)(mode + 1);
+            var blend = blends[mode];
             var data = new List<float>(Transform.Identity());
-            data.AddRange([.7f,.6f,.5f,.4f, 1,blend == Gfx.Blend.Additive ? 1 : 0,0,0, 1,1,0,0]);
+            data.AddRange([.7f,.6f,.5f,.4f, 1,0,0,0, 1,1,0,0]);
             RenderingReadback.Step(() =>
             {
                 bindings.Set("draws", Gfx.UseBuffer("tt-test-draws", Gfx.BufferType.Storage, data, index + 1));
@@ -44,13 +45,13 @@ static class RenderingTests
                 var outputBindings = new Bindings();
                 outputBindings.Set("scene", scene);
                 Gfx.Draw(3, outputBindings,
-                    new DrawOpts { Shader = output, Blend = Gfx.Blend.None, Depth = false, Cull = Gfx.Cull.None });
+                    new DrawOpts { Shader = output, Depth = false, Cull = Gfx.Cull.None });
                 Gfx.EndPass();
                 byte[] pixels = [];
                 RenderingReadback.Read(scene, "tt-test-read-" + index, p =>
                 {
                     pixels = p;
-                    Pixel(pixels, (8 * 16 + 8) * 4, expected[index], "Original RGB blend " + blend);
+                    Pixel(pixels, (8 * 16 + 8) * 4, expected[index], "Original RGB blend " + index);
                 });
                 RenderingReadback.Read(linear, "tt-test-output-" + index, decoded =>
                 {
@@ -61,21 +62,21 @@ static class RenderingTests
                         expectedLinear[c] = value <= .04045f ? value / 12.92f : MathF.Pow((value + .055f) / 1.055f, 2.4f);
                     }
                     expectedLinear[3] = 1;
-                    Pixel(decoded, (8 * 16 + 8) * 4, expectedLinear, "XR output " + blend);
+                    Pixel(decoded, (8 * 16 + 8) * 4, expectedLinear, "XR output " + index);
                 });
             });
         }
         var line = new Mesh("tt-test-line");
         line.Vertex(-.75f, 0, 0, [1,1,1,1]); line.Vertex(.75f, 0, 0, [1,1,1,1]); line.Line(0,1);
         var lineData = new List<float>(Transform.Identity());
-        lineData.AddRange([1,1,1,1, 1,1,0,0, 1,1,0,0]);
+        lineData.AddRange([1,1,1,1, 1,0,0,0, 1,1,0,0]);
         RenderingReadback.Step(() =>
         {
             bindings.Set("verts", Gfx.UseBuffer("tt-test-line-verts", Gfx.BufferType.Storage, line.vertices, 1));
             bindings.Set("faces", Gfx.UseBuffer("tt-test-line-faces", Gfx.BufferType.Storage, line.faces, 1));
             bindings.Set("draws", Gfx.UseBuffer("tt-test-line-draws", Gfx.BufferType.Storage, lineData, 1));
             Gfx.BeginPass(new PassOpts { Target = scene, ClearColor = [0,0,0,1] });
-            Gfx.Draw(line.count, bindings, new DrawOpts { Shader = shader, Blend = Gfx.Blend.Additive, Depth = false, Cull = Gfx.Cull.None });
+            Gfx.Draw(line.count, bindings, new DrawOpts { Shader = shader, Blend = GlBlend.SrcAlphaOne, Depth = false, Cull = Gfx.Cull.None });
             Gfx.EndPass();
             RenderingReadback.Read(scene, "tt-test-line-read", linePixels =>
             {
@@ -85,7 +86,7 @@ static class RenderingTests
             });
         });
         var titleData = new List<float>(Transform.Identity());
-        titleData.AddRange([.5f,.75f,.25f,.5f, 1,1,0,1, 1,1,0,0]);
+        titleData.AddRange([.5f,.75f,.25f,.5f, 1,0,0,1, 1,1,0,0]);
         RenderingReadback.Step(() =>
         {
             bindings.Set("verts", Gfx.UseBuffer("tt-test-verts", Gfx.BufferType.Storage, mesh.vertices, 1));
@@ -93,7 +94,7 @@ static class RenderingTests
             bindings.Set("image", Gfx.UseTexture("tt-test-title", 1, 1, Gfx.PixelFormat.Rgba8, [128,64,192,128], 1));
             bindings.Set("draws", Gfx.UseBuffer("tt-test-title-draws", Gfx.BufferType.Storage, titleData, 1));
             Gfx.BeginPass(new PassOpts { Target = scene, ClearColor = [0,0,0,1] });
-            Gfx.Draw(mesh.count, bindings, new DrawOpts { Shader = shader, Blend = Gfx.Blend.Additive, Depth = false, Cull = Gfx.Cull.None });
+            Gfx.Draw(mesh.count, bindings, new DrawOpts { Shader = shader, Blend = GlBlend.SrcAlphaOne, Depth = false, Cull = Gfx.Cull.None });
             Gfx.EndPass();
             float alpha = 128f / 255 * .5f;
             RenderingReadback.Read(scene, "tt-test-title-read", p =>

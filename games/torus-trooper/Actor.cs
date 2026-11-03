@@ -9,7 +9,7 @@ public interface Actor
     void setExist(bool value);
     void init_1(List<object> args);
     void move();
-    void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth);
+    void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth);
 }
 
 public static class ActorMesh
@@ -84,7 +84,7 @@ public class ActorPool<T>
                 item.move();
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         foreach (var item in actor)
             if (item.getExist())

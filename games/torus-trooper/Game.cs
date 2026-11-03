@@ -65,9 +65,9 @@ public static class Game
         TtRender.Begin();
         if (immersive)
         {
-            manager.state.draw(Transform.Identity(), null, Gfx.Blend.Additive, Gfx.Cull.None, 1);
+            manager.state.draw(Transform.Identity(), null, GlBlend.SrcAlphaOne, Gfx.Cull.None, 1);
             TtRender.Hud = true;
-            manager.state.drawFront(Transform.Ortho(), null, Gfx.Blend.Additive, Gfx.Cull.None, 1);
+            manager.state.drawFront(Transform.Ortho(), null, GlBlend.SrcAlphaOne, Gfx.Cull.None, 1);
         }
         else manager.draw();
         if (profile) Profiler.EndScope("tt.geometry");
