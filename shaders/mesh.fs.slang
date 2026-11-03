@@ -16,17 +16,13 @@ float4 sampleTitle(float2 uv, float2 dx, float2 dy) {
     float2 f = frac(position);
     float4 upper = lerp(titlePixel(p, size, offset), titlePixel(p + int2(1, 0), size, offset), f.x);
     float4 lower = lerp(titlePixel(p + int2(0, 1), size, offset), titlePixel(p + int2(1, 1), size, offset), f.x);
-    float4 color = lerp(upper, lower, f.y) * tint;
-    if (options.y > 0) color.rgb *= color.a;
-    return color;
+    return lerp(upper, lower, f.y) * tint;
 }
-struct Input { float4 color : COLOR0; nointerpolation uint premultiply : TEXCOORD1; float4 position : SV_Position; };
+struct Input { float4 color : COLOR0; float4 position : SV_Position; };
 [shader("fragment")]
 float4 fs_main(Input input) : SV_Target {
     float2 dx = ddx(input.color.xy), dy = ddy(input.color.xy);
     if (options.w == 2) return image.SampleLevel(image_smp, input.color.xy, 0) * tint;
     if (options.w > 0) return sampleTitle(input.color.xy, dx, dy);
-    float4 color = input.color;
-    if (input.premultiply != 0) color.rgb *= color.a;
-    return color;
+    return input.color;
 }
