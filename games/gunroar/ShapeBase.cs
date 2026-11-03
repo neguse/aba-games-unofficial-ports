@@ -6,7 +6,7 @@ using Lub;
 
 public interface Drawable
 {
-    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive);
+    public void draw(float[] model, float[] color, Blend blend);
 }
 
 public interface Collidable
@@ -29,13 +29,13 @@ public static class ShapeMesh
         return mesh;
     }
 
-    public static void draw(Mesh mesh, int opaqueCount, float[] model, float[] color, Gfx.Blend blend)
+    public static void draw(Mesh mesh, int opaqueCount, float[] model, float[] color, Blend blend)
     {
         if (opaqueCount > 0)
-            Gfx.Draw(opaqueCount, mesh.Bindings(model, color, 1, false),
-                new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.None });
+            Gfx.Draw(opaqueCount, mesh.Bindings(model, color, 1),
+                new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None });
         if (mesh.count > opaqueCount)
-            Gfx.Draw(mesh.count - opaqueCount, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive, opaqueCount / 3),
+            Gfx.Draw(mesh.count - opaqueCount, mesh.Bindings(model, color, 1, opaqueCount / 3),
                 new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 }
@@ -70,7 +70,7 @@ public class ResizableDrawable : Drawable, Collidable
     public Drawable _shape;
     public float _size;
     public Vector _collision;
-    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    public void draw(float[] model, float[] color, Blend blend)
     {
         model = Transform.Scale(model, _size, _size, _size);
         _shape.draw(model, color, blend);

@@ -151,9 +151,9 @@ public class TitleManager
         float[] parent1 = model;
         model = Transform.Translate(model, 80 * ts, 240, 0);
         model = Transform.Scale(model, ts, ts, 0);
-        Gfx.Draw(logo.count, logo.Bindings(model, null, 1, true, 0, GunroarTitleImage.title),
-            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
-        Gfx.Draw(decoration.count, decoration.Bindings(model, null, 3, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        Gfx.Draw(logo.count, logo.Bindings(model, null, 1, 0, GunroarTitleImage.title),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
+        Gfx.Draw(decoration.count, decoration.Bindings(model, null, 3), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
         model = parent1;
         if (cnt > 150)
         {

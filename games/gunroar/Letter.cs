@@ -52,7 +52,7 @@ public class Letter
     public static void drawLetter_2(float[] model, int n, int c, float[] color = null)
     {
         var mesh = glyphs[n + c * LETTER_NUM];
-        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
     }
 
     public static void drawLetter_6(float[] model, int n, float x, float y, float s, float d, int c, float[] color = null)
@@ -61,7 +61,7 @@ public class Letter
         model = Transform.Scale(model, s, s, s);
         model = Transform.Rotate(model, d, 0, 0, 1);
         var mesh = glyphs[n + c * LETTER_NUM];
-        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
     }
 
     public static void drawLetterRev(float[] model, int n, float x, float y, float s, float d, int c, float[] color = null)
@@ -70,7 +70,7 @@ public class Letter
         model = Transform.Scale(model, s, -s, s);
         model = Transform.Rotate(model, d, 0, 0, 1);
         var mesh = glyphs[n + c * LETTER_NUM];
-        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
     }
 
     public static int convertCharToInt(string c)

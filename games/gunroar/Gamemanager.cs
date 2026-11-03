@@ -471,12 +471,12 @@ public class InGameState : GameState
         sparks.draw(model, particles);
         for (int i = 0; i < particles.vertexCount; i += 3) particles.Triangle(i, i + 1, i + 2);
         if (particles.count > 0)
-            Gfx.Draw(particles.count, particles.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+            Gfx.Draw(particles.count, particles.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
         var smoke = new Mesh("smoke");
         smokes.draw(model, smoke);
         smoke.Quads(0, smoke.vertexCount);
         if (smoke.count > 0)
-            Gfx.Draw(smoke.count, smoke.Bindings(model, null, 1, false), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Alpha });
+            Gfx.Draw(smoke.count, smoke.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOneMinusSrcAlpha });
         fragments.draw(model);
         sparkFragments.draw(model);
         crystals.draw(model);
@@ -524,13 +524,13 @@ public class InGameState : GameState
         sparks.drawLuminous(model, particles);
         for (int i = 0; i < particles.vertexCount; i += 3) particles.Triangle(i, i + 1, i + 2);
         if (particles.count > 0)
-            Gfx.Draw(particles.count, particles.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+            Gfx.Draw(particles.count, particles.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
         sparkFragments.drawLuminous(model);
         var smoke = new Mesh("luminous-smoke");
         smokes.drawLuminous(model, smoke);
         smoke.Quads(0, smoke.vertexCount);
         if (smoke.count > 0)
-            Gfx.Draw(smoke.count, smoke.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+            Gfx.Draw(smoke.count, smoke.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
     }
 
     public void shipDestroyed()

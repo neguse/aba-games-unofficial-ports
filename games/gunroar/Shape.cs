@@ -41,7 +41,7 @@ public class BaseShape : DrawableShape
         mesh = null;
     }
 
-    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    public void draw(float[] model, float[] color, Blend blend)
     {
         ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
     }
@@ -332,7 +332,7 @@ public class CollidableBaseShape : DrawableShape, Collidable
         baseShape.close();
     }
 
-    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    public void draw(float[] model, float[] color, Blend blend)
     {
         baseShape.draw(model, color, blend);
     }
@@ -387,7 +387,7 @@ public class TurretShape
         }
     }
 
-    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    public void draw(float[] model, float[] color, Blend blend)
     {
         resizable.draw(model, color, blend);
     }
@@ -451,7 +451,7 @@ public class EnemyShape
         }
     }
 
-    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    public void draw(float[] model, float[] color, Blend blend)
     {
         resizable.draw(model, color, blend);
     }
@@ -509,7 +509,7 @@ public class BulletShape
         }
     }
 
-    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    public void draw(float[] model, float[] color, Blend blend)
     {
         resizable.draw(model, color, blend);
     }
@@ -530,7 +530,7 @@ public class NormalBulletShape : DrawableShape
         mesh = null;
     }
 
-    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    public void draw(float[] model, float[] color, Blend blend)
     {
         ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
     }
@@ -577,7 +577,7 @@ public class SmallBulletShape : DrawableShape
         mesh = null;
     }
 
-    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    public void draw(float[] model, float[] color, Blend blend)
     {
         ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
     }
@@ -624,7 +624,7 @@ public class MovingTurretBulletShape : DrawableShape
         mesh = null;
     }
 
-    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    public void draw(float[] model, float[] color, Blend blend)
     {
         ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
     }
@@ -697,7 +697,7 @@ public class DestructiveBulletShape : DrawableShape, Collidable
         mesh = null;
     }
 
-    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    public void draw(float[] model, float[] color, Blend blend)
     {
         ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
     }
@@ -752,7 +752,7 @@ public class CrystalShape : DrawableShape
         mesh = null;
     }
 
-    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    public void draw(float[] model, float[] color, Blend blend)
     {
         ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
     }
@@ -785,7 +785,7 @@ public class ShieldShape : DrawableShape
         mesh = null;
     }
 
-    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    public void draw(float[] model, float[] color, Blend blend)
     {
         ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
     }
