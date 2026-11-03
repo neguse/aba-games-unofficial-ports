@@ -186,33 +186,33 @@ public class Ship {
     ttlCnt++;
   }
 
-  public void draw(float[] model, float[] color, Gfx.Blend blend) {
+  public void draw(float[] model, float[] color, Blend blend) {
     if (cnt < -INVINCIBLE_CNT || (cnt < 0 && (-cnt % 32) < 16))
       return;
     float[] parent1 = model;
     model = Transform.Translate(model, pos.x, pos.y, 0);
     {
       Mesh shape1 = meshes[1];
-      Gfx.Draw(shape1.count, shape1.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      Gfx.Draw(shape1.count, shape1.Bindings(model, color, 1),
         new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
     model = Transform.Rotate(model, bank, 0, 1, 0);
     model = Transform.Translate(model, -0.5f, 0, 0);
     {
       Mesh shape2 = meshes[0];
-      Gfx.Draw(shape2.count, shape2.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      Gfx.Draw(shape2.count, shape2.Bindings(model, color, 1),
         new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
     model = Transform.Translate(model, 0.2f, 0.3f, 0.2f);
     {
       Mesh shape3 = meshes[0];
-      Gfx.Draw(shape3.count, shape3.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      Gfx.Draw(shape3.count, shape3.Bindings(model, color, 1),
         new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
     model = Transform.Translate(model, 0, 0, -0.4f);
     {
       Mesh shape4 = meshes[0];
-      Gfx.Draw(shape4.count, shape4.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      Gfx.Draw(shape4.count, shape4.Bindings(model, color, 1),
         new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
     model = parent1;
@@ -222,19 +222,19 @@ public class Ship {
     model = Transform.Translate(model, 0.5f, 0, 0);
     {
       Mesh shape5 = meshes[0];
-      Gfx.Draw(shape5.count, shape5.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      Gfx.Draw(shape5.count, shape5.Bindings(model, color, 1),
         new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
     model = Transform.Translate(model, -0.2f, 0.3f, 0.2f);
     {
       Mesh shape6 = meshes[0];
-      Gfx.Draw(shape6.count, shape6.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      Gfx.Draw(shape6.count, shape6.Bindings(model, color, 1),
         new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
     model = Transform.Translate(model, 0, 0, -0.4f);
     {
       Mesh shape7 = meshes[0];
-      Gfx.Draw(shape7.count, shape7.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      Gfx.Draw(shape7.count, shape7.Bindings(model, color, 1),
         new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
     model = parent12;
@@ -247,7 +247,7 @@ public class Ship {
       model = Transform.Translate(model, 0, 0, 0.7f);
       {
       Mesh shape8 = meshes[2];
-      Gfx.Draw(shape8.count, shape8.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      Gfx.Draw(shape8.count, shape8.Bindings(model, color, 1),
         new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
       model = parent22;
@@ -259,7 +259,7 @@ public class Ship {
       model = Transform.Translate(model, 0, 0, 0.7f);
       {
       Mesh shape9 = meshes[2];
-      Gfx.Draw(shape9.count, shape9.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      Gfx.Draw(shape9.count, shape9.Bindings(model, color, 1),
         new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
       model = parent30;

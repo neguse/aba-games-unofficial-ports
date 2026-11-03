@@ -123,25 +123,25 @@ public class Title {
     gameManager.startStage(curY, curX, getStartParsec(curY, curX), mode);
   }
 
-  public void drawBox(float[] model, float[] color, Gfx.Blend blend, int x, int y, int w, int h) {
+  public void drawBox(float[] model, float[] color, Blend blend, int x, int y, int w, int h) {
     var mesh = new Mesh("Title-drawBox" + "-" + x.ToString() + "-" + y.ToString());
     color = new float[] { 1, 1, 1, 1 };
     P47Screen.appendBoxLine(mesh, color, x, y, w, h);
     color = new float[] { 1, 1, 1, 0.5f };
     P47Screen.appendBoxSolid(mesh, color, x, y, w, h);
 
-    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1),
       new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
-  public void drawBoxLight(float[] model, float[] color, Gfx.Blend blend, int x, int y, int w, int h) {
+  public void drawBoxLight(float[] model, float[] color, Blend blend, int x, int y, int w, int h) {
     var mesh = new Mesh("Title-drawBoxLight" + "-" + x.ToString() + "-" + y.ToString());
     color = new float[] { 1, 1, 1, 0.7f };
     P47Screen.appendBoxLine(mesh, color, x, y, w, h);
     color = new float[] { 1, 1, 1, 0.3f };
     P47Screen.appendBoxSolid(mesh, color, x, y, w, h);
 
-    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1),
       new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
@@ -150,7 +150,7 @@ public class Title {
   public static string[] DIFFICULTY_STR = new string[] { "PRACTICE", "NORMAL", "HARD", "EXTREME", "QUIT" };
   public static string[] MODE_STR = new string[] { "ROLL", "LOCK" };
 
-  public void drawTitleBoard(float[] model, float[] color, Gfx.Blend blend) { if (logo == null) {
+  public void drawTitleBoard(float[] model, float[] color, Blend blend) { if (logo == null) {
       logo = new Mesh("title-logo");
       logo.Vertex(180, 20, 0, new float[] { 0, 0, 0, 1 });
       logo.Vertex(308, 20, 0, new float[] { 1, 0, 0, 1 });
@@ -158,10 +158,10 @@ public class Title {
       logo.Vertex(180, 148, 0, new float[] { 0, 1, 0, 1 });
       logo.Quads(0, 4);
     }
-    Gfx.Draw(logo.count, logo.Bindings(model, new float[] { 1, 1, 1, 1 }, 1, blend == Gfx.Blend.Additive, 0, TitleImage.title),
+    Gfx.Draw(logo.count, logo.Bindings(model, new float[] { 1, 1, 1, 1 }, 1, 0, TitleImage.title),
       new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
 
-  public void draw(float[] model, float[] color, Gfx.Blend blend) {
+  public void draw(float[] model, float[] color, Blend blend) {
     int sx=0, sy=0;
     LetterRender.drawString(model, color, blend, DIFFICULTY_STR[curY], 470 - new Utf8Bytes(DIFFICULTY_STR[curY]).Length * 14, 150,
        10, LetterRender.TO_RIGHT);

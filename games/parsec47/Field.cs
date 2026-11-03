@@ -78,7 +78,7 @@ public class Field {
     }
   }
 
-  public void draw(float[] model, float[] color, Gfx.Blend blend) {
+  public void draw(float[] model, float[] color, Blend blend) {
     color = new float[] { r, g, b, 0.7f };
     float d = -RING_NUM * RING_ANGLE_INT / 2 + roll;
     for (int index0 = 0; index0 < RING_NUM; index0++) {
@@ -92,7 +92,7 @@ public class Field {
 	model = Transform.Scale(model, 1, 1, sc);
 	{
       Mesh shape1 = meshes[0];
-      Gfx.Draw(shape1.count, shape1.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      Gfx.Draw(shape1.count, shape1.Bindings(model, color, 1),
         new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 	model = parent1;

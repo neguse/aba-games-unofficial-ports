@@ -600,7 +600,7 @@ public class Enemy: Actor {
       checkDamage();
   }
 
-  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Blend blend, Mesh target = null) {
     var mesh = new Mesh("Enemy-draw" + "-" + meshKey);
     float ap=0;
     if (appCnt > 0) {
@@ -678,7 +678,7 @@ public class Enemy: Actor {
     }
     P47Screen.setRetroZ(0);
 
-    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1),
       new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 }

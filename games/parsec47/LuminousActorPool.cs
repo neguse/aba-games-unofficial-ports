@@ -11,9 +11,9 @@ public class LuminousActorPool {
   }
   public Actor getInstanceForced() { return pool.getInstanceForced(); }
   public void move() { pool.move(); }
-  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
+  public void draw(float[] model, float[] color, Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
 
-  public void drawLuminous(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+  public void drawLuminous(float[] model, float[] color, Blend blend, Mesh target = null) {
     for (int index0 = 0; index0 < actor.Length; index0++) {
       if (actor[index0].getExist())
 	((LuminousActor) actor[index0]).drawLuminous(model, color, blend, target);

@@ -3,5 +3,5 @@ using System;
 using static GameMath;
 using Lub;
 public interface LuminousActor: Actor {
-  void drawLuminous(float[] model, float[] color, Gfx.Blend blend, Mesh target = null);
+  void drawLuminous(float[] model, float[] color, Blend blend, Mesh target = null);
 }

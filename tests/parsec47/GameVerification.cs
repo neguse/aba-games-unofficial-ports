@@ -24,7 +24,7 @@ public static class P47Verification
         game.draw();
         Check(Field.meshes[0].vertices[3] == 1 && Field.meshes[0].count > 0,
               "field mesh inherits draw color");
-        Check(BulletActor.meshes[1].ranges[0].material == (int)Lub.Gfx.Blend.None,
+        Check(BulletActor.meshes[1].ranges[0].hasBlend && BulletActor.meshes[1].ranges[0].blend == null,
               "bullet outline is opaque");
         game.title.changeMode();
         Check(game.title.mode == 1, "title selects LOCK");

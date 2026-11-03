@@ -72,17 +72,17 @@ public class Fragment: LuminousActor {
     retro *= 0.97f;
   }
 
-  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Blend blend, Mesh target = null) {
     var mesh = new Mesh("Fragment-draw" + "-" + meshKey);
     P47Screen.setRetroZ(z);
     P47Screen.setRetroParam(retro, 0.2f);
     P47Screen.appendLineRetro(mesh, pos[0].x, pos[0].y, pos[1].x, pos[1].y);
 
-    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1),
       new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
-  public void drawLuminous(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+  public void drawLuminous(float[] model, float[] color, Blend blend, Mesh target = null) {
     Mesh mesh = target;
     if (lumAlp < 0.2f) return;
     color = new float[] { R, G, B, lumAlp };
