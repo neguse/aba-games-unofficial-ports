@@ -293,14 +293,14 @@ public class Field
         float lsz = 26, lof = 20;
         for (int i_1 = 0; i_1 < 5; i_1++)
         {
+            blend = GlBlend.DstColorZero;
             tint = new float[] { 1, 1, 1, 1 };
             bool mask = true;
             drawLetter_4(model, tint, blend, key + "-drawLetter_4-1" + "-" + i_1.ToString(), i_1, x, y, lsz, mask);
-            blend = GlBlend.SrcAlphaOne;
+            blend = GlBlend.OneOne;
             tint = new float[] { 1, 0, 0, 1 };
             mask = false;
             drawLetter_4(model, tint, blend, key + "-drawLetter_4-2" + "-" + i_1.ToString(), i_1, x, y, lsz, mask);
-            blend = GlBlend.SrcAlphaOne;
             tint = new float[] { 1, 1, 1, 1 };
             mask = false;
             drawLetter_4(model, tint, blend, key + "-drawLetter_4-3" + "-" + i_1.ToString(), i_1, x, y, lsz, mask);
@@ -325,7 +325,7 @@ public class Field
         }
         model = Transform.Scale(Transform.Translate(model, cx, cy, 0), width, width, 1);
         Gfx.Draw(glyphQuad.count, glyphQuad.Bindings(model, mask ? new float[] { 1, 1, 1, 1 } : tint, 1, 0, mask ? McdData.masks[i] : McdData.images[i]),
-            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = mask ? GlBlend.DstColorZero : GlBlend.SrcAlphaOne });
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
 

@@ -33,10 +33,11 @@ public class TitleManager
         float lsz = 50, lof = 40;
         for (int i = 0; i < 5; i++)
         {
+            blend = GlBlend.DstColorZero;
             tint = new float[] { 1, 1, 1, 1 };
             bool mask = true;
             field.drawLetter_4(model, tint, blend, key + "-drawLetter_4-1" + "-" + i.ToString(), i, x, y, lsz, mask);
-            blend = GlBlend.SrcAlphaOne;
+            blend = GlBlend.OneOne;
             tint = new float[] { 1, 1, 1, 1 };
             mask = false;
             field.drawLetter_4(model, tint, blend, key + "-drawLetter_4-2" + "-" + i.ToString(), i, x, y, lsz, mask);
