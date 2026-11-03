@@ -70,7 +70,7 @@ public interface Actor
     Actor newActor();
     void init(ActorInitializer initializer);
     void move();
-    void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null);
+    void draw(float[] model, float[] color, Blend blend, Mesh target = null);
 }
 
 public static class ActorMesh
@@ -110,6 +110,6 @@ public class ActorPool
         return actor[actorIdx];
     }
     public void move() { foreach (var a in actor) if (a.getExist()) a.move(); }
-    public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) { foreach (var a in actor) if (a.getExist()) a.draw(model, color, blend, target); }
+    public void draw(float[] model, float[] color, Blend blend, Mesh target = null) { foreach (var a in actor) if (a.getExist()) a.draw(model, color, blend, target); }
     public void clear() { foreach (var a in actor) a.setExist(false); }
 }

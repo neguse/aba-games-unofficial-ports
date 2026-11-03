@@ -75,7 +75,7 @@ public class MobileLetter: Actor {
     deg *= 0.99f;
   }
 
-  public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Blend blend, Mesh target = null) {
     bool depth = false; Gfx.Cull cull = Gfx.Cull.None; float width = 1;
     LetterRender.drawLetter(model, tint, blend, depth, cull, width, str, pos.x, pos.y, size, deg, color);
   }
@@ -99,7 +99,7 @@ public class MobileLetterPool {
   }
   public Actor getInstance() { return pool.getInstance(); }
   public void move() { pool.move(); }
-  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
+  public void draw(float[] model, float[] color, Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
   public void clear() { pool.clear(); }
 
   public void add(string str, float x, float lgt, float size, int cnt, int col) {

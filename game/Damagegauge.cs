@@ -50,7 +50,7 @@ public class DamageGauge {
     cnt++;
   }
 
-  public void draw(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void draw(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
     float x = 18, y = -13;
     foreach (DamageGaugeItem dgi in item) {
       if (dgi.part != null) {
@@ -76,10 +76,10 @@ public class DamageGauge {
       Mesh shape3 = Tumiki.meshes[((3 + i) % Tumiki.COLOR_NUM) * Tumiki.SHAPE_NUM +
 		     3 * Tumiki.COLOR_NUM * Tumiki.SHAPE_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape3.count, shape3.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape3.count, shape3.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape3.ranges) {
-        Gfx.Draw(range.count, shape3.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape3.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }

@@ -103,7 +103,7 @@ public class BulletActorPool {
     cnt++;
   }
 
-  public void drawShots(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void drawShots(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
     foreach (Actor ac in actor)
       if (ac.getExist()) {
 	BulletActor ba = (BulletActor) ac;
@@ -112,7 +112,7 @@ public class BulletActorPool {
       }
   }
 
-  public void drawBullets(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void drawBullets(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
     foreach (Actor ac in actor)
       if (ac.getExist()) {
 	BulletActor ba = (BulletActor) ac;

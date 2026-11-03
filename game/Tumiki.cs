@@ -45,7 +45,7 @@ public class Tumiki {
   public const int PROPELLER_SHAPE = 9;
   public const int PROPELLER_SHAPE_FRONT = 14;
 
-  public void drawPropeller(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, float deg, int shade) {
+  public void drawPropeller(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, float deg, int shade) {
     float d = (shape - PROPELLER_SHAPE) * PI / 4 + deg;
     model = Transform.Rotate(model, propellerCnt * 17 / size.x, -sin(d), cos(d), 0);
     model = Transform.Rotate(model, rtod(d), 0, 0, 1);
@@ -56,10 +56,10 @@ public class Tumiki {
       Mesh shape2 = Tumiki.meshes[PROPELLER_SHAPE +
 	       color * SHAPE_NUM + shade * SHAPE_NUM * COLOR_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape2.ranges) {
-        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }
@@ -72,10 +72,10 @@ public class Tumiki {
       Mesh shape4 = Tumiki.meshes[PROPELLER_SHAPE +
 	       color * SHAPE_NUM + shade * SHAPE_NUM * COLOR_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape4.count, shape4.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape4.count, shape4.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape4.ranges) {
-        Gfx.Draw(range.count, shape4.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape4.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }
@@ -83,7 +83,7 @@ public class Tumiki {
     model = parent3;
   }
 
-  public void drawPropellerFront(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, float deg, int shade) {
+  public void drawPropellerFront(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, float deg, int shade) {
     float d = deg;
     model = Transform.Rotate(model, 90, 1, 0, 0);
     model = Transform.Rotate(model, propellerCnt * 17 / size.x, -sin(d), cos(d), 0);
@@ -95,10 +95,10 @@ public class Tumiki {
       Mesh shape2 = Tumiki.meshes[PROPELLER_SHAPE +
 	       color * SHAPE_NUM + shade * SHAPE_NUM * COLOR_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape2.ranges) {
-        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }
@@ -111,10 +111,10 @@ public class Tumiki {
       Mesh shape4 = Tumiki.meshes[PROPELLER_SHAPE +
 	       color * SHAPE_NUM + shade * SHAPE_NUM * COLOR_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape4.count, shape4.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape4.count, shape4.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape4.ranges) {
-        Gfx.Draw(range.count, shape4.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape4.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }
@@ -122,7 +122,7 @@ public class Tumiki {
     model = parent3;
   }
 
-  public void drawPropellerScaled(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, float deg, int shade, float sz) {
+  public void drawPropellerScaled(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, float deg, int shade, float sz) {
     float d = (shape - PROPELLER_SHAPE) * PI / 4 + deg;
     model = Transform.Rotate(model, propellerCnt * 17 / size.x, -sin(d), cos(d), 0);
     model = Transform.Rotate(model, rtod(d), 0, 0, 1);
@@ -133,10 +133,10 @@ public class Tumiki {
       Mesh shape2 = Tumiki.meshes[PROPELLER_SHAPE +
 	       color * SHAPE_NUM + shade * SHAPE_NUM * COLOR_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape2.ranges) {
-        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }
@@ -149,10 +149,10 @@ public class Tumiki {
       Mesh shape4 = Tumiki.meshes[PROPELLER_SHAPE +
 	       color * SHAPE_NUM + shade * SHAPE_NUM * COLOR_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape4.count, shape4.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape4.count, shape4.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape4.ranges) {
-        Gfx.Draw(range.count, shape4.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape4.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }
@@ -160,7 +160,7 @@ public class Tumiki {
     model = parent3;
   }
 
-  public void drawPropellerFrontScaled(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, float deg, int shade, float sz) {
+  public void drawPropellerFrontScaled(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, float deg, int shade, float sz) {
     float d = deg;
     model = Transform.Rotate(model, 90, 1, 0, 0);
     model = Transform.Rotate(model, propellerCnt * 17 / size.x, -sin(d), cos(d), 0);
@@ -173,10 +173,10 @@ public class Tumiki {
       Mesh shape2 = Tumiki.meshes[PROPELLER_SHAPE +
 	       color * SHAPE_NUM + shade * SHAPE_NUM * COLOR_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape2.ranges) {
-        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }
@@ -190,10 +190,10 @@ public class Tumiki {
       Mesh shape4 = Tumiki.meshes[PROPELLER_SHAPE +
 	       color * SHAPE_NUM + shade * SHAPE_NUM * COLOR_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape4.count, shape4.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape4.count, shape4.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape4.ranges) {
-        Gfx.Draw(range.count, shape4.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape4.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }
@@ -201,7 +201,7 @@ public class Tumiki {
     model = parent3;
   }
 
-  public void drawRotated(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z, int shade, float deg) {
+  public void drawRotated(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z, int shade, float deg) {
     float[] parent1 = model;
     float ox = ofs.x * cos(deg) - ofs.y * sin(deg);
     float oy = ofs.x * sin(deg) + ofs.y * cos(deg);
@@ -212,10 +212,10 @@ public class Tumiki {
       {
       Mesh shape2 = Tumiki.meshes[shape + color * SHAPE_NUM + shade * SHAPE_NUM * COLOR_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape2.ranges) {
-        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }
@@ -228,7 +228,7 @@ public class Tumiki {
     model = parent1;
   }
 
-  public void drawScaled(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z, int shade, float deg, float sz) {
+  public void drawScaled(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z, int shade, float deg, float sz) {
     float[] parent1 = model;
     float ox = ofs.x * cos(deg) - ofs.y * sin(deg);
     float oy = ofs.x * sin(deg) + ofs.y * cos(deg);
@@ -241,10 +241,10 @@ public class Tumiki {
       {
       Mesh shape2 = Tumiki.meshes[shape + color * SHAPE_NUM + shade * SHAPE_NUM * COLOR_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape2.ranges) {
-        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }
@@ -257,11 +257,11 @@ public class Tumiki {
     model = parent1;
   }
 
-  public void draw(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z, int shade) {
+  public void draw(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z, int shade) {
     drawAt(model, tint, blend, depth, cull, width, pos.x, pos.y, z, shade, false, false);
   }
 
-  public void drawAt(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, float x, float y, float z, int shade, bool damaged, bool wounded) {
+  public void drawAt(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, float x, float y, float z, int shade, bool damaged, bool wounded) {
     float[] parent1 = model;
     model = Transform.Translate(model, x + ofs.x, y + ofs.y, z);
     if (shape < PROPELLER_SHAPE) {
@@ -270,10 +270,10 @@ public class Tumiki {
 	{
       Mesh shape2 = Tumiki.meshes[shape + DAMAGED_COLOR * SHAPE_NUM + shade * SHAPE_NUM * COLOR_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape2.ranges) {
-        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }
@@ -282,10 +282,10 @@ public class Tumiki {
 	{
       Mesh shape3 = Tumiki.meshes[shape + WOUNDED_COLOR * SHAPE_NUM + shade * SHAPE_NUM * COLOR_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape3.count, shape3.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape3.count, shape3.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape3.ranges) {
-        Gfx.Draw(range.count, shape3.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape3.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }
@@ -294,10 +294,10 @@ public class Tumiki {
 	{
       Mesh shape4 = Tumiki.meshes[shape + color * SHAPE_NUM + shade * SHAPE_NUM * COLOR_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape4.count, shape4.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape4.count, shape4.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape4.ranges) {
-        Gfx.Draw(range.count, shape4.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape4.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }

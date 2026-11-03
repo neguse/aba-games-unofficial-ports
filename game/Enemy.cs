@@ -256,7 +256,7 @@ public class Enemy: Actor {
     totalNum++;
   }
 
-  public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Blend blend, Mesh target = null) {
     bool depth = true; Gfx.Cull cull = Gfx.Cull.Front; float width = 1;
     float z = -0.5f;
     for (int i = 0 ; i < partsNum; i++) {
@@ -378,7 +378,7 @@ public class EnemyPool {
   }
   public Actor getInstance() { return pool.getInstance(); }
   public void move() { pool.move(); }
-  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
+  public void draw(float[] model, float[] color, Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
   public void clear() { pool.clear(); }
 
   public bool checkHit(Vector pos, float damage) {
@@ -520,7 +520,7 @@ public class EnemyPart {
     spec.tumikiSet.breakIntoFragmentsAt(fragments, pos.x + spec.ofs.x, pos.y + spec.ofs.y, 0);
   }
 
-  public void draw(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z) {
+  public void draw(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z) {
     spec.tumikiSet.drawAt(model, tint, blend, depth, cull, width, pos.x + spec.ofs.x, pos.y + spec.ofs.y, z, damaged, wounded);
     damaged = false;
   }

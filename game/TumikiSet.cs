@@ -44,32 +44,32 @@ public int addTopBullets(int barragePtnIdx, BulletActorPool bullets, EnemyTopBul
     breakIntoFragmentsAt(fragments, pos.x, pos.y, d);
   }
 
-  public void drawRotated(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z, float deg) {
+  public void drawRotated(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z, float deg) {
     foreach (Tumiki t in tumiki)
       t.drawRotated(model, tint, blend, depth, cull, width, pos, z, 0, deg);
   }
 
-  public void drawShadeRotated(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z, int shade, float deg) {
+  public void drawShadeRotated(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z, int shade, float deg) {
     foreach (Tumiki t in tumiki)
       t.drawRotated(model, tint, blend, depth, cull, width, pos, z, shade, deg);
   }
 
-  public void drawShadeScaled(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z, int shade, float deg, float size) {
+  public void drawShadeScaled(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z, int shade, float deg, float size) {
     foreach (Tumiki t in tumiki)
       t.drawScaled(model, tint, blend, depth, cull, width, pos, z, shade, deg, size);
   }
 
-  public void draw(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z) {
+  public void draw(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z) {
     foreach (Tumiki t in tumiki)
       t.draw(model, tint, blend, depth, cull, width, pos, z, 0);
   }
 
-  public void drawShade(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z, int shade) {
+  public void drawShade(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, Vector pos, float z, int shade) {
     foreach (Tumiki t in tumiki)
       t.draw(model, tint, blend, depth, cull, width, pos, z, shade);
   }
 
-  public void drawAt(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, float x, float y, float z, bool damaged, bool wounded) {
+  public void drawAt(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, float x, float y, float z, bool damaged, bool wounded) {
     foreach (Tumiki t in tumiki)
       t.drawAt(model, tint, blend, depth, cull, width, x, y, z, 0, damaged, wounded);
   }
