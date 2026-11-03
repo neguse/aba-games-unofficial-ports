@@ -115,8 +115,8 @@ elif args.game not in ['gear-toy-gear', 'mazer-mayhem']:
     sources.append(shader_path)
 if args.game in ['torus-trooper', 'gear-toy-gear', 'mazer-mayhem']:
     sources.insert(0, args.lub / 'cs-lib/lubx/XrAnchor.cs')
-# lub's own C# (Bindings.Set, the typed setters of the bindings a draw takes, and the Vec/Mat types they accept).
-sources += [args.lub / 'cs-lib/lub/Math.cs', args.lub / 'cs-lib/lub/Bindings.cs']
+# lub's own C# (cs-lib/lub: Bindings.Set, the Vec/Mat types, the Blend presets).
+sources += sorted((args.lub / 'cs-lib/lub').glob('*.cs'))
 if args.test:
     sources.append(args.test)
 if args.sources_json:

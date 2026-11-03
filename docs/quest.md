@@ -5,7 +5,6 @@ GearToyGear・Torus Trooper・Mazer Mayhemを、Meta Quest（Quest 2以降）の
 C#をtcs2cでCへ変換し、lubのAndroidのplayer（OpenXRとVulkan）とリンクしたAPKを作品ごとに作る。
 
 lubのAndroid対応は[lubのdocs/android.md](https://github.com/neguse/lub/blob/master/docs/android.md)を参照。
-このリポジトリが固定しているlubにはまだAndroid対応が無く、Android対応を含むlubへ追従してからビルドできる。
 Quest版はリリース条件（web版とSteam Frame版）に含まれない。
 
 ## 操作
@@ -30,9 +29,9 @@ shaderのcacheを作るため、同じlubのLinux版（`scripts/build-release.sh
 
 ```sh
 python3 tools/build_quest.py --lub ../lub --game gear-toy-gear \
-  --original .cache/originals/GearToyGear/GearToyGear
-python3 tools/build_quest.py --lub ../lub --game torus-trooper --original .cache/originals/tt
-python3 tools/build_quest.py --lub ../lub --game mazer-mayhem --original .cache/originals/Mm/Mm
+  --original .cache/original/GearToyGear/GearToyGear
+python3 tools/build_quest.py --lub ../lub --game torus-trooper --original .cache/original/tt
+python3 tools/build_quest.py --lub ../lub --game mazer-mayhem --original .cache/original/Mm/Mm
 ```
 
 出力は`build/quest/<作品>-quest.apk`。
