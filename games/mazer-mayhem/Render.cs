@@ -13,7 +13,14 @@ public static class MmRender
     static readonly PassOpts pass = new() { ClearColor = new float[] { 210 / 255f, 210 / 255f, 210 / 255f, 1 } };
     static readonly XrAnchor anchor = new();
     static readonly float[] matrix = new float[16];
-    static readonly DrawOpts outputOptions = new() { Depth = false, Blend = Gfx.Blend.None, Cull = Gfx.Cull.None };
+    static readonly DrawOpts outputOptions = new() { Depth = false, Cull = Gfx.Cull.None };
+    // 原作 (XNA) の AlphaBlendEnable、SourceAlpha / InverseSourceAlpha、SeparateAlphaBlendEnabled = false。
+    // alpha にも同じ係数を掛ける。
+    public static readonly Blend AlphaBlend = new()
+    {
+        Src = Gfx.BlendFactor.SrcAlpha, Dst = Gfx.BlendFactor.OneMinusSrcAlpha, Op = Gfx.BlendOp.Add,
+        SrcAlpha = Gfx.BlendFactor.SrcAlpha, DstAlpha = Gfx.BlendFactor.OneMinusSrcAlpha, OpAlpha = Gfx.BlendOp.Add,
+    };
     static readonly PassOpts outputPass = new();
     static readonly Bindings outputBindings = new();
     static string outputSource;
@@ -215,7 +222,7 @@ sealed class MmDrawCommand
     public readonly List<float> Data = new();
     public readonly Bindings Bindings = new();
     public int Instances;
-    public readonly DrawOpts Options = new() { Cull = Gfx.Cull.None, Blend = Gfx.Blend.Alpha };
+    public readonly DrawOpts Options = new() { Cull = Gfx.Cull.None, Blend = MmRender.AlphaBlend };
     public List<float> Geometry;
     public string MeshKey;
     public int Count, MeshVersion;

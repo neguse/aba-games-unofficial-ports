@@ -14,7 +14,7 @@ static class RenderingTests
         var bindings = new Bindings();
         bindings.Set("parameters", Gfx.UseBuffer("mm-test-parameters", Gfx.BufferType.Storage, data, 1));
         bindings.Set("eye", Gfx.UseBuffer("mm-test-eye", Gfx.BufferType.Storage, new List<float>(Matrix.Identity.M), 1));
-        var options = new DrawOpts { Shader = shader, Depth = true, DepthWrite = true, Blend = Gfx.Blend.Alpha, Cull = Gfx.Cull.None };
+        var options = new DrawOpts { Shader = shader, Depth = true, DepthWrite = true, Blend = MmRender.AlphaBlend, Cull = Gfx.Cull.None };
         void Draw(float z, float[] color)
         {
             var vertices = new List<float>();
