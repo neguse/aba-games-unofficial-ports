@@ -33,7 +33,8 @@ runner.write_text('lub = {host = {available = function() return false end}}\n' +
     'lub.gfx.bindings_set4 = function(b, name, count, x, y, z, w) b[name] = {x, y, z, w} end\n'
     'lub.gfx.bindings_set16 = function(b, name, ...) b[name] = {...} end\n'
     'lub.gfx.bindings_clear = function(b) for k in pairs(b) do b[k] = nil end end\n'
-    if args.game in ['gunroar', 'titanion', 'parsec47', 'tumiki', 'torus-trooper', 'a7xpg', 'rrootage'] else '') + 'local game = dofile(arg[1]); game.Main()\n')
+    # lub's cs-lib (Blends) reads the lub.gfx constants when it loads, so every game needs the table.
+    if args.game in ['gunroar', 'titanion', 'parsec47', 'tumiki', 'torus-trooper', 'a7xpg', 'rrootage'] else 'lub.gfx = {}\n') + 'local game = dofile(arg[1]); game.Main()\n')
 result = subprocess.run([str(args.lub / 'third_party/tcs/deps/lua/lua32'), str(runner), str(output)],
                         text=True, stdout=subprocess.PIPE, check=True)
 print(result.stdout, end='')
