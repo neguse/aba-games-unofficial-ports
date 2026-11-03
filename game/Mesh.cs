@@ -22,18 +22,19 @@ public class DrawImage
 }
 
 // 原作の glBlendFunc(src, dst) の式。
-// GL は同じ係数を alpha にも掛ける (alpha では DST_COLOR は dst の alpha になる)。
+// 色 (rgb) は原作の係数で混ぜる。
+// alpha は原作では誰も読まないが、作品選択の画面が作品の画面の texture を alpha で重ねるので、不透明に描いた画面が不透明のまま残る式にする。
 public static class GlBlend
 {
     public static readonly Blend SrcAlphaOne = new Blend
     {
         Src = Gfx.BlendFactor.SrcAlpha, Dst = Gfx.BlendFactor.One, Op = Gfx.BlendOp.Add,
-        SrcAlpha = Gfx.BlendFactor.SrcAlpha, DstAlpha = Gfx.BlendFactor.One, OpAlpha = Gfx.BlendOp.Add,
+        SrcAlpha = Gfx.BlendFactor.One, DstAlpha = Gfx.BlendFactor.One, OpAlpha = Gfx.BlendOp.Add,
     };
     public static readonly Blend SrcAlphaOneMinusSrcAlpha = new Blend
     {
         Src = Gfx.BlendFactor.SrcAlpha, Dst = Gfx.BlendFactor.OneMinusSrcAlpha, Op = Gfx.BlendOp.Add,
-        SrcAlpha = Gfx.BlendFactor.SrcAlpha, DstAlpha = Gfx.BlendFactor.OneMinusSrcAlpha, OpAlpha = Gfx.BlendOp.Add,
+        SrcAlpha = Gfx.BlendFactor.One, DstAlpha = Gfx.BlendFactor.OneMinusSrcAlpha, OpAlpha = Gfx.BlendOp.Add,
     };
     public static readonly Blend OneOne = new Blend
     {

@@ -27,7 +27,8 @@ static class RenderingTests
         bindings.Set("image", image);
         bindings.Set("viewport", new float[] {16,16,0,0});
         bindings.Set("batch", new float[4]);
-        float[][] expected = [[.6f,.2f,.1f], [.225f,.2f,.25f], [.25f,.25f,.325f], [.06f,.04f,.03f]];
+        // 半透明と加算は、不透明に clear した画面の alpha を 1 のまま残す (作品選択の画面が画面の texture の alpha で重ねる)。
+        float[][] expected = [[.6f,.2f,.1f], [.225f,.2f,.25f,1], [.25f,.25f,.325f,1], [.06f,.04f,.03f]];
         Blend[] blends = [null, GlBlend.SrcAlphaOneMinusSrcAlpha, GlBlend.SrcAlphaOne, GlBlend.DstColorZero];
         for (int mode = 0; mode < 4; mode++)
         {
@@ -51,7 +52,7 @@ static class RenderingTests
                 RenderingReadback.Read(scene, "tt-test-read-" + index, p =>
                 {
                     pixels = p;
-                    Pixel(pixels, (8 * 16 + 8) * 4, expected[index], "Original RGB blend " + index);
+                    Pixel(pixels, (8 * 16 + 8) * 4, expected[index], "Original blend " + index);
                 });
                 RenderingReadback.Read(linear, "tt-test-output-" + index, decoded =>
                 {
