@@ -20,7 +20,7 @@ public class Player
         exists = false;
     }
 
-    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Blend blend)
     {
         spec.draw_1(model, color, blend, state);
     }
@@ -107,7 +107,7 @@ public class Player
         spec.destroyed_1(state);
     }
 
-    public void drawState_0(float[] model, float[] color, Gfx.Blend blend)
+    public void drawState_0(float[] model, float[] color, Blend blend)
     {
         if ((spec.gameState.mode_0() == GameStateMode.CLASSIC))
             spec.drawState_1(model, color, blend, state);
@@ -824,7 +824,7 @@ public class PlayerSpec
         return gameState.multiplier();
     }
 
-    public void draw_1(float[] model, float[] color, Gfx.Blend blend, PlayerState ps)
+    public void draw_1(float[] model, float[] color, Blend blend, PlayerState ps)
     {
         {
             shots.draw_0(model, color, blend);
@@ -847,7 +847,7 @@ public class PlayerSpec
         }
     }
 
-    public void drawState_1(float[] model, float[] color, Gfx.Blend blend, PlayerState ps)
+    public void drawState_1(float[] model, float[] color, Blend blend, PlayerState ps)
     {
         {
             color = new float[] { 1, 1, 1, 0.5f };
@@ -857,8 +857,8 @@ public class PlayerSpec
             part1.Vertex(25 + ps.captureBeamEnergy * 100, 420, 0, color);
             part1.Vertex(25, 420, 0, color);
             part1.Fan(0, part1.vertexCount);
-            Gfx.Draw(part1.count, part1.Bindings(model, null, 1, blend == Gfx.Blend.Additive), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
-            blend = Gfx.Blend.Alpha;
+            Gfx.Draw(part1.count, part1.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+            blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
             float a = 0;
             if (ps.captureBeamEnergy < 1)
             {
@@ -880,8 +880,8 @@ public class PlayerSpec
             part2.Vertex(125, 420, 0, color);
             part2.Vertex(25, 420, 0, color);
             part2.LineStrip(0, part2.vertexCount, true);
-            Gfx.Draw(part2.count, part2.Bindings(model, null, 1, blend == Gfx.Blend.Additive), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
-            blend = Gfx.Blend.Additive;
+            Gfx.Draw(part2.count, part2.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+            blend = GlBlend.SrcAlphaOne;
             if (ps.captureBeamEnergy >= 1)
                 Letter.drawString(model, color, blend, "READY", 50, 390, 4);
         }
@@ -908,7 +908,7 @@ public class ShotPool
         pool.move_0();
     }
 
-    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Blend blend)
     {
         pool.draw_0(model, color, blend);
     }
@@ -989,7 +989,7 @@ public class Shot : Actor
         exists = false;
     }
 
-    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Blend blend)
     {
         spec.draw_1(model, color, blend, state);
     }
@@ -1113,7 +1113,7 @@ public class ShotSpec
         return true;
     }
 
-    public void draw_1(float[] model, float[] color, Gfx.Blend blend, ShotState state)
+    public void draw_1(float[] model, float[] color, Blend blend, ShotState state)
     {
         {
             Vector3 p = field.calcCircularPos_1(state.pos);
@@ -1193,7 +1193,7 @@ public class TractorBeam
         return (((((((p.x > playerState.pos.x - WIDTH / 2)) && ((p.x < playerState.pos.x + WIDTH / 2)))) && ((p.y > playerState.pos.y)))) && ((p.y < playerState.pos.y + length + WIDTH)));
     }
 
-    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Blend blend)
     {
         if (length <= 0)
             return;

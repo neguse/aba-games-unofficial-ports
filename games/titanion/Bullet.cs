@@ -19,7 +19,7 @@ public class BulletPool
         return pool.getInstance();
     }
 
-    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Blend blend)
     {
         pool.draw_0(model, color, blend);
     }
@@ -118,7 +118,7 @@ public class Bullet : Actor
         exists = false;
     }
 
-    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Blend blend)
     {
         spec.draw_1(model, color, blend, state);
     }
@@ -264,7 +264,7 @@ public class BulletSpec
         }
     }
 
-    public void draw_1(float[] model, float[] color, Gfx.Blend blend, BulletState bs)
+    public void draw_1(float[] model, float[] color, Blend blend, BulletState bs)
     {
         {
             if (bs.waitCnt > 0)
@@ -278,7 +278,7 @@ public class BulletSpec
             p = field.calcCircularPos_1(bs.pos);
             part1.Vertex(p.x, p.y, p.z, color);
             for (int vi = 0; vi + 1 < part1.vertexCount; vi += 2) part1.Line(vi, vi + 1);
-            Gfx.Draw(part1.count, part1.Bindings(model, null, 1, blend == Gfx.Blend.Additive), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+            Gfx.Draw(part1.count, part1.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
             p = field.calcCircularPos_1(bs.pos);
             float d = 0;
             switch (gameState.mode_0())

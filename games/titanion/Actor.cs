@@ -9,7 +9,7 @@ public interface Actor
     public void setExists(bool v);
     public void init_1(List<object> args);
     public void move_0();
-    public void draw_0(float[] model, float[] color, Gfx.Blend blend);
+    public void draw_0(float[] model, float[] color, Blend blend);
 }
 
 public class ActorPool<T>
@@ -83,7 +83,7 @@ public class ActorPool<T>
                 item.move_0();
     }
 
-    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Blend blend)
     {
         foreach (T item in actors)
             if (item.getExists())

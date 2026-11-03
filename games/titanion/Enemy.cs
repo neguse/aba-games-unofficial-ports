@@ -168,7 +168,7 @@ public class EnemyPool
         return n;
     }
 
-    public void drawFront(float[] model, float[] color, Gfx.Blend blend)
+    public void drawFront(float[] model, float[] color, Blend blend)
     {
         if (trailEffect)
             foreach (Enemy a in actors)
@@ -179,7 +179,7 @@ public class EnemyPool
                 a.draw_0(model, color, blend);
     }
 
-    public void drawBack(float[] model, float[] color, Gfx.Blend blend)
+    public void drawBack(float[] model, float[] color, Blend blend)
     {
         if (trailEffect)
             foreach (Enemy a in actors)
@@ -190,7 +190,7 @@ public class EnemyPool
                 a.draw_0(model, color, blend);
     }
 
-    public void drawPillarBack(float[] model, float[] color, Gfx.Blend blend)
+    public void drawPillarBack(float[] model, float[] color, Blend blend)
     {
         if (trailEffect)
             foreach (Enemy a in actors)
@@ -257,7 +257,7 @@ public class Enemy : Actor
         exists = false;
     }
 
-    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Blend blend)
     {
         spec.draw_1(model, color, blend, state);
     }
@@ -381,7 +381,7 @@ public class Enemy : Actor
         return spec.beforeAlign_1(state);
     }
 
-    public void drawTrails_0(float[] model, float[] color, Gfx.Blend blend)
+    public void drawTrails_0(float[] model, float[] color, Blend blend)
     {
         spec.drawTrails_1(model, color, blend, state);
     }
@@ -534,7 +534,7 @@ public class EnemyState
         }
     }
 
-    public void drawTrails_6(float[] model, float[] color, Gfx.Blend blend, EnemyShape s, float r, float g, float b, Vector size, Field field)
+    public void drawTrails_6(float[] model, float[] color, Blend blend, EnemyShape s, float r, float g, float b, Vector size, Field field)
     {
         int ti = trailIdx;
         float a = 1.0f;
@@ -1150,7 +1150,7 @@ public class EnemySpec
         kind.destroyed_2(es, dd);
     }
 
-    public void draw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
+    public void draw_1(float[] model, float[] color, Blend blend, EnemyState es)
     {
         kind.draw_1(model, color, blend, es);
     }
@@ -1195,7 +1195,7 @@ public class EnemySpec
         return kind.calcStandByTime(es);
     }
 
-    public void defaultDraw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
+    public void defaultDraw_1(float[] model, float[] color, Blend blend, EnemyState es)
     {
         Vector3 p = field.calcCircularPos_1(es.pos);
         float cd = field.calcCircularDeg(es.pos.x);
@@ -1220,7 +1220,7 @@ public class EnemySpec
         }
     }
 
-    public void drawTrails_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
+    public void drawTrails_1(float[] model, float[] color, Blend blend, EnemyState es)
     {
         if (es.captureState > 0)
             return;
@@ -1253,7 +1253,7 @@ public interface EnemyKind
     public void set_1(EnemyState es);
     public bool move_1(EnemyState es);
     public void destroyed_2(EnemyState es, float dd);
-    public void draw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es);
+    public void draw_1(float[] model, float[] color, Blend blend, EnemyState es);
     public bool isBeingCaptured_1(EnemyState es);
     public bool isCaptured_1(EnemyState es);
     public void movePhase(EnemyState es);
@@ -1282,7 +1282,7 @@ public class GhostEnemySpec : EnemyKind
         spec.shape = shape;
     }
 
-    public void draw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
+    public void draw_1(float[] model, float[] color, Blend blend, EnemyState es)
     {
         {
             Vector3 p = spec.field.calcCircularPos_1(es.pos);
@@ -1588,7 +1588,7 @@ public class MiddleEnemySpec : EnemyKind
         spec.defaultDestroyed_2(es, dd);
     }
 
-    public void draw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
+    public void draw_1(float[] model, float[] color, Blend blend, EnemyState es)
     {
         spec.defaultDraw_1(model, color, blend, es);
     }
@@ -1702,7 +1702,7 @@ public class SmallEnemySpec : EnemyKind
         spec.defaultDestroyed_2(es, dd);
     }
 
-    public void draw_1(float[] model, float[] color, Gfx.Blend blend, EnemyState es)
+    public void draw_1(float[] model, float[] color, Blend blend, EnemyState es)
     {
         spec.defaultDraw_1(model, color, blend, es);
     }

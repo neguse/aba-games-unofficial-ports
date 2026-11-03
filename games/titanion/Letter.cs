@@ -56,33 +56,33 @@ public class Letter
         return s * LETTER_HEIGHT;
     }
 
-    public static void drawLetter_1(float[] model, float[] color, Gfx.Blend blend, int n)
+    public static void drawLetter_1(float[] model, float[] color, Blend blend, int n)
     {
         Mesh mesh = meshes[n];
-        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public static void drawLetter_5(float[] model, float[] color, Gfx.Blend blend, int n, float x, float y, float s, float d)
+    public static void drawLetter_5(float[] model, float[] color, Blend blend, int n, float x, float y, float s, float d)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, x, y, 0);
         model = Transform.Scale(model, s, s, s);
         model = Transform.Rotate(model, d, 0, 0, 1);
         Mesh mesh = meshes[n];
-        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
         model = parent1;
     }
 
-    public static void drawLetterRev(float[] model, float[] color, Gfx.Blend blend, int n, float x, float y, float s, float d)
+    public static void drawLetterRev(float[] model, float[] color, Blend blend, int n, float x, float y, float s, float d)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, x, y, 0);
         model = Transform.Scale(model, s, -s, s);
         model = Transform.Rotate(model, d, 0, 0, 1);
         Mesh mesh = meshes[n];
-        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
         model = parent1;
     }
@@ -92,7 +92,7 @@ public class Letter
         return AsciiText.IndexOf("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ._-+  !/", c.ToUpper());
     }
 
-    public static void drawString(float[] model, float[] color, Gfx.Blend blend, string str, float lx, float y, float s, int d = LetterDirection.TO_RIGHT, bool rev = false, float od = 0, float r = 1, float g = 1, float b = 1)
+    public static void drawString(float[] model, float[] color, Blend blend, string str, float lx, float y, float s, int d = LetterDirection.TO_RIGHT, bool rev = false, float od = 0, float r = 1, float g = 1, float b = 1)
     {
         lx = lx + (LETTER_WIDTH * s / 2);
         y = y + (LETTER_HEIGHT * s / 2);
@@ -170,7 +170,7 @@ public class Letter
         }
     }
 
-    public static void drawNum(float[] model, float[] color, Gfx.Blend blend, int num, float lx, float y, float s, int dg = 0, int headChar = -1, int floatDigit = -1)
+    public static void drawNum(float[] model, float[] color, Blend blend, int num, float lx, float y, float s, int dg = 0, int headChar = -1, int floatDigit = -1)
     {
         lx = lx + (LETTER_WIDTH * s / 2);
         y = y + (LETTER_HEIGHT * s / 2);
@@ -208,7 +208,7 @@ public class Letter
             drawLetter_5(model, color, blend, headChar, x + s * LETTER_WIDTH * 0.2f, y + s * LETTER_WIDTH * 0.2f, s * 0.6f, ld);
     }
 
-    public static void drawNumSign(float[] model, float[] color, Gfx.Blend blend, int num, float lx, float ly, float s, int headChar = -1, int floatDigit = -1, int type = 0)
+    public static void drawNumSign(float[] model, float[] color, Blend blend, int num, float lx, float ly, float s, int headChar = -1, int floatDigit = -1, int type = 0)
     {
         float x = lx;
         float y = ly;
@@ -242,7 +242,7 @@ public class Letter
             drawLetterRev(model, color, blend, headChar + type * LETTER_NUM, x + s * LETTER_WIDTH * 0.2f, y - s * LETTER_WIDTH * 0.2f, s * 0.6f, 0);
     }
 
-    public static void drawTime(float[] model, float[] color, Gfx.Blend blend, int time, float lx, float y, float s)
+    public static void drawTime(float[] model, float[] color, Blend blend, int time, float lx, float y, float s)
     {
         int n = time;
         if (n < 0)
