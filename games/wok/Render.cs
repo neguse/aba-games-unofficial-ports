@@ -19,7 +19,7 @@ public static class WkRender {
   var rects=Gfx.UseBuffer("rects",Gfx.BufferType.Storage,vertices,version);
   if(shader==null||atlas==null||rects==null)return;
   Gfx.BeginPass(new PassOpts{Target=Scene.Target,ClearColor=new float[]{1,1,1,1}});
-  if(vertices.Count>0){var bindings=new Bindings();bindings.Set("rectangles",rects);bindings.Set("atlas",atlas);Gfx.Draw(vertices.Count/12*6,bindings,new DrawOpts{Shader=shader,Blend=Gfx.Blend.None,Depth=false,DepthWrite=false,Cull=Gfx.Cull.None});}
+  if(vertices.Count>0){var bindings=new Bindings();bindings.Set("rectangles",rects);bindings.Set("atlas",atlas);Gfx.Draw(vertices.Count/12*6,bindings,new DrawOpts{Shader=shader,Depth=false,DepthWrite=false,Cull=Gfx.Cull.None});}
   Gfx.EndPass();
  }
 }
