@@ -492,7 +492,7 @@ public class Ship : OdeActor, BulletTarget
         model = parent1;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         shots.draw(model, tint, blend, key + "-draw-1");
         enhancedShots.draw(model, tint, blend, key + "-draw-2");
@@ -501,9 +501,9 @@ public class Ship : OdeActor, BulletTarget
         for (int i = 0; i < tailNum; i++)
             tails[i].draw(model, tint, blend, key + "-draw-3" + "-" + i.ToString());
         linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
-        blend = Gfx.Blend.Alpha;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", linePoint);
-        blend = Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
         linePoint.draw(model, tint, blend, key + "-draw-4");
         float[] parent1 = model;
         model = Transform.Translate(model, _pos.x, _pos.y, _pos.z);
@@ -512,7 +512,7 @@ public class Ship : OdeActor, BulletTarget
         model = parent1;
     }
 
-    public void drawLeft(float[] model, float[] tint, Gfx.Blend blend, string key, float x, float y)
+    public void drawLeft(float[] model, float[] tint, Blend blend, string key, float x, float y)
     {
         float[] view = model;
         model = Transform.Identity();
@@ -525,9 +525,9 @@ public class Ship : OdeActor, BulletTarget
         linePoint.endRecord();
         model = parent1;
         model = view;
-        blend = Gfx.Blend.Alpha;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", linePoint);
-        blend = Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
         linePoint.draw(model, tint, blend, key + "-draw-1");
         float[] parent2 = model;
         model = Transform.Translate(model, x, y, 0);
@@ -744,12 +744,12 @@ public class ShipTail : OdeActor
         model = parent1;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
-        blend = Gfx.Blend.Alpha;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", linePoint);
-        blend = Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
         linePoint.draw(model, tint, blend, key + "-draw-1");
     }
 

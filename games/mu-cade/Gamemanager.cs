@@ -363,11 +363,11 @@ public class GameManager
     public void draw()
     {
         float[] model = state == GameManagerGameState.IN_GAME || state == GameManagerGameState.REPLAY ? field.setLookAt() : field.setLookAtTitle();
-        float[] tint = new float[] { 1, 1, 1, 1 }; Gfx.Blend blend = Gfx.Blend.Additive; string key = "scene";
+        float[] tint = new float[] { 1, 1, 1, 1 }; Blend blend = GlBlend.SrcAlphaOne; string key = "scene";
         var stars = new Mesh("stars");
         starParticles.draw(model, tint, blend, "stars", stars);
         for (int i = 0; i + 1 < stars.vertexCount; i += 2) stars.Line(i, i + 1);
-        if (stars.count > 0) Gfx.Draw(stars.count, stars.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+        if (stars.count > 0) Gfx.Draw(stars.count, stars.Bindings(model, tint, 1),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
         if (state == GameManagerGameState.IN_GAME || state == GameManagerGameState.REPLAY)
             field.draw(model, tint, blend, key + "-draw-1");
@@ -394,7 +394,7 @@ public class GameManager
         field.drawOverlay(model, tint, blend, key + "-drawOverlay-1");
     }
 
-    public void drawState(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawState(float[] model, float[] tint, Blend blend, string key)
     {
         Letter.drawNum(model, tint, blend, key + "-drawNum-1", score, 120, 21, 6);
         Letter.drawTime(model, tint, blend, key + "-drawTime-1", time, 610, 30, 6);

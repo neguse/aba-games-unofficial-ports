@@ -124,7 +124,7 @@ public class Field
 
     public float[] setLookAtTitle() { return Transform.LookAt(Transform.Perspective(), 0, EYE_POS_Y, EYE_POS_Z, 0, 0, 0, 0, 1, 0); }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         if (fieldMesh == null) { var mesh = new Mesh("field");
         int part1 = mesh.vertexCount;
@@ -166,7 +166,7 @@ public class Field
 
             fieldMesh = mesh;
         }
-        if (fieldMesh.count > 0) Gfx.Draw(fieldMesh.count, fieldMesh.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+        if (fieldMesh.count > 0) Gfx.Draw(fieldMesh.count, fieldMesh.Bindings(model, tint, 1),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
@@ -251,11 +251,11 @@ public class Field
             7
         }
     };
-    public void drawOverlay(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawOverlay(float[] model, float[] tint, Blend blend, string key)
     {
         model = Transform.Ortho();
         gameManager.drawState(model, tint, blend, key + "-drawState-1");
-        blend = Gfx.Blend.Alpha;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         if (overlayMesh == null) {
         var part1 = new Mesh("overlay-bars");
         for (int i_0 = 1; i_0 < OVERLAY_BAR_POS.Length; i_0++)
@@ -287,7 +287,7 @@ public class Field
         part1.Quads(0, part1.vertexCount - 0);
             overlayMesh = part1;
         }
-        Gfx.Draw(overlayMesh.count, overlayMesh.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+        Gfx.Draw(overlayMesh.count, overlayMesh.Bindings(model, tint, 1),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
         float x = 285, y = 465;
         float lsz = 26, lof = 20;
@@ -296,11 +296,11 @@ public class Field
             tint = new float[] { 1, 1, 1, 1 };
             bool mask = true;
             drawLetter_4(model, tint, blend, key + "-drawLetter_4-1" + "-" + i_1.ToString(), i_1, x, y, lsz, mask);
-            blend = Gfx.Blend.Additive;
+            blend = GlBlend.SrcAlphaOne;
             tint = new float[] { 1, 0, 0, 1 };
             mask = false;
             drawLetter_4(model, tint, blend, key + "-drawLetter_4-2" + "-" + i_1.ToString(), i_1, x, y, lsz, mask);
-            blend = Gfx.Blend.Additive;
+            blend = GlBlend.SrcAlphaOne;
             tint = new float[] { 1, 1, 1, 1 };
             mask = false;
             drawLetter_4(model, tint, blend, key + "-drawLetter_4-3" + "-" + i_1.ToString(), i_1, x, y, lsz, mask);
@@ -310,10 +310,10 @@ public class Field
                 x += lof * 0.9f;
         }
 
-        blend = Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
     }
 
-    public void drawLetter_4(float[] model, float[] tint, Gfx.Blend blend, string key, int i, float cx, float cy, float width, bool mask)
+    public void drawLetter_4(float[] model, float[] tint, Blend blend, string key, int i, float cx, float cy, float width, bool mask)
     {
         if (glyphQuad == null) {
             glyphQuad = new Mesh("title-glyph");
@@ -324,8 +324,8 @@ public class Field
             glyphQuad.Quads(0, 4);
         }
         model = Transform.Scale(Transform.Translate(model, cx, cy, 0), width, width, 1);
-        Gfx.Draw(glyphQuad.count, glyphQuad.Bindings(model, mask ? new float[] { 1, 1, 1, 1 } : tint, 1, !mask, 0, mask ? McdData.masks[i] : McdData.images[i]),
-            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = mask ? Gfx.Blend.Multiply : Gfx.Blend.Additive });
+        Gfx.Draw(glyphQuad.count, glyphQuad.Bindings(model, mask ? new float[] { 1, 1, 1, 1 } : tint, 1, 0, mask ? McdData.masks[i] : McdData.images[i]),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = mask ? GlBlend.DstColorZero : GlBlend.SrcAlphaOne });
     }
 
 
@@ -388,7 +388,7 @@ public class Wall : OdeActor
     {
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
     }
 

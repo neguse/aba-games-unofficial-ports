@@ -55,30 +55,30 @@ public class Letter
         return s * LETTER_HEIGHT;
     }
 
-    public static void drawLetter_1(float[] model, float[] tint, Gfx.Blend blend, string key, int n)
+    public static void drawLetter_1(float[] model, float[] tint, Blend blend, string key, int n)
     {
-        { Mesh shape1 = meshes[n]; if (shape1.count > 0) Gfx.Draw(shape1.count, shape1.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+        { Mesh shape1 = meshes[n]; if (shape1.count > 0) Gfx.Draw(shape1.count, shape1.Bindings(model, tint, 1),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
     }
 
-    public static void drawLetter_5(float[] model, float[] tint, Gfx.Blend blend, string key, int n, float x, float y, float s, float d)
+    public static void drawLetter_5(float[] model, float[] tint, Blend blend, string key, int n, float x, float y, float s, float d)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, x, y, 0);
         model = Transform.Scale(model, s, s, s);
         model = Transform.Rotate(model, d, 0, 0, 1);
-        { Mesh shape2 = meshes[n]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+        { Mesh shape2 = meshes[n]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         model = parent1;
     }
 
-    public static void drawLetterRev(float[] model, float[] tint, Gfx.Blend blend, string key, int n, float x, float y, float s, float d)
+    public static void drawLetterRev(float[] model, float[] tint, Blend blend, string key, int n, float x, float y, float s, float d)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, x, y, 0);
         model = Transform.Scale(model, s, -s, s);
         model = Transform.Rotate(model, d, 0, 0, 1);
-        { Mesh shape2 = meshes[n]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+        { Mesh shape2 = meshes[n]; if (shape2.count > 0) Gfx.Draw(shape2.count, shape2.Bindings(model, tint, 1),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
         model = parent1;
     }
@@ -90,7 +90,7 @@ public class Letter
         return idx>=0?idx+10:0;
     }
 
-    public static void drawString(float[] model, float[] tint, Gfx.Blend blend, string key, string str, float lx, float y, float s, int d = LetterDirection.TO_RIGHT, bool rev = false, float od = 0)
+    public static void drawString(float[] model, float[] tint, Blend blend, string key, string str, float lx, float y, float s, int d = LetterDirection.TO_RIGHT, bool rev = false, float od = 0)
     {
         lx += LETTER_WIDTH * s / 2;
         y += LETTER_HEIGHT * s / 2;
@@ -153,7 +153,7 @@ public class Letter
         }
     }
 
-    public static void drawNum(float[] model, float[] tint, Gfx.Blend blend, string key, int num, float lx, float y, float s, int dg = 0, int headChar = -1, int floatDigit = -1)
+    public static void drawNum(float[] model, float[] tint, Blend blend, string key, int num, float lx, float y, float s, int dg = 0, int headChar = -1, int floatDigit = -1)
     {
         lx += LETTER_WIDTH * s / 2;
         y += LETTER_HEIGHT * s / 2;
@@ -191,7 +191,7 @@ public class Letter
             drawLetter_5(model, tint, blend, key + "-drawLetter_5-4", headChar, x + s * LETTER_WIDTH * 0.2f, y + s * LETTER_WIDTH * 0.2f, s * 0.6f, ld);
     }
 
-    public static void drawNumSign(float[] model, float[] tint, Gfx.Blend blend, string key, int num, float lx, float ly, float s, int headChar = -1, int floatDigit = -1)
+    public static void drawNumSign(float[] model, float[] tint, Blend blend, string key, int num, float lx, float ly, float s, int headChar = -1, int floatDigit = -1)
     {
         float x = lx;
         float y = ly;
@@ -225,7 +225,7 @@ public class Letter
             drawLetterRev(model, tint, blend, key + "-drawLetterRev-4", headChar, x + s * LETTER_WIDTH * 0.2f, y - s * LETTER_WIDTH * 0.2f, s * 0.6f, 0);
     }
 
-    public static void drawTime(float[] model, float[] tint, Gfx.Blend blend, string key, int time, float lx, float y, float s)
+    public static void drawTime(float[] model, float[] tint, Blend blend, string key, int time, float lx, float y, float s)
     {
         int n = time;
         if (n < 0)

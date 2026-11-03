@@ -136,7 +136,7 @@ public class Particle : Actor
         model = parent1;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
         linePoint.drawWithSpectrumColor(model, tint, blend, key + "-drawWithSpectrumColor-1");
@@ -163,7 +163,7 @@ public class ParticlePool
         pool.move_0();
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         pool.draw(model, tint, blend, key, target);
     }
@@ -326,7 +326,7 @@ public class ConnectedParticle : Actor
         model = parent1;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         if (!((prevParticle) != null) || !(prevParticle.exists))
             return;
@@ -339,7 +339,7 @@ public class ConnectedParticle : Actor
         part2.Vertex(0, 0, 0, tint);
         part2.Vertex(prevParticle.pos().x - _pos.x, prevParticle.pos().y - _pos.y, prevParticle.pos().z - _pos.z, tint);
         for (int vi = 0; vi + 1 < part2.vertexCount; vi += 2) part2.Line(vi, vi + 1);
-        if (part2.count > 0) Gfx.Draw(part2.count, part2.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+        if (part2.count > 0) Gfx.Draw(part2.count, part2.Bindings(model, tint, 1),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
         model = parent1;
     }
@@ -383,7 +383,7 @@ public class ConnectedParticlePool
         pool.move_0();
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         pool.draw(model, tint, blend, key, target);
     }
@@ -534,7 +534,7 @@ public class TailParticle : Actor
         model = parent1;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
         linePoint.drawWithSpectrumColor(model, tint, blend, key + "-drawWithSpectrumColor-1");
@@ -561,7 +561,7 @@ public class TailParticlePool
         pool.move_0();
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         pool.draw(model, tint, blend, key, target);
     }
@@ -628,7 +628,7 @@ public class StarParticle : Actor
             exists = false;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         Mesh mesh = target;
         mesh.Vertex(pos.x, pos.y, pos.z, tint);
@@ -656,7 +656,7 @@ public class StarParticlePool
         pool.move_0();
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         pool.draw(model, tint, blend, key, target);
     }
@@ -728,7 +728,7 @@ public class NumIndicator : Actor
             exists = false;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         if (num2 <= 1)
         {
@@ -766,7 +766,7 @@ public class NumIndicatorPool
         pool.move_0();
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         pool.draw(model, tint, blend, key, target);
     }
