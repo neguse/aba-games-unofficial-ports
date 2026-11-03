@@ -1,6 +1,7 @@
 // Copyright 2004 Kenta Cho. Some rights reserved.
 using System;
 using System.Collections.Generic;
+using TinySystem.Text;
 
 public static class PadDir
 {
@@ -103,7 +104,7 @@ public class PadRecord
 
     public bool decode(string text)
     {
-        if (text.Length == 0 || text.Length > 32000000 || text.Substring(text.Length - 1) != ";")
+        if (text == "" || new Utf8Bytes(text).Length > 32000000 || !text.EndsWith(";"))
             return false;
         string[] rows = text.Split(";");
         data.Clear();
@@ -156,13 +157,14 @@ public class ReplayData
         if ((p.Length != 5) || (p[0] != "1" && p[0] != "2"))
             return false;
         string seedText = p[1];
-        if (seedText.Length == 0 || seedText.Length > 11) return false;
-        bool negative = seedText.Substring(0, 1) == "-";
+        var seedBytes = new Utf8Bytes(seedText);
+        if (seedBytes.Length == 0 || seedBytes.Length > 11) return false;
+        bool negative = seedBytes[0] == '-';
         int first = negative ? 1 : 0;
-        if (first == seedText.Length) return false;
+        if (first == seedBytes.Length) return false;
         int s = 0;
-        for (int i = first; i < seedText.Length; i++) {
-            int digit = "0123456789".IndexOf(seedText.Substring(i, 1));
+        for (int i = first; i < seedBytes.Length; i++) {
+            int digit = seedBytes[i] >= '0' && seedBytes[i] <= '9' ? seedBytes[i] - '0' : -1;
             if (digit < 0 || s < -214748364 || (s == -214748364 && digit > (negative ? 8 : 7))) return false;
             s = s * 10 - digit;
         }

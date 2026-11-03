@@ -132,7 +132,7 @@ public class BonusPool
     }
 }
 
-public class Bonus : Actor
+public class Bonus : Actor<Bonus>
 {
     public Vector3 Pos = new Vector3();
     public Vector3 Vel = new Vector3();
@@ -202,7 +202,7 @@ public void SetId(int value){storedId=value;}
         };
     }
 
-    public Actor CopyActor()
+    public Bonus CopyActor()
     {
         return Copy();
     }

@@ -91,7 +91,7 @@ public static class MmPreference
             text += record.Scores[i].ToString();
         }
 
-        if (Host.Available())
-            Host.Send("scores.save", text);
+        if (FrameHost.Available())
+            FrameHost.Send("scores.save", text);
     }
 }

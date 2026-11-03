@@ -38,15 +38,13 @@ public sealed class Canvas
     {
         shader = Gfx.UseShader("collection-panel", shaderText, shaderText, 1);
         if (shader == null) return;
-        Gfx.Draw(6,new Dictionary<string,object> {
-            ["screen"] = texture,
-            ["uniforms"] = new Dictionary<string,object> {
-                ["r0"] = matrix[0..4].ToList(), ["r1"] = matrix[4..8].ToList(),
-                ["r2"] = matrix[8..12].ToList(), ["r3"] = matrix[12..16].ToList(),
-                ["tint"] = new List<float>{(rgba>>24)/255f,((rgba>>16)&255)/255f,((rgba>>8)&255)/255f,(rgba&255)/255f},
-                ["options"] = new List<float>{width,height,z,linear?1:0}
-            }
-        },new DrawOpts{Shader=shader,Depth=false,DepthWrite=false,Cull=Gfx.Cull.None,Blend=Gfx.Blend.Alpha});
+        var bindings = new Bindings();
+        bindings.Set("screen", texture);
+        bindings.Set("r0", matrix[0..4].ToList()); bindings.Set("r1", matrix[4..8].ToList());
+        bindings.Set("r2", matrix[8..12].ToList()); bindings.Set("r3", matrix[12..16].ToList());
+        bindings.Set("tint", new List<float>{(rgba>>24)/255f,((rgba>>16)&255)/255f,((rgba>>8)&255)/255f,(rgba&255)/255f});
+        bindings.Set("options", new List<float>{width,height,z,linear?1:0});
+        Gfx.Draw(6,bindings,new DrawOpts{Shader=shader,Depth=false,DepthWrite=false,Cull=Gfx.Cull.None,Blend=Gfx.Blend.Alpha});
     }
     public void Recenter() => anchor.Reset();
     public void Present(TextureRef texture, int width, int height, bool immersive)

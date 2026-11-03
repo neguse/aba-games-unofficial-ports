@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-revision=2d0084a619a746c22942658a883977fcb7475fb9
+revision=88c9d86559195aa0dfc3c20c63a9ca1e1e4fa01e
 directory=.cache/lub
 mkdir -p .cache
 if [[ ! -d "$directory/.git" ]]; then

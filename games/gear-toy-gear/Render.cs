@@ -14,7 +14,7 @@ public static class GtgRender
     static readonly PassOpts passOpts = new() { ClearColor = new float[4] };
     static readonly DrawOpts outputOptions = new() { Depth = false, Blend = Gfx.Blend.None, Cull = Gfx.Cull.None };
     static readonly PassOpts outputPass = new();
-    static readonly Dictionary<string, object> outputBindings = new();
+    static readonly Bindings outputBindings = new();
     static string outputSource;
     static readonly List<TextureRef> layerTargets = new();
     static ShaderRef shader, layerShader;
@@ -117,14 +117,14 @@ public static class GtgRender
         command.MeshKey = key;
         command.Geometry = shape.Geometry;
         command.Count = primitives * 3;
-        command.Options.InstanceCount = instances;
+        command.Instances = instances;
         if (used < 2) return;
         var previous = commands[used - 2];
         if (previous.Pass != command.Pass || previous.Geometry != command.Geometry || previous.Count != command.Count ||
             previous.Options.Depth != command.Options.Depth) return;
         for (int i = 0; i < 132; i++) if (previous.Data[i] != command.Data[i]) return;
         for (int i = 132; i < command.Data.Count; i++) previous.Data.Add(command.Data[i]);
-        previous.Options.InstanceCount += instances;
+        previous.Instances += instances;
         used--;
     }
     public static void Composite(GtgFrame frame)
@@ -135,7 +135,7 @@ public static class GtgRender
             command.MeshKey = "fullscreen";
             command.Geometry = fullscreen;
             command.Count = 3;
-            command.Options.InstanceCount = 1;
+            command.Instances = 1;
         }
     }
     public static void Present(XrView left, XrView right)
@@ -154,8 +154,8 @@ public static class GtgRender
         for (int i = 0; i < used; i++)
         {
             var command = commands[i];
-            command.Bindings["vertices"] = Gfx.UseBuffer(command.MeshKey, Gfx.BufferType.Storage, command.Geometry, 1);
-            command.Bindings["parameters"] = Gfx.UseBuffer(command.Key, Gfx.BufferType.Storage, command.Data, version);
+            command.Bindings.Set("vertices", Gfx.UseBuffer(command.MeshKey, Gfx.BufferType.Storage, command.Geometry, 1));
+            command.Bindings.Set("parameters", Gfx.UseBuffer(command.Key, Gfx.BufferType.Storage, command.Data, version));
         }
         for (int eye = 0; eye < (immersive ? 2 : 1); eye++)
         {
@@ -195,17 +195,17 @@ public static class GtgRender
                 {
                     var command = commands[i];
                     if (command.Pass != layer) continue;
-                    command.Bindings["eye"] = eyeBuffer;
-                    command.Bindings["surface"] = command.Mode == 6 ? edge : command.Mode == 7 ? bloom : blank;
-                    command.Bindings["surfaceAlpha"] = command.Mode == 6 ? edgeAlpha : command.Mode == 7 ? bloomAlpha : blank;
-                    Gfx.Draw(command.Count, command.Bindings, command.Options);
+                    command.Bindings.Set("eye", eyeBuffer);
+                    command.Bindings.Set("surface", command.Mode == 6 ? edge : command.Mode == 7 ? bloom : blank);
+                    command.Bindings.Set("surfaceAlpha", command.Mode == 6 ? edgeAlpha : command.Mode == 7 ? bloomAlpha : blank);
+                    Gfx.Draw(command.Count, command.Bindings, command.Options, command.Instances);
                 }
                 Gfx.EndPass();
             }
             if (!immersive) continue;
             outputPass.Target = view.Target;
             Gfx.BeginPass(outputPass);
-            outputBindings["scene"] = scene;
+            outputBindings.Set("scene", scene);
             Gfx.Draw(3, outputBindings, outputOptions);
             Gfx.EndPass();
         }
@@ -216,7 +216,8 @@ sealed class GtgDrawCommand
 {
     public readonly string Key;
     public readonly List<float> Data = new();
-    public readonly Dictionary<string, object> Bindings = new();
+    public readonly Bindings Bindings = new();
+    public int Instances;
     public readonly DrawOpts Options = new() { Cull = Gfx.Cull.None, Blend = Gfx.Blend.Alpha };
     public List<float> Geometry;
     public string MeshKey;

@@ -2,6 +2,7 @@
 using System;
 using static GameMath;
 using Lub;
+using TinySystem.Text;
 public class Title {
   public Mesh logo;
 
@@ -162,9 +163,9 @@ public class Title {
 
   public void draw(float[] model, float[] color, Gfx.Blend blend) {
     int sx=0, sy=0;
-    LetterRender.drawString(model, color, blend, DIFFICULTY_STR[curY], 470 - DIFFICULTY_STR[curY].Length * 14, 150,
+    LetterRender.drawString(model, color, blend, DIFFICULTY_STR[curY], 470 - new Utf8Bytes(DIFFICULTY_STR[curY]).Length * 14, 150,
        10, LetterRender.TO_RIGHT);
-    LetterRender.drawString(model, color, blend, MODE_STR[mode], 470 - MODE_STR[mode].Length * 14, 450,
+    LetterRender.drawString(model, color, blend, MODE_STR[mode], 470 - new Utf8Bytes(MODE_STR[mode]).Length * 14, 450,
        10, LetterRender.TO_RIGHT);
     if (curX > 0) {
       LetterRender.drawString(model, color, blend, "START AT PARSEC", 290, 180, 6, LetterRender.TO_RIGHT);

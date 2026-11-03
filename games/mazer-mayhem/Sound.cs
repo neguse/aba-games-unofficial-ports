@@ -26,8 +26,8 @@ public class Sound
         if (fadeoutCnt > 0)
         {
             fadeoutCnt = System.Math.Max(0, fadeoutCnt - SimulationTime.Step);
-            if (Host.Available())
-                Host.Send("music.volume", (fadeoutCnt / 120f).ToString());
+            if (FrameHost.Available())
+                FrameHost.Send("music.volume", (fadeoutCnt / 120f).ToString());
             if (fadeoutCnt == 0)
                 StopBgm();
         }
@@ -38,14 +38,14 @@ public class Sound
         StopBgm();
         fadeoutCnt = -1;
         int index = name == "Mm1" ? 0 : name == "Mm2" ? 1 : 2;
-        if (Host.Available())
-            Host.Send("music.loop", index.ToString());
+        if (FrameHost.Available())
+            FrameHost.Send("music.loop", index.ToString());
     }
 
     public void StopBgm()
     {
-        if (Host.Available())
-            Host.Send("music.stop", "");
+        if (FrameHost.Available())
+            FrameHost.Send("music.stop", "");
     }
 
     public void FadeoutBgm()
@@ -56,7 +56,7 @@ public class Sound
     public void PlaySe(string name)
     {
         for (int i = 0; i < names.Length; i++)
-            if (names[i] == name && Host.Available())
-                Host.Send("sound.play", i.ToString());
+            if (names[i] == name && FrameHost.Available())
+                FrameHost.Send("sound.play", i.ToString());
     }
 }

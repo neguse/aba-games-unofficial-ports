@@ -2,6 +2,7 @@
 using System;
 using static GameMath;
 using Lub;
+using TinySystem.Text;
 public class MobileLetter: Actor {
   public bool isExist;
   public bool getExist() { return isExist; }
@@ -105,8 +106,9 @@ public class MobileLetterPool {
     int color = col;
     if (col < 0)
       rand.setSeed(-col);
-    for (int letterIndex = 0; letterIndex < str.Length; letterIndex++) {
-      string c = str.Substring(letterIndex, 1);
+    var strBytes = new Utf8Bytes(str);
+    for (int letterIndex = 0; letterIndex < strBytes.Length; letterIndex++) {
+      string c = AsciiText.At(strBytes, letterIndex);
       MobileLetter ml = (MobileLetter) getInstance();
       if (ml == null)
 	return;

@@ -284,7 +284,7 @@ public class Player
     }
 }
 
-public class PlayerData : ActorCopy
+public class PlayerData : ActorCopy<PlayerData>
 {
     public Vector3 Pos = new Vector3();
     public float Scale;
@@ -301,7 +301,7 @@ public class PlayerData : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public PlayerData CopyActor()
     {
         return Copy();
     }

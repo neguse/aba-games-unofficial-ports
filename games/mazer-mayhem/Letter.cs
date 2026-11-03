@@ -1,6 +1,7 @@
 // Copyright 2008 Kenta Cho. Some rights reserved.
 using System;
 using System.Collections.Generic;
+using TinySystem.Text;
 
 public class Letter
 {
@@ -13,11 +14,12 @@ public class Letter
     public static float DrawQuadListShapestringfloatfloatfloat(QuadListShape shape, string s, float x, float y, float sz)
     {
         float lsz = 0;
-        for (int letterIndex = 0; letterIndex < s.Length; letterIndex++)
+        var sBytes = new Utf8Bytes(s);
+        for (int letterIndex = 0; letterIndex < sBytes.Length; letterIndex++)
         {
-            if (s.Substring(letterIndex, 1) != " ")
+            if (AsciiText.At(sBytes, letterIndex) != " ")
             {
-                int ci = ConvertCharToInt(s.Substring(letterIndex, 1));
+                int ci = ConvertCharToInt(AsciiText.At(sBytes, letterIndex));
                 lsz = 0.75f + (ci * 14992 % 50) * 0.01f;
                 lsz *= sz;
                 x += lsz;
@@ -91,7 +93,7 @@ public class Letter
 
     public static int ConvertCharToInt(string c)
     {
-        int index = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ._-+??!/".IndexOf(c.ToUpper());
+        int index = AsciiText.IndexOf("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ._-+??!/", c.ToUpper());
         return index < 0 ? 0 : index;
     }
 }

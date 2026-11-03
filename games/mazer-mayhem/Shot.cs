@@ -162,7 +162,7 @@ public class ShotPool
     }
 }
 
-public class Shot : Actor
+public class Shot : Actor<Shot>
 {
     public Vector3 Pos = new Vector3();
     public Vector2 Pos2 = new Vector2();
@@ -234,7 +234,7 @@ public void SetId(int value){storedId=value;}
         };
     }
 
-    public Actor CopyActor()
+    public Shot CopyActor()
     {
         return Copy();
     }

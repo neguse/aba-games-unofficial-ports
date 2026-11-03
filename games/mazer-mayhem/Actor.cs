@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class ActorPool<T>
-    where T : class, Actor
+    where T : class, Actor<T>
 {
     public T[] actors;
     public int actorNum, actorIdx;
@@ -22,7 +22,7 @@ public class ActorPool<T>
     {
         if (actorNum >= actors.Length)
             return -1;
-        actors[(actorNum)] = (T)a.CopyActor();
+        actors[(actorNum)] = a.CopyActor();
         actors[(actorNum)].SetId(actorNum);
         isRemoved[(actorNum)] = false;
         actorNum++;
@@ -35,7 +35,7 @@ public class ActorPool<T>
         if (id >= 0)
             return id;
         id = actorIdx;
-        actors[(id)] = (T)a.CopyActor();
+        actors[(id)] = a.CopyActor();
         actors[(id)].SetId(id);
         isRemoved[(id)] = false;
         actorIdx++;
@@ -86,7 +86,7 @@ public class ActorPool<T>
                     continue;
                 }
 
-                actors[(i)] = (T)actors[(j)].CopyActor();
+                actors[(i)] = actors[(j)].CopyActor();
                 actors[(i)].SetId(i);
                 isRemoved[(i)] = false;
                 if (idListener != null)
@@ -108,7 +108,7 @@ public class ActorPool<T>
 
     public T Get(int idx)
     {
-        return (T)actors[(idx)].CopyActor();
+        return actors[(idx)].CopyActor();
     }
 
     public int Length()
@@ -145,9 +145,9 @@ public interface IActorIdListener
     void OnIdChanged(int before, int after);
 }
 
-public interface Actor
+public interface Actor<T>
 {
-    Actor CopyActor();
+    T CopyActor();
     int GetId();
     void SetId(int value);
 }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using static GameMath;
 using Lub;
+using TinySystem.Text;
 
 public class TitleManager
 {
@@ -312,7 +313,7 @@ public class TitleManager
             }
         }
 
-        Letter.drawString(model, tint, blend, cull, lineWidth, Ship.GRADE_STR[grade], 560 - Ship.GRADE_STR[grade].Length * 19, 4, 9);
+        Letter.drawString(model, tint, blend, cull, lineWidth, Ship.GRADE_STR[grade], 560 - new Utf8Bytes(Ship.GRADE_STR[grade]).Length * 19, 4, 9);
         Letter.drawNum(model, tint, blend, cull, lineWidth, level, 620, 10, 6);
         Letter.drawString(model, tint, blend, cull, lineWidth, "LV", 570, 10, 6);
         GradeData gd = prefManager.prefData.getGradeData(grade);

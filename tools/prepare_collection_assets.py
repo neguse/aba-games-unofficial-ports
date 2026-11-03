@@ -199,7 +199,7 @@ project=E.Element('Project',Sdk='Microsoft.NET.Sdk'); props=E.SubElement(project
 for k,v in {'TargetFramework':'net10.0','AssemblyName':'AbaGame','EnableDefaultCompileItems':'false','ImplicitUsings':'enable','InvariantGlobalization':'true','GenerateDependencyFile':'true'}.items(): E.SubElement(props,k).text=v
 refs=E.SubElement(project,'ItemGroup')
 for source in [root/'lub/dotnet/Lub/Lub.csproj',root/'lub/third_party/tcs/TinySystem/TinySystem.csproj']: E.SubElement(refs,'ProjectReference',Include=str(source))
-shared=[root/'game'/n for n in ['Scene.cs','Standalone.cs','GameInput.cs','GameAudio.cs','GameSave.cs']]+[root/'lub/cs-lib/lubx'/n for n in ['Assets.cs','Atlas.cs','Color.cs','Rect.cs','SpriteBatch.cs','Text.cs']]
+shared=[root/'game'/n for n in ['Scene.cs','Standalone.cs','AsciiText.cs','GameInput.cs','GameAudio.cs','GameSave.cs']]+[root/'lub/cs-lib/lubx'/n for n in ['Assets.cs','Atlas.cs','Color.cs','Rect.cs','SpriteBatch.cs','Text.cs']]+[root/'lub/cs-lib/lub'/n for n in ['Math.cs','Bindings.cs']]
 for source in [*sorted((root/'games/masashikun-hi').glob('*.cs')),*sorted((root/'build/masashikun-hi').glob('*.cs')),*shared,shader]: E.SubElement(refs,'Compile',Include=str(source))
 proj=root/'build/Masashikun.csproj'; E.ElementTree(project).write(proj,encoding='unicode')
 out=root/'publish'; target=out/'games/masashikun-hi'

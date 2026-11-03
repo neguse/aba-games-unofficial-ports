@@ -23,6 +23,7 @@ using static RrScreen;
 using static RrLetter;
 using static RrAngles;
 using static RrVector;
+using TinySystem.Text;
 
 public static class RrAttract
 {
@@ -138,7 +139,7 @@ public static class RrAttract
     public static string stageStr = "1A";
     public static void makeStageStr(int stg)
     {
-        stageStr = "1234567890".Substring(GameMath.integer(GameMath.integer(stg / 4)), 1) + "ABCR".Substring(stg % 4, 1);
+        stageStr = AsciiText.At(new Utf8Bytes("1234567890"), GameMath.integer(GameMath.integer(stg / 4))) + AsciiText.At(new Utf8Bytes("ABCR"), stg % 4);
     }
 
     public static void initGameStateFirst()

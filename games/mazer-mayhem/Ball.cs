@@ -535,7 +535,7 @@ public class BallPool : IActorIdListener
     }
 }
 
-public class Ball : Actor
+public class Ball : Actor<Ball>
 {
     public CircleParticle State = new CircleParticle();
     public float BaseRadius;
@@ -658,7 +658,7 @@ public void SetId(int value){storedId=value;}
         };
     }
 
-    public Actor CopyActor()
+    public Ball CopyActor()
     {
         return Copy();
     }

@@ -38,7 +38,7 @@ public class Sound
     public int index;
     public void loadSound(string name)
     {
-        index = GameMath.integer("bgm1.ogg,bgm2.ogg,bgm3.ogg".IndexOf(name) / 9);
+        index = name == "bgm2.ogg" ? 1 : name == "bgm3.ogg" ? 2 : 0;
     }
 
     public void loadChunk(string name, int channel)

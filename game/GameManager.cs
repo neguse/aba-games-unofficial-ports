@@ -2,6 +2,7 @@
 using System;
 using static GameMath;
 using Lub;
+using TinySystem.Text;
 public class GameManager {
 
   public bool nowait = false;
@@ -179,7 +180,7 @@ public class GameManager {
     bossTimer = BOSSTIMER_FREEZED;
     bossDstCnt = -1;
     letters.add("STAGE " + (stage + 1).ToString(), 180, 150, 24, 240, -4);
-    letters.add(stageMessage[stage], 320 - stageMessage[stage].Length * 10, 270, 10, 240, -2);
+    letters.add(stageMessage[stage], 320 - new Utf8Bytes(stageMessage[stage]).Length * 10, 270, 10, 240, -2);
     int si = stage % (SoundManager.STAGE_BGM_NUM * 2 - 1);
     if (si >= SoundManager.STAGE_BGM_NUM)
       si = SoundManager.STAGE_BGM_NUM * 2 - si - 2;

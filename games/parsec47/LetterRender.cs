@@ -2,6 +2,7 @@
 using System;
 using static GameMath;
 using Lub;
+using TinySystem.Text;
 public class LetterRender {
 
   public static Mesh[] meshes = new Mesh[LETTER_NUM * 2];
@@ -51,10 +52,11 @@ public class LetterRender {
       ld = 270;
       break;
     }
-    for (int index0 = 0; index0 < str.Length; index0++) {
-      c = str.Substring(index0, 1);
+    var strBytes = new Utf8Bytes(str);
+    for (int index0 = 0; index0 < strBytes.Length; index0++) {
+      c = AsciiText.At(strBytes, index0);
       if (c != " ") {
-        idx = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ._-+".IndexOf(c.ToUpper());
+        idx = AsciiText.IndexOf("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ._-+", c.ToUpper());
         if (idx < 0) idx = 37;
 	drawLetter_5(model, color, blend, idx, x, y, s, ld);
       }

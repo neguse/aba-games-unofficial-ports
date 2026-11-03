@@ -183,9 +183,8 @@ public static class RrScreen
         model = Transform.Scale(model, size, size, 1);
         tint = new float[] { (r & 255) / 255f, (g & 255) / 255f, (b & 255) / 255f, 1 };
         var bindings = sprites[texture].Bindings(model, tint);
-        bindings["image"] = Game.atlas;
-        var uniforms = (Dictionary<string, object>)bindings["uniforms"];
-        uniforms["options"] = new float[] { 1, 0, 0, 2 };
+        bindings.Set("image", Game.atlas);
+        bindings.Set("options", new float[] { 1, 0, 0, 2 });
         Gfx.Draw(sprites[texture].count, bindings, new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
@@ -691,9 +690,8 @@ public static class RrScreen
         }
         tint = new float[] { 1, 1, 1, 1 };
         var bindings = sprites[texture].Bindings(model, tint);
-        bindings["image"] = Game.atlas;
-        var uniforms = (Dictionary<string, object>)bindings["uniforms"];
-        uniforms["options"] = new float[] { 1, 0, 0, 2 };
+        bindings.Set("image", Game.atlas);
+        bindings.Set("options", new float[] { 1, 0, 0, 2 });
         Gfx.Draw(sprites[texture].count, bindings, new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
         tint = new float[] { (200 & 255) / 255f, (200 & 255) / 255f, (200 & 255) / 255f, blend == Gfx.Blend.None ? 1 : (255 & 255) / 255f };
         var part1 = new Mesh(key + "-1");

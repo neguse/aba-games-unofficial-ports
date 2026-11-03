@@ -1,6 +1,7 @@
 // Copyright (C) 2000 Kenta Cho. SPDX-License-Identifier: GPL-2.0-or-later
 // TinyC# browser adaptation (2026-09-24).
 using System;
+using TinySystem.Text;
 
 public static class MasArrays
 {
@@ -81,12 +82,13 @@ public static class MasMath
     {
         bool negative = text.StartsWith("-");
         int start = negative ? 1 : 0;
-        if (text.Length <= start || text.Length > 10)
+        var bytes = new Utf8Bytes(text);
+        if (bytes.Length <= start || bytes.Length > 10)
             return 0;
         int value = 0;
-        for (int i = start; i < text.Length; i++)
+        for (int i = start; i < bytes.Length; i++)
         {
-            int d = "0123456789".IndexOf(text.Substring(i, 1));
+            int d = bytes[i] >= '0' && bytes[i] <= '9' ? bytes[i] - '0' : -1;
             if (d < 0 || value > 214748364 || (value == 214748364 && d > 7))
                 return 0;
             value = value * 10 + d;
@@ -100,31 +102,20 @@ public static class MasText
 {
     public static string[] Split(string text, string delimiter)
     {
-        var pieces = new System.Collections.Generic.List<string>();
-        int start = 0;
-        for (int i = 0; i < text.Length; i++)
-            if (text.Substring(i, 1) == delimiter)
-            {
-                pieces.Add(text.Substring(start, i - start));
-                start = i + 1;
-            }
-
-        pieces.Add(text.Substring(start));
-        string[] result = new string[pieces.Count];
-        for (int i = 0; i < pieces.Count; i++)
-            result[i] = pieces[i];
-        return result;
+        return text.Split(delimiter);
     }
 
     public static int[] Codes(string text)
     {
         var values = new System.Collections.Generic.List<int>();
-        for (int i = 0; i < text.Length; i++)
+        // UTF-8 の byte を読み、半角カナ (EF で始まる 3 byte) だけを 1 つの code point にまとめる。
+        var bytes = new Utf8Bytes(text);
+        for (int i = 0; i < bytes.Length; i++)
         {
-            int c = (int)text[i];
-            if (c == 239 && i + 2 < text.Length)
+            int c = bytes[i];
+            if (c == 239 && i + 2 < bytes.Length)
             {
-                int b = (int)text[i + 1], d = (int)text[i + 2];
+                int b = bytes[i + 1], d = bytes[i + 2];
                 c = ((c & 15) << 12) | ((b & 63) << 6) | (d & 63);
                 i += 2;
             }

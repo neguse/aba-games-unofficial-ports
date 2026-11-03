@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using static GameMath;
 using Lub;
+using TinySystem.Text;
 
 public class Letter
 {
@@ -136,8 +137,10 @@ public class Letter
         }
 
         ld = ld + (od);
-        foreach (char c in str)
+        var strBytes = new Utf8Bytes(str);
+        for (int ci = 0; ci < strBytes.Length; ci++)
         {
+            char c = (char)strBytes[ci];
             if (c != ' ')
             {
                 idx = convertCharToInt(c);

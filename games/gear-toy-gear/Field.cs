@@ -36,7 +36,7 @@ public class Field
     }
 }
 
-public class Tube : ActorCopy
+public class Tube : ActorCopy<Tube>
 {
     public const float Radius = 100;
     public const float Height = 15;
@@ -90,7 +90,7 @@ public class Tube : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public Tube CopyActor()
     {
         return Copy();
     }

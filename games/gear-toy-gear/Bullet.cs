@@ -109,7 +109,7 @@ public class BulletPool
     }
 }
 
-public class Bullet : ActorCopy
+public class Bullet : ActorCopy<Bullet>
 {
     public Vector3 Pos = new Vector3();
     public float Scale;
@@ -128,7 +128,7 @@ public class Bullet : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public Bullet CopyActor()
     {
         return Copy();
     }

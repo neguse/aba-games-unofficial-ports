@@ -2,6 +2,7 @@
 using System;
 using static GameMath;
 using Lub;
+using TinySystem.Text;
 
 public class LetterRender
 {
@@ -49,15 +50,16 @@ public class LetterRender
     public static void drawString(float[] model, float[] tint, Gfx.Blend blend, string str, float lx, float y, float s)
     {
         float x = lx;
-        for (int i = 0; i < str.Length; i++)
+        var strBytes = new Utf8Bytes(str);
+        for (int i = 0; i < strBytes.Length; i++)
         {
-            string c = str.Substring(i, 1);
+            string c = AsciiText.At(strBytes, i);
             if (c != " ")
             {
-                int idx = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ._-+".IndexOf(c);
+                int idx = AsciiText.IndexOf("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ._-+", c);
                 if (idx < 0)
                 {
-                    idx = "abcdefghijklmnopqrstuvwxyz".IndexOf(c);
+                    idx = AsciiText.IndexOf("abcdefghijklmnopqrstuvwxyz", c);
                     idx = idx < 0 ? 37 : idx + 10;
                 }
 

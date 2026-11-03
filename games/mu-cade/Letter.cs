@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using static GameMath;
 using Lub;
+using TinySystem.Text;
 
 public class Letter
 {
@@ -83,9 +84,9 @@ public class Letter
     }
 
     public static int convertCharToInt(string c){
-        int idx="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ._-+??!/".IndexOf(c);
+        int idx=AsciiText.IndexOf("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ._-+??!/", c);
         if(idx>=0)return idx;
-        idx="abcdefghijklmnopqrstuvwxyz".IndexOf(c);
+        idx=AsciiText.IndexOf("abcdefghijklmnopqrstuvwxyz", c);
         return idx>=0?idx+10:0;
     }
 
@@ -113,9 +114,10 @@ public class Letter
         }
 
         ld += od;
-        for(int character=0;character<str.Length;character++)
+        var strBytes = new Utf8Bytes(str);
+        for(int character=0;character<strBytes.Length;character++)
         {
-            string c=str.Substring(character,1);
+            string c=AsciiText.At(strBytes,character);
             if (c != " ")
             {
                 idx = convertCharToInt(c);

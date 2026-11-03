@@ -1,7 +1,7 @@
 using System;
 
 public class ActorPool<T>
-    where T : class, ActorCopy
+    where T : class, ActorCopy<T>
 {
     public T[] Actors;
     private int actorCount;
@@ -26,7 +26,7 @@ public class ActorPool<T>
     {
         if (actorCount >= Actors.Length)
             return -1;
-        Actors[(actorCount)] = (T)a.CopyActor();
+        Actors[(actorCount)] = a.CopyActor();
         actorCount++;
         return actorCount - 1;
     }
@@ -34,7 +34,7 @@ public class ActorPool<T>
     public void Remove(int index)
     {
         actorCount--;
-        Actors[(index)] = (T)Actors[(actorCount)].CopyActor();
+        Actors[(index)] = Actors[(actorCount)].CopyActor();
     }
 
     public void Update()
@@ -71,7 +71,7 @@ public class ActorPool<T>
 
     public T Get(int i)
     {
-        return (T)Actors[(i)].CopyActor();
+        return Actors[(i)].CopyActor();
     }
 
     public int Count
@@ -105,7 +105,7 @@ public class ActorPool<T>
     }
 }
 
-public interface ActorCopy
+public interface ActorCopy<T>
 {
-    ActorCopy CopyActor();
+    T CopyActor();
 }

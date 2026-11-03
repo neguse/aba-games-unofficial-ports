@@ -1,5 +1,5 @@
 Texture2D<float4> image;
-cbuffer Params : register(b0) { column_major float4x4 model; float4 tint; float4 options; float4 imageInfo; };
+cbuffer Params : register(b0) { column_major float4x4 model; float4 tint; float4 options; float4 imageInfo; float4 viewport; };
 float4 titlePixel(int2 p, int2 size, int offset) {
     p = (p % size + size) % size;
     return image.Load(int3(p.x, p.y + offset, 0));

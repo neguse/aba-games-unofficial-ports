@@ -29,7 +29,7 @@ public static class PatternRunner
     {
         scripts.Clear();
         foreach (int program in BarrageCode.Roots(pattern))
-            scripts.Add(BarrageCode.Create(program, new float[2]));
+            scripts.Add(BarrageCode.Create(program, new float[BarrageCode.ParameterCount]));
     }
 
     public static void Run(List<PatternState> scripts, PatternBody body, PatternWorld world)

@@ -11,7 +11,7 @@
   <ItemGroup>
     <Compile Remove="MucadePhysics.cs" />
     <ProjectReference Include="$(LubRoot)/dotnet/Lub/Lub.csproj" />
-    <Compile Include="$(LubRoot)/cs-lib/lubx/Color.cs;$(LubRoot)/cs-lib/lubx/MeshText.cs;$(LubRoot)/cs-lib/lubx/XrAnchor.cs" />
+    <Compile Include="$(LubRoot)/cs-lib/lubx/Color.cs;$(LubRoot)/cs-lib/lubx/MeshText.cs;$(LubRoot)/cs-lib/lubx/XrAnchor.cs;$(LubRoot)/cs-lib/lub/Math.cs;$(LubRoot)/cs-lib/lub/Bindings.cs" />
     <EmbeddedResource Include="catalog.json" LogicalName="Aba.Catalog.json" />
     <Content Include="collection.slang;run.sh" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(LubRoot)/samples/data/fonts/MPLUS1p-subset.ttf" Link="font.ttf" CopyToOutputDirectory="PreserveNewest" />

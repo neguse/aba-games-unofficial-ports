@@ -1,4 +1,5 @@
 using System;
+using TinySystem.Text;
 
 public class SimulationClock
 {
@@ -67,30 +68,27 @@ public static class SimulationTime
         => Math.Floor(time / period) != Math.Floor((time + Step) / period);
     public static float ParseStep(string text)
     {
-        if (text.Length == 0 || text.Length > 24) return -1;
+        var bytes = new Utf8Bytes(text);
+        if (bytes.Length == 0 || bytes.Length > 24) return -1;
         bool dot = false, digitSeen = false;
         int i = 0;
-        for (; i < text.Length; i++)
+        for (; i < bytes.Length; i++)
         {
-            string c = text.Substring(i, 1);
-            if (c == "E" || c == "e") break;
-            if (c == "." && !dot) { dot = true; continue; }
-            int digit = "0123456789".IndexOf(c);
-            if (digit < 0) return -1;
+            byte c = bytes[i];
+            if (c == 'E' || c == 'e') break;
+            if (c == '.' && !dot) { dot = true; continue; }
+            if (c < '0' || c > '9') return -1;
             digitSeen = true;
         }
         if (!digitSeen) return -1;
-        if (i < text.Length)
+        if (i < bytes.Length)
         {
             i++;
-            if (i >= text.Length || text.Substring(i, 1) != "-") return -1;
+            if (i >= bytes.Length || bytes[i] != '-') return -1;
             i++;
-            if (i >= text.Length || text.Length - i > 2) return -1;
-            for (; i < text.Length; i++)
-            {
-                int digit = "0123456789".IndexOf(text.Substring(i, 1));
-                if (digit < 0) return -1;
-            }
+            if (i >= bytes.Length || bytes.Length - i > 2) return -1;
+            for (; i < bytes.Length; i++)
+                if (bytes[i] < '0' || bytes[i] > '9') return -1;
         }
         return float.Parse(text);
     }

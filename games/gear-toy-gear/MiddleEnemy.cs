@@ -352,7 +352,7 @@ public class MiddleEnemyPool
     }
 }
 
-public class MiddleEnemy : ActorCopy
+public class MiddleEnemy : ActorCopy<MiddleEnemy>
 {
     public MiddleEnemy()
     {
@@ -406,7 +406,7 @@ public class MiddleEnemy : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public MiddleEnemy CopyActor()
     {
         return Copy();
     }

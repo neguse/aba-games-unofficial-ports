@@ -35,8 +35,8 @@ public static class SoundManager
         if (i == prevBgmIdx)
             i = (i + 1) % TtData.musicCount;
         prevBgmIdx = i;
-        if (Host.Available())
-            Host.Send("music.loop", i.ToString());
+        if (FrameHost.Available())
+            FrameHost.Send("music.loop", i.ToString());
     }
 
     public static void nextBgm()
@@ -47,20 +47,20 @@ public static class SoundManager
         else if (i >= TtData.musicCount)
             i = 0;
         prevBgmIdx = i;
-        if (Host.Available())
-            Host.Send("music.loop", i.ToString());
+        if (FrameHost.Available())
+            FrameHost.Send("music.loop", i.ToString());
     }
 
     public static void fadeBgm()
     {
-        if (Host.Available())
-            Host.Send("music.fade", "");
+        if (FrameHost.Available())
+            FrameHost.Send("music.fade", "");
     }
 
     public static void haltBgm()
     {
-        if (Host.Available())
-            Host.Send("music.stop", "");
+        if (FrameHost.Available())
+            FrameHost.Send("music.stop", "");
     }
 
     public static void playSe(string name)
@@ -68,8 +68,8 @@ public static class SoundManager
         if (seDisabled)
             return;
         for (int i = 0; i < names.Length; i++)
-            if ((names[i] == name) && (Host.Available()))
-                Host.Send("sound.play", i.ToString());
+            if ((names[i] == name) && (FrameHost.Available()))
+                FrameHost.Send("sound.play", i.ToString());
     }
 
     public static void disableSe()

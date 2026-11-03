@@ -37,8 +37,8 @@ public class Sound
         if (fadeoutCnt > 0)
         {
             fadeoutCnt = Math.Max(0, fadeoutCnt - SimulationTime.Step);
-            if (Host.Available())
-                Host.Send("music.volume", (fadeoutCnt / 120f).ToString());
+            if (FrameHost.Available())
+                FrameHost.Send("music.volume", (fadeoutCnt / 120f).ToString());
             if (fadeoutCnt == 0)
                 StopBgm();
         }
@@ -49,14 +49,14 @@ public class Sound
         StopBgm();
         fadeoutCnt = -1;
         int index = name == "Gtg1" ? 0 : name == "Gtg2" ? 1 : 2;
-        if (Host.Available())
-            Host.Send("music.loop", index.ToString());
+        if (FrameHost.Available())
+            FrameHost.Send("music.loop", index.ToString());
     }
 
     public void StopBgm()
     {
-        if (Host.Available())
-            Host.Send("music.stop", "");
+        if (FrameHost.Available())
+            FrameHost.Send("music.stop", "");
     }
 
     public void FadeoutBgm()
@@ -67,8 +67,8 @@ public class Sound
     public void PlaySe(string name)
     {
         for (int i = 0; i < names.Length; i++)
-            if (names[(i)] == name && Host.Available())
-                Host.Send("sound.play", i.ToString());
+            if (names[(i)] == name && FrameHost.Available())
+                FrameHost.Send("sound.play", i.ToString());
     }
 }
 
@@ -106,8 +106,8 @@ public class Cue
     public void Apply3D(AudioListener listener, AudioEmitter emitter)
     {
         position = emitter.Position - listener.Position;
-        if (playing && Host.Available())
-            Host.Send("spatial.update", id.ToString() + "," + PositionText());
+        if (playing && FrameHost.Available())
+            FrameHost.Send("spatial.update", id.ToString() + "," + PositionText());
     }
 
     string PositionText()
@@ -120,14 +120,14 @@ public class Cue
         if (index < 0)
             return;
         playing = true;
-        if (Host.Available())
-            Host.Send("spatial.play", id.ToString() + "," + index.ToString() + "," + (index == 2 || index == 3 ? "1" : "0") + "," + PositionText());
+        if (FrameHost.Available())
+            FrameHost.Send("spatial.play", id.ToString() + "," + index.ToString() + "," + (index == 2 || index == 3 ? "1" : "0") + "," + PositionText());
     }
 
     public void Stop(AudioStopOptions options)
     {
         playing = false;
-        if (Host.Available())
-            Host.Send("spatial.stop", id.ToString());
+        if (FrameHost.Available())
+            FrameHost.Send("spatial.stop", id.ToString());
     }
 }

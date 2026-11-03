@@ -146,7 +146,7 @@ public class TurretPool
     }
 }
 
-public class Turret : ActorCopy
+public class Turret : ActorCopy<Turret>
 {
     public Vector3 Pos = new Vector3();
     public Vector3 TargetVel = new Vector3();
@@ -177,7 +177,7 @@ public class Turret : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public Turret CopyActor()
     {
         return Copy();
     }

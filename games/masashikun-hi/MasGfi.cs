@@ -2,6 +2,7 @@
 // TinyC# browser adaptation (2026-09-24).
 using System;
 using static MasMath;
+using TinySystem.Text;
 
 public static class MasGfi
 {
@@ -466,7 +467,7 @@ public static class MasGfi
                     else if (choice4 == 130)
                     {
                         s = ((dist * 13)).ToString();
-                        MasHira.sethira2(s, (400 - (s.Length * 50)), 200, 50, 160);
+                        MasHira.sethira2(s, (400 - (s.RuneCount() * 50)), 200, 50, 160);
                     }
                     else if (choice4 == 140)
                     {
@@ -481,7 +482,7 @@ public static class MasGfi
                                 sc = 20000;
                             MasMain.score[4] = sc;
                             s = (sc).ToString();
-                            MasHira.sethira2(s, (540 - (s.Length * 50)), 420, 50, 250);
+                            MasHira.sethira2(s, (540 - (s.RuneCount() * 50)), 420, 50, 250);
                             MasHira.sethira2("ﾃﾝ", 540, 428, 42, 250);
                         }
 
@@ -515,7 +516,7 @@ public static class MasGfi
             MasHira.sethira2("ﾏｲﾆﾁ", 256, 360, 32, 1);
             tmpsp = tmpsp + (MasMath.Div((((((speed * 14)) - tmpsp) - 7)), 8));
             s = (tmpsp).ToString();
-            MasHira.sethira2(s, (520 - (s.Length * 64)), 400, 64, 1);
+            MasHira.sethira2(s, (520 - (s.RuneCount() * 64)), 400, 64, 1);
             MasHira.sethira2("ｷﾛ", 540, 420, 50, 1);
             if ((((myp < 110)) && ((MasMath.Random(4) == 0))))
             {
@@ -528,7 +529,7 @@ public static class MasGfi
         if (((((gficou > 48)) && ((gficou < 51))) && ((gfidemocou == 0))))
         {
             s = ((dist * 13)).ToString();
-            MasHira.sethira2(s, (528 - (s.Length * 50)), 420, 50, 1);
+            MasHira.sethira2(s, (528 - (s.RuneCount() * 50)), 420, 50, 1);
             MasHira.sethira2("ﾐﾘ", 540, 440, 32, 1);
         }
 

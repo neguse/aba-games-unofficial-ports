@@ -45,7 +45,7 @@ public static class Game
         {
             replayLoaded = true;
             string? replay = GameSave.Load("replay");
-            if (replay != null && replay.Length > 0 && manager.gameState.isTitle())
+            if (replay != null && replay != "" && manager.gameState.isTitle())
             {
                 manager.savedReplay = replay;
                 manager.loadLastReplay();

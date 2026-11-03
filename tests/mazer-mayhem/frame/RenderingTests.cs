@@ -11,12 +11,10 @@ static class RenderingTests
         var data = new List<float>(new float[88]);
         foreach (int offset in new[] { 0,16,32,48 }) for (int i = 0; i < 4; i++) data[offset+i*5] = 1;
         data[87] = 1;
-        var bindings = new Dictionary<string, object> {
-            ["parameters"] = Gfx.UseBuffer("mm-test-parameters", Gfx.BufferType.Storage, data, 1),
-            ["eye"] = Gfx.UseBuffer("mm-test-eye", Gfx.BufferType.Storage, new List<float>(Matrix.Identity.M), 1)
-        };
+        var bindings = new Bindings();
+        bindings.Set("parameters", Gfx.UseBuffer("mm-test-parameters", Gfx.BufferType.Storage, data, 1));
+        bindings.Set("eye", Gfx.UseBuffer("mm-test-eye", Gfx.BufferType.Storage, new List<float>(Matrix.Identity.M), 1));
         var options = new DrawOpts { Shader = shader, Depth = true, DepthWrite = true, Blend = Gfx.Blend.Alpha, Cull = Gfx.Cull.None };
-        int version = 0;
         void Draw(float z, float[] color)
         {
             var vertices = new List<float>();
@@ -25,7 +23,7 @@ static class RenderingTests
                 vertices.AddRange([p[0]/.06f,p[1]/.06f,z/.06f,1, 0,0,1,1]);
                 vertices.AddRange(color); vertices.AddRange([0,0,0,0]);
             }
-            bindings["vertices"] = Gfx.UseBuffer("mm-test-vertices", Gfx.BufferType.Storage, vertices, ++version);
+            bindings.Set("vertices", Gfx.FrameBuffer(Gfx.BufferType.Storage, vertices));
             Gfx.Draw(3, bindings, options);
         }
         float background = 210/255f;

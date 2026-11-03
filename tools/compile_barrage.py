@@ -192,6 +192,8 @@ class Compiler:
 
     def emit(self):
         lines = ["using System;", "using System.Collections.Generic;", "public static class BarrageCode", "{"]
+        # The number of $n parameters the patterns read: a root program starts with this many zeros.
+        lines += [f"public const int ParameterCount = {self.parameter_count};"]
         lines += ["public static int Find(string name)", "{", "switch (name)", "{"]
         lines += [f"case {json.dumps(name)}: return {i};" for i, (name, _) in enumerate(self.patterns)]
         lines += ['default: return -1;', "}", "}"]

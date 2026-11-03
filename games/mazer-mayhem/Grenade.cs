@@ -166,7 +166,7 @@ public class GrenadePool
     }
 }
 
-public class Grenade : Actor
+public class Grenade : Actor<Grenade>
 {
     public Vector3 Pos = new Vector3();
     public Vector2 Pos2 = new Vector2();
@@ -238,7 +238,7 @@ public void SetId(int value){storedId=value;}
         };
     }
 
-    public Actor CopyActor()
+    public Grenade CopyActor()
     {
         return Copy();
     }

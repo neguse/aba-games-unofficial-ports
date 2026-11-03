@@ -14,7 +14,7 @@ public static class TtRender
     static readonly PassOpts pass = new() { ClearColor = new float[] { 0, 0, 0, 1 } };
     static readonly TextureOpts sceneOptions = new() { Target = true, Filter = Gfx.Filter.Nearest };
     static readonly DrawOpts outputOptions = new() { Depth = false, Blend = Gfx.Blend.None, Cull = Gfx.Cull.None };
-    static readonly Dictionary<string, object> outputBindings = new();
+    static readonly Bindings outputBindings = new();
     static string outputSource;
     static int used, batchCount, version;
     static bool anchored;
@@ -149,12 +149,13 @@ public static class TtRender
             {
                 var batch = batches[i];
                 batch.Options.Shader = Game.shader;
-                batch.Bindings["verts"] = vertexBuffer; batch.Bindings["faces"] = faceBuffer; batch.Bindings["draws"] = drawBuffer;
+                batch.Bindings.Set("verts", vertexBuffer); batch.Bindings.Set("faces", faceBuffer); batch.Bindings.Set("draws", drawBuffer);
                 var texture = batch.Image;
                 var image = texture == null ? null : texture.Use(textureOptions);
-                batch.Bindings["image"] = image == null ? blank : image;
+                batch.Bindings.Set("image", image == null ? blank : image);
                 batch.Range[0] = batch.First;
                 batch.Viewport[0] = view.Width; batch.Viewport[1] = view.Height;
+                batch.Bindings.Set("batch", batch.Range); batch.Bindings.Set("viewport", batch.Viewport);
                 Gfx.Draw(batch.Count, batch.Bindings, batch.Options);
             }
             Gfx.EndPass();
@@ -162,7 +163,7 @@ public static class TtRender
             {
                 pass.Target = view.Target;
                 Gfx.BeginPass(pass);
-                outputBindings["scene"] = scene;
+                outputBindings.Set("scene", scene);
                 Gfx.Draw(3, outputBindings, outputOptions);
                 Gfx.EndPass();
             }
@@ -183,9 +184,5 @@ sealed class TtDrawBatch
     public readonly DrawOpts Options = new() { Depth = false };
     public readonly float[] Range = new float[] { 0, 0, 0, 0 };
     public readonly float[] Viewport = new float[] { 0, 0, 0, 0 };
-    public readonly Dictionary<string, object> Bindings;
-    public TtDrawBatch()
-    {
-        Bindings = new() { ["uniforms"] = new Dictionary<string, object> { ["batch"] = Range, ["viewport"] = Viewport } };
-    }
+    public readonly Bindings Bindings = new();
 }

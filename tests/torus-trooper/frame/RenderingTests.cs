@@ -21,12 +21,12 @@ static class RenderingTests
         foreach (var p in new float[][] { [-1,-1], [1,-1], [1,1], [-1,1] })
             mesh.Vertex(p[0], p[1], 0, [.6f, .2f, .1f, .25f]);
         mesh.Quads(0, 4);
-        var bindings = new Dictionary<string, object> {
-            ["verts"] = Gfx.UseBuffer("tt-test-verts", Gfx.BufferType.Storage, mesh.vertices, 1),
-            ["faces"] = Gfx.UseBuffer("tt-test-faces", Gfx.BufferType.Storage, mesh.faces, 1),
-            ["image"] = image,
-            ["uniforms"] = new Dictionary<string, object> { ["viewport"] = new float[] {16,16,0,0}, ["batch"] = new float[4] }
-        };
+        var bindings = new Bindings();
+        bindings.Set("verts", Gfx.UseBuffer("tt-test-verts", Gfx.BufferType.Storage, mesh.vertices, 1));
+        bindings.Set("faces", Gfx.UseBuffer("tt-test-faces", Gfx.BufferType.Storage, mesh.faces, 1));
+        bindings.Set("image", image);
+        bindings.Set("viewport", new float[] {16,16,0,0});
+        bindings.Set("batch", new float[4]);
         float[][] expected = [[.6f,.2f,.1f], [.225f,.2f,.25f], [.25f,.25f,.325f], [.06f,.04f,.03f]];
         for (int mode = 0; mode < 4; mode++)
         {
@@ -36,12 +36,14 @@ static class RenderingTests
             data.AddRange([.7f,.6f,.5f,.4f, 1,blend == Gfx.Blend.Additive ? 1 : 0,0,0, 1,1,0,0]);
             RenderingReadback.Step(() =>
             {
-                bindings["draws"] = Gfx.UseBuffer("tt-test-draws", Gfx.BufferType.Storage, data, index + 1);
+                bindings.Set("draws", Gfx.UseBuffer("tt-test-draws", Gfx.BufferType.Storage, data, index + 1));
                 Gfx.BeginPass(new PassOpts { Target = scene, ClearColor = [.1f,.2f,.3f,1] });
                 Gfx.Draw(mesh.count, bindings, new DrawOpts { Shader = shader, Blend = blend, Depth = false, Cull = Gfx.Cull.None });
                 Gfx.EndPass();
                 Gfx.BeginPass(new PassOpts { Target = linear });
-                Gfx.Draw(3, new Dictionary<string, object> { ["scene"] = scene },
+                var outputBindings = new Bindings();
+                outputBindings.Set("scene", scene);
+                Gfx.Draw(3, outputBindings,
                     new DrawOpts { Shader = output, Blend = Gfx.Blend.None, Depth = false, Cull = Gfx.Cull.None });
                 Gfx.EndPass();
                 byte[] pixels = [];
@@ -69,9 +71,9 @@ static class RenderingTests
         lineData.AddRange([1,1,1,1, 1,1,0,0, 1,1,0,0]);
         RenderingReadback.Step(() =>
         {
-            bindings["verts"] = Gfx.UseBuffer("tt-test-line-verts", Gfx.BufferType.Storage, line.vertices, 1);
-            bindings["faces"] = Gfx.UseBuffer("tt-test-line-faces", Gfx.BufferType.Storage, line.faces, 1);
-            bindings["draws"] = Gfx.UseBuffer("tt-test-line-draws", Gfx.BufferType.Storage, lineData, 1);
+            bindings.Set("verts", Gfx.UseBuffer("tt-test-line-verts", Gfx.BufferType.Storage, line.vertices, 1));
+            bindings.Set("faces", Gfx.UseBuffer("tt-test-line-faces", Gfx.BufferType.Storage, line.faces, 1));
+            bindings.Set("draws", Gfx.UseBuffer("tt-test-line-draws", Gfx.BufferType.Storage, lineData, 1));
             Gfx.BeginPass(new PassOpts { Target = scene, ClearColor = [0,0,0,1] });
             Gfx.Draw(line.count, bindings, new DrawOpts { Shader = shader, Blend = Gfx.Blend.Additive, Depth = false, Cull = Gfx.Cull.None });
             Gfx.EndPass();
@@ -86,10 +88,10 @@ static class RenderingTests
         titleData.AddRange([.5f,.75f,.25f,.5f, 1,1,0,1, 1,1,0,0]);
         RenderingReadback.Step(() =>
         {
-            bindings["verts"] = Gfx.UseBuffer("tt-test-verts", Gfx.BufferType.Storage, mesh.vertices, 1);
-            bindings["faces"] = Gfx.UseBuffer("tt-test-faces", Gfx.BufferType.Storage, mesh.faces, 1);
-            bindings["image"] = Gfx.UseTexture("tt-test-title", 1, 1, Gfx.PixelFormat.Rgba8, [128,64,192,128], 1);
-            bindings["draws"] = Gfx.UseBuffer("tt-test-title-draws", Gfx.BufferType.Storage, titleData, 1);
+            bindings.Set("verts", Gfx.UseBuffer("tt-test-verts", Gfx.BufferType.Storage, mesh.vertices, 1));
+            bindings.Set("faces", Gfx.UseBuffer("tt-test-faces", Gfx.BufferType.Storage, mesh.faces, 1));
+            bindings.Set("image", Gfx.UseTexture("tt-test-title", 1, 1, Gfx.PixelFormat.Rgba8, [128,64,192,128], 1));
+            bindings.Set("draws", Gfx.UseBuffer("tt-test-title-draws", Gfx.BufferType.Storage, titleData, 1));
             Gfx.BeginPass(new PassOpts { Target = scene, ClearColor = [0,0,0,1] });
             Gfx.Draw(mesh.count, bindings, new DrawOpts { Shader = shader, Blend = Gfx.Blend.Additive, Depth = false, Cull = Gfx.Cull.None });
             Gfx.EndPass();

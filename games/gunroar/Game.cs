@@ -75,7 +75,7 @@ public static class Game
             replayRequested = false;
             string? text = GameSave.Load("replay");
             ReplayData replay = new ReplayData();
-            if (text != null && text.Length > 0 && manager.state == manager.titleState && replay.loadData(text))
+            if (text != null && text != "" && manager.state == manager.titleState && replay.loadData(text))
             {
                 manager.inGameState.replayData = replay;
                 manager.startTitle();

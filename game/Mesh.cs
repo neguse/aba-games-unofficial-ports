@@ -104,7 +104,7 @@ public class Mesh
             ranges[ranges.Count - 1].count += count - first;
         else ranges.Add(new MeshRange { first = first, count = count - first, material = material });
     }
-    public Dictionary<string, object> Bindings(float[] model, float[] color = null, float width = 1, bool additive = true, int first = 0, DrawImage image = null, float viewportWidth = 640, float viewportHeight = 480)
+    public Bindings Bindings(float[] model, float[] color = null, float width = 1, bool additive = true, int first = 0, DrawImage image = null, float viewportWidth = 640, float viewportHeight = 480)
     {
         vertexBuffer = Gfx.UseBuffer(key + "-vertices", Gfx.BufferType.Storage, vertices,
             vertexBuffer == null ? (int?)null : vertexBuffer.Version);
@@ -114,12 +114,15 @@ public class Mesh
         var source = image == null ? white : image;
         var texture = source.Use(options);
         if (texture == null) texture = white.Use(options);
-        return new Dictionary<string, object> {
-            ["image"] = texture, ["verts"] = vertexBuffer, ["faces"] = faceBuffer,
-            ["uniforms"] = new Dictionary<string, object> {
-                ["model"] = model, ["tint"] = color == null ? new float[] { 1, 1, 1, 1 } : color,
-                ["options"] = new float[] { width, additive ? 1 : 0, first, image == null ? 0 : 1 },
-                ["viewport"] = new float[] { viewportWidth, viewportHeight, 0, 0 },
-                ["imageInfo"] = new float[] { source.width, source.height, source.levels - 1, 0 } } };
+        var bindings = new Bindings();
+        bindings.Set("image", texture);
+        bindings.Set("verts", vertexBuffer);
+        bindings.Set("faces", faceBuffer);
+        bindings.Set("model", model);
+        bindings.Set("tint", color == null ? new float[] { 1, 1, 1, 1 } : color);
+        bindings.Set("options", new float[] { width, additive ? 1 : 0, first, image == null ? 0 : 1 });
+        bindings.Set("viewport", new float[] { viewportWidth, viewportHeight, 0, 0 });
+        bindings.Set("imageInfo", new float[] { source.width, source.height, source.levels - 1, 0 });
+        return bindings;
     }
 }

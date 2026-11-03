@@ -45,7 +45,9 @@ static class RenderingReadback
         if (shader == null) throw new Exception("XR output shader must compile");
         var linear = Gfx.UseTexture("linear-test", 16, 16, Gfx.PixelFormat.Rgba8, null, 1, new TextureOpts { Target = true });
         Gfx.BeginPass(new PassOpts { Target = linear });
-        Gfx.Draw(3, new Dictionary<string, object> { ["scene"] = scene },
+        var bindings = new Bindings();
+        bindings.Set("scene", scene);
+        Gfx.Draw(3, bindings,
             new DrawOpts { Shader = shader, Blend = Gfx.Blend.None, Depth = false, Cull = Gfx.Cull.None });
         Gfx.EndPass();
         byte[] encoded = [];

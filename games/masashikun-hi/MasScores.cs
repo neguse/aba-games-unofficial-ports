@@ -1,6 +1,7 @@
 // Copyright (C) 2000 Kenta Cho. SPDX-License-Identifier: GPL-2.0-or-later
 // TinyC# browser adaptation (2026-09-24, 2026-10-25).
 using Lub;
+using TinySystem.Text;
 
 public static class MasScores
 {
@@ -105,7 +106,7 @@ public static class MasScores
                 if (fields.Length != 2)
                     return;
                 int value = MasMath.Parse(fields[0]);
-                if (fields[0] != value.ToString() || fields[1].Length > 160 || value < -99999 || value > 100000000)
+                if (fields[0] != value.ToString() || new Utf8Bytes(fields[1]).Length > 160 || value < -99999 || value > 100000000)
                     return;
             }
 

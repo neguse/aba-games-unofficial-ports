@@ -139,7 +139,7 @@ public class TurretPool : IActorIdListener
     }
 }
 
-public class Turret : Actor
+public class Turret : Actor<Turret>
 {
     public TurretTurretType Type;
     public int BulletId;
@@ -217,7 +217,7 @@ public void SetId(int value){storedId=value;}
         };
     }
 
-    public Actor CopyActor()
+    public Turret CopyActor()
     {
         return Copy();
     }

@@ -23,6 +23,7 @@ using static RrScreen;
 using static RrLetter;
 using static RrAngles;
 using static RrVector;
+using TinySystem.Text;
 
 public static class RrLetter
 {
@@ -2037,14 +2038,15 @@ public static class RrLetter
         int i = 0, idx = 0;
         {
             i = 0;
+            var strBytes = new Utf8Bytes(str);
             for (;; i++)
             {
-                if (i >= str.Length)
+                if (i >= strBytes.Length)
                     break;
-                string letter = str.Substring(i, 1);
+                string letter = AsciiText.At(strBytes, i);
                 if (letter != " ")
                 {
-                    idx = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".IndexOf(letter.ToUpper());
+                    idx = AsciiText.IndexOf("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", letter.ToUpper());
                     if (idx < 0)
                     {
                         if (letter == ".")

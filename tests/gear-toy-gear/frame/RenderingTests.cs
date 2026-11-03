@@ -15,19 +15,17 @@ static class RenderingTests
         var data = new List<float>(new float[144]);
         foreach (int offset in new[] { 0, 16 }) for (int i = 0; i < 4; i++) data[offset+i*5] = 1;
         data[33] = 5; data[135] = 1; data[139] = 1;
-        var bindings = new Dictionary<string, object> {
-            ["vertices"] = Gfx.UseBuffer("gtg-test-vertices", Gfx.BufferType.Storage, vertices, 1),
-            ["eye"] = Gfx.UseBuffer("gtg-test-eye", Gfx.BufferType.Storage, new List<float>(Matrix.Identity.M), 1),
-            ["surface"] = Gfx.UseTexture("gtg-test-source", 1, 1, Gfx.PixelFormat.Rgba8, [32,48,64,80], 1),
-            ["surfaceAlpha"] = Gfx.UseTexture("gtg-test-alpha-source", 1, 1, Gfx.PixelFormat.R8, [40], 1)
-        };
+        var bindings = new Bindings();
+        bindings.Set("vertices", Gfx.UseBuffer("gtg-test-vertices", Gfx.BufferType.Storage, vertices, 1));
+        bindings.Set("eye", Gfx.UseBuffer("gtg-test-eye", Gfx.BufferType.Storage, new List<float>(Matrix.Identity.M), 1));
+        bindings.Set("surface", Gfx.UseTexture("gtg-test-source", 1, 1, Gfx.PixelFormat.Rgba8, [32,48,64,80], 1));
+        bindings.Set("surfaceAlpha", Gfx.UseTexture("gtg-test-alpha-source", 1, 1, Gfx.PixelFormat.R8, [40], 1));
         var options = new DrawOpts { Shader = layerShader, Depth = true, DepthWrite = true, Blend = Gfx.Blend.Alpha, Cull = Gfx.Cull.None };
-        int version = 0;
         void Draw(float z, float[] color)
         {
             data[134] = z;
             for (int c = 0; c < 4; c++) data[140+c] = color[c];
-            bindings["parameters"] = Gfx.UseBuffer("gtg-test-parameters", Gfx.BufferType.Storage, data, ++version);
+            bindings.Set("parameters", Gfx.FrameBuffer(Gfx.BufferType.Storage, data));
             Gfx.Draw(3, bindings, options);
         }
         RenderingReadback.Step(() =>

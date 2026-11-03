@@ -850,9 +850,8 @@ public class A7xGameManager
             glowMesh.Quads(0, 20);
         }
         var bindings = glowMesh.Bindings(Transform.Identity(), new float[] { 0.5f, 0.4f, 0.45f, 0 });
-        bindings["image"] = Game.glow;
-        var uniforms = (System.Collections.Generic.Dictionary<string, object>)bindings["uniforms"];
-        uniforms["options"] = new float[] { 1, 0, 0, 2 };
+        bindings.Set("image", Game.glow);
+        bindings.Set("options", new float[] { 1, 0, 0, 2 });
         Gfx.Draw(glowMesh.count, bindings, new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
         model = Transform.Ortho();
         switch (state)

@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: neguse/lub
-          ref: 2d0084a619a746c22942658a883977fcb7475fb9
+          ref: 88c9d86559195aa0dfc3c20c63a9ca1e1e4fa01e
           submodules: recursive
           path: .cache/lub
           persist-credentials: false
@@ -62,7 +62,7 @@ jobs:
       - name: Build pinned Lub and tcs
         working-directory: .cache/lub
         run: |
-          test "$(git -C third_party/tcs rev-parse HEAD)" = f838bed2e2708c8553fc660b03079f3318f3af4b
+          test "$(git -C third_party/tcs rev-parse HEAD)" = b521ce670878d63c3e76b7cf98139ba1e26cac1d
           dotnet build third_party/tcs/Transpiler/Transpiler.csproj -c Release
           timeout 7200 bash scripts/build-release.sh --target lub
           timeout 7200 bash scripts/build-release.sh --target lub_shared --no-configure

@@ -15,7 +15,7 @@ public static class MmRender
     static readonly float[] matrix = new float[16];
     static readonly DrawOpts outputOptions = new() { Depth = false, Blend = Gfx.Blend.None, Cull = Gfx.Cull.None };
     static readonly PassOpts outputPass = new();
-    static readonly Dictionary<string, object> outputBindings = new();
+    static readonly Bindings outputBindings = new();
     static string outputSource;
     static ShaderRef shader;
     static string vertexSource, fragment;
@@ -148,13 +148,13 @@ public static class MmRender
         command.Options.Shader = shader;
         command.Options.Depth = frame.DepthEnabled;
         command.Options.DepthWrite = frame.DepthEnabled;
-        command.Options.InstanceCount = 1;
+        command.Instances = 1;
         if (used < 2) return;
         var previous = commands[used - 2];
         if (previous.Geometry != command.Geometry || previous.MeshVersion != meshVersion ||
             previous.Count != count || previous.Options.Depth != command.Options.Depth) return;
         foreach (float value in paramsData) previous.Data.Add(value);
-        previous.Options.InstanceCount++;
+        previous.Instances++;
         used--;
     }
     public static void Present(XrView left, XrView right)
@@ -172,8 +172,8 @@ public static class MmRender
         for (int i = 0; i < used; i++)
         {
             var command = commands[i];
-            command.Bindings["vertices"] = Gfx.UseBuffer(command.MeshKey, Gfx.BufferType.Storage, command.Geometry, command.MeshVersion);
-            command.Bindings["parameters"] = Gfx.UseBuffer(command.Key, Gfx.BufferType.Storage, command.Data, version);
+            command.Bindings.Set("vertices", Gfx.UseBuffer(command.MeshKey, Gfx.BufferType.Storage, command.Geometry, command.MeshVersion));
+            command.Bindings.Set("parameters", Gfx.UseBuffer(command.Key, Gfx.BufferType.Storage, command.Data, version));
         }
         for (int eye = 0; eye < (immersive ? 2 : 1); eye++)
         {
@@ -195,14 +195,14 @@ public static class MmRender
             for (int i = 0; i < used; i++)
             {
                 var command = commands[i];
-                command.Bindings["eye"] = eyeBuffer;
-                Gfx.Draw(command.Count, command.Bindings, command.Options);
+                command.Bindings.Set("eye", eyeBuffer);
+                Gfx.Draw(command.Count, command.Bindings, command.Options, command.Instances);
             }
             Gfx.EndPass();
             if (!immersive) continue;
             outputPass.Target = view.Target;
             Gfx.BeginPass(outputPass);
-            outputBindings["scene"] = scene;
+            outputBindings.Set("scene", scene);
             Gfx.Draw(3, outputBindings, outputOptions);
             Gfx.EndPass();
         }
@@ -213,7 +213,8 @@ sealed class MmDrawCommand
 {
     public readonly string Key;
     public readonly List<float> Data = new();
-    public readonly Dictionary<string, object> Bindings = new();
+    public readonly Bindings Bindings = new();
+    public int Instances;
     public readonly DrawOpts Options = new() { Cull = Gfx.Cull.None, Blend = Gfx.Blend.Alpha };
     public List<float> Geometry;
     public string MeshKey;
