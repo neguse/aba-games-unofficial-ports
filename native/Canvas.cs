@@ -44,7 +44,7 @@ public sealed class Canvas
         bindings.Set("r2", matrix[8..12].ToList()); bindings.Set("r3", matrix[12..16].ToList());
         bindings.Set("tint", new List<float>{(rgba>>24)/255f,((rgba>>16)&255)/255f,((rgba>>8)&255)/255f,(rgba&255)/255f});
         bindings.Set("options", new List<float>{width,height,z,linear?1:0});
-        Gfx.Draw(6,bindings,new DrawOpts{Shader=shader,Depth=false,DepthWrite=false,Cull=Gfx.Cull.None,Blend=Gfx.Blend.Alpha});
+        Gfx.Draw(6,bindings,new DrawOpts{Shader=shader,Depth=false,DepthWrite=false,Cull=Gfx.Cull.None,Blend=Blends.Alpha});
     }
     public void Recenter() => anchor.Reset();
     public void Present(TextureRef texture, int width, int height, bool immersive)

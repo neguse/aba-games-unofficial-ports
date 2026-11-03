@@ -48,7 +48,7 @@ static class RenderingReadback
         var bindings = new Bindings();
         bindings.Set("scene", scene);
         Gfx.Draw(3, bindings,
-            new DrawOpts { Shader = shader, Blend = Gfx.Blend.None, Depth = false, Cull = Gfx.Cull.None });
+            new DrawOpts { Shader = shader, Depth = false, Cull = Gfx.Cull.None });
         Gfx.EndPass();
         byte[] encoded = [];
         Read(scene, "encoded-test", pixels => encoded = pixels);

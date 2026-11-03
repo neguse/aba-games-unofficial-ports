@@ -112,7 +112,7 @@ public static class MasForm
             {
                 var bindings = new Bindings();
                 bindings.Set("spans", rects);
-                Gfx.Draw(spans.Count / 5 * 6, bindings, new DrawOpts { Shader = shader, Blend = Gfx.Blend.None, Depth = false, DepthWrite = false, Cull = Gfx.Cull.None });
+                Gfx.Draw(spans.Count / 5 * 6, bindings, new DrawOpts { Shader = shader, Depth = false, DepthWrite = false, Cull = Gfx.Cull.None });
             }
         }
         MasPanel.Draw();

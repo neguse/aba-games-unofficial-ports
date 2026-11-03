@@ -451,7 +451,7 @@ public static class MasPanel
             else
                 DrawMenu();
         }
-        batch.Flush(Gfx.Blend.Alpha);
+        batch.Flush(Blends.Alpha);
     }
 
     static void DrawRanking()
