@@ -68,8 +68,8 @@ Mazer Mayhem は倍率をためて両トリガーを同時に引くとハイパ�
 
 | 依存 | 使用コミット／バージョン |
 | --- | --- |
-| Lub | [`b5e00b66bcecb22ff36b0ee1eb7625fc55ffdd77`](https://github.com/neguse/lub/tree/b5e00b66bcecb22ff36b0ee1eb7625fc55ffdd77) |
-| tcs | [`46ed64f62862bce8a00b50d9cf3afdf7a52cc622`](https://github.com/neguse/tcs/tree/46ed64f62862bce8a00b50d9cf3afdf7a52cc622)（Lub のサブモジュール） |
+| Lub | [`f94e494437a7a346205ec6b8cef87c3572ebfa12`](https://github.com/neguse/lub/tree/f94e494437a7a346205ec6b8cef87c3572ebfa12) |
+| tcs | [`600989c55342a8acfaa71eb98e18e919b2e5a960`](https://github.com/neguse/tcs/tree/600989c55342a8acfaa71eb98e18e919b2e5a960)（Lub のサブモジュール） |
 | .NET SDK | 10 |
 | Slang | 2026.8.1 Linux ARM64 公式バイナリ |
 
@@ -84,7 +84,7 @@ CMake、Ninja、Vulkan 開発ライブラリ、zip を使用する。
 
 ```sh
 git clone https://github.com/neguse/lub.git ../lub-frame
-git -C ../lub-frame checkout --detach b5e00b66bcecb22ff36b0ee1eb7625fc55ffdd77
+git -C ../lub-frame checkout --detach f94e494437a7a346205ec6b8cef87c3572ebfa12
 git -C ../lub-frame submodule update --init --recursive
 dotnet build ../lub-frame/third_party/tcs/Transpiler/Transpiler.csproj -c Release
 (
