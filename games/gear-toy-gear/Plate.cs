@@ -94,7 +94,7 @@ public class PlatePool
     }
 }
 
-public class Plate : ActorCopy
+public class Plate : ActorCopy<Plate>
 {
     public float Radius, TargetRadius;
     public float Angle;
@@ -120,7 +120,7 @@ public class Plate : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public Plate CopyActor()
     {
         return Copy();
     }

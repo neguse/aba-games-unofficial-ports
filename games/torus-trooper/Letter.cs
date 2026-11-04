@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using static GameMath;
 using Lub;
+using TinySystem.Text;
 
 public class Letter
 {
@@ -49,7 +50,7 @@ public class Letter
         return s * LETTER_HEIGHT;
     }
 
-    public static void drawLetter_6(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, int n, float x, float y, float s, float d, int c)
+    public static void drawLetter_6(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth, int n, float x, float y, float s, float d, int c)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, x, y, 0);
@@ -59,7 +60,7 @@ public class Letter
         model = parent1;
     }
 
-    public static void drawLetterRev(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, int n, float x, float y, float s, float d, int c)
+    public static void drawLetterRev(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth, int n, float x, float y, float s, float d, int c)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, x, y, 0);
@@ -112,7 +113,7 @@ public class Letter
         return idx;
     }
 
-    public static void drawString(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, string str, float lx, float y, float s, int d = LetterDirection.TO_RIGHT, int cl = 0, bool rev = false, float od = 0)
+    public static void drawString(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth, string str, float lx, float y, float s, int d = LetterDirection.TO_RIGHT, int cl = 0, bool rev = false, float od = 0)
     {
         lx = lx + (LETTER_WIDTH * s / 2);
         y = y + (LETTER_HEIGHT * s / 2);
@@ -136,8 +137,10 @@ public class Letter
         }
 
         ld = ld + (od);
-        foreach (char c in str)
+        var strBytes = new Utf8Bytes(str);
+        for (int ci = 0; ci < strBytes.Length; ci++)
         {
+            char c = (char)strBytes[ci];
             if (c != ' ')
             {
                 idx = convertCharToInt(c);
@@ -173,7 +176,7 @@ public class Letter
         }
     }
 
-    public static void drawNum(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, int num, float lx, float y, float s, int d = LetterDirection.TO_RIGHT, int cl = 0, int dg = 0)
+    public static void drawNum(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth, int num, float lx, float y, float s, int d = LetterDirection.TO_RIGHT, int cl = 0, int dg = 0)
     {
         lx = lx + (LETTER_WIDTH * s / 2);
         y = y + (LETTER_HEIGHT * s / 2);
@@ -223,7 +226,7 @@ public class Letter
         }
     }
 
-    public static void drawNumSign(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, int num, float lx, float ly, float s, int cl)
+    public static void drawNumSign(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth, int num, float lx, float ly, float s, int cl)
     {
         float dg = 0;
         if (num < 100)
@@ -247,7 +250,7 @@ public class Letter
         }
     }
 
-    public static void drawTime(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth, int time, float lx, float y, float s, int cl = 0)
+    public static void drawTime(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth, int time, float lx, float y, float s, int cl = 0)
     {
         int n = time;
         if (n < 0)

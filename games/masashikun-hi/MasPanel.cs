@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Lub;
 using Lubx;
+using TinySystem.Text;
 
 // MasPanel のボタンの当たり判定と、押したときの処理。
 public class MasPanelHit
@@ -145,23 +146,23 @@ public static class MasPanel
         if (!rankingOpen || pendingRank == 0)
             return;
         string value = (playerName + s).Replace("\t", " ").Replace("\n", " ").Replace("\r", " ");
-        playerName = value.Length > 40 ? value.Substring(0, 40) : value;
+        playerName = value.RuneCount() > 40 ? value.RuneSubstring(0, 40) : value;
     }
 
     static void RemoveLetter()
     {
-        if (playerName.Length != 0)
-            playerName = playerName.Substring(0, playerName.Length - 1);
+        if (playerName != "")
+            playerName = playerName.RuneSubstring(0, playerName.RuneCount() - 1);
     }
 
     static void PreviousLetter()
     {
-        letter = (letter + Alphabet.Length - 1) % Alphabet.Length;
+        letter = (letter + Alphabet.RuneCount() - 1) % Alphabet.RuneCount();
     }
 
     static void NextLetter()
     {
-        letter = (letter + 1) % Alphabet.Length;
+        letter = (letter + 1) % Alphabet.RuneCount();
     }
 
     static void CloseRanking()
@@ -195,7 +196,7 @@ public static class MasPanel
     static string? Typed(int scancode, bool shift)
     {
         if (scancode >= 4 && scancode <= 29)
-            return (shift ? Upper : Lower).Substring(scancode - 4, 1);
+            return (shift ? Upper : Lower).RuneSubstring(scancode - 4, 1);
         if (scancode >= 30 && scancode <= 38)
             return (scancode - 29).ToString();
         if (scancode == 39)
@@ -283,7 +284,7 @@ public static class MasPanel
                 if (right || down)
                     NextLetter();
                 if (Rising(pad.Primary, previous.Primary))
-                    AppendText(Alphabet.Substring(letter, 1));
+                    AppendText(Alphabet.RuneSubstring(letter, 1));
                 if (Key("enter") || pause || back)
                     CloseRanking();
             }
@@ -400,7 +401,7 @@ public static class MasPanel
         if (bytes == null)
             return false;
         text = new Text("mas_panel_text", FontPath, 26, 512);
-        batch = new SpriteBatch(960, 720, "mas_panel", "mas_panel");
+        batch = new SpriteBatch("mas_panel", 960, 720);
         return true;
     }
 
@@ -450,7 +451,7 @@ public static class MasPanel
             else
                 DrawMenu();
         }
-        batch.Flush(Gfx.Blend.Alpha);
+        batch.Flush(Blends.Alpha);
     }
 
     static void DrawRanking()
@@ -467,14 +468,14 @@ public static class MasPanel
         }
         else if (pendingRank != 0)
         {
-            string next = Alphabet.Substring(letter, 1);
+            string next = Alphabet.RuneSubstring(letter, 1);
             Label("New record! Enter your name (up to 40 characters)", 135, 310, 19, 0xFFDC85);
             Rect(135, 348, 685, 48, 0x071322, 1);
             Label(playerName + "_", 149, 360, 23, 0xFFFFFF);
             Label("Keyboard: type, Backspace to edit, Enter to save", 135, 418, 18, 0xC0D4EA);
             Label("Controller: arrows choose, A adds, X deletes, Start saves", 135, 451, 17, 0xC0D4EA);
             Button("<", 135, 491, 55, PreviousLetter, false);
-            Button("Add " + (next == " " ? "SPACE" : next), 205, 491, 180, () => AppendText(Alphabet.Substring(letter, 1)), false);
+            Button("Add " + (next == " " ? "SPACE" : next), 205, 491, 180, () => AppendText(Alphabet.RuneSubstring(letter, 1)), false);
             Button(">", 400, 491, 55, NextLetter, false);
             Button("Backspace", 470, 491, 160, RemoveLetter, false);
             Button("Save record", 135, 572, 275, CloseRanking, true);

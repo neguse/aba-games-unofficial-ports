@@ -157,7 +157,7 @@ public class PillarPool
     }
 }
 
-public class Pillar : ActorCopy
+public class Pillar : ActorCopy<Pillar>
 {
     public Vector3 Pos = new Vector3();
     public float Scale;
@@ -186,7 +186,7 @@ public class Pillar : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public Pillar CopyActor()
     {
         return Copy();
     }

@@ -2,6 +2,7 @@
 using System;
 using static GameMath;
 using Lub;
+using TinySystem.Text;
 public class MobileLetter: Actor {
   public bool isExist;
   public bool getExist() { return isExist; }
@@ -74,7 +75,7 @@ public class MobileLetter: Actor {
     deg *= 0.99f;
   }
 
-  public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Blend blend, Mesh target = null) {
     bool depth = false; Gfx.Cull cull = Gfx.Cull.None; float width = 1;
     LetterRender.drawLetter(model, tint, blend, depth, cull, width, str, pos.x, pos.y, size, deg, color);
   }
@@ -98,15 +99,16 @@ public class MobileLetterPool {
   }
   public Actor getInstance() { return pool.getInstance(); }
   public void move() { pool.move(); }
-  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
+  public void draw(float[] model, float[] color, Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
   public void clear() { pool.clear(); }
 
   public void add(string str, float x, float lgt, float size, int cnt, int col) {
     int color = col;
     if (col < 0)
       rand.setSeed(-col);
-    for (int letterIndex = 0; letterIndex < str.Length; letterIndex++) {
-      string c = str.Substring(letterIndex, 1);
+    var strBytes = new Utf8Bytes(str);
+    for (int letterIndex = 0; letterIndex < strBytes.Length; letterIndex++) {
+      string c = AsciiText.At(strBytes, letterIndex);
       MobileLetter ml = (MobileLetter) getInstance();
       if (ml == null)
 	return;

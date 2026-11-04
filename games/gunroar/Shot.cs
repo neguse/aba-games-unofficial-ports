@@ -225,9 +225,9 @@ public class Shot : Actor
                     model = Transform.Rotate(model, d, 0, 1, 0);
                     model = Transform.Scale(model, size, 1, size);
                     Gfx.Draw(24, lanceMesh.Bindings(model, new float[] { 0.4f, 0.8f, 0.8f, a }),
-                        new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
-                    Gfx.Draw(6, lanceMesh.Bindings(model, new float[] { 0.2f, 0.5f, 0.5f, a / 2 }, 1, true, 8),
-                        new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+                        new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
+                    Gfx.Draw(6, lanceMesh.Bindings(model, new float[] { 0.2f, 0.5f, 0.5f, a / 2 }, 1, 8),
+                        new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
                     model = parent1;
                     d = d + (60);
                 }
@@ -241,7 +241,7 @@ public class Shot : Actor
             model = Transform.Translate(model, pos.x, pos.y, 0);
             model = Transform.Rotate(model, -_deg * 180 / PI, 0, 0, 1);
             model = Transform.Rotate(model, cnt * 31, 0, 1, 0);
-            shape.draw(model);
+            shape.draw(model, null, GlBlend.SrcAlphaOne);
         }
     }
 
@@ -336,7 +336,7 @@ public class ShotShape : DrawableShape, Collidable
         mesh = null;
     }
 
-    public void draw(float[] model, float[] color = null, Gfx.Blend blend = Gfx.Blend.Additive)
+    public void draw(float[] model, float[] color, Blend blend)
     {
         ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
     }

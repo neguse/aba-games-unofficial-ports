@@ -59,7 +59,7 @@ public class BulletActorPool
     }
 
     public BulletActor getInstance() { return pool.getInstance(); }
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth) { pool.draw(model, tint, blend, cull, lineWidth); }
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth) { pool.draw(model, tint, blend, cull, lineWidth); }
 
     public void move()
     {

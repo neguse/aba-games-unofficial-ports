@@ -228,7 +228,7 @@ public class Shot : Actor
         }
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         Vector3 sp = tunnel.getPos_1_Vector(pos);
         float[] parent1 = model;
@@ -260,6 +260,6 @@ public class ShotPool
     public Shot getInstance() { return pool.getInstance(); }
     public Shot getInstanceForced() { return pool.getInstanceForced(); }
     public void move() { pool.move(); }
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth) { pool.draw(model, tint, blend, cull, lineWidth); }
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth) { pool.draw(model, tint, blend, cull, lineWidth); }
     public void clear() { pool.clear(); }
 }

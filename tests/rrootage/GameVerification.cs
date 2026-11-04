@@ -3,7 +3,7 @@ using static RrConstants;
 public static class RrVerification {
     static int failures;
     static void Check(bool condition,string name){if(!condition){failures++;Console.WriteLine("FAIL "+name);}}
-    static void Draw(){RrCore.draw(RrScreen.setEyepos(), Lub.Gfx.Blend.Additive, "scene");}
+    static void Draw(){RrCore.draw(RrScreen.setEyepos(), GlBlend.SrcAlphaOne, "scene");}
     static void Move(int count){for(int i=0;i<count;i++){RrCore.move();RrCore.tick++;}}
     static int[][] shipReference=new int[][] {
         new int[]{-22830,26322,500,100,2,21,0,0,0,0,0,2000,0,0},

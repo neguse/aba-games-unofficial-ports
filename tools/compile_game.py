@@ -85,7 +85,8 @@ if args.game == 'masashikun-hi':
 if args.game in ['gear-toy-gear', 'torus-trooper']:
     sources.append(Path('game/SimulationTime.cs'))
 # Scene.cs is the boundary to the app that hosts the game; Standalone.cs is the app for a single game.
-for name in ['Scene.cs', 'Standalone.cs']:
+# AsciiText.cs reads the games' ASCII text by byte position.
+for name in ['Scene.cs', 'Standalone.cs', 'AsciiText.cs']:
     if Path('game') / name not in sources:
         sources.append(Path('game') / name)
 # The flat games read input, play sound and save through lub directly (the VR games have their own Host.cs).
@@ -114,6 +115,8 @@ elif args.game not in ['gear-toy-gear', 'mazer-mayhem']:
     sources.append(shader_path)
 if args.game in ['torus-trooper', 'gear-toy-gear', 'mazer-mayhem']:
     sources.insert(0, args.lub / 'cs-lib/lubx/XrAnchor.cs')
+# lub's own C# (cs-lib/lub: Bindings.Set, the Vec/Mat types, the Blend presets).
+sources += sorted((args.lub / 'cs-lib/lub').glob('*.cs'))
 if args.test:
     sources.append(args.test)
 if args.sources_json:

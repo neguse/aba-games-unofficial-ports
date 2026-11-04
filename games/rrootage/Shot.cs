@@ -105,7 +105,7 @@ public static class RrShot
         }
     }
 
-    public static void drawShots(float[] model, Gfx.Blend blend, string key)
+    public static void drawShots(float[] model, Blend blend, string key)
     {
         int i = 0;
         Shot st = null;

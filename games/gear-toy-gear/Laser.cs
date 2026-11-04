@@ -111,7 +111,7 @@ public class LaserPool
     }
 }
 
-public class Laser : ActorCopy
+public class Laser : ActorCopy<Laser>
 {
     public Vector3 Pos = new Vector3();
     public float Scale;
@@ -134,7 +134,7 @@ public class Laser : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public Laser CopyActor()
     {
         return Copy();
     }

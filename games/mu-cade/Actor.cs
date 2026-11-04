@@ -21,7 +21,7 @@ public interface Actor
     public string getMeshKey();
     public void init_1_(object[] args);
     public void move_0();
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null);
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null);
 }
 
 public class ActorPool<T>
@@ -90,7 +90,7 @@ public class ActorPool<T>
                 item.move_0();
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         foreach (var item in actor)
             if (item.getExists())

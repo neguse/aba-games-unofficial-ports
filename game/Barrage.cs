@@ -66,7 +66,7 @@ public class BulletInst : PatternBody
     {
         int[] roots = BarrageCode.Roots(pattern);
         var states = new PatternState[roots.Length];
-        for (int i = 0; i < roots.Length; i++) states[i] = BarrageCode.Create(roots[i], new float[2]);
+        for (int i = 0; i < roots.Length; i++) states[i] = BarrageCode.Create(roots[i], new float[BarrageCode.ParameterCount]);
         return states;
     }
     public void setRunner(PatternState[] runner)

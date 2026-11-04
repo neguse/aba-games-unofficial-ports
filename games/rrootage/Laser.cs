@@ -146,7 +146,7 @@ public static class RrLaser
         laserCnt++;
     }
 
-    public static void drawLasers(float[] model, Gfx.Blend blend, string key)
+    public static void drawLasers(float[] model, Blend blend, string key)
     {
         float x = 0, y = 0;
         int i = 0;

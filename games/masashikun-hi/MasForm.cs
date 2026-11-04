@@ -108,7 +108,12 @@ public static class MasForm
         if (spans.Count > 0)
         {
             var rects = Gfx.UseBuffer("spans", Gfx.BufferType.Storage, spans, version);
-            if (rects != null) Gfx.Draw(spans.Count / 5 * 6, new Dictionary<string, object> { ["spans"] = rects }, new DrawOpts { Shader = shader, Blend = Gfx.Blend.None, Depth = false, DepthWrite = false, Cull = Gfx.Cull.None });
+            if (rects != null)
+            {
+                var bindings = new Bindings();
+                bindings.Set("spans", rects);
+                Gfx.Draw(spans.Count / 5 * 6, bindings, new DrawOpts { Shader = shader, Depth = false, DepthWrite = false, Cull = Gfx.Cull.None });
+            }
         }
         MasPanel.Draw();
         Gfx.EndPass();

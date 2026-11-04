@@ -169,7 +169,7 @@ public class Frame
     public void draw_0()
     {
         float[] model = field.setLookAt();
-        float[] color = null; Gfx.Blend blend = Gfx.Blend.Additive;
+        float[] color = null; Blend blend = GlBlend.SrcAlphaOne;
         if ((((gameState.isInGame())) || (((replayData) != null))))
         {
             pillars.drawOutside(model, color, blend);
@@ -522,7 +522,7 @@ public class GameState
         stage.countShotHit();
     }
 
-    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Blend blend)
     {
         Letter.drawNum(model, color, blend, score, 132, 5, 7);
         Letter.drawNum(model, color, blend, nextExtendScore, 134, 25, 5);
@@ -557,7 +557,7 @@ public class GameState
         }
     }
 
-    public void drawLeft(float[] model, float[] color, Gfx.Blend blend)
+    public void drawLeft(float[] model, float[] color, Blend blend)
     {
         for (int i = 0; i < left; i++)
         {

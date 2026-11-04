@@ -362,7 +362,7 @@ public class OdeActorPool<T> where T : Actor, OdeActor
         pool.move_0();
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         pool.draw(model, tint, blend, key, target);
     }

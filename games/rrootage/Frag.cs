@@ -328,7 +328,7 @@ public static class RrFrag
         }
     }
 
-    public static void drawFrags(float[] model, Gfx.Blend blend, string key)
+    public static void drawFrags(float[] model, Blend blend, string key)
     {
         int c = 0;
         int i = 0;

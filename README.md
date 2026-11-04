@@ -7,6 +7,8 @@ Linuxデスクトップ用とOpenXR用の起動方法、ビルド手順は
 [コレクションの説明](docs/collection.md)を参照。
 Web版も同じ13作品の一覧から選択する。公開済みの配布物については以下を参照。
 
+Meta Quest（Quest 2以降）でネイティブに動かすAPKのビルド手順は[Quest版の説明](docs/quest.md)を参照。
+
 Kenta Cho / ABA Games の非公式 Steam Frame 移植。
 GearToyGear・Torus Trooper・Mazer Mayhem を Steam Frame 本体で実行する。
 
@@ -66,8 +68,8 @@ Mazer Mayhem は倍率をためて両トリガーを同時に引くとハイパ�
 
 | 依存 | 使用コミット／バージョン |
 | --- | --- |
-| Lub | [`2d0084a619a746c22942658a883977fcb7475fb9`](https://github.com/neguse/lub/tree/2d0084a619a746c22942658a883977fcb7475fb9) |
-| tcs | [`f838bed2e2708c8553fc660b03079f3318f3af4b`](https://github.com/neguse/tcs/tree/f838bed2e2708c8553fc660b03079f3318f3af4b)（Lub のサブモジュール） |
+| Lub | [`b5e00b66bcecb22ff36b0ee1eb7625fc55ffdd77`](https://github.com/neguse/lub/tree/b5e00b66bcecb22ff36b0ee1eb7625fc55ffdd77) |
+| tcs | [`46ed64f62862bce8a00b50d9cf3afdf7a52cc622`](https://github.com/neguse/tcs/tree/46ed64f62862bce8a00b50d9cf3afdf7a52cc622)（Lub のサブモジュール） |
 | .NET SDK | 10 |
 | Slang | 2026.8.1 Linux ARM64 公式バイナリ |
 
@@ -82,7 +84,7 @@ CMake、Ninja、Vulkan 開発ライブラリ、zip を使用する。
 
 ```sh
 git clone https://github.com/neguse/lub.git ../lub-frame
-git -C ../lub-frame checkout --detach 2d0084a619a746c22942658a883977fcb7475fb9
+git -C ../lub-frame checkout --detach b5e00b66bcecb22ff36b0ee1eb7625fc55ffdd77
 git -C ../lub-frame submodule update --init --recursive
 dotnet build ../lub-frame/third_party/tcs/Transpiler/Transpiler.csproj -c Release
 (

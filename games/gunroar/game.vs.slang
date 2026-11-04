@@ -1,14 +1,13 @@
 struct Vertex { float4 position; float4 color; };
 StructuredBuffer<Vertex> verts;
 StructuredBuffer<float4> faces;
-cbuffer Params : register(b0) { column_major float4x4 model; float4 tint; float4 options; float4 imageInfo; };
-struct Output { float4 color : COLOR0; nointerpolation uint premultiply : TEXCOORD1; float4 position : SV_Position; };
+cbuffer Params : register(b0) { column_major float4x4 model; float4 tint; float4 options; float4 imageInfo; float4 viewport; };
+struct Output { float4 color : COLOR0; float4 position : SV_Position; };
 [shader("vertex")]
 Output vs_main(uint index : LUB_VERTEX_ID) {
     uint4 face = uint4(faces[index / 3 + uint(options.z)]);
     uint corner = index % 3;
     Output output;
-    output.premultiply = uint(options.y);
     if (face.w == 1) {
         corner += face.z;
         Vertex a = verts[face.x], b = verts[face.y];

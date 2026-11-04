@@ -1,6 +1,7 @@
 // Copyright 2003-2004 Kenta Cho. All rights reserved.
 using System;
 using Lub;
+using TinySystem.Text;
 
 public static class GameMath
 {
@@ -15,11 +16,12 @@ public static class GameMath
     public static int integer(float value) { return value < 0 ? -(int)Math.Floor(-value) : (int)Math.Floor(value); }
     public static int parseNonnegative(string text)
     {
-        if (text.Length == 0 || text.Length > 10) return -1;
+        var bytes = new Utf8Bytes(text);
+        if (bytes.Length == 0 || bytes.Length > 10) return -1;
         int value = 0;
-        for (int i = 0; i < text.Length; i++)
+        for (int i = 0; i < bytes.Length; i++)
         {
-            int digit = "0123456789".IndexOf(text.Substring(i, 1));
+            int digit = bytes[i] >= 48 && bytes[i] <= 57 ? bytes[i] - 48 : -1;
             if (digit < 0 || value > 214748364 || (value == 214748364 && digit > 7)) return -1;
             value = value * 10 + digit;
         }
@@ -68,7 +70,7 @@ public interface Actor
     Actor newActor();
     void init(ActorInitializer initializer);
     void move();
-    void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null);
+    void draw(float[] model, float[] color, Blend blend, Mesh target = null);
 }
 
 public static class ActorMesh
@@ -108,6 +110,6 @@ public class ActorPool
         return actor[actorIdx];
     }
     public void move() { foreach (var a in actor) if (a.getExist()) a.move(); }
-    public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) { foreach (var a in actor) if (a.getExist()) a.draw(model, color, blend, target); }
+    public void draw(float[] model, float[] color, Blend blend, Mesh target = null) { foreach (var a in actor) if (a.getExist()) a.draw(model, color, blend, target); }
     public void clear() { foreach (var a in actor) a.setExist(false); }
 }

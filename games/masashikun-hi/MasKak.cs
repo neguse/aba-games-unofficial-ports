@@ -2,6 +2,7 @@
 // TinyC# browser adaptation (2026-09-24).
 using System;
 using static MasMath;
+using TinySystem.Text;
 
 public static class MasKak
 {
@@ -66,7 +67,7 @@ public static class MasKak
             for (; i <= 3; i++)
             {
                 s = (((kakhsc[i].rec % 1000) + 1000)).ToString();
-                s = s.Substring(1);
+                s = s.RuneSubstring(1, s.RuneCount() - 1);
                 s = (((MasMath.Div(kakhsc[i].rec, 1000)).ToString() + "sec") + s);
                 MasScores.sethiscore(i, s, kakhsc[i].name);
             }
@@ -74,7 +75,7 @@ public static class MasKak
 
         MasScores.settitle("Kakenukero Dougenzaka");
         s = (((rec % 1000) + 1000)).ToString();
-        s = s.Substring(1);
+        s = s.RuneSubstring(1, s.RuneCount() - 1);
         s = (((MasMath.Div(rec, 1000)).ToString() + "sec") + s);
         kakhsc[n].name = MasScores.entername(n, s);
     }
@@ -88,7 +89,7 @@ public static class MasKak
             for (; i <= 3; i++)
             {
                 s = (((kakhsc[i].rec % 1000) + 1000)).ToString();
-                s = s.Substring(1);
+                s = s.RuneSubstring(1, s.RuneCount() - 1);
                 s = (((MasMath.Div(kakhsc[i].rec, 1000)).ToString() + "sec") + s);
                 MasScores.sethiscore(i, s, kakhsc[i].name);
             }
@@ -468,14 +469,14 @@ public static class MasKak
                     else if (choice4 == -(140))
                     {
                         s = (MasMath.Div(time, 1000)).ToString();
-                        MasHira.sethira2(s, (220 - (s.Length * 64)), 200, 64, 160);
+                        MasHira.sethira2(s, (220 - (s.RuneCount() * 64)), 200, 64, 160);
                     }
                     else if (choice4 == -(150))
                         MasHira.sethira2("ﾋﾞｮｳ", 240, 210, 52, 150);
                     else if (choice4 == -(160))
                     {
                         s = (((time % 1000) + 1000)).ToString();
-                        s = s.Substring(1);
+                        s = s.RuneSubstring(1, s.RuneCount() - 1);
                         MasHira.sethira2(s, 400, 200, 64, 140);
                         if (MasMain.sucf)
                         {
@@ -487,7 +488,7 @@ public static class MasKak
                                 sc = 20000;
                             MasMain.score[0] = sc;
                             s = (sc).ToString();
-                            MasHira.sethira2(s, (540 - (s.Length * 50)), 420, 50, 250);
+                            MasHira.sethira2(s, (540 - (s.RuneCount() * 50)), 420, 50, 250);
                             MasHira.sethira2("ﾃﾝ", 540, 428, 42, 250);
                         }
 
@@ -587,13 +588,13 @@ public static class MasKak
             MasHira.sethira2("ﾏｲﾆﾁ", 256, 360, 32, 1);
             tmpsp = tmpsp + (MasMath.Div((((((speed * 14)) - tmpsp) - 7)), 8));
             s = (tmpsp).ToString();
-            MasHira.sethira2(s, (520 - (s.Length * 64)), 400, 64, 1);
+            MasHira.sethira2(s, (520 - (s.RuneCount() * 64)), 400, 64, 1);
             MasHira.sethira2("ｷﾛ", 540, 420, 50, 1);
             s = (((time % 1000) + 1000)).ToString();
-            s = s.Substring(1);
+            s = s.RuneSubstring(1, s.RuneCount() - 1);
             MasHira.sethira2(s, 500, 0, 48, 1);
             s = (MasMath.Div(time, 1000)).ToString();
-            MasHira.sethira2(s, (410 - (s.Length * 48)), 0, 48, 1);
+            MasHira.sethira2(s, (410 - (s.RuneCount() * 48)), 0, 48, 1);
             MasHira.sethira2("ﾋﾞｮｳ", 420, 24, 24, 1);
         }
 

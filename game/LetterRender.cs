@@ -2,6 +2,7 @@
 using System;
 using static GameMath;
 using Lub;
+using TinySystem.Text;
 public class LetterRender {
 
   public static Mesh[] meshes = new Mesh[DISPLAY_LIST_NUM];
@@ -21,7 +22,7 @@ public class LetterRender {
     return s * LETTER_HEIGHT;
   }
 
-  public static void drawLetter(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, int n, float x, float y, float s, float d, int c) {
+  public static void drawLetter(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, int n, float x, float y, float s, float d, int c) {
     float[] parent1 = model;
     model = Transform.Translate(model, x, y, 0);
     model = Transform.Scale(model, s, s, s);
@@ -29,10 +30,10 @@ public class LetterRender {
     {
       Mesh shape2 = LetterRender.meshes[n + c * LETTER_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape2.ranges) {
-        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }
@@ -40,7 +41,7 @@ public class LetterRender {
     model = parent1;
   }
 
-  public static void drawLetterRev(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, int n, float x, float y, float s, float d, int c) {
+  public static void drawLetterRev(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, int n, float x, float y, float s, float d, int c) {
     float[] parent1 = model;
     model = Transform.Translate(model, x, y, 0);
     model = Transform.Scale(model, s, -s, s);
@@ -48,10 +49,10 @@ public class LetterRender {
     {
       Mesh shape2 = LetterRender.meshes[n + c * LETTER_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape2.ranges) {
-        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }
@@ -61,11 +62,11 @@ public class LetterRender {
 
   public static int convertCharToInt(string c) {
     if (c == "!") return 42;
-    int index = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ._-+".IndexOf(c.ToUpper());
+    int index = AsciiText.IndexOf("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ._-+", c.ToUpper());
     return index < 0 ? 0 : index;
   }
 
-  public static void drawStringFacing(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, string str, float lx, float y, float s, int d, int cl,
+  public static void drawStringFacing(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, string str, float lx, float y, float s, int d, int cl,
 				bool rev) {
     if (cl < 0)
       rand.setSeed(-cl);
@@ -88,8 +89,9 @@ public class LetterRender {
       ld = 270;
       break;
     }
-    for (int letterIndex = 0; letterIndex < str.Length; letterIndex++) {
-      string c = str.Substring(letterIndex, 1);
+    var strBytes = new Utf8Bytes(str);
+    for (int letterIndex = 0; letterIndex < strBytes.Length; letterIndex++) {
+      string c = AsciiText.At(strBytes, letterIndex);
       if (c != " ") {
 	idx = convertCharToInt(c);
 	if (cl >= 0) {
@@ -121,11 +123,11 @@ public class LetterRender {
     }
   }
 
-  public static void drawString(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, string str, float lx, float y, float s, int d, int cl) {
+  public static void drawString(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, string str, float lx, float y, float s, int d, int cl) {
     drawStringFacing(model, tint, blend, depth, cull, width, str, lx, y, s, d, cl, false);
   }
 
-  public static void drawNum(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, int num, float lx, float y, float s, int d, int cl) {
+  public static void drawNum(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, int num, float lx, float y, float s, int d, int cl) {
     lx += LETTER_WIDTH * s / 2;
     y += LETTER_HEIGHT * s / 2;
     int n = num;
@@ -166,7 +168,7 @@ public class LetterRender {
     }
   }
 
-  public static void drawNumSign(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, int num, float lx, float ly, float s, int cl) {
+  public static void drawNumSign(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, int num, float lx, float ly, float s, int cl) {
     float dg;
     if (num < 100)
       dg = 2;
@@ -187,7 +189,7 @@ public class LetterRender {
     }
   }
 
-  public static void drawTime(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, int time, float lx, float y, float s, int cl) {
+  public static void drawTime(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, int time, float lx, float y, float s, int cl) {
     int n = time;
     float x = lx;
     for (int i = 0; i < 7; i++) {

@@ -6,7 +6,7 @@ using Lub;
 
 public interface Shape
 {
-    public void draw_3(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg);
+    public void draw_3(float[] model, float[] color, Blend blend, Vector3 pos, float cd, float deg);
 }
 
 public interface MeshBuilder
@@ -23,16 +23,16 @@ public class MeshShape : Shape
         mesh = new Mesh("shape-" + nextMesh.ToString()); nextMesh++;
         builder.createMesh(mesh);
     }
-    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Blend blend)
     {
         foreach (MeshRange range in mesh.ranges)
         {
-            Gfx.Blend material = range.material == 0 ? blend : (Gfx.Blend)range.material;
-            Gfx.Draw(range.count, mesh.Bindings(model, color, 1, material == Gfx.Blend.Additive, range.first / 3),
-                new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = material });
+            Blend rangeBlend = range.hasBlend ? range.blend : blend;
+            Gfx.Draw(range.count, mesh.Bindings(model, color, 1, range.first / 3),
+                new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = rangeBlend });
         }
     }
-    public void draw_3(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg)
+    public void draw_3(float[] model, float[] color, Blend blend, Vector3 pos, float cd, float deg)
     {
         float[] parent1 = model; model = Transform.Translate(model, pos.x, pos.y, pos.z);
         model = Transform.Rotate(model, cd * 180 / PI, 0, 1, 0); model = Transform.Rotate(model, deg * 180 / PI, 0, 0, 1);
@@ -43,7 +43,7 @@ public class MeshShape : Shape
 
 public class PyramidShape
 {
-    public static void append(Mesh mesh, float[] model, float[] color, int material)
+    public static void append(Mesh mesh, float[] model, float[] color, Blend blend)
     {
         int part1 = mesh.vertexCount; int face1 = mesh.count;
         mesh.Vertex(0, 0, 0, color, model);
@@ -52,7 +52,7 @@ public class PyramidShape
         mesh.Vertex(-1, 1, -1, color, model);
         mesh.Vertex(-1, 1, 1, color, model);
         mesh.Vertex(1, 1, 1, color, model);
-        mesh.Fan(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
+        mesh.Fan(part1, mesh.vertexCount - part1); mesh.AddBlendRange(face1, blend);
         color = new float[] { 0.1f, 0.1f, 0.1f, 0.5f };
         int part2 = mesh.vertexCount; int face2 = mesh.count;
         mesh.Vertex(0, 0, 0, color, model);
@@ -62,16 +62,16 @@ public class PyramidShape
         mesh.Vertex(-1, 1, -1, color, model);
         mesh.Vertex(-1, 1, 1, color, model);
         mesh.Vertex(0, 0, 0, color, model);
-        mesh.LineStrip(part2, mesh.vertexCount - part2); mesh.AddRange(face2, material);
+        mesh.LineStrip(part2, mesh.vertexCount - part2); mesh.AddBlendRange(face2, blend);
         int part3 = mesh.vertexCount; int face3 = mesh.count;
         mesh.Vertex(1, 1, 1, color, model);
         mesh.Vertex(-1, 1, 1, color, model);
         mesh.Vertex(1, 1, -1, color, model);
         mesh.Vertex(-1, 1, -1, color, model);
-        for (int vi = part3; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1); mesh.AddRange(face3, material);
+        for (int vi = part3; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1); mesh.AddBlendRange(face3, blend);
     }
 
-    public static void appendShadow(Mesh mesh, float[] model, float[] color, int material, float r, float g, float b, bool noAlpha = false)
+    public static void appendShadow(Mesh mesh, float[] model, float[] color, Blend blend, float r, float g, float b, bool noAlpha = false)
     {
         int part1 = mesh.vertexCount; int face1 = mesh.count;
         color = new float[] { r, g, b, 1 };
@@ -85,10 +85,10 @@ public class PyramidShape
         mesh.Vertex(-1, 1, -1, color, model);
         mesh.Vertex(-1, 1, 1, color, model);
         mesh.Vertex(1, 1, 1, color, model);
-        mesh.Fan(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
+        mesh.Fan(part1, mesh.vertexCount - part1); mesh.AddBlendRange(face1, blend);
     }
 
-    public static void appendPolygonShape(Mesh mesh, float[] model, float[] color, int material)
+    public static void appendPolygonShape(Mesh mesh, float[] model, float[] color, Blend blend)
     {
         int part1 = mesh.vertexCount; int face1 = mesh.count;
         mesh.Vertex(0, 0, 0, color, model);
@@ -97,10 +97,10 @@ public class PyramidShape
         mesh.Vertex(-1, 1, -1, color, model);
         mesh.Vertex(-1, 1, 1, color, model);
         mesh.Vertex(1, 1, 1, color, model);
-        mesh.Fan(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
+        mesh.Fan(part1, mesh.vertexCount - part1); mesh.AddBlendRange(face1, blend);
     }
 
-    public static void appendLineShape(Mesh mesh, float[] model, float[] color, int material)
+    public static void appendLineShape(Mesh mesh, float[] model, float[] color, bool hasBlend, Blend blend)
     {
         int part1 = mesh.vertexCount; int face1 = mesh.count;
         mesh.Vertex(0, 0, 0, color, model);
@@ -110,13 +110,13 @@ public class PyramidShape
         mesh.Vertex(-1, 1, -1, color, model);
         mesh.Vertex(-1, 1, 1, color, model);
         mesh.Vertex(0, 0, 0, color, model);
-        mesh.LineStrip(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
+        mesh.LineStrip(part1, mesh.vertexCount - part1); if (hasBlend) mesh.AddBlendRange(face1, blend); else mesh.AddRange(face1, 0);
         int part2 = mesh.vertexCount; int face2 = mesh.count;
         mesh.Vertex(1, 1, 1, color, model);
         mesh.Vertex(-1, 1, 1, color, model);
         mesh.Vertex(1, 1, -1, color, model);
         mesh.Vertex(-1, 1, -1, color, model);
-        for (int vi = part2; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1); mesh.AddRange(face2, material);
+        for (int vi = part2; vi + 1 < mesh.vertexCount; vi += 2) mesh.Line(vi, vi + 1); if (hasBlend) mesh.AddBlendRange(face2, blend); else mesh.AddRange(face2, 0);
     }
 }
 
@@ -124,48 +124,48 @@ public class PlayerShape : MeshBuilder
 {
     public void createMesh(Mesh mesh)
     {
-        float[] model = Transform.Identity(); float[] color = null; int material = 0;
-        material = (int)Gfx.Blend.Alpha;
+        float[] model = Transform.Identity(); float[] color = null; Blend blend = null;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         float[] parent1 = model;
         model = Transform.Rotate(model, 180, 0, 0, 1);
         model = Transform.Translate(model, 0, -0.6f, 0);
         model = Transform.Scale(model, 0.4f, 1.3f, 0.4f);
-        PyramidShape.appendShadow(mesh, model, color, material, 1, 0.5f, 0.5f, true);
+        PyramidShape.appendShadow(mesh, model, color, blend, 1, 0.5f, 0.5f, true);
         model = parent1;
         float[] parent2 = model;
         model = Transform.Rotate(model, 180, 0, 0, 1);
         model = Transform.Translate(model, 0.5f, -0.2f, 0);
         model = Transform.Scale(model, 0.3f, 0.9f, 0.3f);
-        PyramidShape.appendShadow(mesh, model, color, material, 1, 1, 1, true);
+        PyramidShape.appendShadow(mesh, model, color, blend, 1, 1, 1, true);
         model = parent2;
         float[] parent3 = model;
         model = Transform.Rotate(model, 180, 0, 0, 1);
         model = Transform.Translate(model, -0.5f, -0.2f, 0);
         model = Transform.Scale(model, 0.3f, 0.9f, 0.3f);
-        PyramidShape.appendShadow(mesh, model, color, material, 1, 1, 1, true);
+        PyramidShape.appendShadow(mesh, model, color, blend, 1, 1, 1, true);
         model = parent3;
         color = new float[] { 1, 0.5f, 0.5f, 1 };
         float[] parent4 = model;
         model = Transform.Rotate(model, 180, 0, 0, 1);
         model = Transform.Translate(model, 0, -0.6f, 0);
         model = Transform.Scale(model, 0.3f, 1.2f, 0.3f);
-        PyramidShape.appendPolygonShape(mesh, model, color, material);
+        PyramidShape.appendPolygonShape(mesh, model, color, blend);
         model = parent4;
         color = new float[] { 1, 1, 1, 1 };
         float[] parent5 = model;
         model = Transform.Rotate(model, 180, 0, 0, 1);
         model = Transform.Translate(model, 0.5f, -0.2f, 0);
         model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
-        PyramidShape.appendPolygonShape(mesh, model, color, material);
+        PyramidShape.appendPolygonShape(mesh, model, color, blend);
         model = parent5;
         color = new float[] { 1, 1, 1, 1 };
         float[] parent6 = model;
         model = Transform.Rotate(model, 180, 0, 0, 1);
         model = Transform.Translate(model, -0.5f, -0.2f, 0);
         model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
-        PyramidShape.appendPolygonShape(mesh, model, color, material);
+        PyramidShape.appendPolygonShape(mesh, model, color, blend);
         model = parent6;
-        material = (int)Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
     }
 }
 
@@ -173,27 +173,27 @@ public class PlayerLineShape : MeshBuilder
 {
     public void createMesh(Mesh mesh)
     {
-        float[] model = Transform.Identity(); float[] color = null; int material = 0;
-        material = (int)Gfx.Blend.Alpha;
+        float[] model = Transform.Identity(); float[] color = null; Blend blend = null;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         float[] parent1 = model;
         model = Transform.Rotate(model, 180, 0, 0, 1);
         model = Transform.Translate(model, 0, -0.6f, 0);
         model = Transform.Scale(model, 0.3f, 1.2f, 0.3f);
-        PyramidShape.appendLineShape(mesh, model, color, material);
+        PyramidShape.appendLineShape(mesh, model, color, true, blend);
         model = parent1;
         float[] parent2 = model;
         model = Transform.Rotate(model, 180, 0, 0, 1);
         model = Transform.Translate(model, 0.5f, -0.2f, 0);
         model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
-        PyramidShape.appendLineShape(mesh, model, color, material);
+        PyramidShape.appendLineShape(mesh, model, color, true, blend);
         model = parent2;
         float[] parent3 = model;
         model = Transform.Rotate(model, 180, 0, 0, 1);
         model = Transform.Translate(model, -0.5f, -0.2f, 0);
         model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
-        PyramidShape.appendLineShape(mesh, model, color, material);
+        PyramidShape.appendLineShape(mesh, model, color, true, blend);
         model = parent3;
-        material = (int)Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
     }
 }
 
@@ -201,20 +201,20 @@ public class ShotShape : MeshBuilder
 {
     public void createMesh(Mesh mesh)
     {
-        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        float[] model = Transform.Identity(); float[] color = null;
         float[] parent1 = model;
         model = Transform.Rotate(model, 180, 0, 0, 1);
         model = Transform.Translate(model, 0.5f, -0.5f, 0);
         model = Transform.Scale(model, 0.1f, 1.0f, 0.1f);
         color = new float[] { 0.4f, 0.2f, 0.8f, 1 };
-        PyramidShape.appendLineShape(mesh, model, color, material);
+        PyramidShape.appendLineShape(mesh, model, color, false, null);
         model = parent1;
         float[] parent2 = model;
         model = Transform.Rotate(model, 180, 0, 0, 1);
         model = Transform.Translate(model, -0.5f, -0.5f, 0);
         model = Transform.Scale(model, 0.1f, 1.0f, 0.1f);
         color = new float[] { 0.4f, 0.2f, 0.8f, 1 };
-        PyramidShape.appendLineShape(mesh, model, color, material);
+        PyramidShape.appendLineShape(mesh, model, color, false, null);
         model = parent2;
     }
 }
@@ -315,12 +315,12 @@ public class BulletShapeBase : Shape
         this.roll = roll;
     }
 
-    public void draw_3(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg)
+    public void draw_3(float[] model, float[] color, Blend blend, Vector3 pos, float cd, float deg)
     {
         meshShape.draw_3(model, color, blend, pos, cd, deg);
     }
 
-    public void draw_4(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg, float rd)
+    public void draw_4(float[] model, float[] color, Blend blend, Vector3 pos, float cd, float deg, float rd)
     {
         if (roll)
         {
@@ -353,8 +353,8 @@ public class BulletShape : MeshBuilder
 {
     public void createMesh(Mesh mesh)
     {
-        float[] model = Transform.Identity(); float[] color = null; int material = 0;
-        material = (int)Gfx.Blend.Alpha;
+        float[] model = Transform.Identity(); float[] color = null; Blend blend = null;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         color = new float[] { 0, 0, 0, 1 };
         int part1 = mesh.vertexCount; int face1 = mesh.count;
         mesh.Vertex(0, 0.5f, 0, color, model);
@@ -362,13 +362,13 @@ public class BulletShape : MeshBuilder
         mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
         mesh.Vertex(0, -0.3f, 0.4f, color, model);
         mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
-        mesh.Fan(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
+        mesh.Fan(part1, mesh.vertexCount - part1); mesh.AddBlendRange(face1, blend);
         int part2 = mesh.vertexCount; int face2 = mesh.count;
         mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
         mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
         mesh.Vertex(0, -0.3f, 0.4f, color, model);
-        mesh.Fan(part2, mesh.vertexCount - part2); mesh.AddRange(face2, material);
-        material = (int)Gfx.Blend.Additive;
+        mesh.Fan(part2, mesh.vertexCount - part2); mesh.AddBlendRange(face2, blend);
+        blend = GlBlend.SrcAlphaOne;
         model = Transform.Scale(model, 1.2f, 1.2f, 1.2f);
         color = new float[] { 0.1f, 0.3f, 0.3f, 1 };
         int part3 = mesh.vertexCount; int face3 = mesh.count;
@@ -377,12 +377,12 @@ public class BulletShape : MeshBuilder
         mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
         mesh.Vertex(0, -0.3f, 0.4f, color, model);
         mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
-        mesh.Fan(part3, mesh.vertexCount - part3); mesh.AddRange(face3, material);
+        mesh.Fan(part3, mesh.vertexCount - part3); mesh.AddBlendRange(face3, blend);
         int part4 = mesh.vertexCount; int face4 = mesh.count;
         mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
         mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
         mesh.Vertex(0, -0.3f, 0.4f, color, model);
-        mesh.Fan(part4, mesh.vertexCount - part4); mesh.AddRange(face4, material);
+        mesh.Fan(part4, mesh.vertexCount - part4); mesh.AddBlendRange(face4, blend);
     }
 }
 
@@ -412,8 +412,8 @@ public class MiddleBulletShape : MeshBuilder
 {
     public void createMesh(Mesh mesh)
     {
-        float[] model = Transform.Identity(); float[] color = null; int material = 0;
-        material = (int)Gfx.Blend.Alpha;
+        float[] model = Transform.Identity(); float[] color = null; Blend blend = null;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         model = Transform.Scale(model, 1.1f, 1.0f, 1.1f);
         color = new float[] { 0, 0, 0, 1 };
         int part1 = mesh.vertexCount; int face1 = mesh.count;
@@ -429,7 +429,7 @@ public class MiddleBulletShape : MeshBuilder
         mesh.Vertex(0, -0.3f, 0.4f, color, model);
         mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
         mesh.Vertex(-0.17f, 0.3f, -0.1f, color, model);
-        mesh.Quads(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
+        mesh.Quads(part1, mesh.vertexCount - part1); mesh.AddBlendRange(face1, blend);
         int part2 = mesh.vertexCount; int face2 = mesh.count;
         mesh.Vertex(-0.17f, -0.3f, -0.1f, color, model);
         mesh.Vertex(0.17f, -0.3f, -0.1f, color, model);
@@ -437,8 +437,8 @@ public class MiddleBulletShape : MeshBuilder
         mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
         mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
         mesh.Vertex(0, -0.3f, 0.4f, color, model);
-        for (int vi = part2; vi + 2 < mesh.vertexCount; vi += 3) mesh.Triangle(vi, vi + 1, vi + 2); mesh.AddRange(face2, material);
-        material = (int)Gfx.Blend.Additive;
+        for (int vi = part2; vi + 2 < mesh.vertexCount; vi += 3) mesh.Triangle(vi, vi + 1, vi + 2); mesh.AddBlendRange(face2, blend);
+        blend = GlBlend.SrcAlphaOne;
         model = Transform.Scale(model, 1.4f, 1.3f, 1.4f);
         color = new float[] { 0.1f, 0.2f, 0.3f, 1 };
         int part3 = mesh.vertexCount; int face3 = mesh.count;
@@ -454,7 +454,7 @@ public class MiddleBulletShape : MeshBuilder
         mesh.Vertex(0, -0.3f, 0.4f, color, model);
         mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
         mesh.Vertex(-0.17f, 0.3f, -0.1f, color, model);
-        mesh.Quads(part3, mesh.vertexCount - part3); mesh.AddRange(face3, material);
+        mesh.Quads(part3, mesh.vertexCount - part3); mesh.AddBlendRange(face3, blend);
         int part4 = mesh.vertexCount; int face4 = mesh.count;
         mesh.Vertex(-0.17f, 0.3f, -0.1f, color, model);
         mesh.Vertex(0.17f, 0.3f, -0.1f, color, model);
@@ -462,7 +462,7 @@ public class MiddleBulletShape : MeshBuilder
         mesh.Vertex(-0.34f, -0.3f, -0.2f, color, model);
         mesh.Vertex(0.34f, -0.3f, -0.2f, color, model);
         mesh.Vertex(0, -0.3f, 0.4f, color, model);
-        for (int vi = part4; vi + 2 < mesh.vertexCount; vi += 3) mesh.Triangle(vi, vi + 1, vi + 2); mesh.AddRange(face4, material);
+        for (int vi = part4; vi + 2 < mesh.vertexCount; vi += 3) mesh.Triangle(vi, vi + 1, vi + 2); mesh.AddBlendRange(face4, blend);
     }
 }
 
@@ -497,8 +497,8 @@ public class CounterBulletShape : MeshBuilder
 {
     public void createMesh(Mesh mesh)
     {
-        float[] model = Transform.Identity(); float[] color = null; int material = 0;
-        material = (int)Gfx.Blend.Alpha;
+        float[] model = Transform.Identity(); float[] color = null; Blend blend = null;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         color = new float[] { 0, 0, 0, 1 };
         int part1 = mesh.vertexCount; int face1 = mesh.count;
         mesh.Vertex(0, 0, 0.5f, color, model);
@@ -507,8 +507,8 @@ public class CounterBulletShape : MeshBuilder
         mesh.Vertex(-0.5f, 0, 0, color, model);
         mesh.Vertex(0, -0.5f, 0, color, model);
         mesh.Vertex(0.5f, 0, 0, color, model);
-        mesh.Fan(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
-        material = (int)Gfx.Blend.Additive;
+        mesh.Fan(part1, mesh.vertexCount - part1); mesh.AddBlendRange(face1, blend);
+        blend = GlBlend.SrcAlphaOne;
         model = Transform.Scale(model, 1.2f, 1.2f, 1.2f);
         color = new float[] { 0.5f, 0.5f, 0.5f, 1 };
         int part2 = mesh.vertexCount; int face2 = mesh.count;
@@ -518,7 +518,7 @@ public class CounterBulletShape : MeshBuilder
         mesh.Vertex(-0.5f, 0, 0, color, model);
         mesh.Vertex(0, -0.5f, 0, color, model);
         mesh.Vertex(0.5f, 0, 0, color, model);
-        mesh.Fan(part2, mesh.vertexCount - part2); mesh.AddRange(face2, material);
+        mesh.Fan(part2, mesh.vertexCount - part2); mesh.AddBlendRange(face2, blend);
     }
 }
 
@@ -555,17 +555,17 @@ public class EnemyShape : Shape
         meshShape = new MeshShape(builder);
     }
 
-    public void draw_3(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg)
+    public void draw_3(float[] model, float[] color, Blend blend, Vector3 pos, float cd, float deg)
     {
         meshShape.draw_3(model, color, blend, pos, cd, deg);
     }
 
-    public void draw_5(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg, float cnt, Vector size)
+    public void draw_5(float[] model, float[] color, Blend blend, Vector3 pos, float cd, float deg, float cnt, Vector size)
     {
         draw_6(model, color, blend, pos, cd, deg, cnt, size.x, size.y);
     }
 
-    public void draw_6(float[] model, float[] color, Gfx.Blend blend, Vector3 pos, float cd, float deg, float cnt, float sx, float sy)
+    public void draw_6(float[] model, float[] color, Blend blend, Vector3 pos, float cd, float deg, float cnt, float sx, float sy)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, pos.x, pos.y, pos.z);
@@ -587,47 +587,47 @@ public class Enemy1Shape : MeshBuilder
 {
     public void createMesh(Mesh mesh)
     {
-        float[] model = Transform.Identity(); float[] color = null; int material = 0;
-        material = (int)Gfx.Blend.Alpha;
+        float[] model = Transform.Identity(); float[] color = null; Blend blend = null;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         float[] parent1 = model;
         model = Transform.Translate(model, 0, -0.6f, 0);
         model = Transform.Scale(model, 0.5f, 1.4f, 0.5f);
-        PyramidShape.appendShadow(mesh, model, color, material, 0.5f, 0.5f, 0.3f);
+        PyramidShape.appendShadow(mesh, model, color, blend, 0.5f, 0.5f, 0.3f);
         model = parent1;
         float[] parent2 = model;
         model = Transform.Rotate(model, 120, 0, 0, 1);
         model = Transform.Translate(model, 0.5f, -0.2f, 0);
         model = Transform.Scale(model, 0.4f, 1.0f, 0.4f);
-        PyramidShape.appendShadow(mesh, model, color, material, 0.2f, 0.2f, 0.5f);
+        PyramidShape.appendShadow(mesh, model, color, blend, 0.2f, 0.2f, 0.5f);
         model = parent2;
         color = new float[] { 0.2f, 0.2f, 0.5f, 1 };
         float[] parent3 = model;
         model = Transform.Rotate(model, 240, 0, 0, 1);
         model = Transform.Translate(model, -0.5f, -0.2f, 0);
         model = Transform.Scale(model, 0.4f, 1.0f, 0.4f);
-        PyramidShape.appendShadow(mesh, model, color, material, 0.2f, 0.2f, 0.5f);
+        PyramidShape.appendShadow(mesh, model, color, blend, 0.2f, 0.2f, 0.5f);
         model = parent3;
         color = new float[] { 1, 1, 0.6f, 1 };
         float[] parent4 = model;
         model = Transform.Translate(model, 0, -0.6f, 0);
         model = Transform.Scale(model, 0.3f, 1.2f, 0.3f);
-        PyramidShape.append(mesh, model, color, material);
+        PyramidShape.append(mesh, model, color, blend);
         model = parent4;
         color = new float[] { 0.5f, 0.5f, 1, 1 };
         float[] parent5 = model;
         model = Transform.Rotate(model, 120, 0, 0, 1);
         model = Transform.Translate(model, 0.5f, -0.2f, 0);
         model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
-        PyramidShape.append(mesh, model, color, material);
+        PyramidShape.append(mesh, model, color, blend);
         model = parent5;
         color = new float[] { 0.5f, 0.5f, 1, 1 };
         float[] parent6 = model;
         model = Transform.Rotate(model, 240, 0, 0, 1);
         model = Transform.Translate(model, -0.5f, -0.2f, 0);
         model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
-        PyramidShape.append(mesh, model, color, material);
+        PyramidShape.append(mesh, model, color, blend);
         model = parent6;
-        material = (int)Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
     }
 }
 
@@ -635,23 +635,23 @@ public class Enemy1TrailShape : MeshBuilder
 {
     public void createMesh(Mesh mesh)
     {
-        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        float[] model = Transform.Identity(); float[] color = null;
         float[] parent1 = model;
         model = Transform.Translate(model, 0, -0.6f, 0);
         model = Transform.Scale(model, 0.3f, 1.2f, 0.3f);
-        PyramidShape.appendLineShape(mesh, model, color, material);
+        PyramidShape.appendLineShape(mesh, model, color, false, null);
         model = parent1;
         float[] parent2 = model;
         model = Transform.Rotate(model, 120, 0, 0, 1);
         model = Transform.Translate(model, 0.5f, -0.2f, 0);
         model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
-        PyramidShape.appendLineShape(mesh, model, color, material);
+        PyramidShape.appendLineShape(mesh, model, color, false, null);
         model = parent2;
         float[] parent3 = model;
         model = Transform.Rotate(model, 240, 0, 0, 1);
         model = Transform.Translate(model, -0.5f, -0.2f, 0);
         model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
-        PyramidShape.appendLineShape(mesh, model, color, material);
+        PyramidShape.appendLineShape(mesh, model, color, false, null);
         model = parent3;
     }
 }
@@ -660,46 +660,46 @@ public class Enemy2Shape : MeshBuilder
 {
     public void createMesh(Mesh mesh)
     {
-        float[] model = Transform.Identity(); float[] color = null; int material = 0;
-        material = (int)Gfx.Blend.Alpha;
+        float[] model = Transform.Identity(); float[] color = null; Blend blend = null;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         float[] parent1 = model;
         model = Transform.Translate(model, 0, -0.5f, 0);
         model = Transform.Scale(model, 0.5f, 1.2f, 0.5f);
-        PyramidShape.appendShadow(mesh, model, color, material, 0.5f, 0.4f, 0.5f);
+        PyramidShape.appendShadow(mesh, model, color, blend, 0.5f, 0.4f, 0.5f);
         model = parent1;
         float[] parent2 = model;
         model = Transform.Rotate(model, 60, 0, 0, 1);
         model = Transform.Translate(model, 0.6f, -0.7f, 0);
         model = Transform.Scale(model, 0.4f, 1.4f, 0.4f);
-        PyramidShape.appendShadow(mesh, model, color, material, 0.9f, 0.6f, 0.5f);
+        PyramidShape.appendShadow(mesh, model, color, blend, 0.9f, 0.6f, 0.5f);
         model = parent2;
         float[] parent3 = model;
         model = Transform.Rotate(model, 300, 0, 0, 1);
         model = Transform.Translate(model, -0.6f, -0.7f, 0);
         model = Transform.Scale(model, 0.4f, 1.4f, 0.4f);
-        PyramidShape.appendShadow(mesh, model, color, material, 0.9f, 0.6f, 0.5f);
+        PyramidShape.appendShadow(mesh, model, color, blend, 0.9f, 0.6f, 0.5f);
         model = parent3;
         color = new float[] { 1, 0.9f, 1.0f, 1 };
         float[] parent4 = model;
         model = Transform.Translate(model, 0, -0.5f, 0);
         model = Transform.Scale(model, 0.3f, 1.0f, 0.3f);
-        PyramidShape.append(mesh, model, color, material);
+        PyramidShape.append(mesh, model, color, blend);
         model = parent4;
         color = new float[] { 0.9f, 0.6f, 0.5f, 1 };
         float[] parent5 = model;
         model = Transform.Rotate(model, 60, 0, 0, 1);
         model = Transform.Translate(model, 0.6f, -0.7f, 0);
         model = Transform.Scale(model, 0.2f, 1.2f, 0.2f);
-        PyramidShape.append(mesh, model, color, material);
+        PyramidShape.append(mesh, model, color, blend);
         model = parent5;
         color = new float[] { 0.9f, 0.6f, 0.5f, 1 };
         float[] parent6 = model;
         model = Transform.Rotate(model, 300, 0, 0, 1);
         model = Transform.Translate(model, -0.6f, -0.7f, 0);
         model = Transform.Scale(model, 0.2f, 1.2f, 0.2f);
-        PyramidShape.append(mesh, model, color, material);
+        PyramidShape.append(mesh, model, color, blend);
         model = parent6;
-        material = (int)Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
     }
 }
 
@@ -707,23 +707,23 @@ public class Enemy2TrailShape : MeshBuilder
 {
     public void createMesh(Mesh mesh)
     {
-        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        float[] model = Transform.Identity(); float[] color = null;
         float[] parent1 = model;
         model = Transform.Translate(model, 0, -0.5f, 0);
         model = Transform.Scale(model, 0.3f, 1.0f, 0.3f);
-        PyramidShape.appendLineShape(mesh, model, color, material);
+        PyramidShape.appendLineShape(mesh, model, color, false, null);
         model = parent1;
         float[] parent2 = model;
         model = Transform.Rotate(model, 60, 0, 0, 1);
         model = Transform.Translate(model, 0.6f, -0.7f, 0);
         model = Transform.Scale(model, 0.2f, 1.2f, 0.2f);
-        PyramidShape.appendLineShape(mesh, model, color, material);
+        PyramidShape.appendLineShape(mesh, model, color, false, null);
         model = parent2;
         float[] parent3 = model;
         model = Transform.Rotate(model, 300, 0, 0, 1);
         model = Transform.Translate(model, -0.6f, -0.7f, 0);
         model = Transform.Scale(model, 0.2f, 1.2f, 0.2f);
-        PyramidShape.appendLineShape(mesh, model, color, material);
+        PyramidShape.appendLineShape(mesh, model, color, false, null);
         model = parent3;
     }
 }
@@ -732,47 +732,47 @@ public class Enemy3Shape : MeshBuilder
 {
     public void createMesh(Mesh mesh)
     {
-        float[] model = Transform.Identity(); float[] color = null; int material = 0;
-        material = (int)Gfx.Blend.Alpha;
+        float[] model = Transform.Identity(); float[] color = null; Blend blend = null;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         float[] parent1 = model;
         model = Transform.Translate(model, 0, -0.4f, 0);
         model = Transform.Scale(model, 0.5f, 1.4f, 0.5f);
-        PyramidShape.appendShadow(mesh, model, color, material, 0.5f, 0.5f, 0.3f);
+        PyramidShape.appendShadow(mesh, model, color, blend, 0.5f, 0.5f, 0.3f);
         model = parent1;
         float[] parent2 = model;
         model = Transform.Rotate(model, 150, 0, 0, 1);
         model = Transform.Translate(model, 0.5f, 0.2f, 0);
         model = Transform.Scale(model, 0.4f, 1.0f, 0.4f);
-        PyramidShape.appendShadow(mesh, model, color, material, 0.2f, 0.2f, 0.5f);
+        PyramidShape.appendShadow(mesh, model, color, blend, 0.2f, 0.2f, 0.5f);
         model = parent2;
         color = new float[] { 0.2f, 0.2f, 0.5f, 1 };
         float[] parent3 = model;
         model = Transform.Rotate(model, 210, 0, 0, 1);
         model = Transform.Translate(model, -0.5f, 0.2f, 0);
         model = Transform.Scale(model, 0.4f, 1.0f, 0.4f);
-        PyramidShape.appendShadow(mesh, model, color, material, 0.2f, 0.2f, 0.5f);
+        PyramidShape.appendShadow(mesh, model, color, blend, 0.2f, 0.2f, 0.5f);
         model = parent3;
         color = new float[] { 1, 0.6f, 0.9f, 1 };
         float[] parent4 = model;
         model = Transform.Translate(model, 0, -0.4f, 0);
         model = Transform.Scale(model, 0.3f, 1.2f, 0.3f);
-        PyramidShape.append(mesh, model, color, material);
+        PyramidShape.append(mesh, model, color, blend);
         model = parent4;
         color = new float[] { 0.3f, 0.5f, 1, 1 };
         float[] parent5 = model;
         model = Transform.Rotate(model, 150, 0, 0, 1);
         model = Transform.Translate(model, 0.5f, 0.2f, 0);
         model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
-        PyramidShape.append(mesh, model, color, material);
+        PyramidShape.append(mesh, model, color, blend);
         model = parent5;
         color = new float[] { 0.3f, 0.5f, 1, 1 };
         float[] parent6 = model;
         model = Transform.Rotate(model, 210, 0, 0, 1);
         model = Transform.Translate(model, -0.5f, 0.2f, 0);
         model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
-        PyramidShape.append(mesh, model, color, material);
+        PyramidShape.append(mesh, model, color, blend);
         model = parent6;
-        material = (int)Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
     }
 }
 
@@ -780,23 +780,23 @@ public class Enemy3TrailShape : MeshBuilder
 {
     public void createMesh(Mesh mesh)
     {
-        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        float[] model = Transform.Identity(); float[] color = null;
         float[] parent1 = model;
         model = Transform.Translate(model, 0, -0.4f, 0);
         model = Transform.Scale(model, 0.3f, 1.2f, 0.3f);
-        PyramidShape.appendLineShape(mesh, model, color, material);
+        PyramidShape.appendLineShape(mesh, model, color, false, null);
         model = parent1;
         float[] parent2 = model;
         model = Transform.Rotate(model, 150, 0, 0, 1);
         model = Transform.Translate(model, 0.5f, 0.2f, 0);
         model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
-        PyramidShape.appendLineShape(mesh, model, color, material);
+        PyramidShape.appendLineShape(mesh, model, color, false, null);
         model = parent2;
         float[] parent3 = model;
         model = Transform.Rotate(model, 210, 0, 0, 1);
         model = Transform.Translate(model, -0.5f, 0.2f, 0);
         model = Transform.Scale(model, 0.2f, 0.8f, 0.2f);
-        PyramidShape.appendLineShape(mesh, model, color, material);
+        PyramidShape.appendLineShape(mesh, model, color, false, null);
         model = parent3;
     }
 }
@@ -824,9 +824,9 @@ public class PillarShape
         meshShape = new MeshShape(builder);
     }
 
-    public static void appendPillar(Mesh mesh, float[] model, float[] color, int material, float r, float g, float b, bool outside = false)
+    public static void appendPillar(Mesh mesh, float[] model, float[] color, float r, float g, float b, bool outside = false)
     {
-        material = (int)Gfx.Blend.Alpha;
+        Blend blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         int part1 = mesh.vertexCount; int face1 = mesh.count;
         color = new float[] { r, g, b, 1 };
         for (int i = 0; i < 8; i++)
@@ -840,7 +840,7 @@ public class PillarShape
             mesh.Vertex(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, -TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, color, model);
         }
 
-        mesh.Quads(part1, mesh.vertexCount - part1); mesh.AddRange(face1, material);
+        mesh.Quads(part1, mesh.vertexCount - part1); mesh.AddBlendRange(face1, blend);
         if (!((outside)))
         {
             color = new float[] { r, g, b, 1 };
@@ -859,7 +859,7 @@ public class PillarShape
                 mesh.Vertex(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, -TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, color, model);
             }
 
-            for (int vi = part2; vi + 2 < mesh.vertexCount; vi += 3) mesh.Triangle(vi, vi + 1, vi + 2); mesh.AddRange(face2, material);
+            for (int vi = part2; vi + 2 < mesh.vertexCount; vi += 3) mesh.Triangle(vi, vi + 1, vi + 2); mesh.AddBlendRange(face2, blend);
         }
 
         color = new float[] { 0.1f, 0.1f, 0.1f, 1 };
@@ -873,13 +873,13 @@ public class PillarShape
             mesh.Vertex(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, -TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, color, model);
             d = d - (PI * 2 / 8);
             mesh.Vertex(sin(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, -TICKNESS, cos(d) * Field.CIRCLE_RADIUS * RADIUS_RATIO, color, model);
-            mesh.LineStrip(part3, mesh.vertexCount - part3); mesh.AddRange(face3, material);
+            mesh.LineStrip(part3, mesh.vertexCount - part3); mesh.AddBlendRange(face3, blend);
         }
 
-        material = (int)Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
     }
 
-    public void draw_2(float[] model, float[] color, Gfx.Blend blend, float y, float deg)
+    public void draw_2(float[] model, float[] color, Blend blend, float y, float deg)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, 0, y, 0);
@@ -898,9 +898,9 @@ public class Pillar1Shape : MeshBuilder
 {
     public void createMesh(Mesh mesh)
     {
-        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        float[] model = Transform.Identity(); float[] color = null;
         model = Transform.Scale(model, 0.6f, 1.0f, 0.6f);
-        PillarShape.appendPillar(mesh, model, color, material, 0.5f, 0.4f, 0.4f);
+        PillarShape.appendPillar(mesh, model, color, 0.5f, 0.4f, 0.4f);
     }
 }
 
@@ -908,9 +908,9 @@ public class Pillar2Shape : MeshBuilder
 {
     public void createMesh(Mesh mesh)
     {
-        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        float[] model = Transform.Identity(); float[] color = null;
         model = Transform.Scale(model, 0.8f, 1.0f, 0.8f);
-        PillarShape.appendPillar(mesh, model, color, material, 0.6f, 0.3f, 0.3f);
+        PillarShape.appendPillar(mesh, model, color, 0.6f, 0.3f, 0.3f);
     }
 }
 
@@ -918,8 +918,8 @@ public class Pillar3Shape : MeshBuilder
 {
     public void createMesh(Mesh mesh)
     {
-        float[] model = Transform.Identity(); float[] color = null; int material = 0;
-        PillarShape.appendPillar(mesh, model, color, material, 0.5f, 0.5f, 0.4f);
+        float[] model = Transform.Identity(); float[] color = null;
+        PillarShape.appendPillar(mesh, model, color, 0.5f, 0.5f, 0.4f);
     }
 }
 
@@ -927,9 +927,9 @@ public class Pillar4Shape : MeshBuilder
 {
     public void createMesh(Mesh mesh)
     {
-        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        float[] model = Transform.Identity(); float[] color = null;
         model = Transform.Scale(model, 1.1f, 1.0f, 1.1f);
-        PillarShape.appendPillar(mesh, model, color, material, 0.5f, 0.4f, 0.5f);
+        PillarShape.appendPillar(mesh, model, color, 0.5f, 0.4f, 0.5f);
     }
 }
 
@@ -937,8 +937,8 @@ public class OutsidePillarShape : MeshBuilder
 {
     public void createMesh(Mesh mesh)
     {
-        float[] model = Transform.Identity(); float[] color = null; int material = 0;
+        float[] model = Transform.Identity(); float[] color = null;
         model = Transform.Scale(model, 7.0f, 3.0f, 7.0f);
-        PillarShape.appendPillar(mesh, model, color, material, 0.2f, 0.2f, 0.3f, true);
+        PillarShape.appendPillar(mesh, model, color, 0.2f, 0.2f, 0.3f, true);
     }
 }

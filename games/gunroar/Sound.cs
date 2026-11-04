@@ -1,5 +1,6 @@
 // Copyright 2005 Kenta Cho. Some rights reserved.
 using Lub;
+using TinySystem.Text;
 
 public static class SoundManager
 {
@@ -43,7 +44,7 @@ public static class SoundManager
 
     public static void playNamedBgm(string name)
     {
-        currentBgm = "0123".IndexOf(name.Substring(2, 1));
+        currentBgm = AsciiText.IndexOf("0123", AsciiText.At(new Utf8Bytes(name), 2));
         if ((!bgmDisabled))
             GameAudio.PlayMusic(currentBgm, true);
     }

@@ -304,14 +304,14 @@ public class Ship: BulletTarget {
     return pos;
   }
 
-  public void draw(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void draw(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
     stuckEnemies.draw(model, tint, blend);
     if (cnt < -RESPAWN_CNT || (cnt < 0 && (-cnt % 32) < 16))
       return;
     tumikiSet.drawRotated(model, tint, blend, depth, cull, width, pos, 0, deg);
   }
 
-  public void drawFriendly(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void drawFriendly(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
     float z = -3;
     foreach (Vector fp in friendPos) {
       tumikiSet.drawShadeRotated(model, tint, blend, depth, cull, width, fp, z, 1, 0.2f);
@@ -319,7 +319,7 @@ public class Ship: BulletTarget {
     }
   }
 
-  public void drawFriendlyBack(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void drawFriendlyBack(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
     float z = -3;
     foreach (Vector fp in friendPos) {
       tumikiSet.drawShadeRotated(model, tint, blend, depth, cull, width, fp, z, 1, 0);
@@ -327,7 +327,7 @@ public class Ship: BulletTarget {
     }
   }
 
-  public void drawLeft(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, float x, float y, float z) {
+  public void drawLeft(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, float x, float y, float z) {
     tumikiSet.drawAt(model, tint, blend, depth, cull, width, x, y, z, false, false);
   }
 }

@@ -152,7 +152,7 @@ public class ParticlePool
     }
 }
 
-public class Particle : ActorCopy
+public class Particle : ActorCopy<Particle>
 {
     public Vector3 Pos = new Vector3();
     public float Scale;
@@ -177,7 +177,7 @@ public class Particle : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public Particle CopyActor()
     {
         return Copy();
     }

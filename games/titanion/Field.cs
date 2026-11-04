@@ -218,13 +218,13 @@ public class Field
 
     public float[] beginDrawingFront()
     {
-        float[] model = Transform.Ortho(); drawSidewall(model, null, Gfx.Blend.Additive); return model;
+        float[] model = Transform.Ortho(); drawSidewall(model, null, GlBlend.SrcAlphaOne); return model;
     }
 
-    public void drawSidewall(float[] model, float[] color, Gfx.Blend blend)
+    public void drawSidewall(float[] model, float[] color, Blend blend)
     {
-        Gfx.Draw(sidewall.count, sidewall.Bindings(model, null, 1, false),
-            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Alpha });
+        Gfx.Draw(sidewall.count, sidewall.Bindings(model, null, 1),
+            new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOneMinusSrcAlpha });
     }
 
     public void move_0()
@@ -232,7 +232,7 @@ public class Field
         cnt++;
     }
 
-    public void drawBack(float[] model, float[] color, Gfx.Blend blend)
+    public void drawBack(float[] model, float[] color, Blend blend)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, 0, TORUS_Y, 0);
@@ -240,7 +240,7 @@ public class Field
         model = parent1;
     }
 
-    public void drawFront(float[] model, float[] color, Gfx.Blend blend)
+    public void drawFront(float[] model, float[] color, Blend blend)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, 0, TORUS_Y, 0);
@@ -248,7 +248,7 @@ public class Field
         model = parent1;
     }
 
-    public void drawTorusShape(float[] model, float[] color, Gfx.Blend blend, float d1s)
+    public void drawTorusShape(float[] model, float[] color, Blend blend, float d1s)
     {
         Vector3 cp = new Vector3();
         cp.y = 0;
@@ -256,7 +256,7 @@ public class Field
         float torusRad = CIRCLE_RADIUS * 0.9f;
         float ringRad = 0;
         float d1 = 0;
-        blend = Gfx.Blend.Alpha;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         var part1 = new Mesh("Field-drawTorusShape-1" + "-" + d1s.ToString());
         ringRad = CIRCLE_RADIUS * 0.3f;
         d1 = d1s;
@@ -283,7 +283,7 @@ public class Field
         }
 
         part1.Quads(0, part1.vertexCount);
-        Gfx.Draw(part1.count, part1.Bindings(model, null, 1, blend == Gfx.Blend.Additive), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+        Gfx.Draw(part1.count, part1.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
         var part2 = new Mesh("Field-drawTorusShape-2" + "-" + d1s.ToString());
         ringRad = CIRCLE_RADIUS * 0.3f;
         color = new float[] { 0.1f, 0.1f, 0.1f, 1 };
@@ -309,8 +309,8 @@ public class Field
         }
 
         part2.LineStrip(0, part2.vertexCount);
-        Gfx.Draw(part2.count, part2.Bindings(model, null, 1, blend == Gfx.Blend.Additive), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
-        blend = Gfx.Blend.Additive;
+        Gfx.Draw(part2.count, part2.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+        blend = GlBlend.SrcAlphaOne;
     }
 
     public void createRingOffset(Vector3 ringOfs, Vector3 centerPos, float rad, float d1, float d2)

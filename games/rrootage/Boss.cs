@@ -1320,7 +1320,7 @@ public static class RrBoss
         return boss.y + boss.collisionYUp;
     }
 
-    public static void drawBossWing(float[] model, Gfx.Blend blend, string key, float x1, float y1, float z1, float x2, float y2, float z2, BossWing wg)
+    public static void drawBossWing(float[] model, Blend blend, string key, float x1, float y1, float z1, float x2, float y2, float z2, BossWing wg)
     {
         int i = 0;
         float sz = wg.size;
@@ -1333,7 +1333,7 @@ public static class RrBoss
         }
     }
 
-    public static void drawBoss(float[] model, Gfx.Blend blend, string key)
+    public static void drawBoss(float[] model, Blend blend, string key)
     {
         float x = 0, y = 0;
         float x1 = 0, y1 = 0, z1 = 0, x2 = 0, y2 = 0, z2 = 0;
@@ -1481,7 +1481,7 @@ public static class RrBoss
         drawCore(model, blend, key + "-6784" + "-" + i.ToString() + "-" + j.ToString(), x, y, boss.cnt, boss.r, boss.g, boss.b);
     }
 
-    public static void drawBossState(float[] model, Gfx.Blend blend, string key)
+    public static void drawBossState(float[] model, Blend blend, string key)
     {
         int wd = 0, cwd = 0;
         if (boss.state >= ATTACKING)

@@ -61,13 +61,13 @@ public class Particle: LuminousActor {
     lumAlp *= 0.98f;
   }
 
-  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Blend blend, Mesh target = null) {
     Mesh mesh = target;
     mesh.Vertex(ppos.x, ppos.y, pz, color);
     mesh.Vertex(pos.x, pos.y, z, color);
   }
 
-  public void drawLuminous(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+  public void drawLuminous(float[] model, float[] color, Blend blend, Mesh target = null) {
     Mesh mesh = target;
     if (lumAlp < 0.2f) return;
     color = new float[] { R, G, B, lumAlp };

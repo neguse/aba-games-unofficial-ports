@@ -92,7 +92,7 @@ public class Crystal : Actor
         {
             float[] parent1 = model;
             model = Transform.Translate(model, pos.x + sin(d) * r, pos.y + cos(d) * r, 0);
-            _shape.draw(model, null, Gfx.Blend.Alpha);
+            _shape.draw(model, null, GlBlend.SrcAlphaOneMinusSrcAlpha);
             model = parent1;
             d = d + (PI / 2);
         }

@@ -104,7 +104,7 @@ int runtime = Lub.App.Run(null, null, dt =>
         var command = commands[0];
         var data = (List<float>)command.GetType().GetField("Data").GetValue(command);
         Near(data[132], 1); Near(data[144], 4); Near(data[140], 1); Near(data[153], 1);
-        Near(((DrawOpts)command.GetType().GetField("Options").GetValue(command)).InstanceCount.Value, 2, 0);
+        Near((int)command.GetType().GetField("Instances").GetValue(command), 2, 0);
         batchFrame.ViewMatrix.M[12] = 1;
         shape.Draw();
         Near((int)used.GetValue(null), 2, 0);
@@ -115,16 +115,13 @@ int runtime = Lub.App.Run(null, null, dt =>
     var shader = Lub.Gfx.UseShader("gtg-sampler-test", vertex, fragment, 1);
     var source = Lub.Gfx.UseTexture("source", 1, 1, Lub.Gfx.PixelFormat.Rgba8, new List<int> { 64, 128, 192, 255 }, 1);
     var target = Lub.Gfx.UseTexture("target", 4, 4, Lub.Gfx.PixelFormat.Rgba8, null, 1, new TextureOpts { Target = true });
-    var bindings = new Dictionary<string, object>
-    {
-        ["surface"] = source,
-        ["surfaceAlpha"] = Lub.Gfx.UseTexture("source-alpha", 1, 1, Lub.Gfx.PixelFormat.R8, [255], 1),
-        ["vertices"] = Lub.Gfx.UseBuffer("vertices", Lub.Gfx.BufferType.Storage, new List<float>(new float[24]), 1),
-        ["parameters"] = Lub.Gfx.UseBuffer("parameters", Lub.Gfx.BufferType.Storage, parameters, 1),
-        ["eye"] = Lub.Gfx.UseBuffer("eye", Lub.Gfx.BufferType.Storage, new List<float>(new float[16]), 1)
-    };
+    var bindings = new Bindings();
+    bindings.Set("surface", source);
+    bindings.Set("vertices", Lub.Gfx.UseBuffer("vertices", Lub.Gfx.BufferType.Storage, new List<float>(new float[24]), 1));
+    bindings.Set("parameters", Lub.Gfx.UseBuffer("parameters", Lub.Gfx.BufferType.Storage, parameters, 1));
+    bindings.Set("eye", Lub.Gfx.UseBuffer("eye", Lub.Gfx.BufferType.Storage, new List<float>(new float[16]), 1));
     Lub.Gfx.BeginPass(new PassOpts { Target = target, ClearColor = [0, 0, 0, 0] });
-    Lub.Gfx.Draw(3, bindings, new DrawOpts { Shader = shader, Depth = false, Cull = Lub.Gfx.Cull.None, Blend = Lub.Gfx.Blend.None });
+    Lub.Gfx.Draw(3, bindings, new DrawOpts { Shader = shader, Depth = false, Cull = Lub.Gfx.Cull.None });
     Lub.Gfx.EndPass();
     Lub.Gfx.ReadTexture(readback, target, rendered++ == 0 ? 1 : null, out var status, out var bytes,
         out int width, out int height, out _, out _, out _, out _, out var error);

@@ -23,6 +23,7 @@ using static RrScreen;
 using static RrLetter;
 using static RrAngles;
 using static RrVector;
+using TinySystem.Text;
 
 public static class RrLetter
 {
@@ -2020,31 +2021,32 @@ public static class RrLetter
             },
         }
     };
-    public static void drawLetter(float[] model, Gfx.Blend blend, string key, int idx, int lx, int ly, int ltSize, int d, int r, int g, int b)
+    public static void drawLetter(float[] model, Blend blend, string key, int idx, int lx, int ly, int ltSize, int d, int r, int g, int b)
     {
         string geometryKey = idx.ToString() + "-" + ltSize.ToString() + "-" + d.ToString();
         if (!letters.ContainsKey(geometryKey)) letters[geometryKey] = createLetter("letter-" + geometryKey, idx, ltSize, d);
         Mesh mesh = letters[geometryKey];
         model = Transform.Translate(model, lx, ly, 0);
         float[] tint = new float[] { (r & 255) / 255f, (g & 255) / 255f, (b & 255) / 255f, 1 };
-        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, blend == Gfx.Blend.Additive),
+        if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public static void drawString(float[] model, Gfx.Blend blend, string key, string str, int lx, int ly, int ltSize, int d, int r, int g, int b)
+    public static void drawString(float[] model, Blend blend, string key, string str, int lx, int ly, int ltSize, int d, int r, int g, int b)
     {
         int x = lx, y = ly;
         int i = 0, idx = 0;
         {
             i = 0;
+            var strBytes = new Utf8Bytes(str);
             for (;; i++)
             {
-                if (i >= str.Length)
+                if (i >= strBytes.Length)
                     break;
-                string letter = str.Substring(i, 1);
+                string letter = AsciiText.At(strBytes, i);
                 if (letter != " ")
                 {
-                    idx = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".IndexOf(letter.ToUpper());
+                    idx = AsciiText.IndexOf("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", letter.ToUpper());
                     if (idx < 0)
                     {
                         if (letter == ".")

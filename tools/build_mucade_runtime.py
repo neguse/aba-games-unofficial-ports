@@ -58,22 +58,25 @@ runner.write_text('''extern "C" {
 int luaopen_mcd_ode(lua_State*);
 int luaopen_tcs_math(lua_State*);
 int luaopen_tcs_rt(lua_State*);
+int luaopen_tcs_utf8(lua_State*);
 }
 int main(int argc,char** argv){
  lua_State* L=luaL_newstate();luaL_openlibs(L);luaopen_mcd_ode(L);lua_setglobal(L,"mcdphysics");
  luaL_requiref(L,"tcs_math",luaopen_tcs_math,1);lua_pop(L,1);
  luaL_requiref(L,"tcs_rt",luaopen_tcs_rt,1);lua_pop(L,1);
+ luaL_requiref(L,"tcs_utf8",luaopen_tcs_utf8,1);lua_pop(L,1);
  lua_newtable(L);for(int i=1;i<argc;i++){lua_pushstring(L,argv[i]);lua_rawseti(L,-2,i-1);}lua_setglobal(L,"arg");
  int result=luaL_dofile(L,argv[1]);if(result)fprintf(stderr,"%s\\n",lua_tostring(L,-1));lua_close(L);return result?1:0;
 }
 ''')
-# tcs の Lua 出力は Math の超越関数で tcs_math、float の文字列化と string の順序で tcs_rt を呼ぶ
-# (どちらも tcs の runtime/lua、Lua の lua32 と同じ build)
+# tcs の Lua 出力は Math の超越関数で tcs_math、float の文字列化と string の順序で tcs_rt、
+# UTF-8 の文字列の操作 (TinySystem.Text) で tcs_utf8 を呼ぶ (どれも tcs の runtime/lua、Lua の lua32 と同じ build)
 tcs = args.lub.resolve() / 'third_party/tcs'
 runtime = []
-for source in ['runtime/lua/tcs_math_lua.c', 'runtime/lua/tcs_rt_lua.c', 'runtime/fmt/f2s.c']:
+for source in ['runtime/lua/tcs_math_lua.c', 'runtime/lua/tcs_rt_lua.c', 'runtime/fmt/f2s.c',
+               'runtime/lua/tcs_utf8_lua.c', 'runtime/utf8/tcs_utf8.c']:
     runtime.append(output / (Path(source).stem + '.o'))
-    subprocess.run(['cc', '-O2', '-DLUA_32BITS', '-I' + str(tcs / 'deps/lua'), '-c',
+    subprocess.run(['cc', '-O2', '-DLUA_32BITS', '-I' + str(tcs / 'deps/lua'), '-I' + str(tcs / 'runtime/utf8'), '-c',
                     str(tcs / source), '-o', str(runtime[-1])], check=True)
 subprocess.run(['c++', '-O2', '-w', '-DLUA_32BITS', '-DdNODEBUG',
                 '-I' + str(ode / 'include'), '-I' + str(tcs / 'deps/lua'),

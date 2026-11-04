@@ -192,7 +192,7 @@ public class BulletActor : Actor
             removeForced();
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
     }
 
@@ -388,21 +388,21 @@ public class SimpleBullet : Actor, OdeActor
             gameManager.addScore_1(10);
     }
 
-    public void drawSpectrum(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawSpectrum(float[] model, float[] tint, Blend blend, string key)
     {
         if (removeCnt > 0)
             return;
         linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
     }
 
-    public void drawShadow_0(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawShadow_0(float[] model, float[] tint, Blend blend, string key)
     {
         if (removeCnt > 0)
             return;
         shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", linePoint);
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         if (removeCnt > 0)
             return;

@@ -89,7 +89,7 @@ public class Particle : LuminousActor
         lumAlp = lumAlp * (0.98f);
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, Mesh target = null)
     {
         Mesh mesh = target; int first = mesh.vertexCount;
         tint = new float[] { r, g, b, 1 };
@@ -102,7 +102,7 @@ public class Particle : LuminousActor
         for (int i = first; i + 1 < mesh.vertexCount; i += 2) mesh.Line(i, i + 1);
     }
 
-    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null)
+    public void drawLuminous(float[] model, float[] tint, Blend blend, Mesh target = null)
     {
         Mesh mesh = target; int first = mesh.vertexCount;
         if (lumAlp < 0.2f)

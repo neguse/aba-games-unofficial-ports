@@ -196,11 +196,11 @@ public class Turret
 
         model = Transform.Rotate(model, -(baseDeg + deg) * 180 / PI, 0, 0, 1);
         if (destroyedCnt >= 0)
-            spec.destroyedShape.draw(model);
+            spec.destroyedShape.draw(model, null, GlBlend.SrcAlphaOne);
         else if (!damaged)
-            spec.shape.draw(model);
+            spec.shape.draw(model, null, GlBlend.SrcAlphaOne);
         else
-            spec.damagedShape.draw(model);
+            spec.damagedShape.draw(model, null, GlBlend.SrcAlphaOne);
         model = parent1;
         if (destroyedCnt >= 0)
             return;
@@ -219,7 +219,7 @@ public class Turret
             color = new float[] { 0.9f, 0.1f, 0.1f, a * 0.5f };
             geometry1.Vertex(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange, 0, color);
             geometry1.LineStrip(first1, geometry1.vertexCount - first1);
-            Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+            Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
         }
         else
         {
@@ -231,7 +231,7 @@ public class Turret
             color = new float[] { 0.9f, 0.1f, 0.1f, a * 0.25f };
             geometry2.Vertex(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange, 0, color);
             geometry2.LineStrip(first2, geometry2.vertexCount - first2);
-            Gfx.Draw(geometry2.count, geometry2.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+            Gfx.Draw(geometry2.count, geometry2.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
             var geometry3 = new Mesh(meshKey + "-3");
             int first3 = geometry3.vertexCount;
             for (int i = 0; i < spec.nway - 1; i++)
@@ -247,7 +247,7 @@ public class Turret
             }
 
             geometry3.Quads(first3, geometry3.vertexCount - first3);
-            Gfx.Draw(geometry3.count, geometry3.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+            Gfx.Draw(geometry3.count, geometry3.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
             var geometry4 = new Mesh(meshKey + "-4");
             int first4 = geometry4.vertexCount;
             color = new float[] { 0.9f, 0.1f, 0.1f, a * 0.75f };
@@ -255,7 +255,7 @@ public class Turret
             color = new float[] { 0.9f, 0.1f, 0.1f, a * 0.25f };
             geometry4.Vertex(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange, 0, color);
             geometry4.LineStrip(first4, geometry4.vertexCount - first4);
-            Gfx.Draw(geometry4.count, geometry4.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+            Gfx.Draw(geometry4.count, geometry4.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
         }
     }
 

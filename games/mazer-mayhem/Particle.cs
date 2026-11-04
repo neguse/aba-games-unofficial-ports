@@ -135,7 +135,7 @@ public class ParticlePool
     }
 }
 
-public class Particle : Actor
+public class Particle : Actor<Particle>
 {
     public Vector3 Pos = new Vector3();
     public Vector3 Vel = new Vector3();
@@ -230,7 +230,7 @@ public void SetId(int value){storedId=value;}
         };
     }
 
-    public Actor CopyActor()
+    public Particle CopyActor()
     {
         return Copy();
     }

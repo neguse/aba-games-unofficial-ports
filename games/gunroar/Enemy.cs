@@ -582,13 +582,13 @@ public class EnemyState
 
         model = Transform.Rotate(model, -deg * 180 / PI, 0, 0, 1);
         if (destroyedCnt >= 0)
-            spec.destroyedShape.draw(model, color);
+            spec.destroyedShape.draw(model, color, GlBlend.SrcAlphaOne);
         else if (!damaged)
-            spec.shape.draw(model);
+            spec.shape.draw(model, null, GlBlend.SrcAlphaOne);
         else
-            spec.damagedShape.draw(model);
+            spec.damagedShape.draw(model, null, GlBlend.SrcAlphaOne);
         if (destroyedCnt < 0)
-            spec.bridgeShape.draw(Transform.Scale(model, spec.shape.size, spec.shape.size, spec.shape.size));
+            spec.bridgeShape.draw(Transform.Scale(model, spec.shape.size, spec.shape.size, spec.shape.size), null, GlBlend.SrcAlphaOne);
         model = parent1;
         if (destroyedCnt >= 0)
             return;

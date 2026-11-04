@@ -1,7 +1,7 @@
 // Copyright 2009 Kenta Cho. Some rights reserved.
 using System;
 
-public class EnemyMotion : ActorCopy
+public class EnemyMotion : ActorCopy<EnemyMotion>
 {
     public float Angle;
     public Vector3 TargetPos = new Vector3();
@@ -56,13 +56,13 @@ public class EnemyMotion : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public EnemyMotion CopyActor()
     {
         return Copy();
     }
 }
 
-public class EnemyMotionType : ActorCopy
+public class EnemyMotionType : ActorCopy<EnemyMotionType>
 {
     public SinValue AngleSpeed = new SinValue();
     public SinValue Radius = new SinValue();
@@ -169,13 +169,13 @@ public class EnemyMotionType : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public EnemyMotionType CopyActor()
     {
         return Copy();
     }
 }
 
-public class SinValue : ActorCopy
+public class SinValue : ActorCopy<SinValue>
 {
     public float Center;
     public float Amplitude;
@@ -195,7 +195,7 @@ public class SinValue : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public SinValue CopyActor()
     {
         return Copy();
     }

@@ -180,7 +180,7 @@ public class Bullet : Actor
             model = Transform.Rotate(model, cnt * 13, 0, 1, 0);
         }
 
-        shape.draw(model);
+        shape.draw(model, null, GlBlend.SrcAlphaOne);
     }
 
     public void checkShotHit(Vector p, Collidable s, Shot shot)

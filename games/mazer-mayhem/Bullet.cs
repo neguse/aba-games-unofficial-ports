@@ -307,7 +307,7 @@ public class BulletPool : IActorIdListener
     }
 }
 
-public class Bullet : Actor
+public class Bullet : Actor<Bullet>
 {
     public Vector3 Pos = new Vector3();
     public Vector2 Pos2 = new Vector2();
@@ -444,7 +444,7 @@ public void SetId(int value){storedId=value;}
         };
     }
 
-    public Actor CopyActor()
+    public Bullet CopyActor()
     {
         return Copy();
     }

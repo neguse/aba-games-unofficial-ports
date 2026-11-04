@@ -117,7 +117,7 @@ public class PlayerHomingLaserPool
     }
 }
 
-public class PlayerHomingLaser : ActorCopy
+public class PlayerHomingLaser : ActorCopy<PlayerHomingLaser>
 {
     public Vector3 Pos = new Vector3();
     public Vector4 Color = new Vector4();
@@ -140,7 +140,7 @@ public class PlayerHomingLaser : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public PlayerHomingLaser CopyActor()
     {
         return Copy();
     }

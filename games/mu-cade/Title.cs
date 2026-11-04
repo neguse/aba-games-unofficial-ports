@@ -27,16 +27,17 @@ public class TitleManager
         cnt++;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         float x = 250, y = 50;
         float lsz = 50, lof = 40;
         for (int i = 0; i < 5; i++)
         {
+            blend = GlBlend.DstColorZero;
             tint = new float[] { 1, 1, 1, 1 };
             bool mask = true;
             field.drawLetter_4(model, tint, blend, key + "-drawLetter_4-1" + "-" + i.ToString(), i, x, y, lsz, mask);
-            blend = Gfx.Blend.Additive;
+            blend = GlBlend.OneOne;
             tint = new float[] { 1, 1, 1, 1 };
             mask = false;
             field.drawLetter_4(model, tint, blend, key + "-drawLetter_4-2" + "-" + i.ToString(), i, x, y, lsz, mask);
@@ -46,7 +47,7 @@ public class TitleManager
                 x += lof * 0.9f;
         }
 
-        blend = Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
         if ((cnt % 120) < 60)
             Letter.drawString(model, tint, blend, key + "-drawString-1", "PUSH SHOT BUTTON TO START", 200, 430, 5);
         if ((cnt % 3600) == 0)
@@ -54,7 +55,7 @@ public class TitleManager
         drawRanking(model, tint, blend, key + "-drawRanking-1");
     }
 
-    public void drawRanking(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawRanking(float[] model, float[] tint, Blend blend, string key)
     {
         int rn = GameMath.integer((cnt - 60) / 40);
         if (rn > PrefData.RANKING_NUM)

@@ -45,7 +45,7 @@ public class ScoreSign: Actor {
     my *= 0.92f;
   }
 
-  public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Blend blend, Mesh target = null) {
     bool depth = false; Gfx.Cull cull = Gfx.Cull.Front; float width = 1;
     LetterRender.drawNumSign(model, tint, blend, depth, cull, width, num, pos.x, pos.y, size, 3);
   }

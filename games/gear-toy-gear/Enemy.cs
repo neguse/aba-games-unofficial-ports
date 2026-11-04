@@ -193,7 +193,7 @@ public class EnemyPool
     }
 }
 
-public class Enemy : ActorCopy
+public class Enemy : ActorCopy<Enemy>
 {
     public Vector3 Pos = new Vector3();
     public float Scale;
@@ -226,13 +226,13 @@ public class Enemy : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public Enemy CopyActor()
     {
         return Copy();
     }
 }
 
-public class EnemyType : ActorCopy
+public class EnemyType : ActorCopy<EnemyType>
 {
     public bool IsFiringStraight;
     public float FireInterval;
@@ -251,7 +251,7 @@ public class EnemyType : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public EnemyType CopyActor()
     {
         return Copy();
     }

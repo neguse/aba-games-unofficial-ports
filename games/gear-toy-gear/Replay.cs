@@ -43,7 +43,7 @@ public class Replay
     }
 }
 
-public class ReplayData : ActorCopy
+public class ReplayData : ActorCopy<ReplayData>
 {
     public float Step = 1;
     public Vector2 Stick = new Vector2();
@@ -59,7 +59,7 @@ public class ReplayData : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public ReplayData CopyActor()
     {
         return Copy();
     }

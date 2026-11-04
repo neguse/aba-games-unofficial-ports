@@ -1,6 +1,7 @@
 // Copyright 2008 Kenta Cho. Some rights reserved.
 using System;
 using System.Collections.Generic;
+using TinySystem.Text;
 
 public class Stage
 {
@@ -172,7 +173,7 @@ public class Stage
     public void CreateMaze(List<string> data)
     {
         int w, h;
-        w = (data[(0)].Length - 1) / 2 + 2;
+        w = (new Utf8Bytes(data[(0)]).Length - 1) / 2 + 2;
         h = (data.Count - 1) / 2 + 2;
         stageAreaWidth = w;
         stageAreaHeight = h;
@@ -183,10 +184,10 @@ public class Stage
         int[][] mazeBlocks = MmArrays.Make(w * 2 + 1, () => MmArrays.Make(h * 2 + 1, () => 0));
         for (int y = 0; y < h * 2 - 3; y++)
         {
-            string l = data[(y)];
+            var l = new Utf8Bytes(data[(y)]);
             for (int x = 0; x < w * 2 - 3; x++)
             {
-                switch (l[(x)])
+                switch ((char)l[(x)])
                 {
                     case '0':
                         mazeBlocks[(x)][(y)] = 0;

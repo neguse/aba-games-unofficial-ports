@@ -36,7 +36,7 @@ public class PillarPool
                 a.setEnd();
     }
 
-    public void drawCenter(float[] model, float[] color, Gfx.Blend blend)
+    public void drawCenter(float[] model, float[] color, Blend blend)
     {
         for (int i = 1; i < actors.Length; i++)
         {
@@ -57,7 +57,7 @@ public class PillarPool
                 a.draw_0(model, color, blend);
     }
 
-    public void drawOutside(float[] model, float[] color, Gfx.Blend blend)
+    public void drawOutside(float[] model, float[] color, Blend blend)
     {
         foreach (Pillar a in actors)
             if (((a.exists)) && ((a.state.isOutside)))
@@ -112,7 +112,7 @@ public class Pillar : Actor
         exists = false;
     }
 
-    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Blend blend)
     {
         spec.draw_1(model, color, blend, state);
     }
@@ -233,7 +233,7 @@ public class PillarSpec
         }
     }
 
-    public void draw_1(float[] model, float[] color, Gfx.Blend blend, PillarState ps)
+    public void draw_1(float[] model, float[] color, Blend blend, PillarState ps)
     {
         ps.pshape.draw_2(model, color, blend, ps.pos.y, ps.deg);
     }

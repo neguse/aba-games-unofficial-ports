@@ -3,6 +3,12 @@ local draws=0
 lub.png={load=function()return nil,0,0,0,0,0,"pending" end}
 lub.gfx={ADDITIVE=1,ALPHA=2,MULTIPLY=3,NONE=0,use_buffer=function(key,kind,data)assert(#data>0,key);return {version=1}end,
  use_texture=function()return {version=1}end,draw=function(n)draws=draws+n end}
+-- Bindings は setter が値を入れる table
+local function set(b,name,value)b[name]=value end
+for _,name in ipairs({'bindings_set_texture','bindings_set_buffer','bindings_set_frame_range','bindings_set_floats','bindings_set_float_array'})do lub.gfx[name]=set end
+lub.gfx.bindings_set4=function(b,name,count,x,y,z,w)b[name]={x,y,z,w}end
+lub.gfx.bindings_set16=function(b,name,...)b[name]={...}end
+lub.gfx.bindings_clear=function(b)for k in pairs(b)do b[k]=nil end end
 local game=dofile(arg[1]);game.OnInit()
 local g=Game.manager
 local stageMove=g.stageManager.move_0

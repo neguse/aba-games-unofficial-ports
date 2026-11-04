@@ -46,8 +46,8 @@ public static class FrameTests
                     var mesh = new Mesh("frame-binding-test");
                     mesh.Vertex(0, 0, 0, null); mesh.Vertex(1, 0, 0, null); mesh.Line(0, 1);
                     TtRender.Begin();
-                    TtRender.Draw(mesh, Transform.Translate(Transform.Identity(), 1, 0, 0), new float[] { 1, 0, 0, 1 }, 1, Lub.Gfx.Blend.Additive, Lub.Gfx.Cull.None);
-                    TtRender.Draw(mesh, Transform.Translate(Transform.Identity(), 2, 0, 0), new float[] { 0, 1, 0, 1 }, 1, Lub.Gfx.Blend.Additive, Lub.Gfx.Cull.None);
+                    TtRender.Draw(mesh, Transform.Translate(Transform.Identity(), 1, 0, 0), new float[] { 1, 0, 0, 1 }, 1, GlBlend.SrcAlphaOne, Lub.Gfx.Cull.None);
+                    TtRender.Draw(mesh, Transform.Translate(Transform.Identity(), 2, 0, 0), new float[] { 0, 1, 0, 1 }, 1, GlBlend.SrcAlphaOne, Lub.Gfx.Cull.None);
                     var commands = (System.Collections.IList)typeof(TtRender).GetField("commands", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
                     var commandType = commands[0].GetType();
                     var firstTint = (float[])commandType.GetField("Tint").GetValue(commands[0]);

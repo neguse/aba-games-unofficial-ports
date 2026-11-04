@@ -2,6 +2,7 @@
 using System;
 using static GameMath;
 using Lub;
+using TinySystem.Text;
 public class LetterRender {
 
   public static Mesh[] meshes = new Mesh[LETTER_NUM * 2];
@@ -14,14 +15,14 @@ public class LetterRender {
     colorIdx = c * LETTER_NUM;
   }
 
-  public static void drawLetter_5(float[] model, float[] color, Gfx.Blend blend, int n, float x, float y, float s, float d) {
+  public static void drawLetter_5(float[] model, float[] color, Blend blend, int n, float x, float y, float s, float d) {
     float[] parent1 = model;
     model = Transform.Translate(model, x, y, 0);
     model = Transform.Scale(model, s, s, s);
     model = Transform.Rotate(model, d, 0, 0, 1);
     {
       Mesh shape1 = meshes[n + colorIdx];
-      Gfx.Draw(shape1.count, shape1.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+      Gfx.Draw(shape1.count, shape1.Bindings(model, color, 1),
         new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
     model = parent1;
@@ -32,7 +33,7 @@ public class LetterRender {
   public const int TO_LEFT = 2;
   public const int TO_UP = 3;
 
-  public static void drawString(float[] model, float[] color, Gfx.Blend blend, string str, float lx, float y, float s, int d) {
+  public static void drawString(float[] model, float[] color, Blend blend, string str, float lx, float y, float s, int d) {
     float x = lx;
     string c="";
     int idx=0;
@@ -51,10 +52,11 @@ public class LetterRender {
       ld = 270;
       break;
     }
-    for (int index0 = 0; index0 < str.Length; index0++) {
-      c = str.Substring(index0, 1);
+    var strBytes = new Utf8Bytes(str);
+    for (int index0 = 0; index0 < strBytes.Length; index0++) {
+      c = AsciiText.At(strBytes, index0);
       if (c != " ") {
-        idx = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ._-+".IndexOf(c.ToUpper());
+        idx = AsciiText.IndexOf("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ._-+", c.ToUpper());
         if (idx < 0) idx = 37;
 	drawLetter_5(model, color, blend, idx, x, y, s, ld);
       }
@@ -75,7 +77,7 @@ public class LetterRender {
     }
   }
 
-  public static void drawNum(float[] model, float[] color, Gfx.Blend blend, int num, float lx, float y, float s, int d) {
+  public static void drawNum(float[] model, float[] color, Blend blend, int num, float lx, float y, float s, int d) {
     int n = num;
     float x = lx;
     float ld=0;

@@ -36,7 +36,7 @@ public static class Game {
             atlas = Gfx.UseTextureBytes("atlas", RrData.atlasWidth, RrData.atlasHeight, Gfx.PixelFormat.Rgba8, pixels, pixelsVersion);
         if (shader == null || atlas == null) return;
         Gfx.BeginPass(new PassOpts { Target = Scene.Target, ClearColor = RrScreen.clearColor });
-        RrCore.draw(RrScreen.setEyepos(), Gfx.Blend.Additive, "scene");
+        RrCore.draw(RrScreen.setEyepos(), GlBlend.SrcAlphaOne, "scene");
         Gfx.EndPass();
     }
     public static void OnEvent(EventData e){}

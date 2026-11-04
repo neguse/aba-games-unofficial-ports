@@ -60,7 +60,7 @@ public static class A7xVerification
                 game.input.directions = (f / 120) % 4 == 0 ? 1 : (f / 120) % 4 == 1 ? 8 : (f / 120) % 4 == 2 ? 2 : 4;
                 game.inGameMove();
             }
-            game.inGameDraw(Transform.Translate(Transform.Perspective(), 0, 0, -game.field.eyeZ), null, Lub.Gfx.Blend.Additive);
+            game.inGameDraw(Transform.Translate(Transform.Perspective(), 0, 0, -game.field.eyeZ), null, GlBlend.SrcAlphaOne);
             game.leftGold = 1; game.stageTimer = 1200; game.getGold();
             check(game.state == A7xGameManager.STAGE_CLEAR && game.timeBonus == 2040, "stage clear bonus");
             for (int f = 0; f < 302; f++) { game.cnt++; game.stageClearMove(); if (game.state == A7xGameManager.IN_GAME) break; }

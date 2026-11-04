@@ -1,4 +1,4 @@
-lub={app={config=function()end},host={available=function()return false end}}
+lub={app={config=function()end},host={available=function()return false end},gfx={}}
 local game=dofile(arg[1]);game.OnInit()
 local function hash(h,value)return(h~value)*16777619 end
 local function pixels()

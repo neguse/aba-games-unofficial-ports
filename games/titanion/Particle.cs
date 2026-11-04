@@ -24,7 +24,7 @@ public class ParticlePool
         pool.move_0();
     }
 
-    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Blend blend)
     {
         pool.draw_0(model, color, blend);
     }
@@ -85,7 +85,7 @@ public class Particle : Actor
         exists = false;
     }
 
-    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Blend blend)
     {
         spec.draw_1(model, color, blend, state);
     }
@@ -236,7 +236,7 @@ public interface ParticleSpec
 {
     public void set_1(ParticleState ps);
     public bool move_1(ParticleState ps);
-    public void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps);
+    public void draw_1(float[] model, float[] color, Blend blend, ParticleState ps);
 }
 
 public static class ParticleSpecs
@@ -340,7 +340,7 @@ public class TriangleParticleSpec : ParticleSpec
         }
     }
 
-    public void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps)
+    public void draw_1(float[] model, float[] color, Blend blend, ParticleState ps)
     {
         {
             Vector3 p = field.calcCircularPos_1(ps.pos);
@@ -396,7 +396,7 @@ public class LineParticleSpec : ParticleSpec
         }
     }
 
-    public void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps)
+    public void draw_1(float[] model, float[] color, Blend blend, ParticleState ps)
     {
         {
             Vector3 p = null;
@@ -408,7 +408,7 @@ public class LineParticleSpec : ParticleSpec
             p = field.calcCircularPos_1(ps.tailPos);
             part1.Vertex(p.x, p.y, p.z, color);
             for (int vi = 0; vi + 1 < part1.vertexCount; vi += 2) part1.Line(vi, vi + 1);
-            Gfx.Draw(part1.count, part1.Bindings(model, null, 1, blend == Gfx.Blend.Additive), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+            Gfx.Draw(part1.count, part1.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
         }
     }
 }
@@ -456,7 +456,7 @@ public class QuadParticleSpec : ParticleSpec
         }
     }
 
-    public void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps)
+    public void draw_1(float[] model, float[] color, Blend blend, ParticleState ps)
     {
         {
             Vector3 p = null;
@@ -473,8 +473,8 @@ public class QuadParticleSpec : ParticleSpec
             p = field.calcCircularPos_2(ps.pos.x - sz, ps.pos.y + sz);
             part1.Vertex(p.x, p.y, p.z, color);
             part1.Quads(0, part1.vertexCount);
-            Gfx.Draw(part1.count, part1.Bindings(model, null, 1, blend == Gfx.Blend.Additive), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
-            blend = Gfx.Blend.Alpha;
+            Gfx.Draw(part1.count, part1.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+            blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
             color = new float[] { 0, 0, 0, aa * 0.66f };
             var part2 = new Mesh("Particle-draw_1-2" + "-" + ps.meshKey);
             p = field.calcCircularPos_2(ps.pos.x - sz, ps.pos.y - sz);
@@ -486,8 +486,8 @@ public class QuadParticleSpec : ParticleSpec
             p = field.calcCircularPos_2(ps.pos.x - sz, ps.pos.y + sz);
             part2.Vertex(p.x, p.y, p.z, color);
             part2.LineStrip(0, part2.vertexCount, true);
-            Gfx.Draw(part2.count, part2.Bindings(model, null, 1, blend == Gfx.Blend.Additive), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
-            blend = Gfx.Blend.Additive;
+            Gfx.Draw(part2.count, part2.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
+            blend = GlBlend.SrcAlphaOne;
         }
     }
 }
@@ -547,7 +547,7 @@ public class BonusParticleSpec : ParticleSpec
         }
     }
 
-    public void draw_1(float[] model, float[] color, Gfx.Blend blend, ParticleState ps)
+    public void draw_1(float[] model, float[] color, Blend blend, ParticleState ps)
     {
         {
             if (ps.waitCnt > 0)
@@ -555,13 +555,13 @@ public class BonusParticleSpec : ParticleSpec
             float[] parent1 = model;
             Vector3 p = field.calcCircularPos_1(ps.pos);
             float aa = ps.a * ParticleSpecs.calcNearPlayerAlpha(player, ps.pos);
-            blend = Gfx.Blend.Alpha;
+            blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
             color = new float[] { 1, 1, 1, aa * 0.5f };
             model = Transform.Translate(model, p.x, p.y, p.z);
             Letter.drawNumSign(model, color, blend, GameMath.integer(ps.num), 0, 0, ps.size, 33, 0, 1);
             color = new float[] { 1, 1, 1, aa };
             Letter.drawNumSign(model, color, blend, GameMath.integer(ps.num), 0, 0, ps.size, 33, 0, 2);
-            blend = Gfx.Blend.Additive;
+            blend = GlBlend.SrcAlphaOne;
             model = parent1;
         }
     }

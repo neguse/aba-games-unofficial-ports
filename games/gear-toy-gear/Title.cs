@@ -88,7 +88,7 @@ public class Title
     }
 }
 
-public class GearData : ActorCopy
+public class GearData : ActorCopy<GearData>
 {
     public Vector3 Pos = new Vector3();
     public float Scale;
@@ -105,7 +105,7 @@ public class GearData : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public GearData CopyActor()
     {
         return Copy();
     }

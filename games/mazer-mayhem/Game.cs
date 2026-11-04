@@ -1,4 +1,3 @@
-global using Host = FrameHost;
 using Lub;
 
 public static class Game

@@ -276,7 +276,7 @@ public static class RrBackground
         }
     }
 
-    public static void drawBackground(float[] model, Gfx.Blend blend, string key)
+    public static void drawBackground(float[] model, Blend blend, string key)
     {
         int lx = 0, ly = 0, i = 0;
         float x = 0, y = 0;

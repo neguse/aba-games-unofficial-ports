@@ -101,7 +101,7 @@ public class HomingLaserPool
     }
 }
 
-public class HomingLaser : ActorCopy
+public class HomingLaser : ActorCopy<HomingLaser>
 {
     public Vector3 Pos = new Vector3();
     public Vector3 Vel = new Vector3();
@@ -120,7 +120,7 @@ public class HomingLaser : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public HomingLaser CopyActor()
     {
         return Copy();
     }

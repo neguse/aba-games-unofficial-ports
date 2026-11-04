@@ -26,7 +26,15 @@ runner.write_text('lub = {host = {available = function() return false end}}\n' +
     'lub.png = {load = function() return nil, 0, 0, 0, 0, 0, "pending" end}\n'
     'lub.gfx = {use_buffer = function(key, kind, data) assert(#data > 0, key); return {version=1} end, '
     'use_texture = function() return {version=1} end, draw = function() end}\n'
-    if args.game in ['gunroar', 'titanion', 'parsec47', 'tumiki', 'torus-trooper', 'a7xpg', 'rrootage'] else '') + 'local game = dofile(arg[1]); game.Main()\n')
+    # Bindings is a table the setters fill; the checks only need the draw calls to run.
+    'local function set(b, name, value) b[name] = value end\n'
+    'for _, name in ipairs({"bindings_set_texture", "bindings_set_buffer", "bindings_set_frame_range", '
+    '"bindings_set_floats", "bindings_set_float_array"}) do lub.gfx[name] = set end\n'
+    'lub.gfx.bindings_set4 = function(b, name, count, x, y, z, w) b[name] = {x, y, z, w} end\n'
+    'lub.gfx.bindings_set16 = function(b, name, ...) b[name] = {...} end\n'
+    'lub.gfx.bindings_clear = function(b) for k in pairs(b) do b[k] = nil end end\n'
+    # lub's cs-lib (Blends) reads the lub.gfx constants when it loads, so every game needs the table.
+    if args.game in ['gunroar', 'titanion', 'parsec47', 'tumiki', 'torus-trooper', 'a7xpg', 'rrootage'] else 'lub.gfx = {}\n') + 'local game = dofile(arg[1]); game.Main()\n')
 result = subprocess.run([str(args.lub / 'third_party/tcs/deps/lua/lua32'), str(runner), str(output)],
                         text=True, stdout=subprocess.PIPE, check=True)
 print(result.stdout, end='')

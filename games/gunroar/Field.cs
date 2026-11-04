@@ -454,7 +454,7 @@ public class Field
         geometry1.Vertex(SIDEWALL_X2, -SIDEWALL_Y, 0, color);
         geometry1.Vertex(SIDEWALL_X1, -SIDEWALL_Y, 0, color);
         geometry1.Fan(first1, geometry1.vertexCount - first1);
-        Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, 1, false), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.None });
+        Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None });
         var geometry2 = new Mesh("Field-drawSideWalls-2");
         int first2 = geometry2.vertexCount;
         geometry2.Vertex(-SIDEWALL_X1, SIDEWALL_Y, 0, color);
@@ -462,7 +462,7 @@ public class Field
         geometry2.Vertex(-SIDEWALL_X2, -SIDEWALL_Y, 0, color);
         geometry2.Vertex(-SIDEWALL_X1, -SIDEWALL_Y, 0, color);
         geometry2.Fan(first2, geometry2.vertexCount - first2);
-        Gfx.Draw(geometry2.count, geometry2.Bindings(model, null, 1, false), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.None });
+        Gfx.Draw(geometry2.count, geometry2.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None });
     }
 
     public void drawPanel(float[] model)
@@ -512,7 +512,7 @@ public class Field
         }
 
         geometry1.Quads(first1, geometry1.vertexCount - first1);
-        Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
     }
 
     public static int[][] degBlockOfs = new int[][]

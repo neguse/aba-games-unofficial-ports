@@ -123,14 +123,14 @@ public class Shot : Actor, OdeActor
         model = parent1;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         if (removeCnt > 0)
             return;
         linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
-        blend = Gfx.Blend.Alpha;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", linePoint);
-        blend = Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
         linePoint.draw(model, tint, blend, key + "-draw-1");
     }
 
@@ -203,7 +203,7 @@ public class ShotPool
         pool.move_0();
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         pool.draw(model, tint, blend, key, target);
     }
@@ -338,14 +338,14 @@ public class EnhancedShot : Actor, OdeActor
         model = parent1;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         if (removeCnt > 0)
             return;
         linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
-        blend = Gfx.Blend.Alpha;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", linePoint);
-        blend = Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
         linePoint.draw(model, tint, blend, key + "-draw-1");
     }
 
@@ -417,7 +417,7 @@ public class EnhancedShotPool
         pool.move_0();
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         pool.draw(model, tint, blend, key, target);
     }

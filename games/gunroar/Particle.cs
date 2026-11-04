@@ -597,7 +597,7 @@ public class Fragment : Actor
         model = Transform.Translate(model, pos.x, pos.y, pos.z);
         model = Transform.Rotate(model, d2, 1, 0, 0);
         model = Transform.Scale(model, size, size, 1);
-        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, false), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Alpha });
+        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOneMinusSrcAlpha });
     }
 }
 
@@ -765,7 +765,7 @@ public class SparkFragment : LuminousActor
         model = Transform.Translate(model, pos.x, pos.y, pos.z);
         model = Transform.Rotate(model, d2, 1, 0, 0);
         model = Transform.Scale(model, size, size, 1);
-        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, false), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Alpha });
+        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOneMinusSrcAlpha });
     }
 
     public void drawLuminous(float[] model, Mesh particles = null)
@@ -775,7 +775,7 @@ public class SparkFragment : LuminousActor
         model = Transform.Translate(model, pos.x, pos.y, pos.z);
         model = Transform.Rotate(model, d2, 1, 0, 0);
         model = Transform.Scale(model, size, size, 1);
-        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, false), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Alpha });
+        Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOneMinusSrcAlpha });
     }
 }
 

@@ -60,7 +60,7 @@ public class Particle: Actor {
     }
   }
 
-  public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Blend blend, Mesh target = null) {
     Mesh mesh = target;
     switch (type) {
     case ParticleType.SMOKE:
@@ -93,7 +93,7 @@ public class ParticlePool {
   }
   public Actor getInstanceForced() { return pool.getInstanceForced(); }
   public void move() { pool.move(); }
-  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
+  public void draw(float[] model, float[] color, Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
   public void clear() { pool.clear(); }
 
   public void add(int n, Vector pos, float deg, float degWdt, float speed, float size, int type) {

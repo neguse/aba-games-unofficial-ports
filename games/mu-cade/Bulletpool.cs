@@ -77,19 +77,19 @@ public class BulletPool
         cnt++;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         simpleBullets.draw(model, tint, blend, key + "-draw-1");
     }
 
-    public void drawShadow_0(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawShadow_0(float[] model, float[] tint, Blend blend, string key)
     {
-        blend = Gfx.Blend.Alpha;
+        blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         simpleBullets.drawShadow_0(model, tint, blend, key + "-drawShadow_0-1");
-        blend = Gfx.Blend.Additive;
+        blend = GlBlend.SrcAlphaOne;
     }
 
-    public void drawSpectrum(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawSpectrum(float[] model, float[] tint, Blend blend, string key)
     {
         simpleBullets.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
     }
@@ -125,14 +125,14 @@ public class SimpleBulletPool
         actor = pool.actor;
     }
 
-    public void drawShadow_0(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawShadow_0(float[] model, float[] tint, Blend blend, string key)
     {
         foreach (var a in actor)
             if (a.exists)
                 a.drawShadow_0(model, tint, blend, key + "-drawShadow_0-1" + "-" + a.meshKey);
     }
 
-    public void drawSpectrum(float[] model, float[] tint, Gfx.Blend blend, string key)
+    public void drawSpectrum(float[] model, float[] tint, Blend blend, string key)
     {
         foreach (var a in actor)
             if (a.exists)
@@ -169,7 +169,7 @@ public class SimpleBulletPool
         pool.move_0();
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
     {
         pool.draw(model, tint, blend, key, target);
     }

@@ -5,5 +5,5 @@ using Lub;
 
 public interface LuminousActor : Actor
 {
-    void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null);
+    void drawLuminous(float[] model, float[] tint, Blend blend, Mesh target = null);
 }

@@ -2,6 +2,7 @@
 using System;
 using static GameMath;
 using Lub;
+using TinySystem.Text;
 public class GameManager {
 
   public bool nowait = false;
@@ -179,7 +180,7 @@ public class GameManager {
     bossTimer = BOSSTIMER_FREEZED;
     bossDstCnt = -1;
     letters.add("STAGE " + (stage + 1).ToString(), 180, 150, 24, 240, -4);
-    letters.add(stageMessage[stage], 320 - stageMessage[stage].Length * 10, 270, 10, 240, -2);
+    letters.add(stageMessage[stage], 320 - new Utf8Bytes(stageMessage[stage]).Length * 10, 270, 10, 240, -2);
     int si = stage % (SoundManager.STAGE_BGM_NUM * 2 - 1);
     if (si >= SoundManager.STAGE_BGM_NUM)
       si = SoundManager.STAGE_BGM_NUM * 2 - si - 2;
@@ -418,7 +419,7 @@ public class GameManager {
 
   public void draw() {
     float[] model = Transform.Ortho(); float[] tint = null;
-    Gfx.Blend blend = Gfx.Blend.None; bool depth = false; Gfx.Cull cull = Gfx.Cull.None; float width = 1;
+    Blend blend = null; bool depth = false; Gfx.Cull cull = Gfx.Cull.None; float width = 1;
     cull = Gfx.Cull.None;
     field.drawBack(model, tint, blend, depth, cull, width);
     cull = Gfx.Cull.Front;
@@ -461,7 +462,7 @@ public class GameManager {
 
   }
 
-  public void drawInGame(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void drawInGame(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
     depth = true;
     field.draw(model, tint, blend, depth, cull, width);
     enemies.draw(model, tint, blend);
@@ -472,13 +473,13 @@ public class GameManager {
       ship.drawFriendlyBack(model, tint, blend, depth, cull, width);
     ship.draw(model, tint, blend, depth, cull, width);
     depth = false;
-    blend = Gfx.Blend.Additive;
+    blend = GlBlend.SrcAlphaOne;
     var mesh = new Mesh("particles");
     particles.draw(model, tint, blend, mesh);
     mesh.Quads(0, mesh.vertexCount);
-    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, true),
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1),
       new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
-    blend = Gfx.Blend.None;
+    blend = null;
     fragments.draw(model, tint, blend);
     bullets.drawShots(model, tint, blend, depth, cull, width);
     signs.draw(model, tint, blend);
@@ -491,29 +492,29 @@ public class GameManager {
     width = 1;
   }
 
-  public void drawGameover(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void drawGameover(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
     depth = true;
     field.draw(model, tint, blend, depth, cull, width);
     enemies.draw(model, tint, blend);
     depth = false;
-    blend = Gfx.Blend.Additive;
+    blend = GlBlend.SrcAlphaOne;
     var mesh = new Mesh("particles");
     particles.draw(model, tint, blend, mesh);
     mesh.Quads(0, mesh.vertexCount);
-    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1, true),
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, 1),
       new DrawOpts { Shader = Game.shader, Depth = false, Cull = cull, Blend = blend });
-    blend = Gfx.Blend.None;
+    blend = null;
     fragments.draw(model, tint, blend);
     bullets.drawShots(model, tint, blend, depth, cull, width);
   }
 
-  public void drawTitle(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void drawTitle(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
     depth = true;
     field.draw(model, tint, blend, depth, cull, width);
     depth = false;
   }
 
-  public void drawInfo(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void drawInfo(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
     LetterRender.drawString(model, tint, blend, depth, cull, width, "SCORE", 4, 4, 12, LetterDirection.TO_RIGHT, -3);
     LetterRender.drawNum(model, tint, blend, depth, cull, width, score, 300, 4, 12, LetterDirection.TO_RIGHT, 3);
     if (bossTimer < BOSSTIMER_FREEZED && (bossDstCnt & 31) > 8) {
@@ -521,7 +522,7 @@ public class GameManager {
     }
   }
 
-  public void drawLeft(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void drawLeft(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
     float x = -field.size.x * 0.85f, sz = 0.4f;
     for (int i = 0; i < left; i++, x += 2) {
       float[] parent1 = model;
@@ -531,11 +532,11 @@ public class GameManager {
     }
   }
 
-  public void drawStatusInGame(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void drawStatusInGame(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
     drawInfo(model, tint, blend, depth, cull, width);
   }
 
-  public void drawStatusGameover(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void drawStatusGameover(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
     drawInfo(model, tint, blend, depth, cull, width);
     if (credit > 0 && cnt > 64) {
       LetterRender.drawString(model, tint, blend, depth, cull, width, "CONTINUE", 280, 400, 10, LetterDirection.TO_RIGHT, 1);
@@ -551,13 +552,13 @@ public class GameManager {
     }
   }
 
-  public void drawStatusPause(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void drawStatusPause(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
     drawInfo(model, tint, blend, depth, cull, width);
     if ((pauseCnt % 60) < 30)
       LetterRender.drawString(model, tint, blend, depth, cull, width, "PAUSE", 280, 220, 12, LetterDirection.TO_RIGHT, -5);
   }
 
-  public void drawStatusTitle(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void drawStatusTitle(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
     attractManager.drawTitle(model, tint, blend, depth, cull, width);
   }
 

@@ -449,7 +449,7 @@ public class Stage
         }
     }
 
-    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Blend blend)
     {
         if ((((((((gameState.mode_0() != GameStateMode.MODERN))) && ((phaseTime < PHASE_RESULT_SHOW_CNT))))) && ((phaseNum > 1))))
         {
@@ -469,12 +469,12 @@ public class Stage
         }
     }
 
-    public void drawPhaseNum(float[] model, float[] color, Gfx.Blend blend)
+    public void drawPhaseNum(float[] model, float[] color, Blend blend)
     {
         Letter.drawNum(model, color, blend, phaseNum, 622, 448, 10);
     }
 
-    public void drawGameover(float[] model, float[] color, Gfx.Blend blend)
+    public void drawGameover(float[] model, float[] color, Blend blend)
     {
         float hr = 0;
         if (shotFiredNumTotal > 0)

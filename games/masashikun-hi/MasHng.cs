@@ -2,6 +2,7 @@
 // TinyC# browser adaptation (2026-09-24).
 using System;
 using static MasMath;
+using TinySystem.Text;
 
 public static class MasHng
 {
@@ -621,10 +622,10 @@ public static class MasHng
                             else
                             {
                                 s = ((-(dist) * 13)).ToString();
-                                MasHira.sethira2("ﾏｲﾅｽ", ((400 - 128) - (s.Length * 50)), 220, 32, 160);
+                                MasHira.sethira2("ﾏｲﾅｽ", ((400 - 128) - (s.RuneCount() * 50)), 220, 32, 160);
                             }
 
-                            MasHira.sethira2(s, (400 - (s.Length * 50)), 200, 50, 160);
+                            MasHira.sethira2(s, (400 - (s.RuneCount() * 50)), 200, 50, 160);
                         }
                         else if (choice4 == 150)
                         {
@@ -650,10 +651,10 @@ public static class MasHng
                                 else
                                 {
                                     s = ((-(hngdist[3]) * 13)).ToString();
-                                    MasHira.sethira2("ﾏｲﾅｽ", ((640 - 128) - (s.Length * 32)), ((3 * 32) - 32), 32, 960);
+                                    MasHira.sethira2("ﾏｲﾅｽ", ((640 - 128) - (s.RuneCount() * 32)), ((3 * 32) - 32), 32, 960);
                                 }
 
-                                MasHira.sethira2(s, (640 - (s.Length * 32)), ((3 * 32) - 32), 32, 960);
+                                MasHira.sethira2(s, (640 - (s.RuneCount() * 32)), ((3 * 32) - 32), 32, 960);
                                 MasHira.sethira2("ﾕｱﾍﾞｽﾄ", 256, ((n * 32) - 32), 32, 960);
                                 if (MasMain.sucf)
                                 {
@@ -667,7 +668,7 @@ public static class MasHng
                                         sc = 0;
                                     MasMain.score[3] = sc;
                                     s = (sc).ToString();
-                                    MasHira.sethira2(s, (540 - (s.Length * 50)), 420, 50, 250);
+                                    MasHira.sethira2(s, (540 - (s.RuneCount() * 50)), 420, 50, 250);
                                     MasHira.sethira2("ﾃﾝ", 540, 428, 42, 250);
                                 }
 
@@ -703,10 +704,10 @@ public static class MasHng
                                 else
                                 {
                                     s = ((-(hngdist[i]) * 13)).ToString();
-                                    MasHira.sethira2("ﾏｲﾅｽ", ((640 - 128) - (s.Length * 32)), ((i * 32) - 32), 32, 960);
+                                    MasHira.sethira2("ﾏｲﾅｽ", ((640 - 128) - (s.RuneCount() * 32)), ((i * 32) - 32), 32, 960);
                                 }
 
-                                MasHira.sethira2(s, (640 - (s.Length * 32)), ((i * 32) - 32), 32, 960);
+                                MasHira.sethira2(s, (640 - (s.RuneCount() * 32)), ((i * 32) - 32), 32, 960);
                             }
                         }
                     }
@@ -747,7 +748,7 @@ public static class MasHng
             MasHira.sethira2("ﾏｲﾋﾞｮｳ", 256, 360, 32, 1);
             tmpsp = tmpsp + (MasMath.Div((((((speed * 10)) - tmpsp) - 7)), 8));
             s = (tmpsp).ToString();
-            MasHira.sethira2(s, (520 - (s.Length * 64)), 400, 64, 1);
+            MasHira.sethira2(s, (520 - (s.RuneCount() * 64)), 400, 64, 1);
             MasHira.sethira2("ﾄﾞ", 540, 420, 50, 1);
         }
 
@@ -758,10 +759,10 @@ public static class MasHng
             else
             {
                 s = ((-(dist) * 13)).ToString();
-                MasHira.sethira2("ﾏｲﾅｽ", ((528 - 128) - (s.Length * 50)), 440, 32, 1);
+                MasHira.sethira2("ﾏｲﾅｽ", ((528 - 128) - (s.RuneCount() * 50)), 440, 32, 1);
             }
 
-            MasHira.sethira2(s, (528 - (s.Length * 50)), 420, 50, 1);
+            MasHira.sethira2(s, (528 - (s.RuneCount() * 50)), 420, 50, 1);
             MasHira.sethira2("ﾐﾘ", 540, 440, 32, 1);
         }
 

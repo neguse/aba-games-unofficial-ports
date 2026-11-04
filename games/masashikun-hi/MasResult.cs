@@ -2,6 +2,7 @@
 // TinyC# browser adaptation (2026-09-24).
 using System;
 using static MasMath;
+using TinySystem.Text;
 
 public static class MasResult
 {
@@ -104,7 +105,7 @@ public static class MasResult
             {
                 MasHira.sethira2(kyonum[i], 0, y, 42, 1);
                 s = (MasMain.score[i]).ToString();
-                MasHira.sethira2(s, (540 - (s.Length * 50)), (y - 8), 50, 1);
+                MasHira.sethira2(s, (540 - (s.RuneCount() * 50)), (y - 8), 50, 1);
                 MasHira.sethira2("ﾃﾝ", 540, y, 42, 1);
                 y = y + (64);
             }
@@ -120,7 +121,7 @@ public static class MasResult
             }
 
             s = (sc).ToString();
-            MasHira.sethira2(s, (540 - (s.Length * 50)), (380 - 8), 50, 9999);
+            MasHira.sethira2(s, (540 - (s.RuneCount() * 50)), (380 - 8), 50, 9999);
             MasHira.sethira2("ﾃﾝ", 540, 380, 42, 9999);
             setttlhiscore(sc);
         }

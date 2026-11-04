@@ -21,9 +21,42 @@ public class DrawImage
     }
 }
 
+// 原作の glBlendFunc(src, dst) の式。
+// 色 (rgb) は原作の係数で混ぜる。
+// alpha は原作では誰も読まないが、作品選択の画面が作品の画面の texture を alpha で重ねるので、不透明に描いた画面が不透明のまま残る式にする。
+public static class GlBlend
+{
+    public static readonly Blend SrcAlphaOne = new Blend
+    {
+        Src = Gfx.BlendFactor.SrcAlpha, Dst = Gfx.BlendFactor.One, Op = Gfx.BlendOp.Add,
+        SrcAlpha = Gfx.BlendFactor.One, DstAlpha = Gfx.BlendFactor.One, OpAlpha = Gfx.BlendOp.Add,
+    };
+    public static readonly Blend SrcAlphaOneMinusSrcAlpha = new Blend
+    {
+        Src = Gfx.BlendFactor.SrcAlpha, Dst = Gfx.BlendFactor.OneMinusSrcAlpha, Op = Gfx.BlendOp.Add,
+        SrcAlpha = Gfx.BlendFactor.One, DstAlpha = Gfx.BlendFactor.OneMinusSrcAlpha, OpAlpha = Gfx.BlendOp.Add,
+    };
+    public static readonly Blend OneOne = new Blend
+    {
+        Src = Gfx.BlendFactor.One, Dst = Gfx.BlendFactor.One, Op = Gfx.BlendOp.Add,
+        SrcAlpha = Gfx.BlendFactor.One, DstAlpha = Gfx.BlendFactor.One, OpAlpha = Gfx.BlendOp.Add,
+    };
+    public static readonly Blend DstColorZero = new Blend
+    {
+        Src = Gfx.BlendFactor.Dst, Dst = Gfx.BlendFactor.Zero, Op = Gfx.BlendOp.Add,
+        SrcAlpha = Gfx.BlendFactor.DstAlpha, DstAlpha = Gfx.BlendFactor.Zero, OpAlpha = Gfx.BlendOp.Add,
+    };
+}
+
+// 原作の display list の一続きの区間。
+// hasBlend の区間は、記録したときの glBlendFunc (blend、null は blend なし) で描く。
+// 無い区間は描く側の blend を使う。
+// material はゲームが区間ごとに持つ値 (cull など)。
 public class MeshRange
 {
     public int first, count, material;
+    public bool hasBlend;
+    public Blend blend;
 }
 
 public class Mesh
@@ -67,7 +100,7 @@ public class Mesh
             faces.Add(source.faces[i + 2] + (source.faces[i + 3] == 1 ? 0 : baseVertex)); faces.Add(source.faces[i + 3]);
         }
         foreach (MeshRange range in source.ranges)
-            ranges.Add(new MeshRange { first = baseFace + range.first, count = range.count, material = range.material });
+            ranges.Add(new MeshRange { first = baseFace + range.first, count = range.count, material = range.material, hasBlend = range.hasBlend, blend = range.blend });
         faceBuffer = null;
     }
     public void Triangle(int a, int b, int c)
@@ -100,11 +133,21 @@ public class Mesh
     public void AddRange(int first, int material)
     {
         if (count == first) return;
-        if (ranges.Count > 0 && ranges[ranges.Count - 1].material == material)
-            ranges[ranges.Count - 1].count += count - first;
+        var last = ranges.Count > 0 ? ranges[ranges.Count - 1] : null;
+        if (last != null && last.material == material && !last.hasBlend)
+            last.count += count - first;
         else ranges.Add(new MeshRange { first = first, count = count - first, material = material });
     }
-    public Dictionary<string, object> Bindings(float[] model, float[] color = null, float width = 1, bool additive = true, int first = 0, DrawImage image = null, float viewportWidth = 640, float viewportHeight = 480)
+    // first からの区間を、記録したときの blend で描く区間にする。
+    public void AddBlendRange(int first, Blend blend)
+    {
+        if (count == first) return;
+        var last = ranges.Count > 0 ? ranges[ranges.Count - 1] : null;
+        if (last != null && last.hasBlend && last.blend == blend)
+            last.count += count - first;
+        else ranges.Add(new MeshRange { first = first, count = count - first, hasBlend = true, blend = blend });
+    }
+    public Bindings Bindings(float[] model, float[] color = null, float width = 1, int first = 0, DrawImage image = null, float viewportWidth = 640, float viewportHeight = 480)
     {
         vertexBuffer = Gfx.UseBuffer(key + "-vertices", Gfx.BufferType.Storage, vertices,
             vertexBuffer == null ? (int?)null : vertexBuffer.Version);
@@ -114,12 +157,15 @@ public class Mesh
         var source = image == null ? white : image;
         var texture = source.Use(options);
         if (texture == null) texture = white.Use(options);
-        return new Dictionary<string, object> {
-            ["image"] = texture, ["verts"] = vertexBuffer, ["faces"] = faceBuffer,
-            ["uniforms"] = new Dictionary<string, object> {
-                ["model"] = model, ["tint"] = color == null ? new float[] { 1, 1, 1, 1 } : color,
-                ["options"] = new float[] { width, additive ? 1 : 0, first, image == null ? 0 : 1 },
-                ["viewport"] = new float[] { viewportWidth, viewportHeight, 0, 0 },
-                ["imageInfo"] = new float[] { source.width, source.height, source.levels - 1, 0 } } };
+        var bindings = new Bindings();
+        bindings.Set("image", texture);
+        bindings.Set("verts", vertexBuffer);
+        bindings.Set("faces", faceBuffer);
+        bindings.Set("model", model);
+        bindings.Set("tint", color == null ? new float[] { 1, 1, 1, 1 } : color);
+        bindings.Set("options", new float[] { width, 0, first, image == null ? 0 : 1 });
+        bindings.Set("viewport", new float[] { viewportWidth, viewportHeight, 0, 0 });
+        bindings.Set("imageInfo", new float[] { source.width, source.height, source.levels - 1, 0 });
+        return bindings;
     }
 }

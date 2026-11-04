@@ -163,7 +163,7 @@ public class Lock: Actor {
     cnt++;
   }
 
-  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Blend blend, Mesh target = null) {
     var mesh = new Mesh("Lock-draw" + "-" + meshKey);
     switch (state) {
     case LOCKING: {
@@ -202,7 +202,7 @@ public class Lock: Actor {
       break;
     }
 
-    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1, blend == Gfx.Blend.Additive),
+    if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, color, 1),
       new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 }

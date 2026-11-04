@@ -178,11 +178,11 @@ public class Ship
             color = new float[] { 0.5f, 0.5f, 0.9f, 0.8f };
             geometry1.Vertex(boat[1].pos.x, boat[1].pos.y, 0, color);
             geometry1.LineStrip(first1, geometry1.vertexCount - first1);
-            Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+            Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
             float[] parent1 = model;
             model = Transform.Translate(model, midstPos().x, midstPos().y, 0);
             model = Transform.Rotate(model, -degAmongBoats() * 180 / PI, 0, 0, 1);
-            bridgeShape.draw(model);
+            bridgeShape.draw(model, null, GlBlend.SrcAlphaOne);
             model = parent1;
         }
     }
@@ -1258,15 +1258,15 @@ public class Boat
             color = new float[] { 0.5f, 0.9f, 0.7f, 0.8f };
             geometry1.Vertex(_pos.x + sin(fireDeg) * 20, _pos.y + cos(fireDeg) * 20, 0, color);
             geometry1.LineStrip(first1, geometry1.vertexCount - first1);
-            Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, 1, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+            Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, 1), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
         }
 
         if ((cnt < 0) && ((-cnt % 32) < 16))
             return;
         model = Transform.Translate(model, pos.x, pos.y, 0);
         model = Transform.Rotate(model, -deg * 180 / PI, 0, 0, 1);
-        _shape.draw(model);
-        bridgeShape.draw(model);
+        _shape.draw(model, null, GlBlend.SrcAlphaOne);
+        bridgeShape.draw(model, null, GlBlend.SrcAlphaOne);
         if (shieldCnt > 0)
         {
             float ss = 0.66f;
@@ -1274,7 +1274,7 @@ public class Boat
                 ss = ss * ((float)shieldCnt / 120);
             model = Transform.Scale(model, ss, ss, ss);
             model = Transform.Rotate(model, shieldCnt * 5, 0, 0, 1);
-            shieldShape.draw(model);
+            shieldShape.draw(model, null, GlBlend.SrcAlphaOne);
         }
 
     }
@@ -1303,34 +1303,34 @@ public class Boat
         geometry1.Vertex(x - size, y - size, 0, color);
         geometry1.Vertex(x - size * 0.5f, y - size, 0, color);
         geometry1.LineStrip(first1, geometry1.vertexCount - first1);
-        Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, width, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        Gfx.Draw(geometry1.count, geometry1.Bindings(model, null, width), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
         var geometry2 = new Mesh(key + "-2");
         int first2 = geometry2.vertexCount;
         geometry2.Vertex(x + size, y - size * 0.5f, 0, color);
         geometry2.Vertex(x + size, y - size, 0, color);
         geometry2.Vertex(x + size * 0.5f, y - size, 0, color);
         geometry2.LineStrip(first2, geometry2.vertexCount - first2);
-        Gfx.Draw(geometry2.count, geometry2.Bindings(model, null, width, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        Gfx.Draw(geometry2.count, geometry2.Bindings(model, null, width), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
         var geometry3 = new Mesh(key + "-3");
         int first3 = geometry3.vertexCount;
         geometry3.Vertex(x + size, y + size * 0.5f, 0, color);
         geometry3.Vertex(x + size, y + size, 0, color);
         geometry3.Vertex(x + size * 0.5f, y + size, 0, color);
         geometry3.LineStrip(first3, geometry3.vertexCount - first3);
-        Gfx.Draw(geometry3.count, geometry3.Bindings(model, null, width, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        Gfx.Draw(geometry3.count, geometry3.Bindings(model, null, width), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
         var geometry4 = new Mesh(key + "-4");
         int first4 = geometry4.vertexCount;
         geometry4.Vertex(x - size, y + size * 0.5f, 0, color);
         geometry4.Vertex(x - size, y + size, 0, color);
         geometry4.Vertex(x - size * 0.5f, y + size, 0, color);
         geometry4.LineStrip(first4, geometry4.vertexCount - first4);
-        Gfx.Draw(geometry4.count, geometry4.Bindings(model, null, width, true), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = Gfx.Blend.Additive });
+        Gfx.Draw(geometry4.count, geometry4.Bindings(model, null, width), new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOne });
     }
 
     public void drawShape(float[] model)
     {
-        _shape.draw(model);
-        bridgeShape.draw(model);
+        _shape.draw(model, null, GlBlend.SrcAlphaOne);
+        bridgeShape.draw(model, null, GlBlend.SrcAlphaOne);
     }
 
     public void clearBullets()

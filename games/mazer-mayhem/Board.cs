@@ -98,7 +98,7 @@ public class BoardPool
     }
 }
 
-public class Board : Actor
+public class Board : Actor<Board>
 {
     public Vector3 Pos = new Vector3();
     public Vector3 Vel = new Vector3();
@@ -153,7 +153,7 @@ public void SetId(int value){storedId=value;}
         };
     }
 
-    public Actor CopyActor()
+    public Board CopyActor()
     {
         return Copy();
     }

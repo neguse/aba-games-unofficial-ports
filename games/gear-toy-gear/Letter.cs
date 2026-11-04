@@ -1,6 +1,7 @@
 // Copyright 2009 Kenta Cho. Some rights reserved.
 using System;
 using System.Collections.Generic;
+using TinySystem.Text;
 
 public class Letter
 {
@@ -22,9 +23,10 @@ public class Letter
     {
         Vector3 nl = new Vector3(scale * 2, 0, 0);
         nl = (Vector3.TransformVector3Quaternion((nl).Copy(), (orientation).Copy())).Copy();
-        for (int index = 0; index < s.Length; index++)
+        var sBytes = new Utf8Bytes(s);
+        for (int index = 0; index < sBytes.Length; index++)
         {
-            string c = s.Substring(index, 1);
+            string c = AsciiText.At(sBytes, index);
             if (c != " ")
             {
                 int ci = ConvertCharToInt(c);
@@ -69,14 +71,14 @@ public class Letter
 
     private static int ConvertCharToInt(string c)
     {
-        int index = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ._-+??!/".IndexOf(c);
+        int index = AsciiText.IndexOf("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ._-+??!/", c);
         if (index < 0)
-            index = "0123456789abcdefghijklmnopqrstuvwxyz._-+??!/".IndexOf(c);
+            index = AsciiText.IndexOf("0123456789abcdefghijklmnopqrstuvwxyz._-+??!/", c);
         return index < 0 ? 0 : index;
     }
 }
 
-public class LetterData : ActorCopy
+public class LetterData : ActorCopy<LetterData>
 {
     private BarData[] data;
     public LetterData(BarData[] bars = null)
@@ -100,13 +102,13 @@ public class LetterData : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public LetterData CopyActor()
     {
         return Copy();
     }
 }
 
-public class BarData : ActorCopy
+public class BarData : ActorCopy<BarData>
 {
     public Vector3 Offset = new Vector3();
     public float Scale;
@@ -121,7 +123,7 @@ public class BarData : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public BarData CopyActor()
     {
         return Copy();
     }
@@ -172,7 +174,7 @@ public class BarPool
     }
 }
 
-public class Bar : ActorCopy
+public class Bar : ActorCopy<Bar>
 {
     public Vector3 Pos = new Vector3();
     public float Scale;
@@ -189,7 +191,7 @@ public class Bar : ActorCopy
         };
     }
 
-    public ActorCopy CopyActor()
+    public Bar CopyActor()
     {
         return Copy();
     }

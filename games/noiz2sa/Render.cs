@@ -19,7 +19,8 @@ public static class NrRender {
         if(layer.rectangles.Count==0)return;
         var buffer=Gfx.UseBuffer("rects"+drawIndex.ToString(),Gfx.BufferType.Storage,layer.rectangles,version);drawIndex++;
         if(buffer==null)return;
-        Gfx.Draw(layer.rectangles.Count/12*6,new Dictionary<string,object>{["rectangles"]=buffer,["first"]=first,["second"]=second,["third"]=third,["tables"]=tables,["sprites"]=sprites},new DrawOpts{Shader=shader,Blend=Gfx.Blend.None,Depth=false,DepthWrite=false,Cull=Gfx.Cull.None});
+        var bindings=new Bindings();bindings.Set("rectangles",buffer);bindings.Set("first",first);bindings.Set("second",second);bindings.Set("third",third);bindings.Set("tables",tables);bindings.Set("sprites",sprites);
+        Gfx.Draw(layer.rectangles.Count/12*6,bindings,new DrawOpts{Shader=shader,Depth=false,DepthWrite=false,Cull=Gfx.Cull.None});
     }
     static void Paint(PixelLayer layer){Draw(layer,tables,tables,tables);}
     // Draws into the frame's layers just before they are composed; the browser test paints its palette swatches here.

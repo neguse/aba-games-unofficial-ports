@@ -110,7 +110,7 @@ public class Title
         cnt++;
     }
 
-    public void draw_0(float[] model, float[] color, Gfx.Blend blend)
+    public void draw_0(float[] model, float[] color, Blend blend)
     {
         color = new float[] { 1, 1, 1, 1 };
         drawBoard(model, color, blend, titlePos.x, titlePos.y, 280 * titleSize, 64 * titleSize);
@@ -143,26 +143,26 @@ public class Title
         Letter.drawString(model, color, blend, GameState.MODE_NAME[cursorIdx], 540, 400, 5);
     }
 
-    public void drawBoard(float[] model, float[] color, Gfx.Blend blend, float x, float y, float w, float h)
+    public void drawBoard(float[] model, float[] color, Blend blend, float x, float y, float w, float h)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, x, y, 0);
         model = Transform.Scale(model, w / 280, h / 64, 1);
-        Gfx.Draw(logo.count, logo.Bindings(model, new float[] { 1, 1, 1, 1 }, 1, blend == Gfx.Blend.Additive, 0, TitanionTitleImage.title),
+        Gfx.Draw(logo.count, logo.Bindings(model, new float[] { 1, 1, 1, 1 }, 1, 0, TitanionTitleImage.title),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
         model = parent1;
     }
 
-    public void drawTriangle(float[] model, float[] color, Gfx.Blend blend, float x, float y, float d)
+    public void drawTriangle(float[] model, float[] color, Blend blend, float x, float y, float d)
     {
         model = Transform.Translate(model, x, y, 0);
         model = Transform.Rotate(model, d, 0, 0, 1);
         model = Transform.Scale(model, 5, 5, 1);
-        Gfx.Draw(marker.count, marker.Bindings(model, null, 1, blend == Gfx.Blend.Additive),
+        Gfx.Draw(marker.count, marker.Bindings(model, null, 1),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public void drawRanking(float[] model, float[] color, Gfx.Blend blend)
+    public void drawRanking(float[] model, float[] color, Blend blend)
     {
         int rn = GameMath.integer((cnt - 240) / 30);
         if (rn > Preference.RANKING_NUM)

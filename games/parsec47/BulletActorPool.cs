@@ -16,7 +16,7 @@ public class BulletActorPool {
     cnt = 0;
   }
   public Actor getInstance() { return pool.getInstance(); }
-  public void draw(float[] model, float[] color, Gfx.Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
+  public void draw(float[] model, float[] color, Blend blend, Mesh target = null) { pool.draw(model, color, blend, target); }
 
   public void addBullet_2(float deg, float speed) {
     BulletActor ba = (BulletActor) getInstance();

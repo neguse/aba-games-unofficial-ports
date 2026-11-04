@@ -1,44 +1,13 @@
 import argparse
 import json
 from pathlib import Path
-import re
 import shutil
 import subprocess
 from compile_frame_c import compile_game
+from frame_assets import gear_audio, license_text, mazer_audio, torus_audio
 from link_web import link
 
 root = Path(__file__).resolve().parent.parent
-
-
-def convert(source, target, *filters):
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(source), *filters,
-                    '-c:a', 'pcm_s16le', str(target)], check=True)
-
-
-def torus_audio(original, output):
-    paths = [path for path in (original / 'sounds').rglob('*') if path.suffix in ['.wav', '.ogg']]
-    for path in paths:
-        convert(path, output / (path.stem + '.wav'))
-    return [path.stem + '.wav' for path in paths]
-
-
-def gear_audio(original, output):
-    volumes = dict(re.findall(r'Sound\s*\{\s*Name = (\w+);\s*Volume = ([-\d]+)',
-                              (original / 'Content/Audio/Gtg.xap').read_text()))
-    paths = list((original / 'Content/Audio').glob('*.wav'))
-    for path in paths:
-        gain = .5 * 10 ** (int(volumes[path.stem]) / 2000)
-        convert(path, output / path.name, '-af', f'volume={gain}')
-    return [path.name for path in paths]
-
-
-def mazer_audio(original, output):
-    paths = list((original / 'Content/Audio').glob('*.wav'))
-    for path in paths:
-        # Mm.xap: each cue is -12 dB, with +5 dB for the Music category.
-        gain = '-7dB' if path.stem in ['Mm1', 'Mm2', 'Mm3'] else '-12dB'
-        convert(path, output / path.name, '-af', f'volume={gain}')
-    return [path.name for path in paths]
 
 
 # shaders: the arguments of compile_shaders.mjs. test: the observation host and the C# it calls.
@@ -46,18 +15,14 @@ games = {
     'torus-trooper': dict(
         shaders=['games/torus-trooper/frame/mesh', 'games/torus-trooper/frame/mesh.output.slang'],
         audio=torus_audio,
-        license=lambda original: (original / 'readme_e.txt').read_text(),
         test=('tests/torus-trooper/web-host.c', [])),
     'gear-toy-gear': dict(
-        shaders=['games/gear-toy-gear/game', 'games/frame/scene.output.slang',
-                 'GTG_ALPHA_TARGET:games/gear-toy-gear/game.fs.slang'],
+        shaders=['games/gear-toy-gear/game', 'games/frame/scene.output.slang'],
         audio=gear_audio,
-        license=lambda original: (root / 'games/gear-toy-gear/LICENSE.txt').read_text(),
         test=('tests/web-host.c', ['tests/gear-toy-gear/BrowserHooks.cs'])),
     'mazer-mayhem': dict(
         shaders=['games/mazer-mayhem/game', 'games/frame/scene.output.slang'],
         audio=mazer_audio,
-        license=lambda original: (root / 'games/mazer-mayhem/LICENSE.txt').read_text(),
         test=('tests/web-host.c', ['tests/mazer-mayhem/BrowserHooks.cs'])),
 }
 
@@ -84,7 +49,7 @@ prefix, *others = game['shaders']
 subprocess.run(['node', 'tools/compile_shaders.mjs', str(lub), str(output / 'shaders.json'), *game['shaders']],
                cwd=root, check=True)
 files = []
-for path in [f'{prefix}.vs.slang', f'{prefix}.fs.slang', *[path for path in others if ':' not in path]]:
+for path in [f'{prefix}.vs.slang', f'{prefix}.fs.slang', *others]:
     shutil.copy2(root / path, output / Path(path).name)
     files.append(Path(path).name)
 files += ['audio/' + name for name in game['audio'](args.original.resolve(), output / 'audio')]
@@ -95,10 +60,7 @@ for path in sorted((root / 'build' / args.game / 'images').glob('*.png')):
 (output / 'assets.json').write_text(json.dumps(files), encoding='utf-8')
 shutil.copy2(lub / 'web/xr.mjs', output / 'xr.js')
 shutil.copy2(root / 'games' / args.game / 'index.html', output / 'index.html')
-(output / 'LICENSE.txt').write_text(game['license'](args.original)
-    + '\n\n' + (root / 'LICENSE').read_text() + '\n\nlub\n---\n' + (lub / 'LICENSE').read_text()
-    + '\n\n' + (lub / 'THIRD_PARTY_LICENSES.md').read_text()
-    + '\n\ntcs2c runtime\n---\n' + (args.tcs / 'LICENSE').read_text()
-    + '\n\n' + (args.tcs / 'THIRD_PARTY_LICENSES.md').read_text(), encoding='utf-8')
+(output / 'LICENSE.txt').write_text(license_text(args.game, args.original.resolve(), lub, args.tcs.resolve()),
+                                    encoding='utf-8')
 for name in ['main.js', 'compiled.js', 'style.css']:
     shutil.copy2(root / 'web' / name, output.parent / name)

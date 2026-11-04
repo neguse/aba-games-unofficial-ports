@@ -256,7 +256,7 @@ public class BulletActor: Actor {
   public const int BULLET_COLOR = 8;
   public const int BULLET_SHADE = 3;
 
-  public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Blend blend, Mesh target = null) {
     bool depth = false; Gfx.Cull cull = Gfx.Cull.Front; float width = bullet.type == BulletType.ENEMY ? 2 : 1;
     if (!isVisible)
       return;
@@ -287,10 +287,10 @@ public class BulletActor: Actor {
 	       (BULLET_COLOR + bullet.color) * Tumiki.SHAPE_NUM +
 	       BULLET_SHADE * Tumiki.COLOR_NUM * Tumiki.SHAPE_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape2.ranges) {
-        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }

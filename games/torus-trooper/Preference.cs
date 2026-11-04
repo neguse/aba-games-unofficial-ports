@@ -48,8 +48,8 @@ public class PrefManager
         }
 
         s = s + (prefData.selectedGrade.ToString() + "," + prefData.selectedLevel.ToString());
-        if (Host.Available())
-            Host.Send("scores.save", s);
+        if (FrameHost.Available())
+            FrameHost.Send("scores.save", s);
     }
 }
 

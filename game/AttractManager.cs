@@ -37,7 +37,7 @@ public class AttractManager {
     }
   }
 
-  public void drawTitle(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void drawTitle(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
     if (cnt % 64 < 32)
       LetterRender.drawString(model, tint, blend, depth, cull, width, "PUSH SHOT BUTTON TO START", 250, 390, 7, LetterDirection.TO_RIGHT, 3);
     int c = cnt % 1200;
@@ -101,7 +101,7 @@ public class AttractManager {
      new int[] {-1,-1,-1, 1, 5, 0, 3, 1, 3, 4, 5, 2, 1, 3,},
      };
 
-  public void drawTitleBoard(float[] model, float[] tint, Gfx.Blend blend, bool depth, Gfx.Cull cull, float width, float x, float y, float s) {
+  public void drawTitleBoard(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, float x, float y, float s) {
     float[] parent1 = model;
     model = Transform.Translate(model, x, y, 0);
     model = Transform.Scale(model, s, s, s);
@@ -119,10 +119,10 @@ public class AttractManager {
 	  {
       Mesh shape3 = Tumiki.meshes[ti + c * Tumiki.SHAPE_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape3.count, shape3.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape3.count, shape3.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape3.ranges) {
-        Gfx.Draw(range.count, shape3.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape3.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }
@@ -133,10 +133,10 @@ public class AttractManager {
 	  {
       Mesh shape4 = LetterRender.meshes[li + c * LetterRender.LETTER_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape4.count, shape4.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape4.count, shape4.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape4.ranges) {
-        Gfx.Draw(range.count, shape4.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape4.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }

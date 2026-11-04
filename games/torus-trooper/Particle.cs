@@ -192,7 +192,7 @@ public class Particle : Actor
             inCourse = false;
     }
 
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         switch (type)
         {
@@ -209,7 +209,7 @@ public class Particle : Actor
         }
     }
 
-    public void drawSpark(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawSpark(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         if (sparkMesh == null) sparkMesh = new Mesh("Particle-drawSpark-" + meshKey);
         var mesh = sparkMesh;
@@ -241,7 +241,7 @@ public class Particle : Actor
         if (mesh.count > 0) TtRender.Draw(mesh, model, tint, lineWidth, blend, cull);
     }
 
-    public void drawStar(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawStar(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         if (starMesh == null) starMesh = new Mesh("Particle-drawStar-" + meshKey);
         var mesh = starMesh;
@@ -256,7 +256,7 @@ public class Particle : Actor
         if (mesh.count > 0) TtRender.Draw(mesh, model, tint, lineWidth, blend, cull);
     }
 
-    public void drawFragment(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawFragment(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         if (fragmentMesh == null) fragmentMesh = new Mesh("Particle-drawFragment-" + meshKey);
         var mesh = fragmentMesh;
@@ -283,7 +283,7 @@ public class Particle : Actor
         model = parent1;
     }
 
-    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawLuminous(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         if (luminousMesh == null) luminousMesh = new Mesh("Particle-drawLuminous-" + meshKey);
         var mesh = luminousMesh;
@@ -317,10 +317,10 @@ public class ParticlePool
     public Particle getInstance() { return pool.getInstance(); }
     public Particle getInstanceForced() { return pool.getInstanceForced(); }
     public void move() { pool.move(); }
-    public void draw(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth) { pool.draw(model, tint, blend, cull, lineWidth); }
+    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth) { pool.draw(model, tint, blend, cull, lineWidth); }
     public void clear() { pool.clear(); }
 
-    public void drawLuminous(float[] model, float[] tint, Gfx.Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawLuminous(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
     {
         foreach (var a in actor)
             if (a.exists)

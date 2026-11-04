@@ -56,7 +56,7 @@ public class Fragment: Actor {
     deg += md;
   }
 
-  public void draw(float[] model, float[] tint, Gfx.Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Blend blend, Mesh target = null) {
     bool depth = false; Gfx.Cull cull = Gfx.Cull.Front; float width = 1;
     if (cnt < 16) {
       if ((cnt & 1) == 1)
@@ -76,10 +76,10 @@ public class Fragment: Actor {
       Mesh shape2 = Tumiki.meshes[shape + color * Tumiki.SHAPE_NUM +
 	       Tumiki.SHAPE_NUM * Tumiki.COLOR_NUM];
       if (cull == Gfx.Cull.None) {
-        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive),
+        Gfx.Draw(shape2.count, shape2.Bindings(model, tint, width),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth, Cull = cull, Blend = blend });
       } else foreach (MeshRange range in shape2.ranges) {
-        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, blend == Gfx.Blend.Additive, range.first / 3),
+        Gfx.Draw(range.count, shape2.Bindings(model, tint, width, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = depth, DepthWrite = depth,
             Cull = range.material == (int)Gfx.Cull.None ? Gfx.Cull.None : cull, Blend = blend });
       }

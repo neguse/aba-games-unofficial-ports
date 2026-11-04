@@ -131,7 +131,7 @@ public class WallPool
     }
 }
 
-public class Wall : Actor
+public class Wall : Actor<Wall>
 {
     public CircleParticle State = new CircleParticle();
     public Vector2 Pos2 = new Vector2();
@@ -179,7 +179,7 @@ public void SetId(int value){storedId=value;}
         };
     }
 
-    public Actor CopyActor()
+    public Wall CopyActor()
     {
         return Copy();
     }

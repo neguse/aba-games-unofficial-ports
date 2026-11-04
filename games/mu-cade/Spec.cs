@@ -998,7 +998,7 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
         enemy.addConnectedParticles_3_Single_Single_Boolean(state.deg - PI / 2, 1.5f * state.sizeScale.x);
     }
 
-    public void drawSubShape(float[] model, float[] tint, Gfx.Blend blend, string key, EnemyState state)
+    public void drawSubShape(float[] model, float[] tint, Blend blend, string key, EnemyState state)
     {
         if (state.isHead)
         {
@@ -1146,7 +1146,7 @@ public class CentHead : EnemySpec, JointedEnemySpec, ConnectedParticlesBodyAddab
         EnemySpecBase.recordLinePoints_2(shape, state, lp);
     }
 
-    public void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
+    public void drawShadow_1(float[] model, float[] tint, Blend blend, string key, LinePoint lp)
     {
         shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", lp);
     }
@@ -1414,7 +1414,7 @@ public class CentBody : EnemySpec, ConnectedParticlesBodyAddable
         enemy.addConnectedParticles_3_Single_Single_Boolean(state.deg - PI / 2, 1.5f * state.sizeScale.x);
     }
 
-    public void drawSubShape(float[] model, float[] tint, Gfx.Blend blend, string key, EnemyState state)
+    public void drawSubShape(float[] model, float[] tint, Blend blend, string key, EnemyState state)
     {
         if (state.isHead)
         {
@@ -1467,7 +1467,7 @@ public class CentBody : EnemySpec, ConnectedParticlesBodyAddable
         EnemySpecBase.recordLinePoints_2(shape, state, lp);
     }
 
-    public void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
+    public void drawShadow_1(float[] model, float[] tint, Blend blend, string key, LinePoint lp)
     {
         shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", lp);
     }
@@ -1572,7 +1572,7 @@ public class Block : EnemySpec
         EnemySpecBase.recordLinePoints_2(shape, state, lp);
     }
 
-    public void drawShadow_1(float[] model, float[] tint, Gfx.Blend blend, string key, LinePoint lp)
+    public void drawShadow_1(float[] model, float[] tint, Blend blend, string key, LinePoint lp)
     {
         shape.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", lp);
     }
@@ -1602,7 +1602,7 @@ public class Block : EnemySpec
         return _colorB;
     }
 
-    public void drawSubShape(float[] model, float[] tint, Gfx.Blend blend, string key, EnemyState state)
+    public void drawSubShape(float[] model, float[] tint, Blend blend, string key, EnemyState state)
     {
     }
 }
