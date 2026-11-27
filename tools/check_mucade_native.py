@@ -48,7 +48,7 @@ def main():
     project = output / 'PhysicsTests.csproj'
     project.write_text(f'''<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType><TargetFramework>net11.0</TargetFramework>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <Nullable>disable</Nullable><CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
   </PropertyGroup>

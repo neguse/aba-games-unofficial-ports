@@ -200,7 +200,7 @@ public class BulletActor: Actor {
   public const int BULLET_COLOR_NUM = 4;
   public static float[][][] shapePos = new float[][][] {new float[][] {new float[] {-0.5f, -0.5f}, new float[] {0.5f, -0.5f}, new float[] {0f, 1f}}, new float[][] {new float[] {0f, -1f}, new float[] {0.5f, 0f}, new float[] {0f, 1f}, new float[] {-0.5f, 0f}}, new float[][] {new float[] {-0.25f, -0.66f}, new float[] {0.25f, -0.66f}, new float[] {0.25f, 0.66f}, new float[] {-0.25f, 0.66f}}, new float[][] {new float[] {-0.5f, -0.5f}, new float[] {0.5f, -0.5f}, new float[] {0.5f, 0.5f}, new float[] {-0.5f, 0.5f}}, new float[][] {new float[] {-0.25f, -0.5f}, new float[] {0.25f, -0.5f}, new float[] {0.5f, -0.25f}, new float[] {0.5f, 0.25f}, new float[] {0.25f, 0.5f}, new float[] {-0.25f, 0.5f}, new float[] {-0.5f, 0.25f}, new float[] {-0.5f, -0.25f}}, new float[][] {new float[] {-0.66f, -0.46f}, new float[] {0f, 0.86f}, new float[] {0.66f, -0.46f}}, new float[][] {new float[] {-0.5f, -0.5f}, new float[] {0f, -0.5f}, new float[] {0.5f, 0f}, new float[] {0.5f, 0.5f}, new float[] {0f, 0.5f}, new float[] {-0.5f, 0f}}};
 
-  public void drawRetro(float[] model, float[] color, Blend blend, float d) {
+  public void drawRetro(float[] model, float[] color, Blend? blend, float d) {
     var mesh = new Mesh("BulletActor-drawRetro" + "-" + meshKey);
     float rt = 1 - rtCnt / RETRO_CNT;
     P47Screen.setRetroParam(rt, 0.4f * bullet.bulletSize);
@@ -226,7 +226,7 @@ public class BulletActor: Actor {
       new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
-  public void draw(float[] model, float[] color, Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Blend? blend, Mesh target = null) {
     if (!isVisible)
       return;
     float d=0;
@@ -256,7 +256,7 @@ public class BulletActor: Actor {
       {
       Mesh shape3 = meshes[di];
       foreach (MeshRange range in shape3.ranges) {
-        Blend rangeBlend = range.hasBlend ? range.blend : blend;
+        Blend? rangeBlend = range.hasBlend ? range.blend : blend;
         Gfx.Draw(range.count, shape3.Bindings(model, color, 1, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = rangeBlend });
       }
@@ -266,7 +266,7 @@ public class BulletActor: Actor {
       {
       Mesh shape6 = meshes[di + 1 + bullet.shape];
       foreach (MeshRange range in shape6.ranges) {
-        Blend rangeBlend = range.hasBlend ? range.blend : blend;
+        Blend? rangeBlend = range.hasBlend ? range.blend : blend;
         Gfx.Draw(range.count, shape6.Bindings(model, color, 1, range.first / 3),
           new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = rangeBlend });
       }

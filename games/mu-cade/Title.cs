@@ -27,7 +27,7 @@ public class TitleManager
         cnt++;
     }
 
-    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend? blend, string key, Mesh target = null)
     {
         float x = 250, y = 50;
         float lsz = 50, lof = 40;
@@ -55,7 +55,7 @@ public class TitleManager
         drawRanking(model, tint, blend, key + "-drawRanking-1");
     }
 
-    public void drawRanking(float[] model, float[] tint, Blend blend, string key)
+    public void drawRanking(float[] model, float[] tint, Blend? blend, string key)
     {
         int rn = GameMath.integer((cnt - 60) / 40);
         if (rn > PrefData.RANKING_NUM)

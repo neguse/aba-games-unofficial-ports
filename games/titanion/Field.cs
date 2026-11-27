@@ -221,7 +221,7 @@ public class Field
         float[] model = Transform.Ortho(); drawSidewall(model, null, GlBlend.SrcAlphaOne); return model;
     }
 
-    public void drawSidewall(float[] model, float[] color, Blend blend)
+    public void drawSidewall(float[] model, float[] color, Blend? blend)
     {
         Gfx.Draw(sidewall.count, sidewall.Bindings(model, null, 1),
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = GlBlend.SrcAlphaOneMinusSrcAlpha });
@@ -232,7 +232,7 @@ public class Field
         cnt++;
     }
 
-    public void drawBack(float[] model, float[] color, Blend blend)
+    public void drawBack(float[] model, float[] color, Blend? blend)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, 0, TORUS_Y, 0);
@@ -240,7 +240,7 @@ public class Field
         model = parent1;
     }
 
-    public void drawFront(float[] model, float[] color, Blend blend)
+    public void drawFront(float[] model, float[] color, Blend? blend)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, 0, TORUS_Y, 0);
@@ -248,7 +248,7 @@ public class Field
         model = parent1;
     }
 
-    public void drawTorusShape(float[] model, float[] color, Blend blend, float d1s)
+    public void drawTorusShape(float[] model, float[] color, Blend? blend, float d1s)
     {
         Vector3 cp = new Vector3();
         cp.y = 0;

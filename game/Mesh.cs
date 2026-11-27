@@ -46,6 +46,14 @@ public static class GlBlend
         Src = Gfx.BlendFactor.Dst, Dst = Gfx.BlendFactor.Zero, Op = Gfx.BlendOp.Add,
         SrcAlpha = Gfx.BlendFactor.DstAlpha, DstAlpha = Gfx.BlendFactor.Zero, OpAlpha = Gfx.BlendOp.Add,
     };
+    // 同じ式か (null は blend なしで、null どうしだけが同じ)。
+    public static bool Same(Blend? a, Blend? b)
+    {
+        if (a == null || b == null) return a == null && b == null;
+        Blend x = a.Value, y = b.Value;
+        return x.Src == y.Src && x.Dst == y.Dst && x.Op == y.Op
+            && x.SrcAlpha == y.SrcAlpha && x.DstAlpha == y.DstAlpha && x.OpAlpha == y.OpAlpha;
+    }
 }
 
 // 原作の display list の一続きの区間。
@@ -56,7 +64,7 @@ public class MeshRange
 {
     public int first, count, material;
     public bool hasBlend;
-    public Blend blend;
+    public Blend? blend;
 }
 
 public class Mesh
@@ -139,11 +147,11 @@ public class Mesh
         else ranges.Add(new MeshRange { first = first, count = count - first, material = material });
     }
     // first からの区間を、記録したときの blend で描く区間にする。
-    public void AddBlendRange(int first, Blend blend)
+    public void AddBlendRange(int first, Blend? blend)
     {
         if (count == first) return;
         var last = ranges.Count > 0 ? ranges[ranges.Count - 1] : null;
-        if (last != null && last.hasBlend && last.blend == blend)
+        if (last != null && last.hasBlend && GlBlend.Same(last.blend, blend))
             last.count += count - first;
         else ranges.Add(new MeshRange { first = first, count = count - first, hasBlend = true, blend = blend });
     }

@@ -2021,7 +2021,7 @@ public static class RrLetter
             },
         }
     };
-    public static void drawLetter(float[] model, Blend blend, string key, int idx, int lx, int ly, int ltSize, int d, int r, int g, int b)
+    public static void drawLetter(float[] model, Blend? blend, string key, int idx, int lx, int ly, int ltSize, int d, int r, int g, int b)
     {
         string geometryKey = idx.ToString() + "-" + ltSize.ToString() + "-" + d.ToString();
         if (!letters.ContainsKey(geometryKey)) letters[geometryKey] = createLetter("letter-" + geometryKey, idx, ltSize, d);
@@ -2032,7 +2032,7 @@ public static class RrLetter
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public static void drawString(float[] model, Blend blend, string key, string str, int lx, int ly, int ltSize, int d, int r, int g, int b)
+    public static void drawString(float[] model, Blend? blend, string key, string str, int lx, int ly, int ltSize, int d, int r, int g, int b)
     {
         int x = lx, y = ly;
         int i = 0, idx = 0;

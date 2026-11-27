@@ -6,7 +6,7 @@ using Lub;
 
 public interface Drawable
 {
-    public void draw(float[] model, float[] color, Blend blend);
+    public void draw(float[] model, float[] color, Blend? blend);
 }
 
 public interface Collidable
@@ -29,7 +29,7 @@ public static class ShapeMesh
         return mesh;
     }
 
-    public static void draw(Mesh mesh, int opaqueCount, float[] model, float[] color, Blend blend)
+    public static void draw(Mesh mesh, int opaqueCount, float[] model, float[] color, Blend? blend)
     {
         if (opaqueCount > 0)
             Gfx.Draw(opaqueCount, mesh.Bindings(model, color, 1),
@@ -70,7 +70,7 @@ public class ResizableDrawable : Drawable, Collidable
     public Drawable _shape;
     public float _size;
     public Vector _collision;
-    public void draw(float[] model, float[] color, Blend blend)
+    public void draw(float[] model, float[] color, Blend? blend)
     {
         model = Transform.Scale(model, _size, _size, _size);
         _shape.draw(model, color, blend);

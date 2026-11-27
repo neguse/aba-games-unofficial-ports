@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+from lub_tools import to_c
 
 # Games whose C# sources are listed by their Frame project and shared by every runtime.
 projects = {'torus-trooper': 'games/torus-trooper/frame/TorusTrooper.csproj',
@@ -10,32 +11,23 @@ projects = {'torus-trooper': 'games/torus-trooper/frame/TorusTrooper.csproj',
             'mazer-mayhem': 'games/mazer-mayhem/frame/MazerMayhem.csproj'}
 
 
-def compile_game(lub, tcs, game, output, extra=()):
+def compile_game(lub, game, output, extra=()):
     """Write game.c and binding.c for `game`, plus the `extra` C# sources, into `output`."""
     root = Path(__file__).resolve().parent.parent
     project = root / projects[game]
     result = subprocess.run(['dotnet', 'msbuild', str(project), '-nologo', '-getItem:Compile',
                              f'-p:LubRoot={lub}'], check=True, capture_output=True, text=True)
     sources = [Path(item['FullPath']) for item in json.loads(result.stdout)['Items']['Compile']]
-    # tcs2c brings TinySystem itself; the project lists its sources only for the .NET build.
-    tiny_system = tcs / 'TinySystem'
+    # tcs brings TinySystem itself; the project lists its sources only for the .NET build.
+    tiny_system = lub / 'src/tcs-system'
     sources = [path for path in sources if path != project.parent / 'Program.cs'
                and not path.is_relative_to(tiny_system)] + [Path(path) for path in extra]
-    output.mkdir(parents=True, exist_ok=True)
-    subprocess.run(['dotnet', 'build', str(tcs / 'tcs2c/tcs2c.csproj'), '-c', 'Release'], check=True)
-    subprocess.run(['dotnet', 'build', str(lub / 'tools/lub-gen/lub-gen.csproj'), '-c', 'Release'], check=True)
-    subprocess.run(['dotnet', str(tcs / 'tcs2c/bin/Release/net10.0/tcs2c.dll'), '--lib',
-                    '--ref', str(lub / 'cs-lib/lub_stub.cs'), *map(str, sources), '-o', str(output / 'game.c')], check=True)
-    subprocess.run(['dotnet', str(lub / 'tools/lub-gen/bin/Release/net10.0/lub-gen.dll'), 'tcs',
-                    '--stub', str(lub / 'cs-lib/lub_stub.cs'), '--entry', 'Standalone',
-                    *[arg for path in sources for arg in ['--source', str(path)]],
-                    '-o', str(output / 'binding.c')], check=True)
+    to_c(lub, sources, output)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--lub', type=Path, required=True)
-    parser.add_argument('--tcs', type=Path, required=True)
     parser.add_argument('--game', choices=sorted(projects), required=True)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--native', type=Path)
@@ -44,9 +36,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if bool(args.native) != bool(args.executable):
         parser.error('--native and --executable must be used together')
-    lub, tcs = args.lub.resolve(), args.tcs.resolve()
+    lub = args.lub.resolve()
     output = (args.output or Path('build/frame-c') / args.game).resolve()
-    compile_game(lub, tcs, args.game, output)
+    compile_game(lub, args.game, output)
     if args.native:
         host = output / 'host.c'
         host.write_text(f'#define LUB_TCS_GAME "{output.as_posix()}/game.c"\n'

@@ -82,7 +82,7 @@ public class Roll: Actor {
     cnt++;
   }
 
-  public void draw(float[] model, float[] color, Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Blend? blend, Mesh target = null) {
     var mesh = new Mesh("Roll-draw" + "-" + meshKey);
     if (released)
       P47Screen.setRetroParam(1, 0.2f);

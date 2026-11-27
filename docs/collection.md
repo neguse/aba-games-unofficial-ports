@@ -22,7 +22,7 @@ Do not delete these directories when updating the game files.
 
 ## Build
 
-Use .NET SDK 10 and the pinned Lub checkout (`tools/setup_lub.sh`).
+Use .NET SDK 11 and the pinned Lub checkout (`tools/setup_lub.sh`).
 Prepare assets using `tools/build.py`, then build the Lub shared runtime using
 its `scripts/build-release.sh`. Stage its native libraries in one directory.
 

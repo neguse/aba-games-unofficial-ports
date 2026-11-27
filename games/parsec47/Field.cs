@@ -78,7 +78,7 @@ public class Field {
     }
   }
 
-  public void draw(float[] model, float[] color, Blend blend) {
+  public void draw(float[] model, float[] color, Blend? blend) {
     color = new float[] { r, g, b, 0.7f };
     float d = -RING_NUM * RING_ANGLE_INT / 2 + roll;
     for (int index0 = 0; index0 < RING_NUM; index0++) {

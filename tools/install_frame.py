@@ -84,10 +84,10 @@ def extract(archive, destination, game):
                 with zip_.open(entry) as source, target.open('wb') as output:
                     shutil.copyfileobj(source, output)
                 target.chmod(mode & 0o777)
-    for name in (game, game + '.dll', 'run.sh', 'Lub.dll', 'native/lub', 'native/liblub.so', 'LICENSE.txt'):
+    for name in (game, game + '.dll', 'run.sh', 'Lub.dll', 'native/liblub.so', 'LICENSE.txt'):
         if not (destination / game / name).is_file():
             raise ValueError('配布ZIPに必要なファイルがありません: ' + name)
-    for name in (game, 'run.sh', 'native/lub'):
+    for name in (game, 'run.sh'):
         if not os.access(destination / game / name, os.X_OK):
             raise ValueError('配布ZIPの実行権限がありません: ' + name)
 

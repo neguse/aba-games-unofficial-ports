@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 from compile_frame_c import compile_game
+from lub_tools import tcs
 from frame_assets import gear_audio, license_text, mazer_audio, torus_audio
 
 root = Path(__file__).resolve().parent.parent
@@ -82,13 +83,12 @@ def main():
     args = parser.parse_args()
     game = games[args.game]
     lub, original = args.lub.resolve(), args.original.resolve()
-    tcs = lub / 'third_party/tcs'
     native = (args.lub_native or lub / 'build-release-linux/lub').resolve()
     work = root / 'build/quest' / args.game
     output = (args.output or root / 'build/quest' / f'{game["name"]}-quest.apk').resolve()
 
     subprocess.run([sys.executable, game['data'], str(original)], cwd=root, check=True)
-    compile_game(lub, tcs, args.game, work / 'c')
+    compile_game(lub, args.game, work / 'c')
 
     assets = work / 'assets'
     shutil.rmtree(assets, ignore_errors=True)
@@ -96,17 +96,16 @@ def main():
     for name, source in game['files'].items():
         shutil.copy2(root / source, assets / name)
     game['audio'](original, assets / 'audio')
-    (assets / 'LICENSE.txt').write_text(license_text(args.game, original, lub, tcs), encoding='utf-8')
+    (assets / 'LICENSE.txt').write_text(license_text(args.game, original, lub), encoding='utf-8')
 
     export = work / 'export'
     shutil.rmtree(export, ignore_errors=True)
     export.mkdir(parents=True)
     (export / 'ShaderExport.cs').write_text(export_source(game['shaders']), encoding='utf-8')
-    subprocess.run(['dotnet', str(tcs / 'Transpiler/bin/Release/net10.0/Transpiler.dll'),
-                    str(export / 'ShaderExport.cs'), '--ref', str(lub / 'cs-lib/lub_stub.cs'),
-                    '--entry', 'ShaderExport', '-o', str(export / 'ShaderExport.lua')], check=True)
+    subprocess.run([*tcs(lub), 'vm', '--entry', 'ShaderExport', str(export / 'ShaderExport.cs'),
+                    '--ref', str(lub / 'cs-lib/lub_stub.cs'), '-o', str(export / 'ShaderExport.tcsb')], check=True)
     # The entry reads the shaders by the same relative paths as the game, so it runs in the data directory.
-    subprocess.run([str(native), 'export', 'android', str(export / 'ShaderExport.lua'), '-o', str(export / 'out')],
+    subprocess.run([str(native), 'export', 'android', str(export / 'ShaderExport.tcsb'), '-o', str(export / 'out')],
                    cwd=assets, check=True)
     cache = sorted((export / 'out/cache/shader').glob('*.lubshader'))
     if len(cache) != len(set(game['shaders'])):

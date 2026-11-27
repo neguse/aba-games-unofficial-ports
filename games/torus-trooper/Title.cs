@@ -212,7 +212,7 @@ public class TitleManager
         _replayChangeRatio = (float)replayCnt / REPLAY_CHANGE_DURATION;
     }
 
-    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Blend? blend, Gfx.Cull cull, float lineWidth)
     {
         if (_replayChangeRatio >= 1.0f)
             return;
@@ -245,7 +245,7 @@ public class TitleManager
         model = parent2;
     }
 
-    public void drawFront(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawFront(float[] model, float[] tint, Blend? blend, Gfx.Cull cull, float lineWidth)
     {
         if (_replayChangeRatio > 0)
             return;
@@ -343,7 +343,7 @@ public class TitleManager
         return new Vector(x, y);
     }
 
-    public void drawCursorRing(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth, float x, float y, float s)
+    public void drawCursorRing(float[] model, float[] tint, Blend? blend, Gfx.Cull cull, float lineWidth, float x, float y, float s)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, x, y, 0);

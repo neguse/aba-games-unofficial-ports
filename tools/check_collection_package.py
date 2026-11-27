@@ -30,7 +30,7 @@ def main():
     audio_count=image_count=0
     for game in catalog:
         directory=root/'games'/game['id']
-        for name in ['AbaGame.dll','AbaGame.deps.json','TinySystem.dll','LICENSE.txt']:
+        for name in ['AbaGame.dll','AbaGame.deps.json','tcs-system.dll','LICENSE.txt']:
             assert (directory/name).is_file(),f'{game["id"]}: {name}'
         assert (directory/'Lub.dll').read_bytes()==(root/'Lub.dll').read_bytes(),f'{game["id"]}: shared Lub mismatch'
         for path in (directory/'audio').glob('*.wav'):

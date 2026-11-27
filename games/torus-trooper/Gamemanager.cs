@@ -179,9 +179,9 @@ public interface GameState
 {
     void start();
     void move();
-    void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth);
-    void drawLuminous(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth);
-    void drawFront(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth);
+    void draw(float[] model, float[] tint, Blend? blend, Gfx.Cull cull, float lineWidth);
+    void drawLuminous(float[] model, float[] tint, Blend? blend, Gfx.Cull cull, float lineWidth);
+    void drawFront(float[] model, float[] tint, Blend? blend, Gfx.Cull cull, float lineWidth);
     void setLevel(float value);
     void setGrade(int value);
     void setSeed(int value);
@@ -416,7 +416,7 @@ public class InGameState : GameState
                 ship.isGameOver = true;
     }
 
-    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Blend? blend, Gfx.Cull cull, float lineWidth)
     {
         cull = Gfx.Cull.Front;
         tunnel.draw(model, tint, blend, cull, lineWidth);
@@ -433,12 +433,12 @@ public class InGameState : GameState
         shots.draw(model, tint, blend, cull, lineWidth);
     }
 
-    public void drawLuminous(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawLuminous(float[] model, float[] tint, Blend? blend, Gfx.Cull cull, float lineWidth)
     {
         particles.drawLuminous(model, tint, blend, cull, lineWidth);
     }
 
-    public void drawFront(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawFront(float[] model, float[] tint, Blend? blend, Gfx.Cull cull, float lineWidth)
     {
         ship.drawFront(model, tint, blend, cull, lineWidth);
         Letter.drawNum(model, tint, blend, cull, lineWidth, score, 610, 0, 15);
@@ -668,7 +668,7 @@ public class TitleState : GameState
         }
     }
 
-    public void draw(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
+    public void draw(float[] model, float[] tint, Blend? blend, Gfx.Cull cull, float lineWidth)
     {
         if ((replayData != null))
         {
@@ -698,11 +698,11 @@ public class TitleState : GameState
         titleManager.draw(model, tint, blend, cull, lineWidth);
     }
 
-    public void drawLuminous(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawLuminous(float[] model, float[] tint, Blend? blend, Gfx.Cull cull, float lineWidth)
     {
     }
 
-    public void drawFront(float[] model, float[] tint, Blend blend, Gfx.Cull cull, float lineWidth)
+    public void drawFront(float[] model, float[] tint, Blend? blend, Gfx.Cull cull, float lineWidth)
     {
         titleManager.drawFront(model, tint, blend, cull, lineWidth);
         if ((!(Ship.drawFrontMode)) || (titleManager.replayChangeRatio < 1))

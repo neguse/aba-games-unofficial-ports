@@ -40,12 +40,10 @@ def mazer_audio(original, output):
     return [path.name for path in paths]
 
 
-def license_text(game, original, lub, tcs):
-    """The LICENSE.txt of a package that holds `game` linked with lub and the tcs2c runtime."""
+def license_text(game, original, lub):
+    """The LICENSE.txt of a package that holds `game` linked with lub (which includes the tcs runtime)."""
     own = {'torus-trooper': lambda: (original / 'readme_e.txt').read_text(),
            'gear-toy-gear': lambda: (root / 'games/gear-toy-gear/LICENSE.txt').read_text(),
            'mazer-mayhem': lambda: (root / 'games/mazer-mayhem/LICENSE.txt').read_text()}[game]()
     return (own + '\n\n' + (root / 'LICENSE').read_text() + '\n\nlub\n---\n' + (lub / 'LICENSE').read_text()
-            + '\n\n' + (lub / 'THIRD_PARTY_LICENSES.md').read_text()
-            + '\n\ntcs2c runtime\n---\n' + (tcs / 'LICENSE').read_text()
-            + '\n\n' + (tcs / 'THIRD_PARTY_LICENSES.md').read_text())
+            + '\n\n' + (lub / 'THIRD_PARTY_LICENSES.md').read_text())

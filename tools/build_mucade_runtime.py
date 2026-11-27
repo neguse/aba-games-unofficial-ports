@@ -6,8 +6,7 @@ import tarfile
 import urllib.request
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--lub', type=Path, required=True)
-parser.add_argument('--native-only', action='store_true')
+parser.add_argument('--native', action='store_true', help='build ODE as a native library instead of the web CMake file')
 args = parser.parse_args()
 archive = Path('.cache/ode-0.5.0.tar.gz')
 archive.parent.mkdir(exist_ok=True)
@@ -47,43 +46,19 @@ for start, end in [('ODE_SRC =', 'ifdef OPCODE_DIRECTORY'), ('ODE_PREGEN_SRC =',
     text = makefile.split(start, 1)[1].split(end, 1)[0]
     names += [word for word in text.split() if word.endswith(('.cpp', '.c'))]
 sources = [str(ode / name) for name in names]
-bridge = Path('games/mu-cade/ode.cpp').resolve()
 output = Path('build/mu-cade')
 output.mkdir(parents=True, exist_ok=True)
-runner = output / 'runner.cpp'
-runner.write_text('''extern "C" {
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
-int luaopen_mcd_ode(lua_State*);
-int luaopen_tcs_math(lua_State*);
-int luaopen_tcs_rt(lua_State*);
-int luaopen_tcs_utf8(lua_State*);
-}
-int main(int argc,char** argv){
- lua_State* L=luaL_newstate();luaL_openlibs(L);luaopen_mcd_ode(L);lua_setglobal(L,"mcdphysics");
- luaL_requiref(L,"tcs_math",luaopen_tcs_math,1);lua_pop(L,1);
- luaL_requiref(L,"tcs_rt",luaopen_tcs_rt,1);lua_pop(L,1);
- luaL_requiref(L,"tcs_utf8",luaopen_tcs_utf8,1);lua_pop(L,1);
- lua_newtable(L);for(int i=1;i<argc;i++){lua_pushstring(L,argv[i]);lua_rawseti(L,-2,i-1);}lua_setglobal(L,"arg");
- int result=luaL_dofile(L,argv[1]);if(result)fprintf(stderr,"%s\\n",lua_tostring(L,-1));lua_close(L);return result?1:0;
-}
-''')
-# tcs の Lua 出力は Math の超越関数で tcs_math、float の文字列化と string の順序で tcs_rt、
-# UTF-8 の文字列の操作 (TinySystem.Text) で tcs_utf8 を呼ぶ (どれも tcs の runtime/lua、Lua の lua32 と同じ build)
-tcs = args.lub.resolve() / 'third_party/tcs'
-runtime = []
-for source in ['runtime/lua/tcs_math_lua.c', 'runtime/lua/tcs_rt_lua.c', 'runtime/fmt/f2s.c',
-               'runtime/lua/tcs_utf8_lua.c', 'runtime/utf8/tcs_utf8.c']:
-    runtime.append(output / (Path(source).stem + '.o'))
-    subprocess.run(['cc', '-O2', '-DLUA_32BITS', '-I' + str(tcs / 'deps/lua'), '-I' + str(tcs / 'runtime/utf8'), '-c',
-                    str(tcs / source), '-o', str(runtime[-1])], check=True)
-subprocess.run(['c++', '-O2', '-w', '-DLUA_32BITS', '-DdNODEBUG',
-                '-I' + str(ode / 'include'), '-I' + str(tcs / 'deps/lua'),
-                str(runner), str(bridge), *sources, *map(str, runtime),
-                str(tcs / 'build/libtcs_math.a'), str(tcs / 'build/libliblua32.a'),
-                '-lm', '-ldl', '-o', str(output / 'lua-ode')], check=True)
-if args.native_only:
+if args.native:
+    # ODE as a native library, which the game's C calls through games/mu-cade/ode_host.c (tests/check_game.py).
+    native = output / 'native'
+    native.mkdir(exist_ok=True)
+    objects = []
+    for index, source in enumerate(sources):
+        objects.append(native / f'{index}-{Path(source).stem}.o')
+        subprocess.run(['c++', '-O2', '-w', '-DdNODEBUG', '-I' + str(ode / 'include'), '-c', source,
+                        '-o', str(objects[-1])], check=True)
+    (native / 'libode.a').unlink(missing_ok=True)
+    subprocess.run(['ar', 'rcs', str(native / 'libode.a'), *map(str, objects)], check=True)
     raise SystemExit(0)
 # Included by lub's project(): the deferred call runs once lub's own targets exist.
 (output / 'ode.cmake').write_text('function(mcd_ode)\nadd_library(mcd_ode STATIC\n' + '\n'.join('"' + source + '"' for source in sources) + f'''

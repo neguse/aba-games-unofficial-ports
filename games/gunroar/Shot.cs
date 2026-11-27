@@ -336,7 +336,7 @@ public class ShotShape : DrawableShape, Collidable
         mesh = null;
     }
 
-    public void draw(float[] model, float[] color, Blend blend)
+    public void draw(float[] model, float[] color, Blend? blend)
     {
         ShapeMesh.draw(mesh, opaqueCount, model, color, blend);
     }

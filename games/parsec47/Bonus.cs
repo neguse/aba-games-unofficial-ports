@@ -139,7 +139,7 @@ public class Bonus: Actor {
     }
   }
 
-  public void draw(float[] model, float[] color, Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Blend? blend, Mesh target = null) {
     var mesh = new Mesh("Bonus-draw" + "-" + meshKey);
     float retro=0;
     if (cnt < RETRO_CNT)

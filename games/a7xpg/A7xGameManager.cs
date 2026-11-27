@@ -597,7 +597,7 @@ public class A7xGameManager
         cnt++;
     }
 
-    public void inGameDraw(float[] model, float[] tint, Blend blend)
+    public void inGameDraw(float[] model, float[] tint, Blend? blend)
     {
         float lineWidth = 1;
         bonuses.draw(model, tint, blend);
@@ -609,7 +609,7 @@ public class A7xGameManager
         enemies.draw(model, tint, blend);
     }
 
-    public void stageClearDraw(float[] model, float[] tint, Blend blend)
+    public void stageClearDraw(float[] model, float[] tint, Blend? blend)
     {
         float lineWidth = 1;
         if (cnt < 32)
@@ -618,7 +618,7 @@ public class A7xGameManager
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
     }
 
-    public void titleDraw(float[] model, float[] tint, Blend blend)
+    public void titleDraw(float[] model, float[] tint, Blend? blend)
     {
         float lineWidth = 1;
         { var mesh = new Mesh("particles-draw"); particles.draw(model, tint, blend, mesh); if (mesh.count > 0) Gfx.Draw(mesh.count, mesh.Bindings(model, tint, lineWidth, 0, null, 640, 480),
@@ -626,7 +626,7 @@ public class A7xGameManager
         enemies.draw(model, tint, blend);
     }
 
-    public void gameoverDraw(float[] model, float[] tint, Blend blend)
+    public void gameoverDraw(float[] model, float[] tint, Blend? blend)
     {
         float lineWidth = 1;
         field.draw(model, tint, blend);
@@ -635,7 +635,7 @@ public class A7xGameManager
         enemies.draw(model, tint, blend);
     }
 
-    public void inGameDrawLuminous(float[] model, float[] tint, Blend blend)
+    public void inGameDrawLuminous(float[] model, float[] tint, Blend? blend)
     {
         float lineWidth = 1;
         field.drawLuminous(model, tint, blend);
@@ -648,7 +648,7 @@ public class A7xGameManager
         enemies.drawLuminous(model, tint, blend);
     }
 
-    public void stageClearDrawLuminous(float[] model, float[] tint, Blend blend)
+    public void stageClearDrawLuminous(float[] model, float[] tint, Blend? blend)
     {
         float lineWidth = 1;
         if (cnt < 32)
@@ -657,7 +657,7 @@ public class A7xGameManager
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend }); }
     }
 
-    public void titleDrawLuminous(float[] model, float[] tint, Blend blend)
+    public void titleDrawLuminous(float[] model, float[] tint, Blend? blend)
     {
         float lineWidth = 1;
         field.drawLuminous(model, tint, blend);
@@ -666,7 +666,7 @@ public class A7xGameManager
         enemies.drawLuminous(model, tint, blend);
     }
 
-    public void gameoverDrawLuminous(float[] model, float[] tint, Blend blend)
+    public void gameoverDrawLuminous(float[] model, float[] tint, Blend? blend)
     {
         float lineWidth = 1;
         field.drawLuminous(model, tint, blend);
@@ -675,22 +675,22 @@ public class A7xGameManager
         enemies.drawLuminous(model, tint, blend);
     }
 
-    public void drawScore(float[] model, float[] tint, Blend blend)
+    public void drawScore(float[] model, float[] tint, Blend? blend)
     {
         LetterRender.drawNum(model, tint, blend, score, 300, 20, 10);
     }
 
-    public void drawHiScore(float[] model, float[] tint, Blend blend)
+    public void drawHiScore(float[] model, float[] tint, Blend? blend)
     {
         LetterRender.drawNum(model, tint, blend, prefManager.hiScore, 620, 20, 10);
     }
 
-    public void drawStageTimer(float[] model, float[] tint, Blend blend)
+    public void drawStageTimer(float[] model, float[] tint, Blend? blend)
     {
         LetterRender.drawTime(model, tint, blend, stageTimer * 17, 620, 20, 10);
     }
 
-    public void inGameDrawStatus(float[] model, float[] tint, Blend blend)
+    public void inGameDrawStatus(float[] model, float[] tint, Blend? blend)
     {
         if (state == IN_GAME && cnt < 120)
         {
@@ -725,7 +725,7 @@ public class A7xGameManager
         }
     }
 
-    public void stageClearDrawStatus(float[] model, float[] tint, Blend blend)
+    public void stageClearDrawStatus(float[] model, float[] tint, Blend? blend)
     {
         if (stageTimer > 0)
         {
@@ -741,7 +741,7 @@ public class A7xGameManager
         }
     }
 
-    public void titleDrawStatus(float[] model, float[] tint, Blend blend)
+    public void titleDrawStatus(float[] model, float[] tint, Blend? blend)
     {
         if ((cnt % 120) < 60)
             LetterRender.drawString(model, tint, blend, "PUSH BUTTON TO START", 320, 400, 8);
@@ -759,7 +759,7 @@ public class A7xGameManager
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public void gameoverDrawStatus(float[] model, float[] tint, Blend blend)
+    public void gameoverDrawStatus(float[] model, float[] tint, Blend? blend)
     {
         if (cnt > 64)
         {
@@ -784,7 +784,7 @@ public class A7xGameManager
         drawHiScore(model, tint, blend);
     }
 
-    public void pauseDrawStatus(float[] model, float[] tint, Blend blend)
+    public void pauseDrawStatus(float[] model, float[] tint, Blend? blend)
     {
         if ((pauseCnt % 60) < 30)
             LetterRender.drawString(model, tint, blend, "PAUSE", 280, 220, 12);
@@ -795,7 +795,7 @@ public class A7xGameManager
     public void draw()
     {
         float[] model = Transform.Translate(Transform.Perspective(), 0, 0, -field.eyeZ);
-        float[] tint = null; Blend blend = GlBlend.SrcAlphaOne;
+        float[] tint = null; Blend? blend = GlBlend.SrcAlphaOne;
         Gfx.BeginPass(new PassOpts { Target = Game.glow, ClearColor = new float[] { 0, 0, 0, 0 } });
         switch (state)
         {

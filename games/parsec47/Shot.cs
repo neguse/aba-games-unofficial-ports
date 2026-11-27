@@ -47,7 +47,7 @@ public class Shot: Actor {
     cnt++;
   }
 
-  public void draw(float[] model, float[] color, Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Blend? blend, Mesh target = null) {
     var mesh = new Mesh("Shot-draw" + "-" + meshKey);
     float r=0;
     if (cnt > RETRO_CNT)

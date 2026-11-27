@@ -24,7 +24,7 @@ public class ParticlePool
         pool.move_0();
     }
 
-    public void draw_0(float[] model, float[] color, Blend blend)
+    public void draw_0(float[] model, float[] color, Blend? blend)
     {
         pool.draw_0(model, color, blend);
     }
@@ -85,7 +85,7 @@ public class Particle : Actor
         exists = false;
     }
 
-    public void draw_0(float[] model, float[] color, Blend blend)
+    public void draw_0(float[] model, float[] color, Blend? blend)
     {
         spec.draw_1(model, color, blend, state);
     }
@@ -236,7 +236,7 @@ public interface ParticleSpec
 {
     public void set_1(ParticleState ps);
     public bool move_1(ParticleState ps);
-    public void draw_1(float[] model, float[] color, Blend blend, ParticleState ps);
+    public void draw_1(float[] model, float[] color, Blend? blend, ParticleState ps);
 }
 
 public static class ParticleSpecs
@@ -340,7 +340,7 @@ public class TriangleParticleSpec : ParticleSpec
         }
     }
 
-    public void draw_1(float[] model, float[] color, Blend blend, ParticleState ps)
+    public void draw_1(float[] model, float[] color, Blend? blend, ParticleState ps)
     {
         {
             Vector3 p = field.calcCircularPos_1(ps.pos);
@@ -396,7 +396,7 @@ public class LineParticleSpec : ParticleSpec
         }
     }
 
-    public void draw_1(float[] model, float[] color, Blend blend, ParticleState ps)
+    public void draw_1(float[] model, float[] color, Blend? blend, ParticleState ps)
     {
         {
             Vector3 p = null;
@@ -456,7 +456,7 @@ public class QuadParticleSpec : ParticleSpec
         }
     }
 
-    public void draw_1(float[] model, float[] color, Blend blend, ParticleState ps)
+    public void draw_1(float[] model, float[] color, Blend? blend, ParticleState ps)
     {
         {
             Vector3 p = null;
@@ -547,7 +547,7 @@ public class BonusParticleSpec : ParticleSpec
         }
     }
 
-    public void draw_1(float[] model, float[] color, Blend blend, ParticleState ps)
+    public void draw_1(float[] model, float[] color, Blend? blend, ParticleState ps)
     {
         {
             if (ps.waitCnt > 0)

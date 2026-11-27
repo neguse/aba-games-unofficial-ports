@@ -77,7 +77,7 @@ public static class RrScreen
 
 
 
-    public static void drawBox(float[] model, Blend blend, string key, float x, float y, float width, float height, int r, int g, int b)
+    public static void drawBox(float[] model, Blend? blend, string key, float x, float y, float width, float height, int r, int g, int b)
     {
         if (boxFill == null) {
             boxFill = new Mesh("box-fill"); boxLine = new Mesh("box-line");
@@ -95,7 +95,7 @@ public static class RrScreen
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public static void drawLine(float[] model, Blend blend, string key, float x1, float y1, float z1, float x2, float y2, float z2, int r, int g, int b, int a)
+    public static void drawLine(float[] model, Blend? blend, string key, float x1, float y1, float z1, float x2, float y2, float z2, int r, int g, int b, int a)
     {
         float[] tint = null;
         tint = new float[] { (r & 255) / 255f, (g & 255) / 255f, (b & 255) / 255f, blend == null ? 1 : (a & 255) / 255f };
@@ -107,7 +107,7 @@ public static class RrScreen
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public static void drawLinePart(float[] model, Blend blend, string key, float x1, float y1, float z1, float x2, float y2, float z2, int r, int g, int b, int a, int len)
+    public static void drawLinePart(float[] model, Blend? blend, string key, float x1, float y1, float z1, float x2, float y2, float z2, int r, int g, int b, int a, int len)
     {
         float[] tint = null;
         tint = new float[] { (r & 255) / 255f, (g & 255) / 255f, (b & 255) / 255f, blend == null ? 1 : (a & 255) / 255f };
@@ -119,7 +119,7 @@ public static class RrScreen
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public static void drawRollLineAbs(float[] model, Blend blend, string key, float x1, float y1, float z1, float x2, float y2, float z2, int r, int g, int b, int a, int d1)
+    public static void drawRollLineAbs(float[] model, Blend? blend, string key, float x1, float y1, float z1, float x2, float y2, float z2, int r, int g, int b, int a, int d1)
     {
         float[] tint = null;
         float[] parent1 = model;
@@ -134,7 +134,7 @@ public static class RrScreen
         model = parent1;
     }
 
-    public static void drawRollLine(float[] model, Blend blend, string key, float x, float y, float z, float width, int r, int g, int b, int a, int d1, int d2)
+    public static void drawRollLine(float[] model, Blend? blend, string key, float x, float y, float z, float width, int r, int g, int b, int a, int d1, int d2)
     {
         float[] tint = null;
         float[] parent1 = model;
@@ -152,7 +152,7 @@ public static class RrScreen
         model = parent1;
     }
 
-    public static void drawSquare(float[] model, Blend blend, string key, float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4, int r, int g, int b)
+    public static void drawSquare(float[] model, Blend? blend, string key, float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4, int r, int g, int b)
     {
         float[] tint = null;
         tint = new float[] { (r & 255) / 255f, (g & 255) / 255f, (b & 255) / 255f, blend == null ? 1 : (64 & 255) / 255f };
@@ -166,7 +166,7 @@ public static class RrScreen
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public static void drawStar(float[] model, Blend blend, string key, int f, float x, float y, float z, int r, int g, int b, float size)
+    public static void drawStar(float[] model, Blend? blend, string key, int f, float x, float y, float z, int r, int g, int b, float size)
     {
         float[] tint = null;
         int texture = f != 0 ? 0 : 1;
@@ -188,7 +188,7 @@ public static class RrScreen
         Gfx.Draw(sprites[texture].count, bindings, new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public static void drawLaser(float[] model, Blend blend, string key, float x, float y, float width, float height, int cc1, int cc2, int cc3, int cc4, int cnt, int type)
+    public static void drawLaser(float[] model, Blend? blend, string key, float x, float y, float width, float height, int cc1, int cc2, int cc3, int cc4, int cnt, int type)
     {
         float[] tint = null;
         int i = 0, d = 0;
@@ -272,7 +272,7 @@ public static class RrScreen
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public static void drawRing(float[] model, Blend blend, string key, float x, float y, int d1, int d2, int r, int g, int b)
+    public static void drawRing(float[] model, Blend? blend, string key, float x, float y, int d1, int d2, int r, int g, int b)
     {
         float[] tint = null;
         int i = 0, d = 0;
@@ -332,7 +332,7 @@ public static class RrScreen
         model = parent1;
     }
 
-    public static void drawCore(float[] model, Blend blend, string key, float x, float y, int cnt, int r, int g, int b)
+    public static void drawCore(float[] model, Blend? blend, string key, float x, float y, int cnt, int r, int g, int b)
     {
         float[] tint = null;
         int i = 0;
@@ -359,7 +359,7 @@ public static class RrScreen
         }
     }
 
-    public static void drawShipShape(float[] model, Blend blend, string key, float x, float y, float d, int inv)
+    public static void drawShipShape(float[] model, Blend? blend, string key, float x, float y, float d, int inv)
     {
         float[] tint = null;
         int i = 0;
@@ -401,7 +401,7 @@ public static class RrScreen
         model = parent1;
     }
 
-    public static void drawBomb(float[] model, Blend blend, string key, float x, float y, float width, int cnt)
+    public static void drawBomb(float[] model, Blend? blend, string key, float x, float y, float width, int cnt)
     {
         int i = 0, d = 0, od = 0, c = 0;
         float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
@@ -428,7 +428,7 @@ public static class RrScreen
         }
     }
 
-    public static void drawCircle(float[] model, Blend blend, string key, float x, float y, float width, int cnt, int r1, int g1, int b1, int r2, int b2, int g2)
+    public static void drawCircle(float[] model, Blend? blend, string key, float x, float y, float width, int cnt, int r1, int g1, int b1, int r2, int b2, int g2)
     {
         float[] tint = null;
         int i = 0, d = 0;
@@ -469,7 +469,7 @@ public static class RrScreen
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public static void drawShape(float[] model, Blend blend, string key, float x, float y, float size, int d, int cnt, int type, int r, int g, int b)
+    public static void drawShape(float[] model, Blend? blend, string key, float x, float y, float size, int d, int cnt, int type, int r, int g, int b)
     {
         model = Transform.Translate(model, x, y, 0);
         float[] tint = new float[] { (r & 255) / 255f, (g & 255) / 255f, (b & 255) / 255f, 1 }; blend = GlBlend.SrcAlphaOne;
@@ -539,7 +539,7 @@ public static class RrScreen
             }
         },
     };
-    public static void drawShapeIka(float[] model, Blend blend, string key, float x, float y, float size, int d, int cnt, int type, int c)
+    public static void drawShapeIka(float[] model, Blend? blend, string key, float x, float y, float size, int d, int cnt, int type, int c)
     {
         model = Transform.Translate(model, x, y, 0);
         float[] tint = new float[] { ikaClr[c][0][0] / 255f, ikaClr[c][0][1] / 255f, ikaClr[c][0][2] / 255f, 1 }; blend = null;
@@ -630,7 +630,7 @@ public static class RrScreen
             }
         },
     };
-    public static void drawShot(float[] model, Blend blend, string key, float x, float y, float d, int c, float width, float height)
+    public static void drawShot(float[] model, Blend? blend, string key, float x, float y, float d, int c, float width, float height)
     {
         float[] tint = null;
         string geometryKey = "shot-" + c.ToString();
@@ -649,7 +649,7 @@ public static class RrScreen
 
 
 
-    public static void drawBoard(float[] model, Blend blend, string key, int x, int y, int width, int height)
+    public static void drawBoard(float[] model, Blend? blend, string key, int x, int y, int width, int height)
     {
         float[] tint = null;
         tint = new float[] { (0 & 255) / 255f, (0 & 255) / 255f, (0 & 255) / 255f, blend == null ? 1 : (255 & 255) / 255f };
@@ -663,7 +663,7 @@ public static class RrScreen
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public static void drawSideBoards(float[] model, Blend blend, string key)
+    public static void drawSideBoards(float[] model, Blend? blend, string key)
     {
         blend = null;
         drawBoard(model, blend, key + "-41", 0, 0, 160, 480);
@@ -673,7 +673,7 @@ public static class RrScreen
         drawRPanel(model, blend, key + "-170");
     }
 
-    public static void drawTitleBoard(float[] model, Blend blend, string key)
+    public static void drawTitleBoard(float[] model, Blend? blend, string key)
     {
         float[] tint = null;
         int texture = 2;
@@ -730,7 +730,7 @@ public static class RrScreen
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public static int drawNum(float[] model, Blend blend, string key, int n, int x, int y, int s, int r, int g, int b)
+    public static int drawNum(float[] model, Blend? blend, string key, int n, int x, int y, int s, int r, int g, int b)
     {
         for (;;)
         {
@@ -744,7 +744,7 @@ public static class RrScreen
         return y;
     }
 
-    public static int drawNumRight(float[] model, Blend blend, string key, int n, int x, int y, int s, int r, int g, int b)
+    public static int drawNumRight(float[] model, Blend? blend, string key, int n, int x, int y, int s, int r, int g, int b)
     {
         int d = 0, nd = 0, drawn = 0;
         {
@@ -771,7 +771,7 @@ public static class RrScreen
         return y;
     }
 
-    public static int drawNumCenter(float[] model, Blend blend, string key, int n, int x, int y, int s, int r, int g, int b)
+    public static int drawNumCenter(float[] model, Blend? blend, string key, int n, int x, int y, int s, int r, int g, int b)
     {
         for (;;)
         {
@@ -785,7 +785,7 @@ public static class RrScreen
         return y;
     }
 
-    public static int drawTimeCenter(float[] model, Blend blend, string key, int n, int x, int y, int s, int r, int g, int b)
+    public static int drawTimeCenter(float[] model, Blend? blend, string key, int n, int x, int y, int s, int r, int g, int b)
     {
         int i = 0;
         {
@@ -832,7 +832,7 @@ public static class RrScreen
 
     static Mesh createShape(string key, int type, int r, int g, int b)
     {
-        var mesh = new Mesh(key); float[] model = Transform.Identity(); float[] tint = new float[] { (r & 255) / 255f, (g & 255) / 255f, (b & 255) / 255f, 1 }; Blend blend = GlBlend.SrcAlphaOne; float size = 1;
+        var mesh = new Mesh(key); float[] model = Transform.Identity(); float[] tint = new float[] { (r & 255) / 255f, (g & 255) / 255f, (b & 255) / 255f, 1 }; Blend? blend = GlBlend.SrcAlphaOne; float size = 1;
         float sz = 0, sz2 = 0;
         switch (type)
         {
@@ -988,7 +988,7 @@ public static class RrScreen
 
     static Mesh createShapeIka(string key, int type, int c)
     {
-        var mesh = new Mesh(key); float[] model = Transform.Identity(); float[] tint = new float[] { ikaClr[c][0][0] / 255f, ikaClr[c][0][1] / 255f, ikaClr[c][0][2] / 255f, 1 }; Blend blend = null; float size = 1;
+        var mesh = new Mesh(key); float[] model = Transform.Identity(); float[] tint = new float[] { ikaClr[c][0][0] / 255f, ikaClr[c][0][1] / 255f, ikaClr[c][0][2] / 255f, 1 }; Blend? blend = null; float size = 1;
         float sz = 0, sz2 = 0, sz3 = 0;
         switch (type)
         {
@@ -1047,7 +1047,7 @@ public static class RrScreen
 
     static Mesh createShot(string key, int c)
     {
-        var mesh = new Mesh(key); float[] model = Transform.Identity(); float[] tint = null; Blend blend = GlBlend.SrcAlphaOne; float width = 1, height = 1;
+        var mesh = new Mesh(key); float[] model = Transform.Identity(); float[] tint = null; Blend? blend = GlBlend.SrcAlphaOne; float width = 1, height = 1;
         tint = new float[] { (shtClr[(c)][(0)][(0)] & 255) / 255f, (shtClr[(c)][(0)][(1)] & 255) / 255f, (shtClr[(c)][(0)][(2)] & 255) / 255f, blend == null ? 1 : (240 & 255) / 255f };
         blend = null; tint[3] = 1;
         int part1 = mesh.vertexCount; int face1 = mesh.count;

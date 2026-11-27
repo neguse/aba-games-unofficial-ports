@@ -76,7 +76,7 @@ public class Field {
       mnx -= 640;
   }
 
-  public void draw(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void draw(float[] model, float[] tint, Blend? blend, bool depth, Gfx.Cull cull, float width) {
     fieldObjs.draw(model, tint, blend);
   }
 
@@ -84,7 +84,7 @@ public class Field {
     groundOffset = y;
   }
 
-  public void drawBack(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void drawBack(float[] model, float[] tint, Blend? blend, bool depth, Gfx.Cull cull, float width) {
     var mesh = new Mesh("field-back");
     int part1 = mesh.vertexCount;
     tint = new float[] { pattern.gr, pattern.gg, pattern.gb, 1 };
@@ -208,7 +208,7 @@ public class FieldObj: Actor {
       isExist = false;
   }
 
-  public void draw(float[] model, float[] tint, Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Blend? blend, Mesh target = null) {
     bool depth = true; Gfx.Cull cull = Gfx.Cull.Front; float width = 1;
     tumikiSet.drawShade(model, tint, blend, depth, cull, width, pos, z, 2);
   }

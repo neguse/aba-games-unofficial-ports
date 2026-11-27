@@ -8,30 +8,24 @@ import subprocess
 import sys
 import tarfile
 import urllib.request
-import xml.etree.ElementTree as ET
 import zipfile
 from link_web import link
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--lub', type=Path, required=True)
-parser.add_argument('--tcs', type=Path, required=True)
 parser.add_argument('--emsdk', type=Path, required=True)
 parser.add_argument('--original', type=Path)
 parser.add_argument('--source-only', action='store_true', help='refresh corresponding source beside an existing web build')
 args = parser.parse_args()
 
 
-def embedded_runtime(tcs):
-    """The runtime C files tcs2c embeds into the generated C: its EmbeddedResource items."""
-    for item in ET.parse(tcs / 'tcs2c/tcs2c.csproj').iter('EmbeddedResource'):
-        for pattern in item.get('Include').split(';'):
-            if not pattern.startswith('$(TcsRoot)/') or '$(' in pattern[len('$(TcsRoot)/'):]:
-                raise ValueError(f'Unexpected tcs2c EmbeddedResource: {pattern}')
-            paths = sorted(tcs.glob(pattern[len('$(TcsRoot)/'):]))
-            if not paths:
-                raise ValueError(f'tcs2c EmbeddedResource matches nothing: {pattern}')
-            yield from paths
+def embedded_runtime(lub):
+    """The runtime files tcs ships and embeds into the generated C (src/tcs/shipped.txt): (shipped path, source)."""
+    for line in (lub / 'src/tcs/shipped.txt').read_text(encoding='utf-8').splitlines():
+        if line.strip() and not line.startswith('#'):
+            destination, source = line.split()
+            yield destination, lub / source
 
 
 def lubx_sprite_shaders(lub, directory):
@@ -68,8 +62,8 @@ target.mkdir(parents=True, exist_ok=True)
 if not args.source_only:
     subprocess.run([sys.executable, 'tools/compile_masashikun.py', str(original)], check=True)
     source = Path('build/web-c/masashikun-hi')
-    subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
-                    '--game', 'masashikun-hi', '--c', str(source)], check=True)
+    subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub),
+                    '--game', 'masashikun-hi', '--output', str(source)], check=True)
     link(args.lub, args.emsdk, source, target / 'wasm')
     # MasPanel draws its text with this font (the SIL OFL license travels with it).
     (target / 'fonts').mkdir(exist_ok=True)
@@ -83,7 +77,7 @@ if not args.source_only:
     for name in ['main.js', 'compiled.js', 'style.css']:
         shutil.copy2(Path('web') / name, Path('dist') / name)
 licenses = Path('games/masashikun-hi/LICENSE.txt').read_text()
-for path in [args.lub / 'LICENSE', args.lub / 'THIRD_PARTY_LICENSES.md', args.tcs / 'LICENSE', args.tcs / 'THIRD_PARTY_LICENSES.md']:
+for path in [args.lub / 'LICENSE', args.lub / 'THIRD_PARTY_LICENSES.md']:
     licenses += '\n\n' + path.read_text()
 (target / 'LICENSE.txt').write_text(licenses)
 # Package only this game's corresponding source, never the private repository or its history.
@@ -94,22 +88,21 @@ with tarfile.open(target / 'source.tar.gz', 'w:gz') as bundle:
                 bundle.add(path, arcname='masashikun-hi-source/' + str(path))
     for name in ['Scene.cs', 'Standalone.cs', 'GameInput.cs', 'GameAudio.cs', 'GameSave.cs']:
         bundle.add(Path('game') / name, arcname='masashikun-hi-source/game/' + name)
-    for name in ['build_masashikun.py', 'compile_masashikun.py', 'compile_game.py', 'compile_shaders.mjs', 'link_web.py', 'setup_lub.sh']:
+    for name in ['build_masashikun.py', 'compile_masashikun.py', 'compile_game.py', 'lub_tools.py', 'compile_shaders.mjs', 'link_web.py', 'setup_lub.sh']:
         bundle.add(Path('tools') / name, arcname='masashikun-hi-source/tools/' + name)
     for name in ['main.js', 'compiled.js', 'style.css']:
         bundle.add(Path('web') / name, arcname='masashikun-hi-source/web/' + name)
-    bundle.add('tests/check_game.py', arcname='masashikun-hi-source/tests/check_game.py')
+    for name in ['check_game.py', 'null_lub.py', 'NullLub.cs']:
+        bundle.add('tests/' + name, arcname='masashikun-hi-source/tests/' + name)
     bundle.add('games/masashikun-hi/README.md', arcname='masashikun-hi-source/README.md')
     bundle.add('games/masashikun-hi/LICENSE.txt', arcname='masashikun-hi-source/LICENSE.txt')
     for path in sorted(original.rglob('*')):
         relative = path.relative_to(original)
         if path.is_file() and (path.suffix == '.ldt' or path.name in ['readme.txt', 'license.txt']):
             bundle.add(path, arcname='masashikun-hi-source/original/' + str(relative))
-    # tcs2c writes its C runtime into the game; these files are that runtime's source.
-    for path in sorted((args.tcs / 'tcs2c').glob('CRuntime*.cs')):
-        bundle.add(path, arcname='masashikun-hi-source/tcs-runtime/' + path.name)
-    for path in embedded_runtime(args.tcs.resolve()):
-        bundle.add(path, arcname='masashikun-hi-source/tcs-runtime/' + path.relative_to(args.tcs.resolve()).as_posix())
+    # tcs writes its C runtime into the game; these files are that runtime's source (part of lub).
+    for destination, path in embedded_runtime(args.lub.resolve()):
+        bundle.add(path, arcname='masashikun-hi-source/tcs-runtime/' + destination)
     for name in ['LICENSE', 'THIRD_PARTY_LICENSES.md']:
-        bundle.add(args.tcs / name, arcname='masashikun-hi-source/tcs-runtime/' + name)
+        bundle.add(args.lub / name, arcname='masashikun-hi-source/tcs-runtime/' + name)
 print('Built dist/masashikun-hi/')

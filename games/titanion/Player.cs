@@ -20,7 +20,7 @@ public class Player
         exists = false;
     }
 
-    public void draw_0(float[] model, float[] color, Blend blend)
+    public void draw_0(float[] model, float[] color, Blend? blend)
     {
         spec.draw_1(model, color, blend, state);
     }
@@ -107,7 +107,7 @@ public class Player
         spec.destroyed_1(state);
     }
 
-    public void drawState_0(float[] model, float[] color, Blend blend)
+    public void drawState_0(float[] model, float[] color, Blend? blend)
     {
         if ((spec.gameState.mode_0() == GameStateMode.CLASSIC))
             spec.drawState_1(model, color, blend, state);
@@ -824,7 +824,7 @@ public class PlayerSpec
         return gameState.multiplier();
     }
 
-    public void draw_1(float[] model, float[] color, Blend blend, PlayerState ps)
+    public void draw_1(float[] model, float[] color, Blend? blend, PlayerState ps)
     {
         {
             shots.draw_0(model, color, blend);
@@ -847,7 +847,7 @@ public class PlayerSpec
         }
     }
 
-    public void drawState_1(float[] model, float[] color, Blend blend, PlayerState ps)
+    public void drawState_1(float[] model, float[] color, Blend? blend, PlayerState ps)
     {
         {
             color = new float[] { 1, 1, 1, 0.5f };
@@ -908,7 +908,7 @@ public class ShotPool
         pool.move_0();
     }
 
-    public void draw_0(float[] model, float[] color, Blend blend)
+    public void draw_0(float[] model, float[] color, Blend? blend)
     {
         pool.draw_0(model, color, blend);
     }
@@ -989,7 +989,7 @@ public class Shot : Actor
         exists = false;
     }
 
-    public void draw_0(float[] model, float[] color, Blend blend)
+    public void draw_0(float[] model, float[] color, Blend? blend)
     {
         spec.draw_1(model, color, blend, state);
     }
@@ -1113,7 +1113,7 @@ public class ShotSpec
         return true;
     }
 
-    public void draw_1(float[] model, float[] color, Blend blend, ShotState state)
+    public void draw_1(float[] model, float[] color, Blend? blend, ShotState state)
     {
         {
             Vector3 p = field.calcCircularPos_1(state.pos);
@@ -1193,7 +1193,7 @@ public class TractorBeam
         return (((((((p.x > playerState.pos.x - WIDTH / 2)) && ((p.x < playerState.pos.x + WIDTH / 2)))) && ((p.y > playerState.pos.y)))) && ((p.y < playerState.pos.y + length + WIDTH)));
     }
 
-    public void draw_0(float[] model, float[] color, Blend blend)
+    public void draw_0(float[] model, float[] color, Blend? blend)
     {
         if (length <= 0)
             return;

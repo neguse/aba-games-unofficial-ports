@@ -22,7 +22,7 @@ public class LetterRender {
     return s * LETTER_HEIGHT;
   }
 
-  public static void drawLetter(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, int n, float x, float y, float s, float d, int c) {
+  public static void drawLetter(float[] model, float[] tint, Blend? blend, bool depth, Gfx.Cull cull, float width, int n, float x, float y, float s, float d, int c) {
     float[] parent1 = model;
     model = Transform.Translate(model, x, y, 0);
     model = Transform.Scale(model, s, s, s);
@@ -41,7 +41,7 @@ public class LetterRender {
     model = parent1;
   }
 
-  public static void drawLetterRev(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, int n, float x, float y, float s, float d, int c) {
+  public static void drawLetterRev(float[] model, float[] tint, Blend? blend, bool depth, Gfx.Cull cull, float width, int n, float x, float y, float s, float d, int c) {
     float[] parent1 = model;
     model = Transform.Translate(model, x, y, 0);
     model = Transform.Scale(model, s, -s, s);
@@ -66,7 +66,7 @@ public class LetterRender {
     return index < 0 ? 0 : index;
   }
 
-  public static void drawStringFacing(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, string str, float lx, float y, float s, int d, int cl,
+  public static void drawStringFacing(float[] model, float[] tint, Blend? blend, bool depth, Gfx.Cull cull, float width, string str, float lx, float y, float s, int d, int cl,
 				bool rev) {
     if (cl < 0)
       rand.setSeed(-cl);
@@ -123,11 +123,11 @@ public class LetterRender {
     }
   }
 
-  public static void drawString(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, string str, float lx, float y, float s, int d, int cl) {
+  public static void drawString(float[] model, float[] tint, Blend? blend, bool depth, Gfx.Cull cull, float width, string str, float lx, float y, float s, int d, int cl) {
     drawStringFacing(model, tint, blend, depth, cull, width, str, lx, y, s, d, cl, false);
   }
 
-  public static void drawNum(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, int num, float lx, float y, float s, int d, int cl) {
+  public static void drawNum(float[] model, float[] tint, Blend? blend, bool depth, Gfx.Cull cull, float width, int num, float lx, float y, float s, int d, int cl) {
     lx += LETTER_WIDTH * s / 2;
     y += LETTER_HEIGHT * s / 2;
     int n = num;
@@ -168,7 +168,7 @@ public class LetterRender {
     }
   }
 
-  public static void drawNumSign(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, int num, float lx, float ly, float s, int cl) {
+  public static void drawNumSign(float[] model, float[] tint, Blend? blend, bool depth, Gfx.Cull cull, float width, int num, float lx, float ly, float s, int cl) {
     float dg;
     if (num < 100)
       dg = 2;
@@ -189,7 +189,7 @@ public class LetterRender {
     }
   }
 
-  public static void drawTime(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width, int time, float lx, float y, float s, int cl) {
+  public static void drawTime(float[] model, float[] tint, Blend? blend, bool depth, Gfx.Cull cull, float width, int time, float lx, float y, float s, int cl) {
     int n = time;
     float x = lx;
     for (int i = 0; i < 7; i++) {

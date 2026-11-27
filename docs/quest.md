@@ -22,10 +22,10 @@ Steam Frame版と同じ。Questのコントローラー（Touch）の左右の�
 
 ## ビルド
 
-Linux x64、.NET SDK 10、Python 3、FFmpeg、CMake、Ninja、zip、JDK、
+Linux x64、.NET SDK 11、Python 3、FFmpeg、CMake、Ninja、zip、JDK、
 Android SDK（build-tools 36とplatform 35）とNDK（r27で確認）を使用する。
 `ANDROID_HOME`にAndroid SDKを指定する。
-shaderのcacheを作るため、同じlubのLinux版（`scripts/build-release.sh`の`build-release-linux/lub`）とtcsのTranspilerも先にビルドしておく。
+shaderのcacheを作るため、同じlubのLinux版（`scripts/build-release.sh`の`build-release-linux/lub`）も先にビルドしておく。
 
 ```sh
 python3 tools/build_quest.py --lub ../lub --game gear-toy-gear \

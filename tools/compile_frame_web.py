@@ -28,7 +28,6 @@ games = {
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--lub', type=Path, required=True)
-parser.add_argument('--tcs', type=Path, required=True)
 parser.add_argument('--emsdk', type=Path, required=True)
 parser.add_argument('--game', choices=sorted(games), required=True)
 parser.add_argument('--test', action='store_true')
@@ -41,7 +40,7 @@ game = games[args.game]
 lub = args.lub.resolve()
 source = root / ('build/web-c-test' if args.test else 'build/web-c') / args.game
 host, hooks = game['test'] if args.test else (None, [])
-compile_game(lub, args.tcs.resolve(), args.game, source, [root / path for path in hooks])
+compile_game(lub, args.game, source, [root / path for path in hooks])
 output = (args.output or Path('dist') / args.game).resolve()
 link(lub, args.emsdk, source, output / 'wasm', root / host if host else None)
 (output / 'audio').mkdir(exist_ok=True)
@@ -60,7 +59,7 @@ for path in sorted((root / 'build' / args.game / 'images').glob('*.png')):
 (output / 'assets.json').write_text(json.dumps(files), encoding='utf-8')
 shutil.copy2(lub / 'web/xr.mjs', output / 'xr.js')
 shutil.copy2(root / 'games' / args.game / 'index.html', output / 'index.html')
-(output / 'LICENSE.txt').write_text(license_text(args.game, args.original.resolve(), lub, args.tcs.resolve()),
+(output / 'LICENSE.txt').write_text(license_text(args.game, args.original.resolve(), lub),
                                     encoding='utf-8')
 for name in ['main.js', 'compiled.js', 'style.css']:
     shutil.copy2(root / 'web' / name, output.parent / name)

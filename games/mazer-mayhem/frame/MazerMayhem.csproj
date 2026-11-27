@@ -1,15 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
     <LubRoot Condition="'$(LubRoot)' == ''">../../../.cache/lub</LubRoot>
     <BaseOutputPath>../../../build/mm-frame/bin/</BaseOutputPath>
+    <!-- The Frame build names the runtime here, not with -r, so that it stays out of lub's projects (their lock files have none) -->
+    <RuntimeIdentifier>$(FrameRuntime)</RuntimeIdentifier>
+    <SelfContained Condition="'$(FrameRuntime)' != ''">true</SelfContained>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="$(LubRoot)/dotnet/Lub/Lub.csproj" />
-    <ProjectReference Include="$(LubRoot)/third_party/tcs/TinySystem/TinySystem.csproj" />
+    <ProjectReference Include="$(LubRoot)/src/tcs-system/tcs-system.csproj" />
     <Compile Include="../*.cs" />
     <Compile Include="$(LubRoot)/cs-lib/lubx/XrAnchor.cs" Link="lubx/XrAnchor.cs" />
     <Compile Include="$(LubRoot)/cs-lib/lub/*.cs" Link="lub/%(Filename)%(Extension)" />
@@ -23,5 +26,5 @@
   </ItemGroup>
   <!-- Math / MathF を TinySystem.Math にし、.NET 実行の Math の超越関数を
        web (tcs2c) と bit 単位で同じ結果にする -->
-  <Import Project="$(LubRoot)/third_party/tcs/TinySystem/TinySystem.props" />
+  <Import Project="$(LubRoot)/src/tcs-system/tcs-system.props" />
 </Project>

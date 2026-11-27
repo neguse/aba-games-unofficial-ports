@@ -451,7 +451,7 @@ public class P47GameManager {
     cnt++;
   }
 
-  public void inGameDraw(float[] model, float[] color, Blend blend) {
+  public void inGameDraw(float[] model, float[] color, Blend? blend) {
     field.draw(model, color, blend);
     P47Screen.setRetroColor(0.2f, 0.7f, 0.5f, 1);
     blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
@@ -478,13 +478,13 @@ public class P47GameManager {
     bullets.draw(model, color, blend, null);
   }
 
-  public void titleDraw(float[] model, float[] color, Blend blend) {
+  public void titleDraw(float[] model, float[] color, Blend? blend) {
     field.draw(model, color, blend);
     enemies.draw(model, color, blend, null);
     bullets.draw(model, color, blend, null);
   }
 
-  public void gameoverDraw(float[] model, float[] color, Blend blend) {
+  public void gameoverDraw(float[] model, float[] color, Blend? blend) {
     field.draw(model, color, blend);
     color = new float[] { Particle.R, Particle.G, Particle.B, 1 };
     var mesh = new Mesh("gameoverDraw-particles");
@@ -499,7 +499,7 @@ public class P47GameManager {
     bullets.draw(model, color, blend, null);
   }
 
-  public void inGameDrawLuminous(float[] model, float[] color, Blend blend) {
+  public void inGameDrawLuminous(float[] model, float[] color, Blend? blend) {
     var mesh = new Mesh("inGameDrawLuminous-particles");
     particles.drawLuminous(model, color, blend, mesh);
     fragments.drawLuminous(model, color, blend, mesh);
@@ -508,10 +508,10 @@ public class P47GameManager {
       new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
-  public void titleDrawLuminous(float[] model, float[] color, Blend blend) {
+  public void titleDrawLuminous(float[] model, float[] color, Blend? blend) {
   }
 
-  public void gameoverDrawLuminous(float[] model, float[] color, Blend blend) {
+  public void gameoverDrawLuminous(float[] model, float[] color, Blend? blend) {
     var mesh = new Mesh("gameoverDrawLuminous-particles");
     particles.drawLuminous(model, color, blend, mesh);
     fragments.drawLuminous(model, color, blend, mesh);
@@ -520,7 +520,7 @@ public class P47GameManager {
       new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
-  public void drawBoard(float[] model, float[] color, Blend blend, int x, int y, int width, int height) {
+  public void drawBoard(float[] model, float[] color, Blend? blend, int x, int y, int width, int height) {
     var mesh = new Mesh("P47GameManager-drawBoard" + "-" + x.ToString() + "-" + y.ToString());
     color = new float[] { 0, 0, 0, 1 };
     int part1 = mesh.vertexCount;
@@ -534,19 +534,19 @@ public class P47GameManager {
       new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
-  public void drawSideBoards(float[] model, float[] color, Blend blend) {
+  public void drawSideBoards(float[] model, float[] color, Blend? blend) {
     blend = null;
     drawBoard(model, color, blend, 0, 0, 160, 480);
     drawBoard(model, color, blend, 480, 0, 160, 480);
     blend = GlBlend.SrcAlphaOne;
   }
 
-  public void drawScore(float[] model, float[] color, Blend blend) {
+  public void drawScore(float[] model, float[] color, Blend? blend) {
     LetterRender.drawNum(model, color, blend, score, 120, 28, 25, LetterRender.TO_UP);
     LetterRender.drawNum(model, color, blend, Bonus.bonusScore, 24, 20, 12, LetterRender.TO_UP);
   }
 
-  public void drawLeft(float[] model, float[] color, Blend blend) {
+  public void drawLeft(float[] model, float[] color, Blend? blend) {
     if (left < 0)
       return;
     LetterRender.drawString(model, color, blend, "LEFT", 520, 260, 25, LetterRender.TO_DOWN);
@@ -555,7 +555,7 @@ public class P47GameManager {
     LetterRender.changeColor(LetterRender.WHITE);
   }
 
-  public void drawParsec(float[] model, float[] color, Blend blend) {
+  public void drawParsec(float[] model, float[] color, Blend? blend) {
     int ps = stageManager.parsec;
     if (ps < 10)
       LetterRender.drawNum(model, color, blend, stageManager.parsec, 600, 26, 25, LetterRender.TO_DOWN);
@@ -565,7 +565,7 @@ public class P47GameManager {
       LetterRender.drawNum(model, color, blend, stageManager.parsec, 600, 110, 25, LetterRender.TO_DOWN);
   }
 
-  public void drawBox(float[] model, float[] color, Blend blend, int x, int y, int w, int h) {
+  public void drawBox(float[] model, float[] color, Blend? blend, int x, int y, int w, int h) {
     var mesh = new Mesh("P47GameManager-drawBox" + "-" + x.ToString() + "-" + y.ToString());
     if (w <= 0)
       return;
@@ -578,7 +578,7 @@ public class P47GameManager {
       new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
   }
 
-  public void drawBossShieldMeter(float[] model, float[] color, Blend blend) {
+  public void drawBossShieldMeter(float[] model, float[] color, Blend? blend) {
     drawBox(model, color, blend, 165, 6, bossShield, 6);
     int y = 24;
     for (int index5 = 0; index5 < BOSS_WING_NUM; index5++) {
@@ -594,33 +594,33 @@ public class P47GameManager {
     }
   }
 
-  public void drawSideInfo(float[] model, float[] color, Blend blend) {
+  public void drawSideInfo(float[] model, float[] color, Blend? blend) {
     drawSideBoards(model, color, blend);
     drawScore(model, color, blend);
     drawLeft(model, color, blend);
     drawParsec(model, color, blend);
   }
 
-  public void inGameDrawStatus(float[] model, float[] color, Blend blend) {
+  public void inGameDrawStatus(float[] model, float[] color, Blend? blend) {
     drawSideInfo(model, color, blend);
     if (stageManager.bossSection)
       drawBossShieldMeter(model, color, blend);
   }
 
-  public void titleDrawStatus(float[] model, float[] color, Blend blend) {
+  public void titleDrawStatus(float[] model, float[] color, Blend? blend) {
     drawSideBoards(model, color, blend);
     drawScore(model, color, blend);
     title.draw(model, color, blend);
   }
 
-  public void gameoverDrawStatus(float[] model, float[] color, Blend blend) {
+  public void gameoverDrawStatus(float[] model, float[] color, Blend? blend) {
     drawSideInfo(model, color, blend);
     if (cnt > 64) {
       LetterRender.drawString(model, color, blend, "GAME OVER", 220, 200, 15, LetterRender.TO_RIGHT);
     }
   }
 
-  public void pauseDrawStatus(float[] model, float[] color, Blend blend) {
+  public void pauseDrawStatus(float[] model, float[] color, Blend? blend) {
     drawSideInfo(model, color, blend);
     if ((pauseCnt % 60) < 30)
       LetterRender.drawString(model, color, blend, "PAUSE", 280, 220, 12, LetterRender.TO_RIGHT);
@@ -650,7 +650,7 @@ public class P47GameManager {
 
   public void draw() {
     float[] model = setEyepos();
-    float[] color = null; Blend blend = GlBlend.SrcAlphaOne;
+    float[] color = null; Blend? blend = GlBlend.SrcAlphaOne;
     switch (state) {
     case IN_GAME:
     case PAUSE:

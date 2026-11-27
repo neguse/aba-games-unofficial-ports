@@ -15,7 +15,7 @@ public class LetterRender {
     colorIdx = c * LETTER_NUM;
   }
 
-  public static void drawLetter_5(float[] model, float[] color, Blend blend, int n, float x, float y, float s, float d) {
+  public static void drawLetter_5(float[] model, float[] color, Blend? blend, int n, float x, float y, float s, float d) {
     float[] parent1 = model;
     model = Transform.Translate(model, x, y, 0);
     model = Transform.Scale(model, s, s, s);
@@ -33,7 +33,7 @@ public class LetterRender {
   public const int TO_LEFT = 2;
   public const int TO_UP = 3;
 
-  public static void drawString(float[] model, float[] color, Blend blend, string str, float lx, float y, float s, int d) {
+  public static void drawString(float[] model, float[] color, Blend? blend, string str, float lx, float y, float s, int d) {
     float x = lx;
     string c="";
     int idx=0;
@@ -77,7 +77,7 @@ public class LetterRender {
     }
   }
 
-  public static void drawNum(float[] model, float[] color, Blend blend, int num, float lx, float y, float s, int d) {
+  public static void drawNum(float[] model, float[] color, Blend? blend, int num, float lx, float y, float s, int d) {
     int n = num;
     float x = lx;
     float ld=0;

@@ -186,7 +186,7 @@ public class Ship {
     ttlCnt++;
   }
 
-  public void draw(float[] model, float[] color, Blend blend) {
+  public void draw(float[] model, float[] color, Blend? blend) {
     if (cnt < -INVINCIBLE_CNT || (cnt < 0 && (-cnt % 32) < 16))
       return;
     float[] parent1 = model;

@@ -13,22 +13,15 @@ args = parser.parse_args()
 lub, original, native = args.lub.resolve(), args.original.resolve(), args.native.resolve()
 root = Path(__file__).resolve().parent.parent
 output = root / 'build/mm-frame/publish'
-for name in ['lub', 'liblub.so', 'libopenxr_loader.so.1', 'libSDL3.so.0', 'libslang-compiler.so.0.2026.8.1']:
+for name in ['liblub.so', 'libopenxr_loader.so.1', 'libSDL3.so.0', 'libslang-compiler.so.0.2026.8.1']:
     header = (native / name).read_bytes()[:20]
     if header[:4] != b'\x7fELF' or int.from_bytes(header[18:20], 'little') != 183:
         parser.error(f'{name} must be a Linux ARM64 library')
 subprocess.run([sys.executable, 'tools/compile_mazer.py', str(original)], cwd=root, check=True)
 subprocess.run(['dotnet', 'publish', 'games/mazer-mayhem/frame/MazerMayhem.csproj',
-                '-c', 'Release', '-m:1', '-p:NuGetAudit=false', '-r', 'linux-arm64', '--self-contained', 'true',
+                '-c', 'Release', '-m:1', '-p:NuGetAudit=false', '-p:FrameRuntime=linux-arm64',
                 f'-p:LubRoot={lub}', '-o', str(output)], cwd=root, check=True)
-subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(lub),
-                '--game', 'mazer-mayhem', '--output', str(output / 'game.lua')], cwd=root, check=True)
 (output / 'native').mkdir(exist_ok=True)
-shutil.copy2(native / 'lub', output / 'native/lub')
-for source in ['samples/boot.lua', 'third_party/lume/lume.lua']:
-    destination = output / source
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(lub / source, destination)
 for name in ['liblub.so', 'libopenxr_loader.so.1', 'libSDL3.so.0', 'libslang-compiler.so.0.2026.8.1']:
     shutil.copy2(native / name, output / 'native' / name)
 (output / 'audio').mkdir(exist_ok=True)
@@ -43,7 +36,7 @@ for component, source in [('SDL', 'third_party/SDL/LICENSE.txt'), ('OpenXR', 'th
                            ('Slang', 'third_party/slang/LICENSE')]:
     shutil.copy2(lub / source, output / 'native' / f'LICENSE-{component}.txt')
 assets = json.loads((root / 'games/mazer-mayhem/frame/obj/project.assets.json').read_text())
-runtime = next(d for d in assets['project']['frameworks']['net10.0']['downloadDependencies']
+runtime = next(d for d in assets['project']['frameworks']['net11.0']['downloadDependencies']
                if d['name'] == 'Microsoft.NETCore.App.Runtime.linux-arm64')
 version = runtime['version'].strip('[]').split(',')[0].strip()
 package = next(Path(folder) / runtime['name'].lower() / version for folder in assets['packageFolders']

@@ -29,7 +29,7 @@ static class RenderingTests
         bindings.Set("batch", new float[4]);
         // 半透明と加算は、不透明に clear した画面の alpha を 1 のまま残す (作品選択の画面が画面の texture の alpha で重ねる)。
         float[][] expected = [[.6f,.2f,.1f], [.225f,.2f,.25f,1], [.25f,.25f,.325f,1], [.06f,.04f,.03f]];
-        Blend[] blends = [null, GlBlend.SrcAlphaOneMinusSrcAlpha, GlBlend.SrcAlphaOne, GlBlend.DstColorZero];
+        Blend?[] blends = [null, GlBlend.SrcAlphaOneMinusSrcAlpha, GlBlend.SrcAlphaOne, GlBlend.DstColorZero];
         for (int mode = 0; mode < 4; mode++)
         {
             int index = mode;

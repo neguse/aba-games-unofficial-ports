@@ -9,7 +9,7 @@ mucade = dict(build=Path('build/web-c-mu-cade'), bridge=Path('games/mu-cade/ode_
 
 
 def link(lub, emsdk, source, output, host=None, build=None, bridge=None, project=None):
-    """Link the game.c and binding.c in `source` with lub into `output`/lub.{js,wasm,data}.
+    """Link the game.c and binding.c in `source` with lub into `output`/lub.{js,wasm}.
 
     A game with native code of its own passes a private `build` tree, a `bridge` C file
     included after the host, and a `project` CMake file included by lub's project().
@@ -39,7 +39,7 @@ def link(lub, emsdk, source, output, host=None, build=None, bridge=None, project
                     *([f'-DCMAKE_PROJECT_lub_INCLUDE={project.resolve().as_posix()}'] if project else [])], check=True)
     subprocess.run(['cmake', '--build', str(build / 'wasm'), '--target', 'lub', '-j', '4'], check=True)
     output.mkdir(parents=True, exist_ok=True)
-    for name in ['lub.js', 'lub.wasm', 'lub.data']:
+    for name in ['lub.js', 'lub.wasm']:
         shutil.copy2(build / 'wasm' / name, output / name)
 
 

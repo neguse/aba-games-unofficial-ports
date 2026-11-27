@@ -492,7 +492,7 @@ public class Ship : OdeActor, BulletTarget
         model = parent1;
     }
 
-    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend? blend, string key, Mesh target = null)
     {
         shots.draw(model, tint, blend, key + "-draw-1");
         enhancedShots.draw(model, tint, blend, key + "-draw-2");
@@ -512,7 +512,7 @@ public class Ship : OdeActor, BulletTarget
         model = parent1;
     }
 
-    public void drawLeft(float[] model, float[] tint, Blend blend, string key, float x, float y)
+    public void drawLeft(float[] model, float[] tint, Blend? blend, string key, float x, float y)
     {
         float[] view = model;
         model = Transform.Identity();
@@ -744,7 +744,7 @@ public class ShipTail : OdeActor
         model = parent1;
     }
 
-    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend? blend, string key, Mesh target = null)
     {
         linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
         blend = GlBlend.SrcAlphaOneMinusSrcAlpha;

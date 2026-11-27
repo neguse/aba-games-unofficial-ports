@@ -56,7 +56,7 @@ public class Fragment: Actor {
     deg += md;
   }
 
-  public void draw(float[] model, float[] tint, Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Blend? blend, Mesh target = null) {
     bool depth = false; Gfx.Cull cull = Gfx.Cull.Front; float width = 1;
     if (cnt < 16) {
       if ((cnt & 1) == 1)

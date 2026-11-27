@@ -27,10 +27,10 @@ python3 -m http.server 8765 --directory dist
 `source.tar.gz`から展開した場合は、同梱の原作データを指定できる。
 
 ```sh
-python3 tools/build_masashikun.py --lub .cache/lub --tcs .cache/lub/third_party/tcs --emsdk /path/to/emsdk --original original
+python3 tools/build_masashikun.py --lub .cache/lub --emsdk /path/to/emsdk --original original
 ```
 
-lubとそのサブモジュールTinyC#は、`tools/setup_lub.sh`が固定するコミットを使う。
+TinyC#を含むlubは、`tools/setup_lub.sh`が固定するコミットを使う。
 同スクリプトがこのソースと依存ライブラリを取得して実行環境を構築する。
 ゲームはtcs2cでCへ変換し、lubとリンクしてWasmにする。
 原作アーカイブのSHA-256はビルド時に照合する。
