@@ -19,10 +19,9 @@ for name in ['liblub.so', 'libopenxr_loader.so.1', 'libSDL3.so.0', 'libslang-com
     if header[:4] != b'\x7fELF' or int.from_bytes(header[18:20], 'little') != 183:
         parser.error(f'{name} must be a Linux ARM64 library')
 subprocess.run([sys.executable, 'tools/compile_gear.py', str(original)], cwd=root, check=True)
-# lub's tcs projects restore from their lock file under CI, which records no runtime identifier.
 subprocess.run(['dotnet', 'publish', 'games/gear-toy-gear/frame/GearToyGear.csproj',
-                '-c', 'Release', '-r', 'linux-arm64', '--self-contained', 'true',
-                f'-p:LubRoot={lub}', '-p:RestoreLockedMode=false', '-o', str(output)], cwd=root, check=True)
+                '-c', 'Release', '-p:FrameRuntime=linux-arm64',
+                f'-p:LubRoot={lub}', '-o', str(output)], cwd=root, check=True)
 (output / 'native').mkdir(exist_ok=True)
 for name in ['liblub.so', 'libopenxr_loader.so.1', 'libSDL3.so.0', 'libslang-compiler.so.0.2026.8.1']:
     shutil.copy2(native / name, output / 'native' / name)

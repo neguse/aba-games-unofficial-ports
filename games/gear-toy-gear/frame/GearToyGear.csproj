@@ -6,6 +6,9 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <LubRoot Condition="'$(LubRoot)' == ''">../../../.cache/lub</LubRoot>
     <BaseOutputPath>../../../build/frame/bin/</BaseOutputPath>
+    <!-- The Frame build names the runtime here, not with -r, so that it stays out of lub's projects (their lock files have none) -->
+    <RuntimeIdentifier>$(FrameRuntime)</RuntimeIdentifier>
+    <SelfContained Condition="'$(FrameRuntime)' != ''">true</SelfContained>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="$(LubRoot)/dotnet/Lub/Lub.csproj" />
