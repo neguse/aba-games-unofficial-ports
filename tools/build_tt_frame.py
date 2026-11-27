@@ -22,9 +22,10 @@ for name in ['liblub.so', 'libopenxr_loader.so.1', 'libSDL3.so.0', 'libslang-com
 subprocess.run([sys.executable, 'tools/compile_torus.py', str(original)], cwd=root, check=True)
 output.mkdir(parents=True, exist_ok=True)
 if args.runtime in ['coreclr', 'both']:
+    # lub's tcs projects restore from their lock file under CI, which records no runtime identifier.
     subprocess.run(['dotnet', 'publish', 'games/torus-trooper/frame/TorusTrooper.csproj',
                     '-c', 'Release', '-r', 'linux-arm64', '--self-contained', 'true',
-                    f'-p:LubRoot={lub}', '-o', str(output)], cwd=root, check=True)
+                    f'-p:LubRoot={lub}', '-p:RestoreLockedMode=false', '-o', str(output)], cwd=root, check=True)
 if args.runtime in ['tcs2c', 'both']:
     subprocess.run([sys.executable, 'tools/compile_frame_c.py', '--lub', str(lub),
                     '--game', 'torus-trooper', '--native', str(native / 'liblub.so'),
