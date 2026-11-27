@@ -43,6 +43,8 @@ public class Rand
     public float nextFloat(float n)
     {
         int bits = nextBits();
+        // 原作の % は float の剰余 (fmod) で、0 で割ると NaN になる。
+        if (n == 0) return float.NaN;
         var divisor = PatternNumber.Multiply(new PatternNumber(n, 0), new PatternNumber(10000, 0));
         var value = new PatternNumber((bits >> 16) & 65535, 0);
         for (int shift = 16; shift >= 0; shift -= 8) {

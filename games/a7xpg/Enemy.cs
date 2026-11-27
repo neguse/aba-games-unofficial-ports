@@ -646,7 +646,7 @@ public class Enemy : LuminousActor
         hitWall = false;
     }
 
-    public void drawType0(float[] model, float[] tint, Blend blend)
+    public void drawType0(float[] model, float[] tint, Blend? blend)
     {
         float sz = 0;
         if (cnt < 0)
@@ -670,7 +670,7 @@ public class Enemy : LuminousActor
         model = parent1;
     }
 
-    public void drawType4(float[] model, float[] tint, Blend blend)
+    public void drawType4(float[] model, float[] tint, Blend? blend)
     {
         if (cnt < 0)
             return;
@@ -687,7 +687,7 @@ public class Enemy : LuminousActor
         model = parent1;
     }
 
-    public void drawArm(float[] model, float[] tint, Blend blend)
+    public void drawArm(float[] model, float[] tint, Blend? blend)
     {
         float sz = 0;
         if (cnt < 0)
@@ -726,7 +726,7 @@ public class Enemy : LuminousActor
         model = parent1;
     }
 
-    public void drawType5(float[] model, float[] tint, Blend blend)
+    public void drawType5(float[] model, float[] tint, Blend? blend)
     {
         float sz = 0;
         if (cnt < 0)
@@ -757,7 +757,7 @@ public class Enemy : LuminousActor
         }
     }
 
-    public void draw(float[] model, float[] tint, Blend blend, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend? blend, Mesh target = null)
     {
         switch (type)
         {
@@ -774,7 +774,7 @@ public class Enemy : LuminousActor
         }
     }
 
-    public void drawType0Luminous(float[] model, float[] tint, Blend blend)
+    public void drawType0Luminous(float[] model, float[] tint, Blend? blend)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, pos.x, pos.y, 0.5f);
@@ -785,7 +785,7 @@ public class Enemy : LuminousActor
         model = parent1;
     }
 
-    public void drawType4Luminous(float[] model, float[] tint, Blend blend)
+    public void drawType4Luminous(float[] model, float[] tint, Blend? blend)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, pos.x, pos.y, 0.5f);
@@ -794,7 +794,7 @@ public class Enemy : LuminousActor
         model = parent1;
     }
 
-    public void drawArmLuminous(float[] model, float[] tint, Blend blend)
+    public void drawArmLuminous(float[] model, float[] tint, Blend? blend)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, pos.x, pos.y, 0.5f);
@@ -812,11 +812,11 @@ public class Enemy : LuminousActor
         model = parent1;
     }
 
-    public void drawType5Luminous(float[] model, float[] tint, Blend blend)
+    public void drawType5Luminous(float[] model, float[] tint, Blend? blend)
     {
     }
 
-    public void drawLuminous(float[] model, float[] tint, Blend blend, Mesh target = null)
+    public void drawLuminous(float[] model, float[] tint, Blend? blend, Mesh target = null)
     {
         if (cnt < APPEAR_CNT)
             return;

@@ -1,18 +1,16 @@
 import argparse
 import json
 from pathlib import Path
-import subprocess
+from lub_tools import to_c
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--lub', type=Path, required=True)
-parser.add_argument('--entry', default='Game')
 parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanion', 'a7xpg', 'torus-trooper', 'rrootage', 'noiz2sa', 'wok', 'mazer-mayhem', 'gear-toy-gear', 'mu-cade', 'masashikun-hi'], default='tumiki')
 parser.add_argument('--test', type=Path)
+parser.add_argument('--ref', type=Path, action='append', default=[], help='a stub of native functions the C# calls')
 parser.add_argument('--frame', action='store_true')
-parser.add_argument('--output', type=Path, default=Path('build/game.lua'))
-parser.add_argument('--c', type=Path, help='write game.c and binding.c here instead of Lua')
-parser.add_argument('--tcs', type=Path)
+parser.add_argument('--output', type=Path, help='write game.c and binding.c here')
 parser.add_argument('--sources-json', type=Path, help='write the resolved C# source list without compiling')
 args = parser.parse_args()
 first = ['Core.cs', 'Rand.cs', 'PatternNumber.cs', 'Pattern.cs']
@@ -123,21 +121,6 @@ if args.sources_json:
     args.sources_json.parent.mkdir(parents=True, exist_ok=True)
     args.sources_json.write_text(json.dumps([str(path.resolve()) for path in sources]), encoding='utf-8')
     raise SystemExit(0)
-if args.c:
-    stubs = [Path('games/mu-cade/OdeApi.cs')] if args.game == 'mu-cade' else []
-    args.c.mkdir(parents=True, exist_ok=True)
-    subprocess.run(['dotnet', str(args.tcs / 'tcs2c/bin/Release/net10.0/tcs2c.dll'), '--lib',
-                    '--ref', str(args.lub / 'cs-lib/lub_stub.cs'), *[arg for path in stubs for arg in ['--ref', str(path)]],
-                    *map(str, sources), '-o', str(args.c / 'game.c')], check=True)
-    subprocess.run(['dotnet', str(args.lub / 'tools/lub-gen/bin/Release/net10.0/lub-gen.dll'), 'tcs',
-                    '--stub', str(args.lub / 'cs-lib/lub_stub.cs'), '--entry', 'Standalone',
-                    # lub-gen takes a single stub, so it reads the game's own as source.
-                    *[arg for path in sources + stubs for arg in ['--source', str(path)]],
-                    '-o', str(args.c / 'binding.c')], check=True)
-    raise SystemExit(0)
-compiler = args.lub / 'third_party/tcs/Transpiler/bin/Release/net10.0/Transpiler.dll'
-command = ['dotnet', str(compiler), *map(str, sources), '--ref', str(args.lub / 'cs-lib/lub_stub.cs')]
-if args.game == 'mu-cade':
-    command += ['--ref', 'games/mu-cade/OdeApi.cs']
-args.output.parent.mkdir(parents=True, exist_ok=True)
-subprocess.run(command + ['--entry', args.entry, '-o', str(args.output)], check=True)
+if args.output is None:
+    parser.error('--output or --sources-json is required')
+to_c(args.lub, sources, args.output, [Path('games/mu-cade/OdeApi.cs')] * (args.game == 'mu-cade') + args.ref)

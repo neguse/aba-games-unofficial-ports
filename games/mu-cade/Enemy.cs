@@ -313,7 +313,7 @@ public class Enemy : Actor, OdeActor
         return state.pos;
     }
 
-    public void drawSpectrum(float[] model, float[] tint, Blend blend, string key)
+    public void drawSpectrum(float[] model, float[] tint, Blend? blend, string key)
     {
         state.linePoint.drawSpectrum(model, tint, blend, key + "-drawSpectrum-1");
     }
@@ -323,12 +323,12 @@ public class Enemy : Actor, OdeActor
         return spec.collideBullet();
     }
 
-    public void drawShadow_0(float[] model, float[] tint, Blend blend, string key)
+    public void drawShadow_0(float[] model, float[] tint, Blend? blend, string key)
     {
         spec.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", state.linePoint);
     }
 
-    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend? blend, string key, Mesh target = null)
     {
         state.linePoint.draw(model, tint, blend, key + "-draw-1");
         spec.drawSubShape(model, tint, blend, key + "-drawSubShape-1", state);
@@ -376,7 +376,7 @@ public class EnemyPool
         actor = pool.actor;
     }
 
-    public void drawShadow_0(float[] model, float[] tint, Blend blend, string key)
+    public void drawShadow_0(float[] model, float[] tint, Blend? blend, string key)
     {
         blend = GlBlend.SrcAlphaOneMinusSrcAlpha;
         foreach (Enemy e in actor)
@@ -385,7 +385,7 @@ public class EnemyPool
         blend = GlBlend.SrcAlphaOne;
     }
 
-    public void drawSpectrum(float[] model, float[] tint, Blend blend, string key)
+    public void drawSpectrum(float[] model, float[] tint, Blend? blend, string key)
     {
         foreach (Enemy e in actor)
             if (e.exists)
@@ -440,7 +440,7 @@ public class EnemyPool
         pool.move_0();
     }
 
-    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend? blend, string key, Mesh target = null)
     {
         pool.draw(model, tint, blend, key, target);
     }
@@ -575,8 +575,8 @@ public interface EnemySpec
     public void destroyed_2(Enemy enemy, EnemyState state);
     public void collide_3(Enemy enemy, EnemyState state, OdeActor actor);
     public void recordLinePoints_2(EnemyState state, LinePoint lp);
-    public void drawShadow_1(float[] model, float[] tint, Blend blend, string key, LinePoint lp);
-    public void drawSubShape(float[] model, float[] tint, Blend blend, string key, EnemyState state);
+    public void drawShadow_1(float[] model, float[] tint, Blend? blend, string key, LinePoint lp);
+    public void drawSubShape(float[] model, float[] tint, Blend? blend, string key, EnemyState state);
     public bool rotate2d();
     public bool collideBullet();
     public float colorR();

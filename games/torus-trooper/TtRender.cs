@@ -34,7 +34,7 @@ public static class TtRender
     {
         foreach (float value in values) data.Add(value);
     }
-    public static void Draw(Mesh mesh, float[] model, float[] tint, float width, Blend blend, Gfx.Cull cull, DrawImage image = null)
+    public static void Draw(Mesh mesh, float[] model, float[] tint, float width, Blend? blend, Gfx.Cull cull, DrawImage image = null)
     {
         if (mesh.count == 0) return;
         if (used == commands.Count) commands.Add(new TtDrawCommand());
@@ -48,7 +48,7 @@ public static class TtRender
         command.ImageInfo[1] = image == null ? 1 : image.height;
         command.ImageInfo[2] = image == null ? 0 : image.levels - 1;
         TtDrawBatch batch = batchCount == 0 ? null : batches[batchCount - 1];
-        if (batch == null || batch.Image != image || batch.Options.Blend != blend || batch.Options.Cull != cull)
+        if (batch == null || batch.Image != image || !GlBlend.Same(batch.Options.Blend, blend) || batch.Options.Cull != cull)
         {
             if (batchCount == batches.Count) batches.Add(new TtDrawBatch());
             batch = batches[batchCount];

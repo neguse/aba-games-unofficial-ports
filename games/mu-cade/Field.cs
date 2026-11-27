@@ -124,7 +124,7 @@ public class Field
 
     public float[] setLookAtTitle() { return Transform.LookAt(Transform.Perspective(), 0, EYE_POS_Y, EYE_POS_Z, 0, 0, 0, 0, 1, 0); }
 
-    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend? blend, string key, Mesh target = null)
     {
         if (fieldMesh == null) { var mesh = new Mesh("field");
         int part1 = mesh.vertexCount;
@@ -251,7 +251,7 @@ public class Field
             7
         }
     };
-    public void drawOverlay(float[] model, float[] tint, Blend blend, string key)
+    public void drawOverlay(float[] model, float[] tint, Blend? blend, string key)
     {
         model = Transform.Ortho();
         gameManager.drawState(model, tint, blend, key + "-drawState-1");
@@ -313,7 +313,7 @@ public class Field
         blend = GlBlend.SrcAlphaOne;
     }
 
-    public void drawLetter_4(float[] model, float[] tint, Blend blend, string key, int i, float cx, float cy, float width, bool mask)
+    public void drawLetter_4(float[] model, float[] tint, Blend? blend, string key, int i, float cx, float cy, float width, bool mask)
     {
         if (glyphQuad == null) {
             glyphQuad = new Mesh("title-glyph");
@@ -388,7 +388,7 @@ public class Wall : OdeActor
     {
     }
 
-    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend? blend, string key, Mesh target = null)
     {
     }
 

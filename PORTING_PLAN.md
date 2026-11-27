@@ -51,14 +51,14 @@ Static Assetsへ公開し、公開URLで操作・描画・音・保存を再検�
 ## 移植先
 
 [lub](https://github.com/neguse/lub) を利用し、ゲーム本体を
-[TinyC#（TCS）](https://github.com/neguse/tcs) で実装する。
+TinyC#（TCS、lubに含まれる）で実装する。
 原作のステージ・敵・形状・音源データは再利用し、必要な形式変換を行う。
 描画はlubへ移し、当たり判定とゲーム進行は原作の処理を基準にする。
 
 ## 弾幕の変換と実行
 
 BulletMLは開発時の入力形式として扱い、変換器でTCSコードを生成する。
-生成したTCSは既存のTCSコンパイラでLuaへ変換し、lub上で実行する。
+生成したTCSはTCSコンパイラでCへ変換し、lubとリンクして実行する。
 配布するゲームにはBulletMLのXML解析器やlibBulletMLを組み込まない。
 
 - 弾幕ごとに、フレームをまたいで再開できる状態機械を生成する。

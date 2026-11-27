@@ -8,6 +8,8 @@ import sys
 import tarfile
 import urllib.request
 import xml.etree.ElementTree as ET
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'tools'))
+from lub_tools import tcs
 
 
 def run(command, **kwargs):
@@ -21,7 +23,8 @@ def run(command, **kwargs):
 parser = argparse.ArgumentParser()
 parser.add_argument("--original", type=Path, default=Path('.cache/original/tf'))
 parser.add_argument("--library", type=Path)
-parser.add_argument("--tcs", type=Path, default=Path('.cache/lub/third_party/tcs'))
+parser.add_argument("--lub", type=Path, default=Path('.cache/lub'))
+parser.add_argument("--cc", default=os.environ.get('CC', 'cc'))
 parser.add_argument("--turns", type=int, default=1200)
 parser.add_argument("--patterns", type=Path)
 parser.add_argument("--expected-cases", type=int, default=345)
@@ -45,10 +48,11 @@ sources = [source / (s + ".cpp") for s in ["bulletmlparser-tinyxml", "bulletmlpa
 sources += sorted((source / "tinyxml").glob("tinyxml*.cpp"))
 run(["g++", "-std=gnu++11", "-O2", "-w", "-include", "cstring", "-include", "cstdlib", "-include", "cstdio", "-I" + str(source), "tests/pattern_oracle.cpp", *map(str, sources), "-o", str(build / "oracle")])
 run([sys.executable, "tools/compile_barrage.py", str(patterns), str(build / "BarrageCode.cs")])
-compiler = args.tcs / "Transpiler/bin/Release/net10.0/Transpiler.dll"
-result = run(["dotnet", str(compiler), "game/Pattern.cs", "game/PatternNumber.cs", str(build / "BarrageCode.cs"), "tests/PatternTrace.cs", "--entry", "PatternTrace", "-o", str(build / "trace.lua")])
+lub = args.lub.resolve()
+result = run([*tcs(lub), "c", "game/Pattern.cs", "game/PatternNumber.cs", str(build / "BarrageCode.cs"), "tests/PatternTrace.cs", "--entry", "PatternTrace", "-o", str(build / "trace.c")])
 if result.strip(): print(result)
-(build / "run.lua").write_text('local trace = dofile(arg[1]); trace.Main()\n')
+flags = run(["bash", str(lub / "src/tcs/cflags.sh")]).split()
+run([args.cc, "-std=gnu11", *flags, "-w", str(build / "trace.c"), "-lm", "-o", str(build / "trace")])
 failures = []
 cases = 0
 maximum = 0.0
@@ -59,7 +63,7 @@ for path in sorted(patterns.rglob("*.xml")):
         name = path.relative_to(patterns).as_posix()
         env = dict(os.environ, PATTERN_NAME=name, PATTERN_RANK=rank, PATTERN_TURNS=str(args.turns))
         expected = run([str(build / "oracle"), str(path), rank, str(args.turns)]).splitlines()
-        actual = run([str(args.tcs / "deps/lua/lua32"), str(build / "run.lua"), str(build / "trace.lua")], env=env).splitlines()
+        actual = run([str((build / "trace").resolve())], env=env).splitlines()
         error = None
         if len(expected) != len(actual): error = f"trace length {len(expected)} != {len(actual)}"
         for index, (a, b) in enumerate(zip(expected, actual)):

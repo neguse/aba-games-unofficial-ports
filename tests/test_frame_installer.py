@@ -27,7 +27,7 @@ def shortcuts(entries):
 def archive(game):
     output = io.BytesIO()
     with ZipFile(output, 'w') as zip_:
-        for name in [game, game + '.dll', 'run.sh', 'Lub.dll', 'native/lub', 'native/liblub.so', 'LICENSE.txt']:
+        for name in [game, game + '.dll', 'run.sh', 'Lub.dll', 'native/liblub.so', 'LICENSE.txt']:
             info = ZipInfo(game + '/' + name)
             info.external_attr = 0o100755 << 16
             zip_.writestr(info, 'payload')

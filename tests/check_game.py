@@ -1,41 +1,40 @@
 import argparse
+import os
 from pathlib import Path
 import subprocess
 import sys
+from null_lub import null_api
 
-
+# The class whose static Main runs the game's checks and ends with the line "RESULT <failures>".
+entries = {'tumiki': 'GameVerification', 'parsec47': 'P47Verification', 'gunroar': 'GrVerification',
+           'titanion': 'TtnVerification', 'a7xpg': 'A7xVerification', 'torus-trooper': 'TtVerification',
+           'rrootage': 'RrVerification', 'noiz2sa': 'NrVerification', 'wok': 'WkVerification',
+           'mazer-mayhem': 'MmVerification', 'gear-toy-gear': 'GtgVerification', 'mu-cade': 'McdVerification',
+           'masashikun-hi': 'MasVerification'}
 parser = argparse.ArgumentParser()
 parser.add_argument('--lub', type=Path, required=True)
-parser.add_argument('--game', choices=['tumiki', 'parsec47', 'gunroar', 'titanion', 'a7xpg', 'torus-trooper', 'rrootage', 'noiz2sa', 'wok', 'mazer-mayhem', 'gear-toy-gear', 'mu-cade', 'masashikun-hi'], default='tumiki')
+parser.add_argument('--game', choices=list(entries), default='tumiki')
+parser.add_argument('--cc', default=os.environ.get('CC', 'cc'))
 args = parser.parse_args()
-output = Path(f'build/tests/{args.game}.lua')
-if args.game in ['mazer-mayhem', 'gear-toy-gear', 'mu-cade', 'masashikun-hi']:
-    subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub),
-                    '--game', args.game, '--output', str(output)], check=True)
-    runner = Path('build/mu-cade/lua-ode') if args.game == 'mu-cade' else args.lub / 'third_party/tcs/deps/lua/lua32'
-    subprocess.run([str(runner),
-                    f'tests/{args.game}/game.lua', str(output)], check=True)
-    sys.exit(0)
-entry = {'tumiki': 'GameVerification', 'parsec47': 'P47Verification', 'gunroar': 'GrVerification', 'titanion': 'TtnVerification', 'a7xpg': 'A7xVerification', 'torus-trooper': 'TtVerification', 'rrootage': 'RrVerification', 'noiz2sa': 'NrVerification', 'wok': 'WkVerification'}[args.game]
-test = 'tests/GameVerification.cs' if args.game == 'tumiki' else f'tests/{args.game}/GameVerification.cs'
-subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub),
-                '--game', args.game, '--entry', entry, '--test', test,
-                '--output', str(output)], check=True)
-runner = output.with_name('run-game.lua')
-runner.write_text('lub = {host = {available = function() return false end}}\n' + (
-    'lub.png = {load = function() return nil, 0, 0, 0, 0, 0, "pending" end}\n'
-    'lub.gfx = {use_buffer = function(key, kind, data) assert(#data > 0, key); return {version=1} end, '
-    'use_texture = function() return {version=1} end, draw = function() end}\n'
-    # Bindings is a table the setters fill; the checks only need the draw calls to run.
-    'local function set(b, name, value) b[name] = value end\n'
-    'for _, name in ipairs({"bindings_set_texture", "bindings_set_buffer", "bindings_set_frame_range", '
-    '"bindings_set_floats", "bindings_set_float_array"}) do lub.gfx[name] = set end\n'
-    'lub.gfx.bindings_set4 = function(b, name, count, x, y, z, w) b[name] = {x, y, z, w} end\n'
-    'lub.gfx.bindings_set16 = function(b, name, ...) b[name] = {...} end\n'
-    'lub.gfx.bindings_clear = function(b) for k in pairs(b) do b[k] = nil end end\n'
-    # lub's cs-lib (Blends) reads the lub.gfx constants when it loads, so every game needs the table.
-    if args.game in ['gunroar', 'titanion', 'parsec47', 'tumiki', 'torus-trooper', 'a7xpg', 'rrootage'] else 'lub.gfx = {}\n') + 'local game = dofile(arg[1]); game.Main()\n')
-result = subprocess.run([str(args.lub / 'third_party/tcs/deps/lua/lua32'), str(runner), str(output)],
-                        text=True, stdout=subprocess.PIPE, check=True)
+lub = args.lub.resolve()
+build = Path('build/tests') / args.game
+test = Path('tests/GameVerification.cs') if args.game == 'tumiki' else Path(f'tests/{args.game}/GameVerification.cs')
+subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(lub), '--game', args.game,
+                '--test', str(test), '--ref', 'tests/NullLub.cs', '--output', str(build)], check=True)
+# The game's C runs alone: lub is the API that draws, plays and loads nothing.
+(build / 'null_lub.c').write_text(null_api(lub), encoding='utf-8')
+host, native = '', []
+if args.game == 'mu-cade':
+    # Mu-cade's physics is ODE, which its C calls through games/mu-cade/ode_host.c.
+    subprocess.run([sys.executable, 'tools/build_mucade_runtime.py', '--native'], check=True)
+    host = f'#include "{Path("games/mu-cade/ode_host.c").resolve().as_posix()}"\n'
+    native = ['-I', '.cache/ode/odedevs-ode-7bac210f051b/include', 'build/mu-cade/native/libode.a', '-lstdc++']
+(build / 'test.c').write_text('#include "game.c"\n#include "binding.c"\n#include "null_lub.c"\n' + host +
+                              f'int main(void) {{ tcs_lib_init(); tcs_entry_{entries[args.game]}_Main(); return 0; }}\n',
+                              encoding='utf-8')
+flags = subprocess.run(['bash', str(lub / 'src/tcs/cflags.sh')], check=True, capture_output=True, text=True).stdout.split()
+subprocess.run([args.cc, '-std=gnu11', *flags, '-w', '-I', str(lub / 'include'), str(build / 'test.c'), *native,
+                '-lm', '-o', str(build / 'test')], check=True)
+result = subprocess.run([str(build.resolve() / 'test')], text=True, stdout=subprocess.PIPE)
 print(result.stdout, end='')
-sys.exit(0 if result.stdout.rstrip().endswith('RESULT 0') else 1)
+sys.exit(0 if result.returncode == 0 and result.stdout.rstrip().endswith('RESULT 0') else 1)

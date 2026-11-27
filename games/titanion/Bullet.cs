@@ -19,7 +19,7 @@ public class BulletPool
         return pool.getInstance();
     }
 
-    public void draw_0(float[] model, float[] color, Blend blend)
+    public void draw_0(float[] model, float[] color, Blend? blend)
     {
         pool.draw_0(model, color, blend);
     }
@@ -118,7 +118,7 @@ public class Bullet : Actor
         exists = false;
     }
 
-    public void draw_0(float[] model, float[] color, Blend blend)
+    public void draw_0(float[] model, float[] color, Blend? blend)
     {
         spec.draw_1(model, color, blend, state);
     }
@@ -264,7 +264,7 @@ public class BulletSpec
         }
     }
 
-    public void draw_1(float[] model, float[] color, Blend blend, BulletState bs)
+    public void draw_1(float[] model, float[] color, Blend? blend, BulletState bs)
     {
         {
             if (bs.waitCnt > 0)

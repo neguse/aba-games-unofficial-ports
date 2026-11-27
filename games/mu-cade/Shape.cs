@@ -9,7 +9,7 @@ public interface Shape
     public void addMass(OdeMass m, Vector3 sizeScale = null, float massScale = 1);
     public void addGeom_3(OdeActor oa, OdeHandle sid, Vector3 sizeScale = null);
     public void recordLinePoints_1(LinePoint lp);
-    public void drawShadow_1(float[] model, float[] tint, Blend blend, string key, LinePoint lp);
+    public void drawShadow_1(float[] model, float[] tint, Blend? blend, string key, LinePoint lp);
 }
 
 public class ShapeGroup : Shape
@@ -50,7 +50,7 @@ public class ShapeGroup : Shape
             s.recordLinePoints_1(lp);
     }
 
-    public void drawShadow_1(float[] model, float[] tint, Blend blend, string key, LinePoint lp)
+    public void drawShadow_1(float[] model, float[] tint, Blend? blend, string key, LinePoint lp)
     {
         foreach (Shape s in shapes)
             s.drawShadow_1(model, tint, blend, key + "-drawShadow_1-1", lp);
@@ -155,7 +155,7 @@ public class Square : Shape
         lp.record(-1, -1, 0);
     }
 
-    public void drawShadow_1(float[] model, float[] tint, Blend blend, string key, LinePoint lp)
+    public void drawShadow_1(float[] model, float[] tint, Blend? blend, string key, LinePoint lp)
     {
         lp.setPos(pos); lp.setSize(size);
         tint = lp.shadowColor();
@@ -250,7 +250,7 @@ public class Sphere : Shape
         lp.record(-1, -1, 0);
     }
 
-    public void drawShadow_1(float[] model, float[] tint, Blend blend, string key, LinePoint lp)
+    public void drawShadow_1(float[] model, float[] tint, Blend? blend, string key, LinePoint lp)
     {
         lp.setPos(pos); lp.setSize(size);
         tint = lp.shadowColor();
@@ -312,7 +312,7 @@ public class Triangle : Shape
         lp.record(0, 1, 0);
     }
 
-    public void drawShadow_1(float[] model, float[] tint, Blend blend, string key, LinePoint lp)
+    public void drawShadow_1(float[] model, float[] tint, Blend? blend, string key, LinePoint lp)
     {
         lp.setPos(pos); lp.setSize(size);
         tint = lp.shadowColor();
@@ -390,7 +390,7 @@ public class Box : Shape
         lp.record(-1, 1, -1);
     }
 
-    public void drawShadow_1(float[] model, float[] tint, Blend blend, string key, LinePoint lp)
+    public void drawShadow_1(float[] model, float[] tint, Blend? blend, string key, LinePoint lp)
     {
         lp.setPos(pos); lp.setSize(size);
         tint = lp.shadowColor();
@@ -613,7 +613,7 @@ public class LinePoint
         return new float[] { spectrumColorR * 0.3f, spectrumColorG * 0.3f, spectrumColorB * 0.3f, 1 };
     }
 
-    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend? blend, string key, Mesh target = null)
     {
         string geometryKey = key + "-draw";
         if (!geometry.ContainsKey(geometryKey)) geometry[geometryKey] = new Mesh(geometryKey);
@@ -633,7 +633,7 @@ public class LinePoint
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public void drawWithSpectrumColor(float[] model, float[] tint, Blend blend, string key)
+    public void drawWithSpectrumColor(float[] model, float[] tint, Blend? blend, string key)
     {
         string geometryKey = key + "-drawWithSpectrumColor";
         if (!geometry.ContainsKey(geometryKey)) geometry[geometryKey] = new Mesh(geometryKey);
@@ -656,7 +656,7 @@ public class LinePoint
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public void drawSpectrum(float[] model, float[] tint, Blend blend, string key)
+    public void drawSpectrum(float[] model, float[] tint, Blend? blend, string key)
     {
         string geometryKey = key + "-drawSpectrum";
         if (!geometry.ContainsKey(geometryKey)) geometry[geometryKey] = new Mesh(geometryKey);
@@ -725,13 +725,13 @@ public class LinePoint
 
 public interface Drawable
 {
-    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null);
+    public void draw(float[] model, float[] tint, Blend? blend, string key, Mesh target = null);
 }
 
 public class EyeShape : Drawable
 {
     static Mesh geometry;
-    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend? blend, string key, Mesh target = null)
     {
         if (geometry == null) {
             var mesh = new Mesh("EyeShape");
@@ -772,7 +772,7 @@ public class EyeShape : Drawable
 public class CenterShape : Drawable
 {
     static Mesh geometry;
-    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend? blend, string key, Mesh target = null)
     {
         if (geometry == null) {
             var mesh = new Mesh("CenterShape");

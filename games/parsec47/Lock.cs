@@ -163,7 +163,7 @@ public class Lock: Actor {
     cnt++;
   }
 
-  public void draw(float[] model, float[] color, Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Blend? blend, Mesh target = null) {
     var mesh = new Mesh("Lock-draw" + "-" + meshKey);
     switch (state) {
     case LOCKING: {

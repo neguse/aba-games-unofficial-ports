@@ -13,7 +13,6 @@ from link_web import link, mucade
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--lub', type=Path, required=True)
-parser.add_argument('--tcs', type=Path, required=True)
 parser.add_argument('--emsdk', type=Path, required=True)
 parser.add_argument('--original', type=Path)
 args = parser.parse_args()
@@ -21,8 +20,8 @@ args = parser.parse_args()
 
 def compiled(game, target, **native):
     source = Path('build/web-c') / game
-    subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
-                    '--game', game, '--c', str(source)], check=True)
+    subprocess.run([sys.executable, 'tools/compile_game.py', '--lub', str(args.lub),
+                    '--game', game, '--output', str(source)], check=True)
     link(args.lub, args.emsdk, source, target / 'wasm', **native)
     for path in sorted((Path('build') / game / 'images').glob('*.png')):
         (target / 'images').mkdir(exist_ok=True)
@@ -60,8 +59,6 @@ for path in Path('web').iterdir():
 shutil.copytree(original / 'sounds', dist / 'audio', dirs_exist_ok=True)
 licenses = Path('LICENSE').read_text() + '\n\nlub\n---\n' + (args.lub / 'LICENSE').read_text()
 licenses += '\n\n' + (args.lub / 'THIRD_PARTY_LICENSES.md').read_text()
-licenses += '\n\ntcs2c runtime\n---\n' + (args.tcs / 'LICENSE').read_text()
-licenses += '\n\n' + (args.tcs / 'THIRD_PARTY_LICENSES.md').read_text()
 (dist / 'LICENSE.txt').write_text(licenses)
 archive = Path('.cache/p47_0_21.zip')
 if not archive.exists():
@@ -145,7 +142,7 @@ tt = Path('.cache/original/tt')
 target = dist / 'torus-trooper'
 target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_torus.py', str(tt)], check=True)
-subprocess.run([sys.executable, 'tools/compile_frame_web.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
+subprocess.run([sys.executable, 'tools/compile_frame_web.py', '--lub', str(args.lub),
                 '--emsdk', str(args.emsdk), '--game', 'torus-trooper', '--original', str(tt), '--output', str(target)], check=True)
 archive = Path('.cache/rr0_24.zip')
 if not archive.exists():
@@ -211,7 +208,7 @@ mm = Path('.cache/original/Mm/Mm')
 target = dist / 'mazer-mayhem'
 target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_mazer.py', str(mm)], check=True)
-subprocess.run([sys.executable, 'tools/compile_frame_web.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
+subprocess.run([sys.executable, 'tools/compile_frame_web.py', '--lub', str(args.lub),
                 '--emsdk', str(args.emsdk), '--game', 'mazer-mayhem', '--original', str(mm), '--output', str(target)], check=True)
 archive = Path('.cache/GearToyGear0_1.zip')
 if not archive.exists():
@@ -224,7 +221,7 @@ gtg = Path('.cache/original/GearToyGear/GearToyGear')
 target = dist / 'gear-toy-gear'
 target.mkdir(exist_ok=True)
 subprocess.run([sys.executable, 'tools/compile_gear.py', str(gtg)], check=True)
-subprocess.run([sys.executable, 'tools/compile_frame_web.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
+subprocess.run([sys.executable, 'tools/compile_frame_web.py', '--lub', str(args.lub),
                 '--emsdk', str(args.emsdk), '--game', 'gear-toy-gear', '--original', str(gtg), '--output', str(target)], check=True)
 archive = Path('.cache/mcd0_11.zip')
 if not archive.exists():
@@ -236,7 +233,7 @@ with zipfile.ZipFile(archive) as source:
 mcd = Path('.cache/original/mcd')
 target = dist / 'mu-cade'
 target.mkdir(exist_ok=True)
-subprocess.run([sys.executable, 'tools/build_mucade_runtime.py', '--lub', str(args.lub)], check=True)
+subprocess.run([sys.executable, 'tools/build_mucade_runtime.py'], check=True)
 subprocess.run([sys.executable, 'tools/compile_mucade.py', str(mcd)], check=True)
 compiled('mu-cade', target, **mucade)
 shutil.copy2('games/mu-cade/index.html', target / 'index.html')
@@ -248,6 +245,6 @@ for path in (mcd / 'sounds').rglob('*'):
 (target / 'LICENSE.txt').write_text(Path('games/mu-cade/LICENSE.txt').read_text() + '\n\n' + licenses)
 for target in [dist] + [dist / game for game in ['parsec47', 'gunroar', 'titanion', 'a7xpg', 'rrootage', 'noiz2sa', 'wok', 'mu-cade']]:
     write_assets(target)
-subprocess.run([sys.executable, 'tools/build_masashikun.py', '--lub', str(args.lub), '--tcs', str(args.tcs),
+subprocess.run([sys.executable, 'tools/build_masashikun.py', '--lub', str(args.lub),
                 '--emsdk', str(args.emsdk)], check=True)
 print('Built dist/')

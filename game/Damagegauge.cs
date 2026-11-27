@@ -50,7 +50,7 @@ public class DamageGauge {
     cnt++;
   }
 
-  public void draw(float[] model, float[] tint, Blend blend, bool depth, Gfx.Cull cull, float width) {
+  public void draw(float[] model, float[] tint, Blend? blend, bool depth, Gfx.Cull cull, float width) {
     float x = 18, y = -13;
     foreach (DamageGaugeItem dgi in item) {
       if (dgi.part != null) {

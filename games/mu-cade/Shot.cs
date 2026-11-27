@@ -123,7 +123,7 @@ public class Shot : Actor, OdeActor
         model = parent1;
     }
 
-    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend? blend, string key, Mesh target = null)
     {
         if (removeCnt > 0)
             return;
@@ -203,7 +203,7 @@ public class ShotPool
         pool.move_0();
     }
 
-    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend? blend, string key, Mesh target = null)
     {
         pool.draw(model, tint, blend, key, target);
     }
@@ -338,7 +338,7 @@ public class EnhancedShot : Actor, OdeActor
         model = parent1;
     }
 
-    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend? blend, string key, Mesh target = null)
     {
         if (removeCnt > 0)
             return;
@@ -417,7 +417,7 @@ public class EnhancedShotPool
         pool.move_0();
     }
 
-    public void draw(float[] model, float[] tint, Blend blend, string key, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend? blend, string key, Mesh target = null)
     {
         pool.draw(model, tint, blend, key, target);
     }

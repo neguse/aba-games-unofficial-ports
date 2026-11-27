@@ -37,10 +37,11 @@ try
     if (pad.ButtonA || pad.ButtonB || pad.ButtonBack) throw new Exception("Menu buttons affect gameplay");
     Pad.Read(null, new XrInput { Active = true, Secondary = true }, true);
     if (!pad.ButtonBack) throw new Exception("Cannot leave paused game");
-    var reference = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "reference.lua"));
-    reference = reference.Split("local reference={")[1].Split("}\nlocal f=")[0];
-    var expected = Regex.Matches(reference, @"\{([^}]+)\}")
-        .Select(m => m.Groups[1].Value.Split(',').Select(v => double.Parse(v, CultureInfo.InvariantCulture)).ToArray()).ToArray();
+    // The table of the original C# run is the one tests/gear-toy-gear/GameVerification.cs checks.
+    var reference = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "reference.cs"));
+    reference = reference.Split("static readonly float[][] reference = new float[][] {")[1].Split("};")[0];
+    var expected = Regex.Matches(reference, @"new float\[\] \{([^}]+)\}")
+        .Select(m => m.Groups[1].Value.Split(',').Select(v => double.Parse(v.Trim().TrimEnd('f'), CultureInfo.InvariantCulture)).ToArray()).ToArray();
     var frame = new GtgFrame();
     frame.LoadContent(); frame.Seed(1); frame.StartGame();
     for (int tick = 1; tick <= 300; tick++)

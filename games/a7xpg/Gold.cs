@@ -68,7 +68,7 @@ public class Gold : LuminousActor
         }
     }
 
-    public void draw(float[] model, float[] tint, Blend blend, Mesh target = null)
+    public void draw(float[] model, float[] tint, Blend? blend, Mesh target = null)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, pos.x, pos.y, 0.5f);
@@ -84,7 +84,7 @@ public class Gold : LuminousActor
         model = parent1;
     }
 
-    public void drawLuminous(float[] model, float[] tint, Blend blend, Mesh target = null)
+    public void drawLuminous(float[] model, float[] tint, Blend? blend, Mesh target = null)
     {
         float[] parent1 = model;
         model = Transform.Translate(model, pos.x, pos.y, 0.5f);

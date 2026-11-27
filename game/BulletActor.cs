@@ -256,7 +256,7 @@ public class BulletActor: Actor {
   public const int BULLET_COLOR = 8;
   public const int BULLET_SHADE = 3;
 
-  public void draw(float[] model, float[] tint, Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] tint, Blend? blend, Mesh target = null) {
     bool depth = false; Gfx.Cull cull = Gfx.Cull.Front; float width = bullet.type == BulletType.ENEMY ? 2 : 1;
     if (!isVisible)
       return;

@@ -39,12 +39,12 @@ def project(game, lub, directory):
         sources.append(ROOT / 'native/MucadePhysics.cs')
     root = ET.Element('Project', Sdk='Microsoft.NET.Sdk')
     props = ET.SubElement(root, 'PropertyGroup')
-    for k, v in {'TargetFramework':'net10.0', 'AssemblyName':'AbaGame',
+    for k, v in {'TargetFramework':'net11.0', 'AssemblyName':'AbaGame',
                  'EnableDefaultCompileItems':'false', 'ImplicitUsings':'enable',
                  'InvariantGlobalization':'true', 'GenerateDependencyFile':'true'}.items():
         ET.SubElement(props, k).text = v
     refs = ET.SubElement(root, 'ItemGroup')
-    for path in [lub / 'dotnet/Lub/Lub.csproj', lub / 'third_party/tcs/TinySystem/TinySystem.csproj']:
+    for path in [lub / 'dotnet/Lub/Lub.csproj', lub / 'src/tcs-system/tcs-system.csproj']:
         ET.SubElement(refs, 'ProjectReference', Include=str(path))
     for path in sources:
         if not path.exists():

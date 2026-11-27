@@ -332,7 +332,7 @@ public class Ship
         }
     }
 
-    public void draw(float[] model, float[] tint, Blend blend)
+    public void draw(float[] model, float[] tint, Blend? blend)
     {
         if (cnt < -INVINCIBLE_CNT || (cnt < 0 && (-cnt % 32) < 16))
             return;
@@ -350,7 +350,7 @@ public class Ship
         model = parent1;
     }
 
-    public void drawLuminous(float[] model, float[] tint, Blend blend)
+    public void drawLuminous(float[] model, float[] tint, Blend? blend)
     {
         if (cnt < -INVINCIBLE_CNT || (cnt < 0 && (-cnt % 32) < 16))
             return;
@@ -366,7 +366,7 @@ public class Ship
         model = parent1;
     }
 
-    public void drawGauge(float[] model, float[] tint, Blend blend)
+    public void drawGauge(float[] model, float[] tint, Blend? blend)
     {
         var mesh = new Mesh("Ship-drawGauge");
         if (invincible)

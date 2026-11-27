@@ -600,7 +600,7 @@ public class Enemy: Actor {
       checkDamage();
   }
 
-  public void draw(float[] model, float[] color, Blend blend, Mesh target = null) {
+  public void draw(float[] model, float[] color, Blend? blend, Mesh target = null) {
     var mesh = new Mesh("Enemy-draw" + "-" + meshKey);
     float ap=0;
     if (appCnt > 0) {

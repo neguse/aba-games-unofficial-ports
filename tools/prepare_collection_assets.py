@@ -51,7 +51,7 @@ def text(path):
         return data.decode('cp932')
 
 
-def licenses(game, original, lub, tcs):
+def licenses(game, original, lub):
     notices = []
     for name in ['readme_e.txt', 'LICENSE.txt', 'license.txt']:
         path = original / name
@@ -63,8 +63,7 @@ def licenses(game, original, lub, tcs):
     if game == 'a7xpg':
         notices.append(('Phobos', ROOT / 'games/a7xpg/PHOBOS-LICENSE.txt'))
     notices += [('Shared port sources', ROOT / 'LICENSE'), ('lub', lub / 'LICENSE'),
-                ('lub third-party notices', lub / 'THIRD_PARTY_LICENSES.md'), ('TinySystem', tcs / 'LICENSE'),
-                ('tcs third-party notices', tcs / 'THIRD_PARTY_LICENSES.md')]
+                ('lub third-party notices', lub / 'THIRD_PARTY_LICENSES.md')]
     return '\n\n'.join(f'{label}\n{"=" * len(label)}\n{text(path)}' for label, path in notices) + '\n'
 
 
@@ -126,7 +125,7 @@ def tracked_sources(directory):
             yield directory / name
 
 
-def source_bundle(target, original, lub, tcs):
+def source_bundle(target, original, lub):
     """Ship the GPL game's editable source and a standalone native rebuild path."""
     prefix = 'masashikun-hi-source/'
     included = {}
@@ -196,9 +195,9 @@ run(sys.executable, 'tools/compile_masashikun.py', 'original')
 shader=root/'build/shaders/masashikun-hi/Shaders.cs'; shader.parent.mkdir(parents=True,exist_ok=True)
 shader.write_text('public static class GameShaders {\n'+''.join('public static string '+n+' = '+json.dumps((root/('games/masashikun-hi/game.'+s+'.slang')).read_text())+';\n' for n,s in [('vertex','vs'),('fragment','fs')])+'}\n')
 project=E.Element('Project',Sdk='Microsoft.NET.Sdk'); props=E.SubElement(project,'PropertyGroup')
-for k,v in {'TargetFramework':'net10.0','AssemblyName':'AbaGame','EnableDefaultCompileItems':'false','ImplicitUsings':'enable','InvariantGlobalization':'true','GenerateDependencyFile':'true'}.items(): E.SubElement(props,k).text=v
+for k,v in {'TargetFramework':'net11.0','AssemblyName':'AbaGame','EnableDefaultCompileItems':'false','ImplicitUsings':'enable','InvariantGlobalization':'true','GenerateDependencyFile':'true'}.items(): E.SubElement(props,k).text=v
 refs=E.SubElement(project,'ItemGroup')
-for source in [root/'lub/dotnet/Lub/Lub.csproj',root/'lub/third_party/tcs/TinySystem/TinySystem.csproj']: E.SubElement(refs,'ProjectReference',Include=str(source))
+for source in [root/'lub/dotnet/Lub/Lub.csproj',root/'lub/src/tcs-system/tcs-system.csproj']: E.SubElement(refs,'ProjectReference',Include=str(source))
 shared=[root/'game'/n for n in ['Scene.cs','Standalone.cs','AsciiText.cs','GameInput.cs','GameAudio.cs','GameSave.cs']]+[root/'lub/cs-lib/lubx'/n for n in ['Assets.cs','Atlas.cs','Color.cs','Rect.cs','SpriteBatch.cs','Text.cs']]+sorted((root/'lub/cs-lib/lub').glob('*.cs'))
 for source in [*sorted((root/'games/masashikun-hi').glob('*.cs')),*sorted((root/'build/masashikun-hi').glob('*.cs')),*shared,shader]: E.SubElement(refs,'Compile',Include=str(source))
 proj=root/'build/Masashikun.csproj'; E.ElementTree(project).write(proj,encoding='unicode')
@@ -240,7 +239,7 @@ print(out)
         add(bundle, target / 'LICENSE.txt', 'DISTRIBUTION-LICENSE.txt')
         add(bundle, ROOT / 'LICENSE', 'SHARED-PORT-LICENSE.txt')
         # The tracked public engine source includes vendored static dependencies,
-        # managed facade, TinySystem, headers and its original build scripts.
+        # managed facade, tcs and TinySystem, headers and its original build scripts.
         # Exclude examples/unrelated assets, history, and generated binaries.
         allowed = {'src','include','cs-lib','dotnet','third_party','tools','scripts','tests'}
         for path in tracked_sources(lub):
@@ -255,8 +254,7 @@ print(out)
         for name in ['MPLUS1p-subset.ttf','MPLUS1p-OFL.txt']:
             add(bundle, lub / 'samples/data/fonts' / name, 'lub/samples/data/fonts/' + name)
         revisions = {}
-        for name, directory in [('lub',lub),('TinySystem',tcs)]:
-            revisions[name] = subprocess.check_output(['git','-C',str(directory),'rev-parse','HEAD'],text=True).strip()
+        revisions['lub'] = subprocess.check_output(['git','-C',str(lub),'rev-parse','HEAD'],text=True).strip()
         revisions['note'] = 'Source bytes include current local integration fixes; hashes are in SOURCE-MANIFEST.json.'
         put(bundle, 'DEPENDENCIES.json', json.dumps(revisions,indent=2).encode())
         put(bundle, 'README.txt', readme.encode())
@@ -270,13 +268,12 @@ print(out)
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--lub', type=Path, required=True)
-    parser.add_argument('--tcs', type=Path)
     parser.add_argument('--cache', type=Path, default=ROOT / '.cache')
     parser.add_argument('--output', type=Path, default=ROOT / 'build/collection-assets')
     parser.add_argument('--jobs', type=int, default=4)
     parser.add_argument('--source-only', action='store_true', help='refresh the source bundle after native host changes, without reconverting audio')
     args = parser.parse_args()
-    lub = args.lub.resolve(); tcs = (args.tcs or lub / 'third_party/tcs').resolve()
+    lub = args.lub.resolve()
     cache = args.cache.resolve(); output = args.output.resolve()
     if output == ROOT / 'dist' or ROOT / 'dist' in output.parents or output == ROOT:
         parser.error('--output must be a separate native asset directory, not dist/ or the repository root')
@@ -300,7 +297,7 @@ def main():
     if args.source_only:
         target = output / 'masashikun-hi'
         target.mkdir(parents=True, exist_ok=True)
-        count = source_bundle(target, cache / 'original/mas', lub, tcs)
+        count = source_bundle(target, cache / 'original/mas', lub)
         report_path = output / 'collection-assets.json'
         if report_path.exists():
             report = json.loads(report_path.read_text())
@@ -338,13 +335,13 @@ def main():
             shaders = sorted((ROOT / 'games/torus-trooper/frame').glob('mesh.*.slang'))
         for path in shaders:
             shutil.copy2(path,target / path.name)
-        (target / 'LICENSE.txt').write_text(licenses(game,original,lub,tcs),encoding='utf-8')
+        (target / 'LICENSE.txt').write_text(licenses(game,original,lub),encoding='utf-8')
         files = [str(Path('audio') / Path(job[-1]).name) for job in jobs]
         files += ['images/' + path.name for path in image_files] + [path.name for path in shaders]
         (target / 'assets.json').write_text(json.dumps(files,indent=2)+'\n')
         report['games'][game] = {'audio':len(jobs),'images':len(image_files),'shaders':len(shaders)}
         print(f'{game}: {len(jobs)} PCM WAV, {len(image_files)} images, license ready',flush=True)
-    count = source_bundle(output / 'masashikun-hi', cache / 'original/mas', lub, tcs)
+    count = source_bundle(output / 'masashikun-hi', cache / 'original/mas', lub)
     report['games']['masashikun-hi']['source_files'] = count
     report['games']['masashikun-hi']['source_sha256'] = digest(output / 'masashikun-hi/source.tar.gz')
     (output / 'collection-assets.json').write_text(json.dumps(report,indent=2)+'\n')

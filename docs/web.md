@@ -164,7 +164,7 @@ WebXR対応ブラウザでは「VRで遊ぶ」で没入表示に切り替わり�
 
 弾幕13種と文字・タイトル画像をビルド時に変換する。連結・衝突・反力は
 ODE 0.5.0（`7bac210f051b3ffcfaf9a168db3d7c302f7a49a4`）を倍精度で実行し、
-TinyC#との接続だけを`ode_host.c`（Wasm）と`ode.cpp`（Luaでの検証）に持つ。
+TinyC#との接続だけを`ode_host.c`に持ち、Wasmと`check_game.py`の両方で使う。
 ODEを含むWasmは`build/web-c-mu-cade/`で別にビルドし、`mu-cade/wasm/`へ配置する。
 
 ## まさしくんハイ！
@@ -176,13 +176,13 @@ GPLの対応ソースを配布物に含める。単体ビルドと検証は[手�
 
 ## ビルド
 
-Linux、Git、Python 3.12以降、.NET SDK 10、Node.js 26、C/C++コンパイラ、
+Linux、Git、Python 3.12以降、.NET SDK 11、Node.js 26、C/C++コンパイラ、
 CMake、Ninja、curl、unzip、libvorbisデコーダー付きFFmpeg、Emscripten SDK 5.0.2が必要。
 emsdkの`emsdk_env.sh`を読み込み、リポジトリのルートで実行する。
 
 ```sh
 bash tools/setup_lub.sh
-python3 tools/build.py --lub .cache/lub --tcs .cache/lub/third_party/tcs --emsdk /path/to/emsdk
+python3 tools/build.py --lub .cache/lub --emsdk /path/to/emsdk
 python3 -m http.server 8765 --directory dist --bind 127.0.0.1
 ```
 
@@ -193,7 +193,7 @@ Titanionは`http://127.0.0.1:8765/titanion/`を開く。同じビルドで全作
 原作アーカイブのSHA-256はビルド時に照合する。
 展開済みの原作を使う場合は`--original /path/to/tf`を指定する。
 
-lubは`f94e494437a7a346205ec6b8cef87c3572ebfa12`に固定する。
+lubは`fcc4d8a71b08f8357bd964e7339909540412fc96`に固定する。tcsはlubに含まれるものを使う。
 全作品をtcs2cでCへ変換し、lubとリンクしたWasmを作品ごとの`wasm/`へ配置する。
 画像は`build/<作品>/images/`にPNGで書き出し、`assets.json`に列挙して実行時に`Png.Load`で読む。
 Torus Trooper・GearToyGear・Mazer Mayhemはネイティブ版と同じC#・描画・操作・シェーダーを使う。
@@ -232,14 +232,14 @@ python3 tests/check_game.py --lub .cache/lub --game mu-cade
 ゲームの検証は部品の取得・接続・収納・反撃・切断・得点・難易度変化、敵の部分破壊、コンティニューと、
 自動操作・無敵状態での全5面からエンディングへの進行を確認する。
 
-`check_game.py`は同じC#をLuaへ変換して実行するゲームロジックの検証で、配布物には含めない。
+`check_game.py`は同じC#をtcsでCへ変換し、描画・音・読み込みをしないlubのAPI（`tests/null_lub.py`）とリンクしてネイティブで実行するゲームロジックの検証で、配布物には含めない。
 
 ブラウザ検証にはPlaywrightを使用する。観測用のビルドを`build/web-test/`に作り、それを配信して実行する。
 
 ```sh
 npm install --prefix .cache/browser --no-save playwright@1.60.0
 .cache/browser/node_modules/.bin/playwright install chromium
-python3 tools/build_web_test.py --lub .cache/lub --tcs .cache/lub/third_party/tcs --emsdk /path/to/emsdk --game tumiki
+python3 tools/build_web_test.py --lub .cache/lub --emsdk /path/to/emsdk --game tumiki
 python3 -m http.server 8766 --directory build/web-test --bind 127.0.0.1
 node tests/browser.mjs http://127.0.0.1:8766/tumiki.html
 node tests/parsec47/browser.mjs http://127.0.0.1:8766/parsec47/

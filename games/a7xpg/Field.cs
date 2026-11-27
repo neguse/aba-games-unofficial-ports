@@ -60,7 +60,7 @@ public class Field
         eyeZ = eyeZ + ((eyeZa - eyeZ) * 0.06f);
     }
 
-    public void draw(float[] model, float[] tint, Blend blend)
+    public void draw(float[] model, float[] tint, Blend? blend)
     {
         var mesh = new Mesh("Field-draw");
         int part1 = mesh.vertexCount;
@@ -90,7 +90,7 @@ public class Field
             new DrawOpts { Shader = Game.shader, Depth = false, Cull = Gfx.Cull.None, Blend = blend });
     }
 
-    public void drawLuminous(float[] model, float[] tint, Blend blend)
+    public void drawLuminous(float[] model, float[] tint, Blend? blend)
     {
         var mesh = new Mesh("Field-drawLuminous");
         tint = new float[] { lr, lg, lb, 0.9f * alpha };

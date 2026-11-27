@@ -68,9 +68,8 @@ Mazer Mayhem は倍率をためて両トリガーを同時に引くとハイパ�
 
 | 依存 | 使用コミット／バージョン |
 | --- | --- |
-| Lub | [`f94e494437a7a346205ec6b8cef87c3572ebfa12`](https://github.com/neguse/lub/tree/f94e494437a7a346205ec6b8cef87c3572ebfa12) |
-| tcs | [`600989c55342a8acfaa71eb98e18e919b2e5a960`](https://github.com/neguse/tcs/tree/600989c55342a8acfaa71eb98e18e919b2e5a960)（Lub のサブモジュール） |
-| .NET SDK | 10 |
+| Lub | [`fcc4d8a71b08f8357bd964e7339909540412fc96`](https://github.com/neguse/lub/tree/fcc4d8a71b08f8357bd964e7339909540412fc96)（tcs を含む） |
+| .NET SDK | 11 |
 | Slang | 2026.8.1 Linux ARM64 公式バイナリ |
 
 Frame のビルドには上記の Lub コミットを使用する。
@@ -78,23 +77,17 @@ Frame のビルドには上記の Lub コミットを使用する。
 
 ## ビルド
 
-Linux ARM64、Git、.NET SDK 10、Python 3、FFmpeg、C/C++ コンパイラ、
+Linux ARM64、Git、.NET SDK 11、Python 3、FFmpeg、C/C++ コンパイラ、
 CMake、Ninja、Vulkan 開発ライブラリ、zip を使用する。
 利用する Release のタグをチェックアウトし、以下はリポジトリルートから実行する。
 
 ```sh
 git clone https://github.com/neguse/lub.git ../lub-frame
-git -C ../lub-frame checkout --detach f94e494437a7a346205ec6b8cef87c3572ebfa12
+git -C ../lub-frame checkout --detach fcc4d8a71b08f8357bd964e7339909540412fc96
 git -C ../lub-frame submodule update --init --recursive
-dotnet build ../lub-frame/third_party/tcs/Transpiler/Transpiler.csproj -c Release
-(
-  cd ../lub-frame
-  timeout 7200 bash scripts/build-release.sh --target lub
-  timeout 7200 bash scripts/build-release.sh --target lub_shared --no-configure
-)
+(cd ../lub-frame && timeout 7200 bash scripts/build-release.sh --target lub_shared)
 
 mkdir -p build/frame/native
-cp -L ../lub-frame/build-release-linux/lub build/frame/native/
 cp -L ../lub-frame/build-release-linux/liblub.so build/frame/native/
 cp -L ../lub-frame/build-release-linux/third_party/SDL/libSDL3.so.0 build/frame/native/
 cp -L ../lub-frame/build-release-linux/third_party/openxr/src/loader/libopenxr_loader.so.1 build/frame/native/
@@ -132,7 +125,7 @@ mv build/mm-frame/publish build/frame/MazerMayhem
 ```
 
 Torus Trooperは`--runtime coreclr`（既定）、`--runtime tcs2c`、`--runtime both`で
-実行方式を選ぶ。tcs2cを含む場合は`--tcs ../lub-frame/third_party/tcs`を指定し、
+実行方式を選ぶ。tcs2cを含む場合は
 GCCまたはClangでCをビルドする（`--cc`でコンパイラーを指定できる）。
 両方を含む配布物では`LUB_RUNTIME=coreclr ./run.sh`または
 `LUB_RUNTIME=tcs2c ./run.sh`で起動する。3作ともゲーム・描画・操作の
