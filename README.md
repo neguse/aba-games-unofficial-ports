@@ -89,8 +89,8 @@ git -C ../lub-frame submodule update --init --recursive
 
 mkdir -p build/frame/native
 cp -L ../lub-frame/build-release-linux/liblub.so build/frame/native/
-cp -L ../lub-frame/build-release-linux/third_party/SDL/libSDL3.so.0 build/frame/native/
-cp -L ../lub-frame/build-release-linux/third_party/openxr/src/loader/libopenxr_loader.so.1 build/frame/native/
+cp -L ../lub-frame/build-release-linux/deps/lib/libSDL3.so.0 build/frame/native/
+cp -L ../lub-frame/build-release-linux/deps/lib/libopenxr_loader.so.1 build/frame/native/
 cp -L ../lub-frame/third_party/slang/lib/libslang-compiler.so.0.2026.8.1 build/frame/native/
 ```
 
